@@ -231,7 +231,7 @@ html.kd-lock {
 
 /* --- сетка */
 
-.kd-grid {
+.kd .kd-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
@@ -444,7 +444,7 @@ img.media-missing {
 }
 
 @media (min-width: 600px) {
-  .kd-grid {
+  .kd .kd-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     padding: 10px 16px 0;
@@ -463,7 +463,7 @@ img.media-missing {
 }
 
 @media (min-width: 960px) {
-  .kd-grid {
+  .kd .kd-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 

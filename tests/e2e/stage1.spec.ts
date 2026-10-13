@@ -1,7 +1,7 @@
 // P04: прохождение этапа 1 правильными ответами; неверный ответ −5, повтор — без штрафа;
 // перезагрузка не теряет прогресс. Ответы — из tests/.answers.json.
 import { test, expect } from "@playwright/test";
-import { loadAnswers, startGame, article, fillQuestion, submit, solve, headerScore, envelopeOpened } from "./helpers";
+import { loadAnswers, startGame, article, fillQuestion, submit, solve, headerScore, envelopeOpened, scoreLog } from "./helpers";
 
 const A = loadAnswers();
 const stage1 = A.stages[0];
@@ -79,4 +79,11 @@ test("три ошибки → бесплатная подсказка; поку�
     await expect(article(page, order.path).locator(".hints__item")).toHaveCount(level);
   }
   expect(await headerScore(page)).toBe(N * penalty - costs[1] - costs[2]);
+  await expect(article(page, order.path).getByText("Все подсказки открыты")).toBeVisible();
+
+  // Журнал: N штрафов, подсказки 2 и 3 по цене; бесплатная подсказка 1 не пишется (F16); итог = счёт.
+  const log = await scoreLog(page);
+  expect(log.map((e) => e.delta)).toEqual([...Array(N).fill(penalty), -costs[1], -costs[2]]);
+  expect(log.filter((e) => /Подсказка 1 уровня/.test(e.reason))).toHaveLength(0);
+  await expect(page.locator(".scorelog tfoot td")).toHaveText(String(N * penalty - costs[1] - costs[2]).replace("-", "\u2212"));
 });

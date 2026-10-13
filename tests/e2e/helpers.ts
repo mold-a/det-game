@@ -125,3 +125,47 @@ export async function labRequest(page: Page, e: LabEntry, basis?: string) {
   await expect(msg).not.toHaveText("", { timeout: 15_000 });
   return (await msg.textContent()) ?? "";
 }
+
+/** Пройти этапы 1..target-1 без ошибок (с экспертизами каждого этапа); остановиться на этапе target. */
+export async function playToStage(page: Page, A: Answers, target: number, done = new Set<string>()) {
+  await startGame(page);
+  for (const stage of A.stages.filter((s) => s.n < target)) {
+    await labAll(page, A, stage.n, done);
+    for (const q of stage.questions.filter((x) => x.kind === "bonus")) await solve(page, q);
+    const mand = stage.questions.filter((x) => x.kind === "mandatory");
+    for (const q of mand.slice(0, -1)) await solve(page, q);
+    const last = mand[mand.length - 1];
+    await fillQuestion(page, last);
+    await submit(page, last.path);
+    await envelopeOpened(page);
+    await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n + 1}`);
+  }
+  return done;
+}
+
+/** Все экспертизы этапов ≤ n, которых ещё нет в done (через /lab/), затем возврат на «/». */
+export async function labAll(page: Page, A: Answers, n: number, done: Set<string>) {
+  const todo = A.lab.filter((x) => x.stage <= n && !done.has(x.result));
+  if (!todo.length) return;
+  await page.goto("/lab/");
+  await expect(page.locator(".lab-form")).toBeVisible();
+  for (const e of todo) {
+    const msg = await labRequest(page, e);
+    expect(msg, e.result).toMatch(/Экспертиза выполнена/);
+    done.add(e.result);
+  }
+  await page.goto("/");
+  await expect(page.locator("#stage-title")).toBeVisible();
+}
+
+/** Записи журнала баллов: [{ reason, delta }]. */
+export async function scoreLog(page: Page) {
+  const log = page.locator(".side .scorelog");
+  if (!(await log.evaluate((d) => (d as HTMLDetailsElement).open))) await log.locator("summary").click();
+  return log.locator("tbody tr").evaluateAll((rows) =>
+    rows.map((r) => ({
+      reason: r.querySelector(".scorelog__reason")?.textContent ?? "",
+      delta: Number((r.querySelector(".scorelog__delta")?.textContent ?? "0").replace("−", "-").replace("+", "")),
+    })),
+  );
+}

@@ -46,6 +46,14 @@ function setupTable(table) {
     headers.forEach((th, i) => th.setAttribute("aria-sort", i === col ? (dir > 0 ? "ascending" : "descending") : "none"));
   }
 
+  // Числовые колонки — без переноса внутри суммы.
+  headers.forEach((_, col) => {
+    const values = rows.map((r) => cellValue(r, col)).filter((v) => v.trim() !== "");
+    if (values.length && values.every((v) => RE_NUMBER.test(v.trim()))) {
+      rows.forEach((r) => r.tr.cells[col]?.classList.add("tc-num"));
+    }
+  });
+
   headers.forEach((th, i) => {
     th.querySelector("button")?.addEventListener("click", () => sortBy(i));
   });

@@ -5,6 +5,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="{{ robots }}">
+{# Без файла иконки браузер запрашивает /favicon.ico → 404 и console.error; пустая иконка — без запроса. #}
+<link rel="icon" href="data:,">
 <title>{{ title }}</title>
 <link rel="stylesheet" href="/assets/css/fonts.css">
 <link rel="stylesheet" href="/assets/css/base.css">

@@ -412,6 +412,7 @@ body.page--cloud {
 }
 
 .tc-sort {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -457,6 +458,11 @@ th[aria-sort="descending"] .tc-sort {
   vertical-align: top;
   border-top: 1px solid var(--tc-line);
   line-height: 1.4;
+}
+
+/* Числовые колонки (отмечает cloud.js): суммы не переносятся. */
+.tc-table td.tc-num {
+  white-space: nowrap;
 }
 
 .tc-empty {
@@ -520,7 +526,7 @@ th[aria-sort="descending"] .tc-sort {
   font-size: 14px;
 }
 
-.tc-chat {
+.tc .tc-chat {
   display: flex;
   flex-direction: column;
   gap: 8px;

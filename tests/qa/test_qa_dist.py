@@ -595,7 +595,7 @@ def test_media_file_names_are_hashes(env):
         assert re.fullmatch(r"[0-9a-f]{32}\.(bin|jpg|jpeg|png|webp|svg|mp3|m4a|mp4)", p.name), p.name
 
 
-@pytest.mark.xfail(strict=True, reason="QA: длина записи-проверки раскрывает длину канона (choice/person ID)")
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="QA: длина записи-проверки раскрывает длину канона (choice/person ID)")
 def test_answer_entry_length_does_not_identify_choice(env):
     """Записи-проверки шифруют {"c": canon} без выравнивания: по длине `c` видно длину ID ответа.
     Ожидание: для choice ни один вариант не вычисляется однозначно по длине записи."""
@@ -701,6 +701,16 @@ def test_check_detects(env, tmp_path, name):
     assert any(p.startswith(f"[{row}.") for p in new), new
 
 
+def _cloud_display_date(env) -> str:
+    pg = next(p for p in env["A"]["pages"] if p["access"] == "password")
+    pl = _load(env["dist"], "p/cloud/payload.json")
+    pw = normalize("password", pg["password"])
+    inner = open_json(pbkdf2(f"detgame/cloud/v1|{pw}".encode(), b64d(pl["salt"]), pl["iter"]), pl["box"])
+    m = re.search(r"\d\d\.\d\d\.\d{4},? \d\d:\d\d", _visible(inner["html"]))
+    assert m, "в облаке нет даты в формате показа"
+    return m.group(0)
+
+
 def _reorder_questions(p):
     p["questions"] = [p["questions"][1], p["questions"][0], *p["questions"][2:]]
 
@@ -729,6 +739,9 @@ GAPS = {
     # PLAN C3: перемешивание карточек order не проверяется
     "order cards in answer order": lambda env, d: _repack(env, d, 1, lambda p: p["questions"][1].__setitem__(
         "items", sorted(p["questions"][1]["items"], key=lambda i: ["k3", "p8", "d1", "x5", "m2", "t7", "b9", "r4"].index(i["id"])))),
+    # docs/06 §3.7: тексты закрытых страниц берутся из строк content, а не из отрендеренного фрагмента:
+    # дата в формате показа (фильтр dt) и текст из шаблона страницы не ищутся
+    "locked cloud date as displayed": lambda env, d: _append(d, "index.html", "<p>{}</p>".format(_cloud_display_date(env))),
     # имена файлов не сканируются; расширения вне списка (.md, .vtt) не сканируются
     "answer in a file name": lambda env, d: _append(d, "assets/propranolol-пропранолол.txt", "x"),
     "answer in .vtt": lambda env, d: _append(d, "m/sub.vtt", "WEBVTT\n\n00:00.000 --> 00:01.000\nпропранолол"),
@@ -736,7 +749,7 @@ GAPS = {
 
 
 @pytest.mark.parametrize("name", list(GAPS))
-@pytest.mark.xfail(strict=True, reason="QA: пробел engine check — см. отчёт QA P02/P03")
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="QA: пробел engine check — см. отчёт QA P02/P03")
 def test_check_gap(env, tmp_path, name):
     new = _new_problems(env, _mutated(env, tmp_path, lambda d: GAPS[name](env, d)))
     assert new, f"check не заметил: {name}"
