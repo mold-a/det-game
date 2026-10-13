@@ -38,6 +38,9 @@ LAB_PREFIX = "detgame/lab/v1|"
 CLOUD_PREFIX = "detgame/cloud/v1|"
 FINALE_INFO = b"detgame/finale/v1"
 UNIT_SEP = "\x1f"
+# Выравнивание открытого текста записей-проверок (docs/02 §3.3)
+ANSWER_PT_BLOCK = 64
+ANSWER_PT_MIN = 128
 
 _B64U = re.compile(r"[A-Za-z0-9_-]*")
 
@@ -202,9 +205,26 @@ def answer_aad(path: str) -> str:
     return "ans/" + path
 
 
+def answer_plaintext_len(canonical: str) -> int:
+    """Длина открытого текста записи-проверки: кратна ``ANSWER_PT_BLOCK`` и не меньше
+    ``ANSWER_PT_MIN`` (если канон длиннее — следующее кратное)."""
+    need = len(canonical_json({"c": canonical, "p": ""}))
+    return max(ANSWER_PT_MIN, -(-need // ANSWER_PT_BLOCK) * ANSWER_PT_BLOCK)
+
+
 def answer_plaintext(canonical: str) -> bytes:
-    """``UTF8(JSON {"c": canonical})`` — содержимое записи-проверки."""
-    return canonical_json({"c": canonical})
+    """``UTF8(JSON {"c": canonical, "p": <пробелы>})`` — содержимое записи-проверки.
+
+    Поле ``p`` выравнивает длину до :func:`answer_plaintext_len`: иначе по длине
+    контейнера видна длина канона (у ``choice`` — сам ID ответа). Клиент читает только ``c``.
+    """
+    base_len = len(canonical_json({"c": canonical, "p": ""}))
+    return canonical_json({"c": canonical, "p": " " * (answer_plaintext_len(canonical) - base_len)})
+
+
+def answer_ct_len(canonical: str) -> int:
+    """Длина шифротекста (с тегом) записи-проверки — её же берут записи-паддинг единицы."""
+    return answer_plaintext_len(canonical) + TAG_LEN
 
 
 def seal_answer(key: bytes, path: str, canonical: str, *, _nonce: bytes | None = None) -> dict:
@@ -216,7 +236,8 @@ def check_answer(key: bytes, path: str, entries: Iterable[dict]) -> str | None:
     pt = try_entries(key, entries, answer_aad(path))
     if pt is None:
         return None
-    return json.loads(pt.decode("utf-8"))["c"]
+    c = json.loads(pt.decode("utf-8")).get("c")  # поле "p" (выравнивание) игнорируется
+    return c if isinstance(c, str) else None
 
 
 def start_key(salt: bytes, iters: int) -> bytes:

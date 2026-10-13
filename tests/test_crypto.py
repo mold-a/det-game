@@ -215,6 +215,7 @@ def test_answer_unit_entries():
     assert len(u["entries"]) == u["entries_pad"] == 8
     assert {e["aad"] for e in u["entries"]} == {"ans/" + u["path"]}
     assert len({len(e["c"]) for e in u["entries"]}) == 1, "паддинг той же длины, что и записи"
+    assert len(D(u["entries"][0]["c"])) == c.answer_ct_len(u["canonical"]) == 128 + 16
     for variant in u["variants"]:
         key = c.answer_key(u["path"], variant, salt, u["iterations"])
         assert c.check_answer(key, u["path"], u["entries"]) == u["canonical"]
@@ -254,6 +255,35 @@ def test_try_entries_skips_garbage():
     assert c.try_entries(key, [], "lab") is None
 
 
-def test_answer_plaintext_is_canonical_json():
-    assert c.answer_plaintext("08:15") == b'{"c":"08:15"}'
-    assert c.answer_plaintext("ёж") == '{"c":"ёж"}'.encode("utf-8")
+def test_answer_plaintext_padding_vectors():
+    for case in V["helpers"]["answer_plaintext"]:
+        pt = c.answer_plaintext(case["canonical"])
+        assert pt == c.utf8(case["plaintext"])
+        assert len(pt) == case["length"] == c.answer_plaintext_len(case["canonical"])
+        assert len(pt) >= 128 and len(pt) % 64 == 0
+        obj = json.loads(pt)
+        assert set(obj) == {"c", "p"} and obj["c"] == case["canonical"] and obj["p"].strip(" ") == ""
+
+
+def test_answer_plaintext_is_padded_canonical_json():
+    assert c.answer_plaintext("08:15") == b'{"c":"08:15","p":"' + b" " * (128 - 20) + b'"}'
+    assert len(c.answer_plaintext("ёж")) == 128
+    # граница: 113 + 15 = 128 байт без пробелов, 114 → 192
+    assert c.answer_plaintext("a" * 113) == b'{"c":"' + b"a" * 113 + b'","p":""}'
+    assert len(c.answer_plaintext("a" * 114)) == 192
+
+
+def test_answer_entries_hide_canon_length():
+    # ID разной длины → записи одной длины (QA: длина записи выдавала ответ choice)
+    key = bytes(32)
+    lens = {len(c.b64u_decode(c.seal_answer(key, "s1.q1", cid)["c"])) for cid in ["a", "fund", "train", "early", "x" * 60]}
+    assert lens == {128 + 16}
+    assert c.answer_ct_len("fund") == 144
+
+
+def test_check_answer_ignores_padding_field():
+    key = bytes(32)
+    assert c.check_answer(key, "s1.q1", [c.seal_answer(key, "s1.q1", "fund")]) == "fund"
+    # старый формат без "p" тоже читается: клиент смотрит только на "c"
+    assert c.check_answer(key, "s1.q1", [c.seal(key, b'{"c":"fund"}', "ans/s1.q1")]) == "fund"
+    assert c.check_answer(key, "s1.q1", [c.seal(key, b'{"p":"  "}', "ans/s1.q1")]) is None

@@ -1,15 +1,23 @@
-"""Leak scan (docs/06 §3.7, PLAN §9 вопрос 9, F4–F6).
+"""Leak scan (docs/06 §3.7, PLAN §9 вопрос 9 — пересмотрен: шинглы, F4–F6).
 
-«Иголки» — то, чего не должно быть в ``dist/`` в открытом виде:
-- нормализованные каноны и варианты единиц ``text``/``time``/``date``/``number`` (кроме ``leak_scan: false``);
-- начала текстов (целые токены ``base()`` до 40 символов, минимум 3 токена; короткий текст — целиком):
-  подсказки, вводные письма этапов 2…N, результаты экспертиз, развязка, тексты закрытых страниц;
-- ``settings.leak_watchlist``; значения ``params_answer``; пароль облака.
+Два вида «иголок»:
 
-Значения короче 4 символов после нормализации не ищутся (F5) и перечисляются в отчёте.
-Поиск — по целым токенам в форме ``base()`` и в сыром виде с границами слов; перед поиском
-раскрываются ``\\uXXXX`` и HTML-сущности; поля ``n``/``c`` контейнеров, соли и ключи
-в JSON и файлы ``*.bin`` пропускаются.
+- **значения** — ищутся целиком (целые токены ``base()`` и сырой вид с границами слов):
+  нормализованные каноны и варианты единиц ``text``/``time``/``date``/``number`` (кроме
+  ``leak_scan: false``), параметры экспертиз, ``settings.leak_watchlist``, пароль облака,
+  названия документов этапов 2…N; значения короче 4 символов не ищутся (F5);
+- **шинглы** — все последовательности из 4 токенов ``base()`` по всему тексту подсказок,
+  писем и текстов пакетов этапов 2…N, экспертиз, развязки и закрытых страниц (отрендеренных,
+  как их видит игрок). Не считаются иголками шинглы только из служебных слов и шинглы
+  «обвязки» (статический текст шаблонов ``site/templates``, строки интерфейса ``texts.js``,
+  то, что оболочка закрытой страницы показывает по замыслу: бренд, логин облака).
+
+У каждой иголки есть этап (0 — общая). Открытый текст pack-1 (его ключ публичный) сканируется
+иголками всех этапов, кроме 1.
+
+Сканируются все текстовые файлы ``dist/`` (кроме ``*.bin`` и шрифтов) и имена всех файлов;
+перед поиском раскрываются ``\\uXXXX`` и HTML-сущности; в JSON пропускаются поля ``n``/``c``
+контейнеров, соли и ключи (случайный base64url даёт ложные совпадения).
 """
 
 from __future__ import annotations
@@ -17,29 +25,41 @@ from __future__ import annotations
 import html
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 from engine.normalize import base
 
-TEXT_EXT = {".html", ".js", ".mjs", ".css", ".json", ".svg", ".txt", ".xml"}
+BINARY_EXT = {".bin", ".woff", ".woff2", ".ttf", ".otf", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico",
+              ".mp3", ".m4a", ".mp4", ".webm", ".pdf", ".zip"}
+MARKUP_EXT = {".html", ".htm", ".svg", ".xml"}
 MIN_LEN = 4
-SNIPPET_MAX = 40
-SNIPPET_MIN_TOKENS = 3
+SHINGLE = 4
 TODO_MARK = "TODO(content)"
+FILENAMES = "<имена файлов>"
 # Значения JSON, которые — случайные байты в base64url (ложные совпадения): поля контейнера и соли/ключи.
 B64_KEYS = {"n", "c", "salt", "saltStart", "saltStage", "key", "saltsId", "buildId"}
 _U_ESC = re.compile(r"\\u([0-9a-fA-F]{4})")
+_TAG = re.compile(r"<[^>]+>")
 _WORD = r"[0-9A-Za-zА-Яа-яЁё]"
+
+# Служебные и самые частые слова: шингл только из них — не утечка («так же как в»).
+STOPWORDS = frozenset("""
+а без бы был была были было в вам вас ваш весь во вот все всё вы где да даже для до его ее её если есть же за
+здесь и из или им их к как ко когда кто ли мы на над не него нее неё нет ни но о об один она они оно от по под
+после при про с со так также там те то того той только тот ту тут у уже чем что чтобы эта эти это этот я
+ещё еще ведь вам себя себе свой своя свои своё свое том тем то-то нам нас ну ох ах чтоб
+""".split())
 
 
 @dataclass(frozen=True)
 class Needle:
     text: str  # форма base()
     raw: str | None  # сырой вид (ищется с границами слов), если отличается
-    kind: str  # answer | snippet | watchlist | param | password
+    kind: str  # answer | param | watchlist | password | title | text
     source: str
+    stage: int = 0  # этап, к которому относится секрет; 0 — общий
 
 
 @dataclass(frozen=True)
@@ -48,32 +68,42 @@ class Finding:
     needle: str
     kind: str
     source: str
-    form: str  # base | raw
+    form: str  # base | raw | shingle
 
     def __str__(self) -> str:
         return f"{self.file}: «{self.needle}» ({self.kind}, {self.form}) — из {self.source}"
 
 
-def snippet(text: str) -> str:
-    """Начало текста для поиска: целые токены base(), пока длина ≤ 40 (минимум 3 токена)."""
-    toks = base(text.replace(TODO_MARK, " ")).split(" ")
-    toks = [t for t in toks if t]
-    out: list[str] = []
-    for t in toks:
-        cand = " ".join([*out, t])
-        if len(out) >= SNIPPET_MIN_TOKENS and len(cand) > SNIPPET_MAX:
-            break
-        out.append(t)
-    return " ".join(out)
+def tokens(text: str) -> list[str]:
+    return [t for t in base(text).split(" ") if t]
 
 
+def shingles(toks: list[str], k: int = SHINGLE) -> set[str]:
+    return {" ".join(toks[i:i + k]) for i in range(len(toks) - k + 1)}
+
+
+def text_shingles(text: str) -> set[str]:
+    """Шинглы текста; маркер TODO(content) разрывает текст (шинглы не идут через него)."""
+    out: set[str] = set()
+    for part in text.split(TODO_MARK):
+        out |= shingles(tokens(part))
+    return out
+
+
+def is_stop_shingle(sh: str) -> bool:
+    return all(t in STOPWORDS for t in sh.split(" "))
+
+
+@dataclass
 class NeedleSet:
-    def __init__(self) -> None:
-        self.needles: list[Needle] = []
-        self.short: list[tuple[str, str]] = []  # (значение, источник) — короче MIN_LEN, не ищутся
-        self._seen: set[tuple[str, str | None]] = set()
+    needles: list[Needle] = field(default_factory=list)
+    shingles: dict[str, Needle] = field(default_factory=dict)
+    short: list[tuple[str, str]] = field(default_factory=list)  # (значение, источник) — короче MIN_LEN
+    exclude: set[str] = field(default_factory=set)  # шинглы «обвязки»
+    _seen: set[tuple[str, str | None]] = field(default_factory=set)
 
-    def add(self, value: str, kind: str, source: str, *, raw: str | None = None, is_base: bool = False) -> None:
+    def add(self, value: str, kind: str, source: str, *, raw: str | None = None, is_base: bool = False,
+            stage: int = 0) -> None:
         b = value if is_base else base(value.replace(TODO_MARK, " "))
         if not b:
             return
@@ -87,60 +117,39 @@ class NeedleSet:
         if key in self._seen:
             return
         self._seen.add(key)
-        self.needles.append(Needle(b, r, kind, source))
+        self.needles.append(Needle(b, r, kind, source, stage))
 
-    def add_snippet(self, text: str, kind: str, source: str) -> None:
-        s = snippet(text)
-        if s:
-            self.add(s, kind, source, is_base=True)
+    def add_text(self, text: str, kind: str, source: str, *, stage: int = 0) -> None:
+        """Шинглы всего текста (без служебных и «обвязки»)."""
+        for sh in text_shingles(text):
+            if sh in self.exclude or is_stop_shingle(sh) or sh in self.shingles:
+                continue
+            self.shingles[sh] = Needle(sh, None, kind, source, stage)
+
+    @property
+    def count(self) -> int:
+        return len(self.needles) + len(self.shingles)
 
 
-def collect_needles(prep: Any, rendered_texts: list[tuple[str, str]], locked_texts: list[tuple[str, str]]) -> NeedleSet:
-    """Иголки из подготовленного контента (``build.Prepared``).
+# ---------------------------------------------------------------- «обвязка»
 
-    ``rendered_texts`` — уже отрендеренные тексты (подсказки, письма, документы, судьбы) с источниками;
-    ``locked_texts`` — строки закрытых страниц: берутся только тексты из ≥ 3 токенов.
-    """
-    from engine.answers import iso_to_dmy
-    from engine.content import units
 
-    content = prep.content
-    ns = NeedleSet()
-    for u in units(content):
-        if u.type not in ("text", "time", "date", "number") or not u.leak_scan:
-            continue
-        exp = prep.expanded[u.path]
-        for v in exp.variants:
-            ns.add(v, "answer", u.path)
-            if u.type == "date":
-                ns.add(iso_to_dmy(v), "answer", u.path)
-        for r in exp.raw:
-            ns.add(r, "answer", u.path, raw=r)
-    for rid, (params, _) in prep.params.items():
-        for pid, exp in params.items():
-            for v in exp.variants:
-                ns.add(v, "param", f"{rid}.{pid}")
-                if exp.type == "date":
-                    ns.add(iso_to_dmy(v), "param", f"{rid}.{pid}")
-            for r in exp.raw:
-                ns.add(r, "param", f"{rid}.{pid}", raw=r)
-    for w in content.settings.leak_watchlist:
-        ns.add(w, "watchlist", "settings.leak_watchlist", raw=w)
-    for source, text in rendered_texts:
-        ns.add_snippet(text, "snippet", source)
-    for source, text in locked_texts:
-        if len(snippet(text).split(" ")) >= SNIPPET_MIN_TOKENS:
-            ns.add_snippet(text, "page", source)
-    cloud = content.pages.get("cloud")
-    pw = getattr(cloud, "password", None)
-    if pw and TODO_MARK not in pw:
-        from engine.normalize import normalize
-
-        npw = normalize("password", pw)
-        if npw:
-            ns.add(npw, "password", "content/pages/cloud/page.yaml: password", is_base=True)
-            ns.add(pw, "password", "content/pages/cloud/page.yaml: password", raw=pw)
-    return ns
+def boilerplate_shingles(site_dir: Path, visible: Iterable[str] = ()) -> set[str]:
+    """Шинглы статического текста шаблонов сайта, строк интерфейса и того, что видно по замыслу."""
+    parts: list[str] = []
+    tdir = Path(site_dir) / "templates"
+    for p in sorted(tdir.rglob("*.html")) if tdir.is_dir() else []:
+        # Jinja не вырезается: строки-литералы в выражениях («Здесь будет фото …») — тоже обвязка
+        parts.append(_TAG.sub(" ", p.read_text(encoding="utf-8")))
+    for rel in ("assets/js/app/texts.js", "assets/js/boot.js"):
+        p = Path(site_dir) / rel
+        if p.is_file():
+            parts.append(p.read_text(encoding="utf-8"))
+    parts += list(visible)
+    out: set[str] = set()
+    for t in parts:
+        out |= text_shingles(html.unescape(t))
+    return out
 
 
 # ---------------------------------------------------------------- сканирование
@@ -162,36 +171,68 @@ def _json_strings(obj: Any, out: list[str]) -> None:
         out.append(str(obj))
 
 
-def file_text(path: Path) -> str:
-    """Текст файла для поиска: JSON — только строки (без n/c/солей), ``\\uXXXX`` и сущности раскрыты."""
-    raw = path.read_text(encoding="utf-8", errors="replace")
-    if path.suffix == ".json":
+def json_text(obj: Any) -> str:
+    parts: list[str] = []
+    _json_strings(obj, parts)
+    return "\n".join(parts)
+
+
+def unescape(text: str) -> str:
+    return html.unescape(_U_ESC.sub(lambda m: chr(int(m.group(1), 16)), text))
+
+
+def file_text(path: Path) -> str | None:
+    """Текст файла для поиска или ``None`` (двоичный). JSON — только строки (без n/c/солей)."""
+    if path.suffix.lower() in BINARY_EXT:
+        return None
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        return None
+    if path.suffix.lower() == ".json":
         try:
-            parts: list[str] = []
-            _json_strings(json.loads(raw), parts)
-            raw = "\n".join(parts)
+            raw = json_text(json.loads(raw))
         except json.JSONDecodeError:
             pass
-    raw = _U_ESC.sub(lambda m: chr(int(m.group(1), 16)), raw)
-    return html.unescape(raw)
+    raw = unescape(raw)
+    if path.suffix.lower() in MARKUP_EXT:  # и с тегами (атрибуты), и без (видимый текст подряд)
+        raw = raw + "\n" + _TAG.sub(" ", raw)
+    return raw
 
 
-def scan_text(text: str, needles: list[Needle], where: str) -> list[Finding]:
+def scan_text(text: str, ns: NeedleSet | list[Needle], where: str, *, skip_stage: int | None = None) -> list[Finding]:
+    """Найти иголки в тексте. ``skip_stage`` — не искать иголки этого этапа (pack-1)."""
+    needles = ns.needles if isinstance(ns, NeedleSet) else ns
     found: list[Finding] = []
     b = " " + base(text) + " "
     for nd in needles:
+        if skip_stage is not None and nd.stage == skip_stage:
+            continue
         if " " + nd.text + " " in b:
             found.append(Finding(where, nd.text, nd.kind, nd.source, "base"))
         elif nd.raw and re.search(rf"(?<!{_WORD}){re.escape(nd.raw)}(?!{_WORD})", text, re.IGNORECASE):
             found.append(Finding(where, nd.raw, nd.kind, nd.source, "raw"))
+    if isinstance(ns, NeedleSet) and ns.shingles:
+        for sh in sorted(text_shingles(text) & ns.shingles.keys()):
+            nd = ns.shingles[sh]
+            if skip_stage is not None and nd.stage == skip_stage:
+                continue
+            found.append(Finding(where, sh, nd.kind, nd.source, "shingle"))
     return found
 
 
-def scan(dist: Path, needles: list[Needle]) -> list[Finding]:
+def scan(dist: Path, ns: NeedleSet | list[Needle]) -> list[Finding]:
+    """Все текстовые файлы ``dist/`` и имена всех файлов."""
     dist = Path(dist)
     found: list[Finding] = []
+    names: list[str] = []
     for p in sorted(dist.rglob("*")):
-        if not p.is_file() or p.suffix.lower() not in TEXT_EXT:
+        rel = p.relative_to(dist).as_posix()
+        names.append(rel)
+        if not p.is_file():
             continue
-        found += scan_text(file_text(p), needles, p.relative_to(dist).as_posix())
+        text = file_text(p)
+        if text is not None:
+            found += scan_text(text, ns, rel)
+    found += scan_text("\n".join(names), ns, FILENAMES)
     return found

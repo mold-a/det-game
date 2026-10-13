@@ -595,7 +595,6 @@ def test_media_file_names_are_hashes(env):
         assert re.fullmatch(r"[0-9a-f]{32}\.(bin|jpg|jpeg|png|webp|svg|mp3|m4a|mp4)", p.name), p.name
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="QA: длина записи-проверки раскрывает длину канона (choice/person ID)")
 def test_answer_entry_length_does_not_identify_choice(env):
     """Записи-проверки шифруют {"c": canon} без выравнивания: по длине `c` видно длину ID ответа.
     Ожидание: для choice ни один вариант не вычисляется однозначно по длине записи."""

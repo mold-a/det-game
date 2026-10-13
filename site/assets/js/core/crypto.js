@@ -269,16 +269,33 @@ export function answerAad(path) {
   return "ans/" + path;
 }
 
-/** Ключ из нормализованного ввода → канонический ответ или null (неверно). */
+/** Ключ из нормализованного ввода → канонический ответ или null (неверно). Поле p (выравнивание) игнорируется. */
 export async function checkAnswer(key, path, entries) {
   const pt = await tryEntries(key, entries, answerAad(path));
   if (pt === null) return null;
-  return JSON.parse(utf8Decode(pt)).c;
+  const c = JSON.parse(utf8Decode(pt)).c;
+  return typeof c === "string" ? c : null;
 }
 
-/** Запись-проверка ответа: UTF8(JSON {"c": canonical}), aad = "ans/" + path. Для тестов. */
+// Выравнивание открытого текста записей-проверок (docs/02 §3.3), как в engine/crypto.py.
+export const ANSWER_PT_BLOCK = 64;
+export const ANSWER_PT_MIN = 128;
+
+/** Длина открытого текста записи: кратна 64 и не меньше 128. */
+export function answerPlaintextLen(canonical) {
+  const need = utf8(JSON.stringify({ c: canonical, p: "" })).length;
+  return Math.max(ANSWER_PT_MIN, Math.ceil(need / ANSWER_PT_BLOCK) * ANSWER_PT_BLOCK);
+}
+
+/** UTF8(JSON {"c": canonical, "p": <пробелы>}) выровненной длины. */
+export function answerPlaintext(canonical) {
+  const baseLen = utf8(JSON.stringify({ c: canonical, p: "" })).length;
+  return utf8(JSON.stringify({ c: canonical, p: " ".repeat(answerPlaintextLen(canonical) - baseLen) }));
+}
+
+/** Запись-проверка ответа, aad = "ans/" + path. В игре не нужна — для тестов. */
 export function sealAnswer(key, path, canonical, opts) {
-  return seal(key, utf8(JSON.stringify({ c: canonical })), answerAad(path), opts);
+  return seal(key, answerPlaintext(canonical), answerAad(path), opts);
 }
 
 /** K1 = PBKDF2(UTF8("detgame/stage/v1|start"), salt_start, ITER_STAGE). */

@@ -15,10 +15,10 @@ from typing import Any, Callable
 
 from engine import ROOT, crypto
 from engine import salts as salts_mod
-from engine.answers import shift_time, wrong_inputs
+from engine.answers import iso_to_dmy, shift_time, wrong_inputs
 from engine.build import BuildError, Prepared, prepare, release_problems
-from engine.content import collect_todos, units
-from engine.leakscan import NeedleSet, collect_needles, scan
+from engine.content import Content, collect_todos, units
+from engine.leakscan import NeedleSet, boilerplate_shingles, json_text, scan, scan_text
 from engine.media import MediaPlan, media_hash
 from engine.normalize import base, normalize
 from engine.pages import access_of, cloud_password_norm, locked_page_texts
@@ -85,31 +85,168 @@ def page_text(fragment_html: str) -> str:
     return html_mod.unescape(_TAG.sub(" ", fragment_html))
 
 
-def secret_texts(prep: Prepared) -> list[tuple[str, str]]:
-    """Отрендеренные закрытые тексты для leak scan: подсказки, письма 2…N, экспертизы, развязка."""
+SITE = ROOT / "site"
+# Поля пакета, которые не текст для игрока (структура, ID, служебное) — не источник шинглов.
+_PACK_SKIP = {"v", "n", "id", "path", "kind", "type", "link", "envelope", "stage", "saltStage", "unit", "pool",
+              "ord", "characters", "entries", "lab"}
+# Поля персонажа в пакете (PLAN B3, FORMATS §2.2).
+CHARACTER_FIELDS = {"id", "full", "short", "photo"}
+
+
+@dataclass
+class Decrypted:
+    """То, что check расшифровал из dist/ (как браузер)."""
+
+    packs: dict[int, dict] = field(default_factory=dict)
+    lab: dict[str, dict] = field(default_factory=dict)  # result id → запись
+    finale: dict | None = None
+    pages: dict[str, str] = field(default_factory=dict)  # slug закрытой страницы → HTML фрагмента
+
+
+def _pack_strings(obj: Any, out: list[str]) -> None:
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k in _PACK_SKIP:
+                continue
+            _pack_strings(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            _pack_strings(v, out)
+    elif isinstance(obj, str):
+        out.append(page_text(obj) if "<" in obj else obj)
+
+
+def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str, str, int]]:
+    """Закрытые тексты для шинглов: ``(источник, текст, этап)``.
+
+    С ``dec`` — расшифрованное из dist/ (то, что видит игрок: шаблоны, даты в формате показа);
+    без него — отрендеренные строки контента.
+    """
     content, ctx = prep.content, prep.ctx
-    out: list[tuple[str, str]] = []
+    last = content.last_stage
+    out: list[tuple[str, str, int]] = []
+    if dec is not None:
+        for n, pack in dec.packs.items():
+            if n == content.stages[0].n:
+                for q in pack["questions"]:
+                    out += [(f"pack-{n} {q['path']}.hints", h, n) for h in q.get("hints", [])]
+                continue
+            parts: list[str] = []
+            _pack_strings(pack, parts)
+            parts += [o["title"] for o in pack.get("lab", {}).get("objects", [])]
+            out += [(f"pack-{n}", t, n) for t in parts]
+        stage_of = {r.id: r.stage for r in content.expertise.results}
+        for rid, rec in dec.lab.items():
+            out.append((f"экспертиза {rid}", rec.get("title", "") + "\n" + page_text(rec.get("html", "")), stage_of[rid]))
+        if dec.finale:
+            for k in ("confession", "letter"):
+                d = dec.finale.get(k) or {}
+                out.append((f"развязка {k}", d.get("title", "") + "\n" + page_text(d.get("html", "")), last))
+            out += [(f"развязка fates[{i}]", f.get("text", ""), last) for i, f in enumerate(dec.finale.get("fates", []))]
+        docs = content.documents_by_id
+        for slug, frag in dec.pages.items():
+            out.append((f"страница {slug}", page_text(frag), docs[content.pages[slug].doc].stage))
+        return out
     for si, st in enumerate(content.stages):
         if si > 0:
-            out.append((f"stages[{si}].intro", render(st.intro, ctx)))
+            out.append((f"stages[{si}].intro", render(st.intro, ctx), st.n))
         for qi, q in enumerate(st.questions):
             for hi, h in enumerate(q.hints):
-                out.append((f"stages[{si}].questions[{qi}].hints[{hi}]", render(h, ctx)))
+                out.append((f"stages[{si}].questions[{qi}].hints[{hi}]", render(h, ctx), st.n))
     for r in content.expertise.results:
         if r.text:
-            out.append((f"expertise {r.id}.text", render(r.text, ctx)))
+            out.append((f"expertise {r.id}.text", render(r.text, ctx), r.stage))
         if r.body and r.body in content.docs:
-            out.append((f"content/{r.body}", render(content.docs[r.body].body, ctx)))
+            out.append((f"content/{r.body}", render(content.docs[r.body].body, ctx), r.stage))
     for rel in (content.finale.confession, content.finale.letter):
         if rel in content.docs:
-            out.append((f"content/{rel}", render(content.docs[rel].body, ctx)))
+            out.append((f"content/{rel}", render(content.docs[rel].body, ctx), last))
     for i, f in enumerate(content.finale.fates):
-        out.append((f"finale.fates[{i}]", render(f.text, ctx)))
+        out.append((f"finale.fates[{i}]", render(f.text, ctx), last))
+    docs = content.documents_by_id
+    for source, text in locked_page_texts(content, ctx):
+        slug = source.split("/")[2] if source.startswith("content/pages/") else ""
+        stage = docs[content.pages[slug].doc].stage if slug in content.pages else 0
+        out.append((source, text, stage))
     return out
 
 
-def leak_needles(prep: Prepared) -> NeedleSet:
-    return collect_needles(prep, secret_texts(prep), locked_page_texts(prep.content, prep.ctx))
+def public_texts(content: Content, ctx: dict) -> list[str]:
+    """Тексты, открытые по замыслу: их шинглы — не утечка, даже если повторяются в закрытых текстах.
+
+    Бренды, шапка, логин облака (оболочка закрытой страницы, PLAN E7), заглушки сборщика,
+    тексты этапа 1 (pack-1 открывается публичным ключом) и строки открытых страниц.
+    """
+    from engine.documents import STUB_HTML
+    from engine.media import _PLACEHOLDER_ALT
+    from engine.pages import STUB_BODY_HTML
+    from engine.util import iter_strings
+
+    w = content.world
+    out = [content.settings.title, w["brands"]["system"], w["police"]["department"], w["police"]["case_no"],
+           page_text(STUB_HTML), page_text(STUB_BODY_HTML), *_PLACEHOLDER_ALT.values()]
+    out += [str(v) for v in w["brands"].values()]
+    r = lambda t: render(t, ctx) if t else ""  # noqa: E731
+    for page in content.pages.values():
+        for attr in ("brand", "account"):
+            out.append(r(getattr(page, attr, None)))
+        if page.locked is False:
+            out += [r(x) for _, x in iter_strings(page.model_dump(by_alias=True))]
+    first = content.stages[0]
+    out += [r(first.intro), r(first.on_complete)]
+    for q in first.questions:
+        for spec in [q, *(q.fields or [])]:
+            out += [r(getattr(spec, "prompt", None)), r(getattr(spec, "label", None)), r(spec.help)]
+            out += [r(o.text) for o in spec.options or []] + [r(i.text) for i in spec.items or []]
+        out += [r(h) for h in q.hints]
+    out += [r(d.title) for d in content.documents if d.stage == first.n]
+    out += [r(t.title) for t in content.expertise.types]
+    out += [r(o.title) for o in content.expertise.objects if o.from_stage == first.n]
+    return out
+
+
+def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path = SITE) -> NeedleSet:
+    """Иголки leak scan (значения и шинглы), см. engine/leakscan.py."""
+    content, ctx = prep.content, prep.ctx
+    ns = NeedleSet()
+    ns.exclude = boilerplate_shingles(site_dir, public_texts(content, ctx))
+    for u in units(content):
+        if u.type not in ("text", "time", "date", "number") or not u.leak_scan:
+            continue
+        exp = prep.expanded[u.path]
+        for v in exp.variants:
+            ns.add(v, "answer", u.path, stage=u.stage)
+            if u.type == "date":
+                ns.add(iso_to_dmy(v), "answer", u.path, stage=u.stage)
+        for r in exp.raw:
+            ns.add(r, "answer", u.path, raw=r, stage=u.stage)
+    stage_of = {r.id: r.stage for r in content.expertise.results}
+    for rid, (params, _) in prep.params.items():
+        for pid, exp in params.items():
+            for v in exp.variants:
+                ns.add(v, "param", f"{rid}.{pid}", stage=stage_of[rid])
+                if exp.type == "date":
+                    ns.add(iso_to_dmy(v), "param", f"{rid}.{pid}", stage=stage_of[rid])
+            for r in exp.raw:
+                ns.add(r, "param", f"{rid}.{pid}", raw=r, stage=stage_of[rid])
+    for w in content.settings.leak_watchlist:
+        ns.add(w, "watchlist", "settings.leak_watchlist", raw=w)
+    first = content.stages[0].n
+    for d in content.documents:  # docs/03 §4: названия документов этапов 2…N — только в пакетах
+        if d.stage > first:
+            t = render(d.title, ctx)
+            ns.add(t, "title", f"documents.yaml {d.id}", raw=t, stage=d.stage)
+    cloud = content.pages.get("cloud")
+    pw = getattr(cloud, "password", None)
+    if pw and "TODO(content)" not in pw:
+        npw = normalize("password", pw)
+        if npw:
+            st = content.documents_by_id[cloud.doc].stage
+            ns.add(npw, "password", "content/pages/cloud/page.yaml: password", is_base=True, stage=st)
+            ns.add(pw, "password", "content/pages/cloud/page.yaml: password", raw=pw, stage=st)
+    for source, text, stage in secret_texts(prep, dec):
+        ns.add_text(text, "text", source, stage=stage)
+    return ns
 
 
 def check(
@@ -119,10 +256,12 @@ def check(
     media_dir: Path | None = None,
     dist: Path | None = None,
     salts_path: Path | None = None,
+    site_dir: Path | None = None,
     release: bool = False,
     log: Callable[[str], None] | None = None,
 ) -> CheckReport:
     root = Path(root)
+    site_dir = Path(site_dir or root / "site")
     dist = Path(dist or root / "dist")
     media_dir = Path(media_dir or root / "media")
     rep = CheckReport()
@@ -143,9 +282,10 @@ def check(
             key_cache[k] = crypto.answer_key(path, value, salt, pub["iter"]["answer"])
         return key_cache[k]
 
-    # 1. Прохождение
+    # 1. Прохождение — как браузер (FORMATS §2.4): порядок вопросов, kind и unit.type — из пакета
     problems: list[str] = []
-    packs: dict[int, dict] = {}
+    dec = Decrypted()
+    packs = dec.packs
     keys: dict[int, bytes] = {}
     if pub.get("saltsId") != prep.salts.id:
         problems.append("saltsId в public.json не совпадает с salts.lock.json")
@@ -155,18 +295,31 @@ def check(
         try:
             box = _load(data / f"pack-{n}.json")
             packs[n] = _open_json(crypto.hkdf(keys[n], crypto.pack_info(n)), box, f"pack/{n}")
-        except (OSError, crypto.CryptoError, KeyError) as e:
+        except (OSError, crypto.CryptoError, KeyError, ValueError) as e:
             problems.append(f"pack-{n}: не открылся ({e})")
             break
         pack = packs[n]
         if pack.get("n") != n:
             problems.append(f"pack-{n}: поле n = {pack.get('n')}")
+        problems += pack_structure_problems(prep, pack, n)
         if n < content.last_stage:
-            pairs = [(u.path, prep.expanded[u.path].canon) for u in all_units if u.stage == n and u.kind == "mandatory"]
+            pairs = []
+            for q in pack["questions"]:
+                if q.get("kind") != "mandatory":
+                    continue
+                for f in q.get("fields", [q]):
+                    pu = f["unit"]
+                    path = pu["path"]
+                    exp = prep.expanded.get(path)
+                    x = normalize(pu["type"], exp.input, default_year=s.default_year) if exp else None
+                    got = crypto.check_answer(akey(path, x, crypto.b64u_decode(pu["salt"])), path, pu["entries"]) if x else None
+                    if got is None:
+                        problems.append(f"{path}: верный ответ не принят записями пакета")
+                    pairs.append((path, got or ""))
             keys[n + 1] = crypto.stage_key(n, pairs, crypto.b64u_decode(pack["saltStage"]), pub["iter"]["stage"])
     for n, k in keys.items():
         if prep.keys.get(n) != k:
-            problems.append(f"K_{n}: ключ из dist не совпадает с ключом из контента")
+            problems.append(f"K_{n}: ключ, выведенный по пакету, не совпадает с ключом из контента")
     rep.add("1. Прохождение", problems, f"этапов открыто: {len(packs)} из {len(content.stages)}")
 
     # единицы пакетов по путям
@@ -240,6 +393,7 @@ def check(
                         problems.append(f"{r.id}: не открылась ({t}, {b}, {'|'.join(p)})")
                         continue
                     rec = json.loads(pt)
+                    dec.lab.setdefault(r.id, rec)
                     if rec.get("doc") != r.doc:
                         problems.append(f"{r.id}: doc {rec.get('doc')!r} вместо {r.doc!r}")
         t, b, p = r.types[0], r.bases[0], list(combos[0]) if combos else []
@@ -248,15 +402,6 @@ def check(
             if m in packs and crypto.try_entries(crypto.hkdf(keys[m], crypto.lab_info(r.object, t, b, p)),
                                                  packs[m]["lab"]["entries"], "lab"):
                 problems.append(f"{r.id}: открылась на этапе {m} — раньше своего этапа {n}")
-        # чужое основание
-        other = next((d.id for d in content.documents if d.stage <= n and d.id not in r.bases
-                      and not any(x.object == r.object and t in x.types and d.id in x.bases
-                                  for x in content.expertise.results)), None)
-        if other is not None:
-            for m in range(1, n + 1):
-                if m in packs and crypto.try_entries(crypto.hkdf(keys[m], crypto.lab_info(r.object, t, other, p)),
-                                                     packs[m]["lab"]["entries"], "lab"):
-                    problems.append(f"{r.id}: открылась с чужим основанием {other}")
         # неверный параметр
         for i, prm in enumerate(objects[r.object].params or []):
             exp = params[prm.id]
@@ -270,7 +415,32 @@ def check(
             q[i] = bad
             if crypto.try_entries(crypto.hkdf(keys[n], crypto.lab_info(r.object, t, b, q)), entries, "lab"):
                 problems.append(f"{r.id}: открылась с неверным параметром {prm.id}={bad}")
-    rep.add("4. Экспертизы", problems, f"результатов: {len(content.expertise.results)}, запросов: {n_lab}")
+    # исчерпывающе: объект × любой вид × любой документ вне допустимых → ни на одном этапе не открывается
+    doc_ids = [d.id for d in content.documents]
+    type_ids = [t.id for t in content.expertise.types]
+    n_foreign = 0
+    for obj_id in {r.object for r in content.expertise.results}:
+        res = [r for r in content.expertise.results if r.object == obj_id]
+        allowed: dict[tuple[str, str], set[int]] = {}
+        for r in res:
+            for t in r.types:
+                for b in r.bases:
+                    allowed.setdefault((t, b), set()).add(r.stage)
+        _, combos0 = prep.params[res[0].id]
+        p0 = list(combos0[0]) if combos0 else []
+        for t in type_ids:
+            for b in doc_ids:
+                ok_stages = allowed.get((t, b), set())
+                for m, pk in packs.items():
+                    if m in ok_stages:
+                        continue
+                    n_foreign += 1
+                    if crypto.try_entries(crypto.hkdf(keys[m], crypto.lab_info(obj_id, t, b, p0)),
+                                          pk["lab"]["entries"], "lab"):
+                        problems.append(f"{obj_id}: открылась запись с ({t}, {b}) на этапе {m} — "
+                                        "это не основание/вид результата или не его этап")
+    rep.add("4. Экспертизы", problems, f"результатов: {len(content.expertise.results)}, запросов: {n_lab}, "
+                                       f"чужих комбинаций проверено: {n_foreign}")
 
     # 5. Страницы (+ forbidden)
     problems = []
@@ -296,6 +466,7 @@ def check(
             if inner.get("slug") != slug or not inner.get("html"):
                 problems.append(f"{slug}: неверное содержимое payload")
             fragments[slug] = inner.get("html", "")
+            dec.pages[slug] = fragments[slug]
         except (OSError, crypto.CryptoError, KeyError, ValueError) as e:
             problems.append(f"{slug}: не открылась ({e})")
     for slug, page in content.pages.items():
@@ -311,6 +482,7 @@ def check(
     try:
         fin = _open_json(crypto.hkdf(keys[content.last_stage], crypto.FINALE_INFO), _load(data / "finale.json"),
                          "finale")
+        dec.finale = fin
         missing = [u.path for u in all_units if u.path not in fin.get("answers", {})]
         if missing:
             problems.append(f"в answers нет единиц: {', '.join(missing)}")
@@ -320,23 +492,25 @@ def check(
         problems.append(f"finale.json не открылся ({e})")
     rep.add("6. Развязка", problems, f"открыта ключом этапа {content.last_stage}")
 
-    # 7. Leak scan + медиа + нейтральные примеры
-    ns = leak_needles(prep)
-    rep.short_needles = ns.short
-    findings = scan(dist, ns.needles)
-    problems = [str(f) for f in findings]
+    # 7. Leak scan + pack-1 + медиа + нейтральные примеры
     plan = MediaPlan(content, media_dir)
+    ns = leak_needles(prep, dec, site_dir=site_dir)
+    rep.short_needles = ns.short
+    problems = [str(f) for f in scan(dist, ns)]
+    first = content.stages[0].n
+    if first in packs:  # ключ pack-1 публичный: его открытый текст — как открытый файл
+        problems += pack1_problems(packs[first], ns, first)
+    open_hashes: dict[str, str] = {}
+    for p in dist.rglob("*"):
+        if p.is_file() and p.suffix != ".bin":
+            open_hashes.setdefault(media_hash(p.read_bytes()), p.relative_to(dist).as_posix())
     mdir = dist / "m"
-    open_hashes = set()
-    if mdir.is_dir():
-        for p in mdir.iterdir():
-            if p.suffix != ".bin":
-                open_hashes.add(media_hash(p.read_bytes()))
     for mf in plan.files.values():
         if not mf.exists:
             continue
         if mf.encrypted and mf.hash in open_hashes:
-            problems.append(f"медиа {mf.rel} используется только зашифрованным контентом, но лежит открытым")
+            problems.append(f"медиа {mf.rel} используется только зашифрованным контентом, но лежит открытым: "
+                            f"{open_hashes[mf.hash]}")
         expected = mdir / mf.out_name
         if not expected.is_file():
             problems.append(f"медиа {mf.rel}: нет файла {expected.relative_to(dist).as_posix()}")
@@ -349,7 +523,8 @@ def check(
                     problems.append(f"нейтральный пример «{ex}» совпадает с ответом {u.path}")
     short = ", ".join(sorted({v for v, _ in ns.short})) or "—"
     rep.add("7. Leak scan", problems,
-            f"иголок: {len(ns.needles)}, примеров интерфейса: {len(examples)}; не ищутся (короче 4 символов): «{short}»")
+            f"иголок: {len(ns.needles)} значений + {len(ns.shingles)} шинглов, примеров интерфейса: {len(examples)}; "
+            f"не ищутся (короче 4 символов): «{short}»")
 
     # 8. Заглушки
     todos = collect_todos(content)
@@ -393,3 +568,61 @@ def neutral_examples(dist: Path) -> set[str]:
     return out
 
 
+def pack_structure_problems(prep: Prepared, pack: dict, n: int) -> list[str]:
+    """Пакет совпадает с контентом там, где от него зависит ключ или проверка: порядок вопросов и полей,
+    kind, тип единицы; карточки order перемешаны и ≠ ответу (PLAN C3)."""
+    content = prep.content
+    out: list[str] = []
+    st = content.stage(n)
+    want = [(f"s{n}.{q.id}", q.kind, q.type, [(f"s{n}.{q.id}.{f.id}", f.type) for f in q.fields or []])
+            for q in st.questions]
+    got = [(q.get("path"), q.get("kind"), q.get("type"),
+            [(f.get("path"), f.get("type")) for f in q.get("fields", [])]) for q in pack.get("questions", [])]
+    if [w[0] for w in want] != [g[0] for g in got]:
+        out.append(f"pack-{n}: порядок вопросов {[g[0] for g in got]} ≠ контенту {[w[0] for w in want]}")
+    by_path = {g[0]: g for g in got}
+    for path, kind, typ, fields in want:
+        g = by_path.get(path)
+        if g is None:
+            continue
+        if g[1] != kind:
+            out.append(f"{path}: в пакете kind {g[1]!r}, в контенте {kind!r}")
+        if g[2] != typ:
+            out.append(f"{path}: в пакете type {g[2]!r}, в контенте {typ!r}")
+        if g[3] != fields:
+            out.append(f"{path}: поля формы в пакете {g[3]} ≠ контенту {fields}")
+    for q in pack.get("questions", []):
+        for f in q.get("fields", [q]):
+            unit = f.get("unit") or {}
+            path = unit.get("path")
+            exp = prep.expanded.get(path)
+            if exp is None:
+                out.append(f"pack-{n}: единица {path!r} не из контента")
+                continue
+            if unit.get("type") != exp.type:
+                out.append(f"{path}: в пакете unit.type {unit.get('type')!r}, в контенте {exp.type!r}")
+            if exp.type == "order":
+                shown = [i.get("id") for i in f.get("items", [])]
+                answer = exp.canon.split(",")
+                if shown == answer:
+                    out.append(f"{path}: карточки order в пакете стоят в порядке ответа")
+                if sorted(shown) != sorted(answer):
+                    out.append(f"{path}: карточки order в пакете ≠ карточкам ответа")
+    return out
+
+
+def pack1_problems(pack: dict, ns: NeedleSet, first: int) -> list[str]:
+    """pack-1 открывается публичным ключом: ни секретов этапов 2…N, ни лишних персонажей и полей (PLAN B3)."""
+    out = [f"{f} (открытый текст pack-{first})" for f in
+           (str(x) for x in scan_text(json_text(pack), ns, f"data/pack-{first}.json", skip_stage=first))]
+    pools: set[str] = set()
+    for q in pack.get("questions", []):
+        for f in q.get("fields", [q]):
+            pools |= set(f.get("pool", []))
+    for cid, ch in pack.get("characters", {}).items():
+        if cid not in pools:
+            out.append(f"pack-{first}: персонаж «{cid}» не из пулов вопросов этапа")
+        extra = set(ch) - CHARACTER_FIELDS
+        if extra:
+            out.append(f"pack-{first}: у персонажа «{cid}» лишние поля {sorted(extra)}")
+    return out

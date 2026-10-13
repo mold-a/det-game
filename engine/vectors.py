@@ -145,6 +145,11 @@ def _helpers() -> dict:
             }
             for path, norm in [("s1.q1.time", "08:15"), ("s2.q4", "еж в тумане")]
         ],
+        # выравнивание открытого текста записи-проверки: 128 байт минимум, далее кратно 64
+        "answer_plaintext": [
+            {"canonical": canon, "length": c.answer_plaintext_len(canon), "plaintext": c.answer_plaintext(canon).decode("utf-8")}
+            for canon in ["08:15", "", "ёж в тумане", "a" * 113, "a" * 114, "я" * 100, "gromov,oleg,stas"]
+        ],
         "start_key": {"salt": c.b64u_encode(salt_start), "iterations": STAGE_ITERS, "key": c.b64u_encode(k1)},
         "stage_secret": [
             {"n": 1, "pairs": [list(p) for p in pairs], "secret": c.stage_secret(1, pairs)},
@@ -192,7 +197,8 @@ def _answer_unit() -> dict:
     for v in variants:
         key = c.answer_key(path, v, salt, ANSWER_ITERS)
         real.append(c.seal_answer(key, path, canonical, _nonce=det_bytes(f"unit/nonce/{v}", c.NONCE_LEN)))
-    ct_len = len(c.b64u_decode(real[0]["c"]))
+    ct_len = c.answer_ct_len(canonical)
+    assert all(len(c.b64u_decode(e["c"])) == ct_len for e in real)
     pad = [
         c.fake_container(aad, ct_len, _rand=_det_rand(f"unit/pad/{i}"))
         for i in range(ENTRIES_PAD - len(real))

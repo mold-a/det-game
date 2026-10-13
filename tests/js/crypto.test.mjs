@@ -148,10 +148,45 @@ test("хелперы: cloudKey из ввода через normalize('password')"
   assert.equal(c.b64uEncode(await c.cloudKey(ck.normalized, D(ck.salt), ck.iterations)), ck.key);
 });
 
+test("выравнивание открытого текста записи-проверки совпадает с Python", () => {
+  for (const v of V.helpers.answer_plaintext) {
+    const pt = c.answerPlaintext(v.canonical);
+    assert.equal(text(pt), v.plaintext);
+    assert.equal(pt.length, v.length);
+    assert.equal(c.answerPlaintextLen(v.canonical), v.length);
+    assert.ok(pt.length >= 128 && pt.length % 64 === 0);
+  }
+});
+
+test("записи с ID разной длины — одной длины; checkAnswer игнорирует p", async () => {
+  const key = new Uint8Array(32);
+  const lens = new Set();
+  for (const id of ["a", "fund", "train", "early", "x".repeat(60)]) {
+    const box = await c.sealAnswer(key, "s1.q1", id);
+    lens.add(D(box.c).length);
+    assert.equal(await c.checkAnswer(key, "s1.q1", [box]), id);
+  }
+  assert.deepEqual([...lens], [128 + 16]);
+  // старый формат без "p" тоже читается; без "c" — не ответ
+  assert.equal(await c.checkAnswer(key, "s1.q1", [await c.seal(key, c.utf8('{"c":"fund"}'), "ans/s1.q1")]), "fund");
+  assert.equal(await c.checkAnswer(key, "s1.q1", [await c.seal(key, c.utf8('{"p":" "}'), "ans/s1.q1")]), null);
+});
+
 test("запись-проверка: верный ответ находится среди паддинга", async () => {
   const u = V.answer_unit;
   const salt = D(u.salt);
   assert.equal(u.entries.length, 8);
+  assert.equal(new Set(u.entries.map((e) => D(e.c).length)).size, 1);
+  // JS с тем же nonce воспроизводит запись Python побайтно
+  const real = [];
+  for (const variant of u.variants) {
+    const key = await c.answerKey(u.path, variant, salt, u.iterations);
+    for (const e of u.entries) {
+      const box = await c.sealAnswer(key, u.path, u.canonical, { _nonce: D(e.n) });
+      if (box.c === e.c) real.push(e);
+    }
+  }
+  assert.equal(real.length, u.variants.length);
   for (const variant of u.variants) {
     const key = await c.answerKey(u.path, variant, salt, u.iterations);
     assert.equal(await c.checkAnswer(key, u.path, u.entries), u.canonical);

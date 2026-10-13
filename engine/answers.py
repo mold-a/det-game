@@ -147,7 +147,8 @@ def check_entries(path: str, exp: Expanded, salt: bytes, iters: int, pad: int,
             if key_cache is not None:
                 key_cache[ck] = key
         entries.append(crypto.seal_answer(key, path, exp.canon))
-    ct_len = len(crypto.b64u_decode(entries[0]["c"]))
+    # все записи единицы одной длины: открытый текст выровнен (crypto.answer_plaintext)
+    ct_len = crypto.answer_ct_len(exp.canon)
     while len(entries) < pad:
         entries.append(crypto.fake_container(crypto.answer_aad(path), ct_len))
     secrets.SystemRandom().shuffle(entries)

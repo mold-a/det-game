@@ -69,6 +69,8 @@ def test_answer_entries(js):
     for variant in u["variants"]:
         key = c.answer_key(u["path"], variant, salt, u["iterations"])
         assert c.check_answer(key, u["path"], u["entries"]) == u["canonical"]
+    for e in u["entries"]:
+        assert len(D(e["c"])) == c.answer_ct_len(u["canonical"]), "JS выравнивает так же, как Python"
     wrong = c.answer_key(u["path"], "gromov", salt, u["iterations"])
     assert c.check_answer(wrong, u["path"], u["entries"]) is None
 

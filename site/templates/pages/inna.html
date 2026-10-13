@@ -11,7 +11,7 @@
   </header>
 
   <section class="kd-profile" aria-labelledby="kd-name">
-    <div class="kd-profile__ava">{{ ui.img(media, page.profile.avatar, who.full, "фото профиля", "kd-ava") }}</div>
+    <div class="kd-profile__ava">{{ ui.img(media, page.profile.avatar, who.full, "аватар", "kd-ava") }}</div>
     <div class="kd-profile__info">
       <h1 class="kd-profile__name" id="kd-name">{{ who.full }}</h1>
       <p class="kd-profile__stats"><b>{{ posts|length }}</b> {{ "снимок" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("снимка" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "снимков") }}</p>
