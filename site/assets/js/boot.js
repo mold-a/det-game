@@ -15,6 +15,14 @@
  * где модулей нет. Поэтому его строки — исключение из правила «все тексты в
  * app/texts.js»: модуль отсюда импортировать нельзя.
  *
+ * file:// и абсолютные пути (docs/FORMATS.md F18): страница ссылается на
+ * /assets/js/boot.js, а на file:// это file:///assets/… — скрипт просто не
+ * загрузится. Поэтому base.html держит в <body> статический блок
+ *   <div class="boot-fallback">…как открыть сайт…</div>
+ * который виден по умолчанию. Если boot.js выполнился и всё в порядке, он
+ * ставит <html class="boot-ok"> и base.css этот блок прячет (до отрисовки
+ * body — скрипт стоит в <head>). При ошибке boot.js сам показывает экран.
+ *
  * Атрибуты:
  *   <script src="…boot.js" data-require="none">  — страница без шифрования
  *       (открытые вымышленные страницы): проверяется только file://.
@@ -52,9 +60,9 @@
     howTitle: "Как открыть",
     howSite: "Откройте сайт по адресу ",
     howSiteGeneric: "Откройте сайт по адресу, который начинается с https://.",
-    howLocal:
-      "Для проверки на своём компьютере: запустите в папке проекта команду " +
-      "python -m engine serve и откройте http://localhost:8000.",
+    howLocal1: "Для проверки на своём компьютере: запустите в папке проекта команду ",
+    howLocalCmd: "python -m engine serve",
+    howLocal2: " и откройте http://localhost:8000.",
     howPhone:
       "С телефона адрес вида http://192.168.… не подойдёт: нужен HTTPS (сайт на хостинге или туннель).",
   };
@@ -89,7 +97,10 @@
       } else {
         list.appendChild(el("li", null, TEXTS.howSiteGeneric));
       }
-      list.appendChild(el("li", null, TEXTS.howLocal));
+      var local = el("li", null, TEXTS.howLocal1);
+      local.appendChild(el("code", "boot-screen__cmd", TEXTS.howLocalCmd));
+      local.appendChild(document.createTextNode(TEXTS.howLocal2));
+      list.appendChild(local);
       list.appendChild(el("li", null, TEXTS.howPhone));
       box.appendChild(list);
     }
@@ -101,7 +112,11 @@
 
   var reason = detect();
   window.DETGAME_BOOT = { ok: !reason, reason: reason };
-  if (!reason) return;
+  if (!reason) {
+    var r = document.documentElement;
+    r.className += (r.className ? " " : "") + "boot-ok";
+    return;
+  }
 
   if (document.body) render(reason);
   else

@@ -1,0 +1,17 @@
+<section class="pg-pharma">
+  <p class="pg-pharma__brand">{{ page.brand }}</p>
+  <label class="pg-pharma__search">Поиск <input type="search" name="q"></label>
+  {% for d in page.drugs|sort(attribute="name") %}
+  <article class="pg-pharma__drug" data-search="{{ d.name }} {{ d.trade|join(' ') }}">
+    <h2>{{ d.name }}</h2>
+    <dl>
+      <dt>Торговые названия</dt><dd>{{ d.trade|join(", ") }}</dd>
+      <dt>Фармакологическая группа</dt><dd>{{ d.group }}</dd>
+      <dt>Показания</dt><dd>{{ d.indications }}</dd>
+      <dt>Противопоказания</dt><dd>{{ d.contraindications }}</dd>
+      <dt>Побочные эффекты</dt><dd>{{ d.side_effects }}</dd>
+    </dl>
+  </article>
+  {% endfor %}
+  <p class="pg-pharma__disclaimer"><small>{{ page.disclaimer }}</small></p>
+</section>

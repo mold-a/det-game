@@ -163,3 +163,57 @@ def check_tree(obj: Any, ctx: dict[str, Any], file: str, loc: tuple = ()) -> lis
         except RenderError as e:
             errors.append((file, format_loc(sub), f"ошибка шаблона: {e.msg}"))
     return errors
+
+
+# ---------------------------------------------------------------- Markdown и шаблоны сайта
+
+_ISO_RE = __import__("re").compile(r"^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2}))?)?$")
+
+
+@lru_cache(maxsize=1)
+def _md():
+    from markdown_it import MarkdownIt
+
+    return MarkdownIt("commonmark", {"html": False, "typographer": False})
+
+
+def render_markdown(md: str) -> str:
+    """Markdown → HTML (``html=False``: сырой HTML из контента экранируется)."""
+    return _md().render(md)
+
+
+def dt(value: Any, fmt: str = "datetime") -> str:
+    """Даты мира игры (PLAN E8): ``2026-11-10T19:30`` → ``10.11.2026, 19:30``.
+
+    ``fmt``: ``datetime`` (по умолчанию), ``date``, ``time``. Не-ISO строка (например,
+    ``TODO(content)``) возвращается как есть.
+    """
+    if not isinstance(value, str):
+        return "" if value is None else str(value)
+    m = _ISO_RE.match(value.strip())
+    if not m:
+        return value
+    y, mo, d, hh, mi, ss = m.groups()
+    day = f"{d}.{mo}.{y}"
+    tm = None if hh is None else (f"{hh}:{mi}:{ss}" if ss else f"{hh}:{mi}")
+    if fmt == "date" or tm is None:
+        return day
+    if fmt == "time":
+        return tm
+    return f"{day}, {tm}"
+
+
+def make_site_env(templates_dir: Any):
+    """Jinja2 для ``site/templates/`` — автоэкранирование включено, ``StrictUndefined``."""
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+    env = Environment(
+        loader=FileSystemLoader(str(templates_dir)),
+        autoescape=select_autoescape(default=True, default_for_string=True),
+        undefined=StrictUndefined,
+        keep_trailing_newline=True,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    env.filters["dt"] = dt
+    return env

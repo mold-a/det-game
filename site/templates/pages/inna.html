@@ -1,0 +1,17 @@
+{% set who = people[page.profile.person] %}
+<section class="pg-photo">
+  <p class="pg-photo__brand">{{ page.brand }}</p>
+  <header class="pg-photo__profile">
+    <img {{ media(page.profile.avatar, who.full) }} alt="{{ who.full }}">
+    <h1>{{ who.full }}</h1>
+    <p>{{ page.profile.bio }}</p>
+  </header>
+  <div class="pg-photo__grid">
+  {% for post in page.posts %}
+    <figure class="pg-photo__item" data-datetime="{{ post.datetime }}">
+      <img {{ media(post.photo, post.caption or "") }} alt="{{ post.caption or '' }}">
+      <figcaption><time>{{ post.datetime|dt }}</time> {{ post.caption or "" }} · Нравится: {{ post.likes }}</figcaption>
+    </figure>
+  {% endfor %}
+  </div>
+</section>

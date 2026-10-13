@@ -1,0 +1,11 @@
+<section class="pg-call">
+  <h1 class="pg-call__title">{{ page.title }}</h1>
+  <dl class="pg-call__record">
+    <dt>Дата и время</dt><dd class="clue" data-clue="datetime">{{ page.record.datetime|dt }}</dd>
+    <dt>Номер</dt><dd>{{ page.record.number }}</dd>
+    <dt>Длительность</dt><dd>{{ page.record.duration }}</dd>
+    <dt>Оператор</dt><dd>{{ page.record.operator }}</dd>
+  </dl>
+  <div class="pg-call__player"><audio {{ media(page.audio, "Запись звонка") }} preload="none"></audio></div>
+  <p class="pg-call__note">{{ page.note }}</p>
+</section>

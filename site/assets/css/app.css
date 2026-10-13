@@ -1,0 +1,1238 @@
+/*
+ * app.css — система расследования: шапка-папка, две колонки / одна, участки
+ * бланка, поля-строки, кнопки, штамп, модальное окно, журнал баллов, панель
+ * документов, меню. Токены и решения — в base.css.
+ */
+
+/* ================================================================== шапка-папка */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--folder);
+  border-bottom: 1px solid var(--folder-edge);
+}
+
+.app-header__inner {
+  max-width: calc(var(--col-main) + var(--col-side) + 3 * var(--sp-6));
+  margin: 0 auto;
+  padding: var(--sp-2) var(--sp-4);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "case score menu"
+    "team stages stages";
+  align-items: center;
+  column-gap: var(--sp-4);
+  row-gap: var(--sp-1);
+}
+
+/* Корешок папки: номер дела на «язычке». */
+.app-header__case {
+  grid-area: case;
+  justify-self: start;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--sp-3);
+  min-width: 0;
+}
+
+.app-header__case-no {
+  font-size: var(--fs-3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+.app-header__system {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+/* Название команды может быть длинным: на телефоне — до двух строк, без обрезки на полуслове. */
+.app-header__team {
+  grid-area: team;
+  font-size: var(--fs-1);
+  color: var(--muted);
+  min-width: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.score {
+  grid-area: score;
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  white-space: nowrap;
+}
+
+.score__label {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.score__value {
+  font-size: var(--fs-4);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  min-width: 2.5ch;
+  text-align: right;
+}
+
+.score__value.is-negative {
+  color: var(--fine-on-folder);
+}
+
+.stages {
+  grid-area: stages;
+  justify-self: end;
+  display: flex;
+  gap: var(--sp-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stages__item {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: var(--fs-1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  border: 1.5px dashed var(--muted);
+  color: var(--muted);
+}
+
+.stages__item.is-done {
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--folder);
+}
+
+.stages__item.is-current {
+  border: 2px solid var(--seal);
+  color: var(--seal);
+  background: var(--sheet);
+}
+
+@media (min-width: 600px) {
+  .app-header__inner {
+    padding: var(--sp-2) var(--sp-5);
+  }
+}
+
+/* В одну строку — только когда хватает места и на длинное название команды. */
+@media (min-width: 900px) {
+  .app-header__inner {
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "case team score stages menu";
+    padding: var(--sp-3) var(--sp-5);
+    column-gap: var(--sp-5);
+  }
+  .app-header__team {
+    font-size: var(--fs-2);
+    color: var(--ink);
+  }
+}
+
+/* ================================================================== меню */
+
+.menu {
+  grid-area: menu;
+  position: relative;
+}
+
+.menu__toggle {
+  list-style: none;
+  min-height: var(--tap);
+  min-width: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--fs-1);
+}
+
+.menu__toggle::-webkit-details-marker {
+  display: none;
+}
+
+/* На телефоне — только значок (подпись остаётся для дикторов): место под счёт и команду. */
+@media (max-width: 599px) {
+  .menu__toggle {
+    padding: 0;
+  }
+  .menu__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Три линии «как в журнале» вместо гамбургер-иконки — тот же смысл, CSS. */
+.menu__toggle::before {
+  content: "";
+  width: 14px;
+  height: 10px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  background: linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat;
+}
+
+.menu[open] > .menu__toggle {
+  background: var(--sheet);
+}
+
+.menu__list {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--sp-1));
+  z-index: 30;
+  min-width: 260px;
+  max-width: calc(100vw - 2 * var(--sp-4));
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  background: var(--sheet);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+}
+
+.menu__item {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  text-align: left;
+  border: 0;
+  background: none;
+}
+
+.menu__item:hover {
+  background: var(--seal-soft);
+}
+
+.menu li + li .menu__item--danger {
+  border-top: 1px solid var(--rule);
+  color: var(--fine);
+}
+
+/* ================================================================== раскладка */
+
+.layout {
+  max-width: calc(var(--col-main) + var(--col-side) + 3 * var(--sp-6));
+  margin: 0 auto;
+  padding: var(--sp-4) var(--sp-3) var(--sp-7);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
+}
+
+@media (min-width: 600px) {
+  .layout {
+    padding: var(--sp-5) var(--sp-5) var(--sp-7);
+  }
+}
+
+@media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, var(--col-main)) minmax(260px, var(--col-side));
+    justify-content: center;
+    align-items: start;
+    gap: var(--sp-6);
+  }
+  .side {
+    position: sticky;
+    top: 84px; /* под липкой шапкой */
+  }
+}
+
+.main {
+  min-width: 0;
+}
+
+/* Уведомление (хранилище недоступно и т. п.) — служебная пометка, не тревога. */
+.notice {
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--folder);
+  border-left: 3px solid var(--ink);
+  font-size: var(--fs-1);
+}
+
+.notice--error {
+  border-left-color: var(--fine);
+}
+
+/* ================================================================== лист бланка */
+
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.stage-head__title {
+  font-size: var(--fs-4);
+}
+
+.stage-head__meta {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+@media (min-width: 600px) {
+  .stage-head {
+    padding: var(--sp-5) var(--sp-5) var(--sp-3);
+  }
+}
+
+/* Подзаголовок группы вопросов — обычный текст, без капслока. */
+.group-title {
+  padding: var(--sp-4) var(--sp-4) 0;
+  font-size: var(--fs-3);
+}
+
+@media (min-width: 600px) {
+  .group-title {
+    padding: var(--sp-5) var(--sp-5) 0;
+  }
+}
+
+/* ------------------------------------------------------------------ письмо руководителя */
+
+.letter {
+  border-bottom: 1px solid var(--rule);
+}
+
+.letter > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.letter > summary::-webkit-details-marker {
+  display: none;
+}
+
+.letter > summary::after {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.letter[open] > summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.letter__toggle-text {
+  font-weight: 400;
+  font-size: var(--fs-1);
+  color: var(--seal);
+  margin-left: auto;
+}
+
+.letter__body {
+  padding: 0 var(--sp-4) var(--sp-5);
+}
+
+@media (min-width: 600px) {
+  .letter > summary {
+    padding: var(--sp-2) var(--sp-5);
+  }
+  .letter__body {
+    padding: 0 var(--sp-5) var(--sp-5);
+  }
+}
+
+/* ------------------------------------------------------------------ участок бланка: вопрос */
+
+.q {
+  position: relative;
+  padding: var(--sp-5) var(--sp-4);
+}
+
+/* Двойная линия разлиновки между участками — как на бланке. */
+.q + .q,
+.group-title + .q {
+  border-top: 3px double var(--rule);
+}
+
+.group-title + .q {
+  margin-top: var(--sp-3);
+}
+
+@media (min-width: 600px) {
+  .q {
+    padding: var(--sp-5);
+  }
+}
+
+.q__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-1) var(--sp-3);
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.q__no {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.q__status {
+  margin-left: auto;
+}
+
+.q--solved .q__status {
+  color: var(--seal);
+}
+
+.mark-bonus {
+  display: inline-block;
+  padding: 0 var(--sp-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: var(--fs-1);
+  line-height: 1.6;
+}
+
+.q__prompt {
+  font-size: var(--fs-3);
+  font-weight: 700;
+  line-height: 1.35;
+  max-width: 34em;
+}
+
+.q__help {
+  margin-top: var(--sp-1);
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.q__body {
+  margin-top: var(--sp-4);
+  display: grid;
+  gap: var(--sp-4);
+}
+
+/* Решённый участок: место справа под штамп, поля только для чтения. */
+.q--solved .q__prompt {
+  padding-right: 7.5rem;
+}
+
+@media (max-width: 420px) {
+  .q--solved .q__prompt {
+    padding-right: 0;
+  }
+}
+
+.q__answer {
+  font-size: var(--fs-2);
+}
+
+.q__answer dt {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.q__answer dd {
+  margin: 0 0 var(--sp-2);
+  padding: var(--sp-1) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.q__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.q__meta {
+  font-size: var(--fs-1);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.q__msg {
+  font-size: var(--fs-2);
+  min-height: 0;
+}
+
+.q__msg:empty {
+  display: none;
+}
+
+.q__msg--error {
+  color: var(--fine);
+}
+
+.q__msg--format {
+  color: var(--ink);
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--field-line);
+}
+
+/* Открытые подсказки — выписки на полях бланка. */
+.hints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.hints__item {
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--seal);
+  background: var(--seal-soft);
+  font-size: var(--fs-2);
+}
+
+.hints__level {
+  display: block;
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ поля-строки */
+
+.field {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.field__label {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.fields-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4) var(--sp-5);
+}
+
+.fields-inline > .field {
+  flex: 1 1 7.5rem;
+}
+
+.input,
+.select {
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-1);
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid var(--field-line);
+  border-radius: 0;
+}
+
+.input--short {
+  max-width: 9rem;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.input::placeholder {
+  color: var(--muted);
+  opacity: 0.75;
+}
+
+.input:hover,
+.select:hover {
+  border-bottom-color: var(--ink);
+}
+
+.input[aria-invalid="true"] {
+  border-bottom-color: var(--fine);
+}
+
+.input:disabled,
+.select:disabled {
+  color: var(--muted);
+  border-bottom-style: dotted;
+}
+
+.select {
+  padding-right: 2rem;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.select option {
+  background: var(--sheet);
+  color: var(--ink);
+}
+
+/* Варианты (choice / multi): строки бланка с флажком. */
+.options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-1);
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+}
+
+.option input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--seal);
+}
+
+.option:hover {
+  background: var(--seal-soft);
+}
+
+/* Лица (person / persons): сетка карточек-«анкет» с портретом. */
+.persons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--sp-2);
+}
+
+.person {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 64px;
+  padding: var(--sp-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.person input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.person__photo {
+  width: 48px;
+  height: 60px;
+  object-fit: cover;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+}
+
+.person__name {
+  font-size: var(--fs-1);
+  line-height: 1.3;
+}
+
+.person:has(input:checked) {
+  border-color: var(--seal);
+  box-shadow: inset 0 0 0 1px var(--seal);
+  background: var(--seal-soft);
+}
+
+.person:has(input:focus-visible) {
+  outline: var(--focus);
+  outline-offset: 2px;
+}
+
+/* Хронология (order): карточки-полоски, ручка и кнопки ↑/↓. */
+.order {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: order;
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.order__item {
+  counter-increment: order;
+  display: grid;
+  grid-template-columns: 2ch minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  touch-action: none;
+  cursor: grab;
+}
+
+.order__item::before {
+  content: counter(order);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  font-size: var(--fs-1);
+}
+
+.order__item.is-dragging {
+  border-color: var(--seal);
+  cursor: grabbing;
+}
+
+.order__moves {
+  display: flex;
+}
+
+.order__move {
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  background: none;
+  color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.order__move:hover:not(:disabled) {
+  color: var(--seal);
+  background: var(--seal-soft);
+}
+
+.order__move:disabled {
+  opacity: 0.35;
+}
+
+/* ================================================================== кнопки */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-2);
+  font-size: var(--fs-2);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+}
+
+.btn--primary {
+  background: var(--seal);
+  color: var(--seal-ink);
+  border-color: var(--seal);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--seal) 86%, var(--ink));
+}
+
+.btn--secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--ink);
+  font-weight: 400;
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--seal-soft);
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--fine);
+  border-color: var(--fine);
+}
+
+.btn--quiet {
+  background: none;
+  border-color: transparent;
+  color: var(--seal);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  padding-left: var(--sp-2);
+  padding-right: var(--sp-2);
+}
+
+.btn:disabled,
+.btn[aria-busy="true"] {
+  opacity: 0.6;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+/* ================================================================== боковая панель */
+
+.side {
+  display: grid;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.panel {
+  background: var(--folder);
+  border: 1px solid var(--folder-edge);
+  border-radius: var(--radius);
+  padding: var(--sp-4);
+}
+
+.panel__title {
+  font-size: var(--fs-3);
+  margin-bottom: var(--sp-2);
+}
+
+/* Документы дела */
+.docs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.docs__item + .docs__item {
+  border-top: 1px solid var(--folder-edge);
+}
+
+.docs__link,
+.docs__row {
+  display: grid;
+  grid-template-columns: 3.4rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-1);
+  color: var(--ink);
+  text-decoration: none;
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+
+.docs__link {
+  cursor: pointer;
+}
+
+.docs__link:hover {
+  background: var(--seal-soft);
+}
+
+.docs__link:hover .docs__title {
+  text-decoration: underline;
+}
+
+.docs__id {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: 700;
+  font-size: var(--fs-1);
+}
+
+.docs__title {
+  font-size: var(--fs-1);
+  line-height: 1.35;
+}
+
+.docs__link .docs__title {
+  color: var(--seal);
+}
+
+.docs__kind {
+  font-size: var(--fs-1);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.docs__empty {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.panel .btn--block {
+  margin-top: var(--sp-3);
+}
+
+/* ================================================================== журнал баллов */
+
+.scorelog {
+  background: var(--folder);
+  border: 1px solid var(--folder-edge);
+  border-radius: var(--radius);
+}
+
+.scorelog__summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  cursor: pointer;
+}
+
+.scorelog__summary::-webkit-details-marker {
+  display: none;
+}
+
+.scorelog__summary::before {
+  content: "";
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 6px solid currentColor;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.scorelog[open] > .scorelog__summary::before {
+  transform: rotate(90deg);
+}
+
+.scorelog__title {
+  font-size: var(--fs-3);
+  font-weight: 700;
+}
+
+.scorelog__total {
+  margin-left: auto;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.scorelog__total.is-negative,
+.scorelog .is-penalty .scorelog__delta,
+.scorelog tfoot .is-negative {
+  color: var(--fine-on-folder);
+}
+
+.scorelog__empty {
+  padding: 0 var(--sp-4) var(--sp-4);
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.scorelog__table {
+  width: calc(100% - 2 * var(--sp-4));
+  margin: 0 var(--sp-4) var(--sp-3);
+  font-size: var(--fs-1);
+}
+
+.scorelog__table td,
+.scorelog__table th {
+  padding: var(--sp-1) 0;
+  border-top: 1px solid var(--folder-edge);
+  vertical-align: baseline;
+  text-align: left;
+}
+
+.scorelog__time {
+  width: 3.2rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.scorelog__reason {
+  padding-right: var(--sp-2) !important;
+}
+
+.scorelog__delta {
+  text-align: right !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.scorelog tfoot th,
+.scorelog tfoot td {
+  border-top: 2px solid var(--ink);
+  font-weight: 700;
+}
+
+/* ================================================================== пройденные этапы */
+
+.passed {
+  margin-top: var(--sp-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--sheet);
+}
+
+.passed > summary {
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  padding: var(--sp-2) var(--sp-4);
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.passed__body {
+  padding: 0 var(--sp-4) var(--sp-4);
+}
+
+/* ================================================================== штамп */
+
+.stamp {
+  --stamp-tilt: -6deg;
+  --stamp-size: var(--fs-4);
+  position: absolute;
+  /* На уровне формулировки, ниже строки «Вопрос N · статус». */
+  top: calc(var(--sp-5) + 1.75rem);
+  right: var(--sp-4);
+  z-index: 1;
+  display: inline-block;
+  pointer-events: none;
+  transform: rotate(var(--stamp-tilt));
+  transform-origin: 50% 50%;
+  color: var(--seal);
+}
+
+.stamp__ink {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.2em 0.65em 0.22em;
+  border: 3px solid currentColor;
+  border-radius: 0.45em;
+  outline: 1.5px solid currentColor;
+  outline-offset: 2px;
+  font-family: var(--font-ui);
+  font-size: var(--stamp-size);
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  filter: url("#dg-stamp-rough");
+  opacity: 0.9;
+}
+
+.stamp__sub {
+  font-size: 0.5em;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+/* Если фильтр ещё не вставлен (stamp.js), ссылка на несуществующий фильтр
+   по спецификации игнорируется — штамп просто ровный. */
+
+.stamp--envelope,
+.stamp--rank {
+  position: static;
+  --stamp-size: clamp(var(--fs-3), 6.4vw, var(--fs-5));
+  max-width: 100%;
+}
+
+.stamp--envelope .stamp__ink,
+.stamp--rank .stamp__ink {
+  white-space: normal;
+  text-align: center;
+}
+
+.stamp--drop {
+  animation: stamp-drop var(--stamp-duration) cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+@keyframes stamp-drop {
+  from {
+    transform: rotate(calc(var(--stamp-tilt) - 5deg)) scale(1.15);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(var(--stamp-tilt)) scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp--drop {
+    animation: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .q .stamp {
+    position: static;
+    display: block;
+    width: fit-content;
+    margin: var(--sp-2) var(--sp-2) 0 auto;
+    --stamp-size: var(--fs-3);
+  }
+}
+
+/* ================================================================== модальное окно */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: var(--backdrop);
+  overflow-y: auto;
+}
+
+.modal {
+  position: relative;
+  width: min(100%, 32rem);
+  max-height: calc(100vh - 2 * var(--sp-4));
+  overflow-y: auto;
+  padding: var(--sp-5);
+  background: var(--sheet);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-top: 6px solid var(--folder-edge);
+  border-radius: var(--radius-2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.modal:focus {
+  outline: none;
+}
+
+.modal__close {
+  position: absolute;
+  top: var(--sp-1);
+  right: var(--sp-1);
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  background: none;
+  font-size: var(--fs-4);
+  line-height: 1;
+  color: var(--muted);
+  border-radius: var(--radius);
+}
+
+.modal__close:hover {
+  color: var(--ink);
+  background: var(--seal-soft);
+}
+
+.modal__stamp {
+  display: flex;
+  justify-content: center;
+  margin: var(--sp-3) 0 var(--sp-5);
+}
+
+.modal__title {
+  font-size: var(--fs-4);
+  padding-right: var(--tap);
+  margin-bottom: var(--sp-3);
+}
+
+.modal__body {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+@media (max-width: 420px) {
+  .modal {
+    padding: var(--sp-4);
+  }
+  .modal__actions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+.rules {
+  padding-left: 1.4em;
+  display: grid;
+  gap: var(--sp-2);
+}
+
+/* ================================================================== первый запуск */
+
+.intro {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-4) var(--sp-7);
+}
+
+.intro__title {
+  font-size: var(--fs-5);
+  margin-bottom: var(--sp-4);
+}
+
+.intro .rules {
+  margin-bottom: var(--sp-5);
+}
+
+.intro__form {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-4);
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+}
+
+.intro__form .btn {
+  justify-self: start;
+}

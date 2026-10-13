@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import json
 from pathlib import Path
@@ -44,19 +43,19 @@ def write_json(path: Path, obj: Any, *, pretty: bool = False) -> None:
         write_text(path, canonical_json(obj).decode("utf-8"))
 
 
-# base64url без «=». Временная копия: в engine/crypto.py есть свой хелпер — объединить.
+# base64url без «=»: единственная реализация — engine/crypto.py. Здесь — тонкие обёртки
+# с отложенным импортом (crypto.py сам импортирует util.canonical_json).
 def b64u_encode(data: bytes) -> str:
-    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("ascii")
+    from engine.crypto import b64u_encode as _enc
+
+    return _enc(data)
 
 
 def b64u_decode(text: str) -> bytes:
-    if not isinstance(text, str) or "=" in text:
-        raise ValueError("ожидается base64url без «=»")
-    pad = "=" * (-len(text) % 4)
-    raw = base64.urlsafe_b64decode(text + pad)
-    if b64u_encode(raw) != text:  # отсекает лишние символы и неканоничные хвосты
-        raise ValueError("неканоничная строка base64url")
-    return raw
+    """Строгий декодер; ошибка — ``engine.crypto.CryptoError`` (подкласс ``ValueError``)."""
+    from engine.crypto import b64u_decode as _dec
+
+    return _dec(text)
 
 
 def format_loc(parts: tuple | list) -> str:

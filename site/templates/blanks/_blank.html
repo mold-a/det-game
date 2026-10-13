@@ -1,0 +1,18 @@
+{# Бланк документа (временный минимальный; P05 сделает настоящие бланки). #}
+<article class="blank blank--{{ form }}" data-doc="{{ doc_id }}">
+  <header class="blank__head">
+    <p class="blank__kind">{% block kind %}{% endblock %}</p>
+    <h1 class="blank__title">{{ title }}</h1>
+  </header>
+  <div class="blank__body">
+{{ body_html }}
+  </div>
+  {% for m in media %}
+  <figure class="blank__media">
+    {% if m.kind == "image" %}<img {{ m.attrs }} alt="{{ title }}">
+    {% elif m.kind == "video" %}<video {{ m.attrs }} controls playsinline></video>
+    {% else %}<audio {{ m.attrs }} controls></audio>
+    {% endif %}
+  </figure>
+  {% endfor %}
+</article>

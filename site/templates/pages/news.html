@@ -1,0 +1,18 @@
+<section class="pg-news">
+  <p class="pg-news__brand">{{ page.brand }}</p>
+  <article class="pg-news__article">
+    <h1>{{ page.article.headline }}</h1>
+    <p><time>{{ page.article.datetime|dt }}</time></p>
+    {% if page.article.photo %}<img {{ media(page.article.photo, page.article.headline) }} alt="">{% endif %}
+    <div class="pg-news__body">{{ page.article.body_html }}</div>
+  </article>
+  <aside class="pg-news__sidebar">
+    {% for item in page.sidebar %}<p><time>{{ item.datetime|dt }}</time> {{ item.title }}</p>{% endfor %}
+  </aside>
+  <section class="pg-news__comments">
+    {% for cm in page.comments %}<p><b>{{ cm.author }}</b> <time>{{ cm.datetime|dt }}</time> {{ cm.text }}</p>{% endfor %}
+  </section>
+  <aside class="pg-news__ads">
+    {% for ad in page.ads %}<div class="ad"><b>{{ ad.title }}</b> {{ ad.text }}</div>{% endfor %}
+  </aside>
+</section>

@@ -546,9 +546,10 @@ describe("§10 хранилище, экспорт, импорт, совмест�
 
   test("две вкладки: запись перечитывает хранилище и не теряет изменения соседа", () => {
     const storage = new MemoryStorage();
-    const tab1 = createStore({ storage, gameId: "g", now: clock(), events: null });
+    const now = clock(); // общие часы, как у вкладок одного браузера
+    const tab1 = createStore({ storage, gameId: "g", now, events: null });
     tab1.update(() => fresh());
-    const tab2 = createStore({ storage, gameId: "g", now: clock(), events: null });
+    const tab2 = createStore({ storage, gameId: "g", now, events: null });
     tab1.update((s) => recordWrong(s, "s1.q1", "a", -5)); // tab2 об этом ещё не знает
     tab2.update((s) => labRejected(s, "fp", -5));
     const merged = tab1.update((s) => s);
@@ -594,7 +595,7 @@ describe("§10 хранилище, экспорт, импорт, совмест�
     const parsed = parseState(JSON.stringify(other));
     assert.equal(isCompatible(parsed, PUB), false);
   });
-  test("две вкладки: локальная запись, не дошедшая до хранилища, сливается с внешней", () => {
+  test("сбой записи в одной вкладке: она уходит в память, другая вкладка не страдает", () => {
     const storage = new MemoryStorage();
     const tab1 = createStore({ storage, gameId: "g", now: clock(), events: null });
     tab1.update(() => fresh());

@@ -1,0 +1,22 @@
+{% set who = people[page.profile.person] %}
+<section class="pg-social">
+  <p class="pg-social__brand">{{ page.brand }}</p>
+  <header class="pg-social__profile">
+    <img class="pg-social__cover" {{ media(page.profile.cover, "") }} alt="">
+    <img class="pg-social__avatar" {{ media(page.profile.avatar, who.full) }} alt="{{ who.full }}">
+    <h1>{{ who.full }}</h1>
+    <p>{{ page.profile.position }}</p>
+    <p>{{ page.profile.city }}</p>
+  </header>
+  {% for post in page.posts %}
+  <article class="pg-social__post" data-datetime="{{ post.datetime }}">
+    <p class="pg-social__meta"><time>{{ post.datetime|dt }}</time>{% if post.geo %} · <span class="geo">{{ post.geo }}</span>{% endif %}</p>
+    <p>{{ post.text }}</p>
+    {% if post.photo %}<img {{ media(post.photo, "") }} alt="">{% endif %}
+    <p class="pg-social__likes">Нравится: {{ post.likes }}</p>
+    {% for cm in post.comments %}
+    <p class="pg-social__comment"><b>{{ cm.author }}</b> {{ cm.text }}</p>
+    {% endfor %}
+  </article>
+  {% endfor %}
+</section>

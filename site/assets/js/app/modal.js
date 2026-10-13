@@ -84,11 +84,11 @@ export function openModal({
         "aria-describedby": parts.length ? bodyId : null,
         tabindex: "-1",
       },
-      closeBtn,
       stamp ? h("div", { class: "modal__stamp" }, stamp) : null,
       h("h2", { class: "modal__title", id: titleId }, title),
       bodyNode,
       h("div", { class: "modal__actions" }, buttons),
+      closeBtn, // в DOM последней: Tab идёт по действиям, затем «Закрыть» (визуально — в углу)
     );
     const backdrop = h("div", { class: "modal-backdrop" }, dialog);
 

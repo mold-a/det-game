@@ -1,0 +1,18 @@
+{# Оболочка закрытой страницы: без сюжетного текста (FORMATS §6.3, §9.3). #}
+{% extends "base.html" %}
+{% block body_attrs %} data-slug="{{ slug }}" data-access="{{ access }}"{% endblock %}
+{% block body %}
+<main id="page" class="pg pg--{{ slug }} pg--shell">
+  <p class="shell__brand">{{ brand }}</p>
+  {% if access == "password" %}
+  <form class="shell__login" autocomplete="off">
+    <label>Логин <input name="login" value="{{ account }}" readonly></label>
+    <label>Пароль <input name="password" type="password"></label>
+    <button type="submit">Войти</button>
+    <p class="shell__error" hidden>Неверный пароль</p>
+  </form>
+  {% endif %}
+  <p class="shell__broken" hidden>Ссылка повреждена. Отсканируйте QR-код ещё раз.</p>
+  <div id="page-content"></div>
+</main>
+{% endblock %}

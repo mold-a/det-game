@@ -1,0 +1,15 @@
+<section class="pg-video">
+  <h1>{{ page.title }}</h1>
+  <p class="pg-video__source">{{ page.source }}</p>
+  <p class="pg-video__file"><span class="clue">{{ page.file.name }}</span> · {{ page.file.size }}</p>
+  <video {{ media(page.video, page.file.name) }} controls playsinline preload="none"></video>
+  <details class="pg-video__props">
+    <summary>Свойства файла</summary>
+    <dl>
+      <dt>Дата создания</dt><dd class="clue">{{ page.file.created|dt }}</dd>
+      <dt>Устройство</dt><dd>{{ page.file.device }}</dd>
+      <dt>Длительность</dt><dd>{{ page.file.duration }}</dd>
+      <dt>Разрешение</dt><dd>{{ page.file.resolution }}</dd>
+    </dl>
+  </details>
+</section>

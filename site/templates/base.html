@@ -1,0 +1,23 @@
+{# Каркас всех страниц (FORMATS §9.3). Временный минимальный шаблон P03 — заменит frontend. #}
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="{{ robots }}">
+<title>{{ title }}</title>
+<link rel="stylesheet" href="/assets/css/fonts.css">
+<link rel="stylesheet" href="/assets/css/base.css">
+{% for href in css %}
+<link rel="stylesheet" href="{{ href }}">
+{% endfor %}
+<script src="/assets/js/boot.js"></script>
+{% if entry %}
+<script type="module" src="{{ entry }}"></script>
+{% endif %}
+</head>
+<body class="{{ body_class }}"{% block body_attrs %}{% endblock %}>
+{% block body %}{% endblock %}
+<noscript>Для работы сайта включите JavaScript в браузере.</noscript>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block body_attrs %} data-slug="{{ slug }}"{% endblock %}
+{% block body %}
+<main class="pg pg--{{ slug }}" data-brand="{{ brand }}">
+{{ fragment }}
+</main>
+{% endblock %}

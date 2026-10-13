@@ -497,6 +497,9 @@ def _check_stages(ld: _Loading, stages: list[Stage], settings: Settings | None,
             ld.err(rel, (*sloc, "on_complete"), "у этапа, кроме последнего, должно быть on_complete")
         if st.n == last and st.on_complete is not None:
             ld.err(rel, (*sloc, "on_complete"), "у последнего этапа не бывает on_complete")
+        if st.n < last and not any(q.kind == "mandatory" for q in st.questions):
+            ld.err(rel, (*sloc, "questions"), "у этапа, кроме последнего, должен быть хотя бы один обязательный "
+                                              "вопрос: из его ответов выводится ключ следующего этапа")
         _check_unique(ld, rel, st.questions, (*sloc, "questions"))
         for qi, q in enumerate(st.questions):
             qloc = (*sloc, "questions", qi)

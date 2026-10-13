@@ -1,0 +1,25 @@
+<section class="pg-cloud">
+  <p class="pg-cloud__brand">{{ page.brand }}</p>
+  <p class="pg-cloud__account">{{ page.account }}</p>
+  <p class="pg-cloud__banner clue">Публикация по расписанию: <time>{{ page.banner.scheduled|dt }}</time>. Последнее подтверждение: <time>{{ page.banner.last_confirmation|dt }}</time></p>
+  {% for f in page.folders %}
+  <section class="pg-cloud__folder pg-cloud__folder--{{ f.kind }}" data-folder="{{ f.id }}">
+    <h2>{{ f.title }}</h2>
+    {% if f.kind == "table" %}
+    <table>
+      <thead><tr>{% for col in f.columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in f.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table>
+    {% elif f.kind == "chat" %}
+    <p class="pg-cloud__participants">{% for pid in f.participants %}{{ people[pid].full }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    {% for m in f.messages %}
+    <p class="msg" data-from="{{ m['from'] }}"><b>{{ people[m['from']].short }}</b> <time>{{ m.datetime|dt }}</time> {{ m.text }}</p>
+    {% endfor %}
+    {% elif f.kind == "letter" %}
+    <div class="pg-cloud__letter">{{ f.body_html }}</div>
+    {% else %}
+    <p class="pg-cloud__locked">Папка защищена отдельным паролем.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+</section>
