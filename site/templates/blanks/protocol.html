@@ -1,2 +1,8 @@
 {% extends "blanks/_blank.html" %}
 {% block kind %}Протокол{% endblock %}
+{% block signs %}
+  <footer class="blank__signs">
+    <div class="blank__sign"><span>Допрашиваемый</span><span class="blank__sign-line" aria-hidden="true"></span><span>(подпись)</span></div>
+    <div class="blank__sign"><span>Следователь</span><span class="blank__sign-line" aria-hidden="true"></span><span>(подпись)</span></div>
+  </footer>
+{% endblock %}

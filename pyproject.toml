@@ -25,6 +25,11 @@ dependencies = [
 dev = [
     "pytest>=9.1,<10",
 ]
+# Необязательно: самопроверка QR декодированием в `python -m engine qr` (PLAN §5).
+qrcheck = [
+    "zxing-cpp>=3.1.1,<4",
+    "pillow>=12.3,<13",
+]
 
 [tool.setuptools]
 # Явно: в корне лежат site/, content/, media/, print/ — автопоиск на них споткнётся.

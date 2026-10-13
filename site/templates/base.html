@@ -1,4 +1,4 @@
-{# Каркас всех страниц (FORMATS §9.3). Временный минимальный шаблон P03 — заменит frontend. #}
+{# Каркас всех страниц (FORMATS §9.3): шрифты, токены, boot.js (классический, первым), точка входа-модуль. #}
 <!doctype html>
 <html lang="ru">
 <head>
@@ -20,7 +20,11 @@
 {% endif %}
 </head>
 <body class="{{ body_class }}"{% block body_attrs %}{% endblock %}>
-{% block boot_fallback %}{% endblock %}
+{# Виден, только если boot.js не выполнился (file:// с абсолютными путями, F18); иначе его прячет base.css (html.boot-ok). #}
+{% block boot_fallback %}<div class="boot-fallback" role="alert">
+  <p><strong>Страница не может работать в этом режиме.</strong></p>
+  <p>Сайт открыт как файл с диска или браузер не загрузил скрипты. Откройте его по адресу, который начинается с https://, а для проверки на своём компьютере — командой <code>python -m engine serve</code> и адресом http://localhost:8000.</p>
+</div>{% endblock %}
 {% block body %}{% endblock %}
 <noscript>Для работы сайта включите JavaScript в браузере.</noscript>
 </body>

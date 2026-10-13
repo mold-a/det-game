@@ -192,3 +192,22 @@
   max-width: calc(var(--measure-doc) + 2 * var(--sp-6));
   margin: var(--sp-4) auto 0;
 }
+
+.blank__head {
+  margin-bottom: var(--sp-5);
+}
+
+.blank__media {
+  margin: var(--sp-5) 0 0;
+}
+
+.blank__media img,
+.blank__media video {
+  width: 100%;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+.blank__media audio {
+  width: 100%;
+}

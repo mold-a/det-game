@@ -1,7 +1,10 @@
-{# Бланк документа (временный минимальный; P05 сделает настоящие бланки). #}
-<article class="blank blank--{{ form }}" data-doc="{{ doc_id }}">
+{# Бланк документа (docs/04 «/lab/», docs/05 §1): вид, номер, название, текст, медиа, подписи.
+   Контекст (engine/documents.py): doc_id, title, form, body_html (Markup), media [{attrs, kind}].
+   Бланк лежит только внутри зашифрованных записей и развязки. #}
+<article class="blank blank--{{ form }}"{% if doc_id %} data-doc="{{ doc_id }}"{% endif %}>
   <header class="blank__head">
-    <p class="blank__kind">{% block kind %}{% endblock %}</p>
+    <p class="blank__org">{% block kind %}{% endblock %}</p>
+    {% if doc_id %}<p class="blank__no">№&nbsp;{{ doc_id }}</p>{% endif %}
     <h1 class="blank__title">{{ title }}</h1>
   </header>
   <div class="blank__body">
@@ -10,9 +13,10 @@
   {% for m in media %}
   <figure class="blank__media">
     {% if m.kind == "image" %}<img {{ m.attrs }} alt="{{ title }}">
-    {% elif m.kind == "video" %}<video {{ m.attrs }} controls playsinline></video>
-    {% else %}<audio {{ m.attrs }} controls></audio>
+    {% elif m.kind == "video" %}<video {{ m.attrs }} controls playsinline preload="metadata"></video>
+    {% else %}<audio {{ m.attrs }} controls preload="metadata"></audio>
     {% endif %}
   </figure>
   {% endfor %}
+  {% block signs %}{% endblock %}
 </article>

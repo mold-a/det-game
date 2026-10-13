@@ -1,7 +1,12 @@
 {% extends "base.html" %}
+{# Система расследования: данные оформления (F19) — в data-* для app/context.js; интерфейс строит JS. #}
+{% block body_attrs %} data-system="{{ chrome.system }}" data-department="{{ chrome.department }}" data-case-no="{{ chrome.caseNo }}"{% endblock %}
 {% block body %}
-{% include "_chrome.html" %}
 <main id="app" class="app app--final">
-  <h1>Финал</h1>
+  <div class="intro">
+    <h1 class="intro__title">Финал</h1>
+    <p class="intro__system">{{ chrome.system }}. Дело №&nbsp;{{ chrome.caseNo }}</p>
+    <p>Загрузка…</p>
+  </div>
 </main>
 {% endblock %}
