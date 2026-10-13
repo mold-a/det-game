@@ -119,4 +119,43 @@
     color: #000;
     text-decoration: none;
   }
+
+  /* Печать одного документа из окна или страницы (docview.js: html.print-doc). */
+  html.print-doc body > * {
+    display: none !important;
+  }
+
+  html.print-doc body > .modal-backdrop,
+  html.print-doc body > .app-root {
+    display: block !important;
+    position: static;
+    padding: 0;
+    background: none;
+  }
+
+  html.print-doc .app-root > :not(.layout),
+  html.print-doc .layout > :not(.main),
+  html.print-doc .main > :not(:has(.doc-view.is-printing)),
+  html.print-doc .sheet > :not(:has(.doc-view.is-printing)):not(.doc-view) {
+    display: none !important;
+  }
+
+  html.print-doc body:has(.modal-backdrop) > .app-root {
+    display: none !important;
+  }
+
+  html.print-doc .modal {
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  html.print-doc .modal__title,
+  html.print-doc .modal__actions,
+  html.print-doc .modal__close {
+    display: none !important;
+  }
 }

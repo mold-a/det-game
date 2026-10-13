@@ -1236,3 +1236,318 @@
 .intro__form .btn {
   justify-self: start;
 }
+
+/* ================================================================== дополнения P04/P05 */
+
+.app-header__case-no {
+  color: inherit;
+  text-decoration: none;
+}
+
+.app-header__case-no:hover {
+  text-decoration: underline;
+}
+
+.q__form {
+  display: contents;
+}
+
+.fields {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.q--closed .q__status {
+  color: var(--muted);
+}
+
+.order.is-disabled .order__item {
+  cursor: default;
+  opacity: 0.7;
+}
+
+/* Медиа, которого нет в media/ (FORMATS F11): серая заглушка с подписью. */
+.media-missing {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 8px, var(--rule) 8px 9px),
+    var(--paper);
+  border: 1px dashed var(--field-line);
+  color: var(--muted);
+  min-height: 3rem;
+}
+
+img.media-missing {
+  display: block;
+  width: 100%;
+  min-height: 8rem;
+  font-size: var(--fs-1);
+  padding: var(--sp-3);
+}
+
+.person__photo.media-missing {
+  min-height: 0;
+  width: 48px;
+  height: 60px;
+  padding: 0;
+}
+
+/* ------------------------------------------------------------------ первый запуск */
+
+.intro__system {
+  color: var(--muted);
+  margin: calc(-1 * var(--sp-2)) 0 var(--sp-5);
+}
+
+.intro__subtitle {
+  font-size: var(--fs-3);
+  margin-bottom: var(--sp-3);
+}
+
+/* ------------------------------------------------------------------ окно документа */
+
+.modal--doc {
+  width: min(100%, 52rem);
+}
+
+.doc-view__body {
+  max-width: none;
+}
+
+.doc-view .blank {
+  border: 0;
+  padding: 0;
+  background: none;
+}
+
+/* ------------------------------------------------------------------ лаборатория */
+
+.lab-form {
+  display: grid;
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+}
+
+.lab-form__grid {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+@media (min-width: 600px) {
+  .lab-form__grid {
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  }
+}
+
+.lab-params__group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.lab-params__group > legend {
+  padding: 0;
+  margin-bottom: var(--sp-2);
+}
+
+.lab-form__warn {
+  font-size: var(--fs-1);
+  color: var(--muted);
+}
+
+.lab-result:not(:empty) {
+  padding: var(--sp-5) var(--sp-4);
+  border-top: 3px double var(--rule);
+}
+
+.lab-result__title {
+  font-size: var(--fs-3);
+  margin-bottom: var(--sp-4);
+}
+
+.lab-archive {
+  margin-top: var(--sp-5);
+  padding: var(--sp-4);
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.lab-archive__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lab-archive__item {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  gap: var(--sp-1) var(--sp-3);
+  align-items: baseline;
+  padding: var(--sp-2) 0;
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-1);
+}
+
+.lab-archive__time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.lab-archive__status,
+.lab-archive__item > .btn {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.lab-archive__item.is-rejected .lab-archive__status {
+  color: var(--fine);
+}
+
+.lab-archive__item.is-done .lab-archive__status {
+  color: var(--seal);
+}
+
+/* ------------------------------------------------------------------ финал */
+
+.final-warn {
+  font-size: var(--fs-3);
+  font-weight: 700;
+  margin-bottom: var(--sp-3);
+}
+
+.final-fixed {
+  padding: var(--sp-3) var(--sp-4) 0;
+  color: var(--seal);
+}
+
+@media (min-width: 600px) {
+  .final-fixed {
+    padding: var(--sp-3) var(--sp-5) 0;
+  }
+}
+
+.final-score {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-5);
+  margin: 0;
+}
+
+.final-score dt {
+  color: var(--muted);
+}
+
+.final-score dd {
+  margin: 0;
+}
+
+.final-score__value {
+  font-size: var(--fs-5);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.final-score__value.is-negative {
+  color: var(--fine);
+}
+
+.final-score .stamp {
+  margin: var(--sp-2) 0;
+}
+
+.group-title--flush {
+  padding: 0 0 var(--sp-3);
+}
+
+.review-wrap {
+  overflow-x: auto;
+}
+
+.review {
+  width: 100%;
+  font-size: var(--fs-1);
+}
+
+.review th,
+.review td {
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) 0;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+
+.review thead th {
+  color: var(--muted);
+  font-weight: 400;
+  border-top: 0;
+}
+
+.review tbody th {
+  font-weight: 400;
+  width: 40%;
+}
+
+.review__no {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.review__verdict {
+  color: var(--muted);
+}
+
+.review .is-wrong .review__verdict {
+  color: var(--fine);
+}
+
+/* На телефоне — строки таблицы карточками-участками бланка. */
+@media (max-width: 599px) {
+  .review thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .review tr {
+    display: block;
+    padding: var(--sp-2) 0;
+    border-top: 1px solid var(--rule);
+  }
+  .review th,
+  .review td {
+    display: block;
+    border: 0;
+    padding: var(--sp-1) 0;
+    width: auto !important;
+  }
+  .review td::before {
+    content: attr(data-label) ": ";
+    color: var(--muted);
+  }
+}
+
+.ending__title {
+  font-size: var(--fs-3);
+  margin-bottom: var(--sp-4);
+}
+
+.ending .q__actions {
+  margin-top: var(--sp-5);
+}
+
+.fates {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-doc);
+  line-height: var(--lh-doc);
+  max-width: var(--measure-doc);
+}
+
+.fates__item {
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--rule);
+}
