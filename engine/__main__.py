@@ -83,6 +83,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_names()
     if args.command == "rotate-salts":
         return cmd_rotate_salts(args.yes)
+    if args.command == "build":
+        return cmd_build(args.release)
+    if args.command == "check":
+        return cmd_check(args.release)
+    if args.command == "dump-answers":
+        return cmd_dump_answers()
     return not_implemented(args.command)
 
 
@@ -133,6 +139,53 @@ def cmd_rotate_salts(yes: bool) -> int:
         "старые коды больше не работают. Пересоберите сайт: python -m engine build."
     )
     return 0
+
+
+
+def _guarded(fn):
+    """Ошибки контента и сборки — понятный текст в stderr и код 1, без трассировки."""
+    from engine.build import BuildError
+    from engine.content import ContentError
+    from engine.salts import SaltsError
+
+    try:
+        return fn()
+    except ContentError as e:
+        print(e.report(), file=sys.stderr)
+    except (BuildError, SaltsError) as e:
+        print(str(e), file=sys.stderr)
+    return EXIT_CONTENT_ERROR
+
+
+def cmd_build(release: bool) -> int:
+    from engine.build import build, format_report
+
+    def run() -> int:
+        print(format_report(build(release=release)))
+        return 0
+
+    return _guarded(run)
+
+
+def cmd_check(release: bool) -> int:
+    from engine.check import check
+
+    def run() -> int:
+        rep = check(release=release, log=print)
+        print("check: OK" if rep.ok else "check: FAIL", file=sys.stdout if rep.ok else sys.stderr)
+        return 0 if rep.ok else 1
+
+    return _guarded(run)
+
+
+def cmd_dump_answers() -> int:
+    from engine.dump import dump_answers
+
+    def run() -> int:
+        print(f"Ответы для тестов записаны: {dump_answers()} (файл в .gitignore, не коммитить)")
+        return 0
+
+    return _guarded(run)
 
 
 if __name__ == "__main__":
