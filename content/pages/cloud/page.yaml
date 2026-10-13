@@ -1,7 +1,7 @@
 slug: cloud
 doc: "4-01"
 qr_label: "Облачное хранилище"
-locked: password                      # пароль из записки 4-13
+locked: password                      # пароль из записки 4-13 — НОВЫЙ (сменён 4.11); Волков знал прежний
 password: "TODO(content)"             # не словарное слово; нормализуется как password
 brand: "{{ w.brands.cloud }}"
 account: "TODO(content): логин погибшего"

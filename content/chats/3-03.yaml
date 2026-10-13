@@ -1,38 +1,46 @@
 # Документ 3-03 «Снимки экрана с телефона Кирилла» — печать (python -m engine chatshot → print/chats/).
-# Требования — docs/PAPER-REQUIREMENTS.md (S-07, S-09):
-#   - уведомление облака о НЕУДАЧНОЙ попытке входа 10.11 около 19:40;
-#   - номер погибшего в звонках/контактах оканчивается на w.devices.victim_number_tail (сверка с 4-10).
+# Версия техсценария (решение автора 14.10.2026), см. docs/STORY-CHANGES.md и docs/PAPER-REQUIREMENTS.md:
+#   - 4.11: Кирилл предупреждает Воронцова, что тот вводил пароль при людях; Воронцов отвечает «Сменил, параноик»;
+#   - 10.11, 19:40: три неудачные попытки входа в облако, восстановление по SMS отклонено (отключено Кириллом);
+#   - 19:41: уведомление Кириллу; он дважды звонит Воронцову и пишет ему (сообщение Воронцов читает в антракте);
+#   - номер погибшего в звонках оканчивается на w.devices.victim_number_tail (сверка с 4-10).
 # Экраны: kind notification | chat | calls. Все строки — шаблоны (c, w). Время — как на экране телефона.
 id: "3-03"
 screens:
+  - kind: chat
+    owner: kirill
+    with: voroncov
+    date: "4 ноября"
+    messages:
+      - { from: kirill, time: "TODO(content)", text: "Ты вводил пароль при людях на репетиции, смени.", status: read }
+      - { from: voroncov, time: "TODO(content)", text: "Сменил, параноик", status: read }
   - kind: notification
     time: "19:41"
     date: "{{ w.dates.premiere_weekday }}, 10 ноября"
     items:
       - app: "{{ w.brands.cloud }}"
-        title: "Неудачная попытка входа"
-        text: "TODO(content): текст уведомления — вход в аккаунт с нового устройства, неверный пароль"
+        title: "Три неудачные попытки входа"
+        text: "TODO(content): текст уведомления — вход в аккаунт с нового устройства, неверный пароль (3 попытки)"
         time: "19:40"
-      - app: "{{ w.brands.messenger }}"
-        title: "{{ c.voroncov.first() }}"
-        text: "TODO(content): короткое сообщение-превью или убрать"
-        time: "TODO(content)"
+      - app: "{{ w.brands.cloud }}"
+        title: "Восстановление по SMS отклонено"
+        text: "TODO(content): текст уведомления — восстановление доступа по SMS отключено владельцем аккаунта"
+        time: "19:40"
   - kind: calls
     owner: kirill
-    time: "TODO(content)"
+    time: "19:43"
     items:
       - who: voroncov
         number: "TODO(content): +7 … {{ w.devices.victim_number_tail }}"
-        time: "TODO(content)"
+        time: "19:41"
         direction: out
       - who: voroncov
         number: "TODO(content): +7 … {{ w.devices.victim_number_tail }}"
-        time: "TODO(content)"
-        direction: missed
+        time: "19:42"
+        direction: out
   - kind: chat
     owner: kirill
     with: voroncov
     date: "10 ноября"
     messages:
-      - { from: kirill, time: "19:43", text: "TODO(content): Кирилл пишет, что кто-то пытался войти в облако", status: delivered }
-      - { from: kirill, time: "TODO(content)", text: "TODO(content): просит перезвонить", status: delivered }
+      - { from: kirill, time: "19:43", text: "{{ c.voroncov.familiar }}, кто-то из театра лезет в облако. Позвони!", status: read }

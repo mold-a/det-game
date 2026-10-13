@@ -17,6 +17,7 @@ characters:
     middle: "Сергеевич"
     gender: m
     age: 56
+    familiar: "Ваня"        # дружеское имя: так его зовут близкие (Кирилл в переписке 3-03)
     photo: "portraits/voroncov.jpg"
     in_pool: false          # погибший — не вариант в вопросах «кто…»
   - id: zavyalov
@@ -42,20 +43,22 @@ characters:
     photo: "portraits/volkov.jpg"
     in_pool: true
   - id: marina
-    working: "Марина Тарасова"           # строка из таблицы персонажей — для import-cast
-    role: "Супруга погибшего"
+    working: "Марина Воронцова"           # строка из таблицы персонажей — для import-cast
+    role: "Дочь погибшего"
     importance: key
-    last: "Тарасова"
+    father: voroncov          # фамилия и отчество — всегда от отца (сборка проверяет, import-cast выводит сам)
+    last: "Воронцова"
     first: "Марина"
-    middle: "Олеговна"
+    middle: "Ивановна"
     gender: f
-    age: 52
+    age: 24
     photo: "portraits/marina.jpg"
     in_pool: true
   - id: kirill
     working: "Кирилл"           # строка из таблицы персонажей — для import-cast
     role: "Друг погибшего, программист"
     importance: key
+    # Характер: балагур, душа компании; когда страшно — шутит ещё больше (решение автора 14.10.2026).
     last: "Сомов"
     first: "Кирилл"
     middle: "Евгеньевич"
@@ -169,7 +172,8 @@ characters:
 
   # --- служебные ---
   - id: kovalev
-    working: "Сержант Ковалёв"           # строка из таблицы персонажей — для import-cast
+    working: "Сержант Ковалёв"           # вымышленный персонаж, не родственник
+    cast: false               # import-cast не трогает: рабочее имя остаётся
     role: "Сержант полиции"
     importance: service
     last: "Ковалёв"
@@ -178,7 +182,8 @@ characters:
     gender: m
     in_pool: false
   - id: sme
-    working: "Судмедэксперт"           # строка из таблицы персонажей — для import-cast
+    working: "Судмедэксперт"           # вымышленный персонаж, не родственник
+    cast: false               # import-cast не трогает: рабочее имя остаётся
     role: "Судебно-медицинский эксперт"
     importance: service
     last: "Лисицына"
@@ -187,7 +192,7 @@ characters:
     gender: f
     in_pool: false
   - id: belyaev
-    working: "Майор Беляев"           # строка из таблицы персонажей — для import-cast
+    working: "Майор Беляев"           # роль играет родственник — настоящее имя придёт через import-cast
     role: "Майор юстиции, руководитель следственной группы"
     importance: service
     last: "Беляев"
@@ -201,7 +206,7 @@ characters:
   - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
   - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
   - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: marina_sister, working: "Сестра Марины", role: "Сестра Тарасовой", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  - { id: marina_sister, working: "Сестра Марины", role: "Дочь погибшего, сестра Марины; живёт в другом городе", importance: background, father: voroncov, last: "Воронцова", first: "TODO(content)", middle: "Ивановна", gender: f, in_pool: false }
   - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
   - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
   - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь Громова", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
