@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import functools
+import os
+import re
 import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -32,8 +34,33 @@ MIME_TYPES = {
 }
 
 
+# Один диапазон: bytes=a-b, bytes=a-, bytes=-n (RFC 9110 §14). Несколько диапазонов и другие
+# единицы не поддерживаются — такой заголовок игнорируется, отдаётся весь файл (это разрешено RFC).
+_RANGE = re.compile(r"^bytes=(\d*)-(\d*)$")
+
+
+class _Limited:
+    """Файл, из которого читается не больше ``left`` байт (тело ответа 206)."""
+
+    def __init__(self, f, left: int) -> None:
+        self.f = f
+        self.left = left
+
+    def read(self, n: int = -1) -> bytes:
+        if self.left <= 0:
+            return b""
+        n = self.left if n is None or n < 0 else min(n, self.left)
+        data = self.f.read(n)
+        self.left -= len(data)
+        return data
+
+    def close(self) -> None:
+        self.f.close()
+
+
 class DistRequestHandler(SimpleHTTPRequestHandler):
-    """Раздаёт файлы с правильными MIME-типами и без кеширования."""
+    """Раздаёт файлы с правильными MIME-типами, без кеширования и с HTTP Range
+    (206 Partial Content): без него iOS Safari не проигрывает аудио и видео."""
 
     extensions_map = {**SimpleHTTPRequestHandler.extensions_map, **MIME_TYPES}
 
@@ -43,7 +70,46 @@ class DistRequestHandler(SimpleHTTPRequestHandler):
             return MIME_TYPES[suffix]
         return super().guess_type(path)
 
+    def send_head(self):  # type: ignore[override]
+        rng = self.headers.get("Range")
+        path = self.translate_path(self.path)
+        m = _RANGE.match(rng.strip()) if rng else None
+        if m is None or os.path.isdir(path) or self.path.split("?", 1)[0].endswith("/") or m.group(1) == m.group(2) == "":
+            return super().send_head()
+        try:
+            f = open(path, "rb")  # noqa: SIM115 — закрывает copyfile/do_HEAD
+        except OSError:
+            self.send_error(404, "File not found")
+            return None
+        size = os.fstat(f.fileno()).st_size
+        first, last = m.group(1), m.group(2)
+        if first == "":  # суффикс: последние n байт
+            n = int(last)
+            start, end = max(0, size - n), size - 1
+            bad = n == 0
+        else:
+            start = int(first)
+            end = min(int(last), size - 1) if last else size - 1
+            bad = bool(last) and int(last) < start
+        if bad or start >= size or size == 0:
+            f.close()
+            self.send_response(416, "Range Not Satisfiable")
+            self.send_header("Content-Range", f"bytes */{size}")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return None
+        length = end - start + 1
+        self.send_response(206, "Partial Content")
+        self.send_header("Content-Type", self.guess_type(path))
+        self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
+        self.send_header("Content-Length", str(length))
+        self.send_header("Last-Modified", self.date_time_string(int(os.fstat(f.fileno()).st_mtime)))
+        self.end_headers()
+        f.seek(start)
+        return _Limited(f, length)
+
     def end_headers(self) -> None:
+        self.send_header("Accept-Ranges", "bytes")
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         super().end_headers()

@@ -86,6 +86,12 @@ npm run test:e2e            # сквозные (Playwright): сначала buil
 `serve` без собранного `dist/` пишет, что сначала нужен `python -m engine build`, и выходит с кодом 1.
 Порт занят — `python -m engine serve --port 8001`.
 
+`serve` поддерживает HTTP Range (`Accept-Ranges: bytes`, ответ `206 Partial Content`, один диапазон
+`bytes=a-b`, `bytes=a-` или `bytes=-n`; невыполнимый — `416`). Без этого iOS Safari не проигрывает
+аудио и видео: проверяя медиа с iPhone в локальной сети, используйте именно `serve`, а не другой
+простой сервер. Помните, что по `http://` с другого устройства Web Crypto недоступна (PLAN R6) —
+для полной проверки с телефона нужен HTTPS (выкладка или туннель).
+
 ## Кириллица в консоли Windows
 
 `engine/__main__.py` первым делом переключает `stdout` и `stderr` на UTF-8
