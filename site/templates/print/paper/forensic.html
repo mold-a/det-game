@@ -1,0 +1,4 @@
+{# Заключение судебно-медицинского эксперта: шапка — meta.org (бюро), № дела, дата и место, подпись эксперта. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}

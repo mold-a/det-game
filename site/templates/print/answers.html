@@ -1,0 +1,112 @@
+{# «Аварийный конверт» (P07): ответы, экспертизы, развязка. A4, PT Serif, чёрным по белому. #}
+{% extends "print/_print_base.html" %}
+{% block title %}{{ title }} — аварийный конверт{% endblock %}
+{% block style %}
+@page { size: A4; margin: 18mm 18mm 20mm; }
+* { box-sizing: border-box; }
+body { font-family: var(--font-serif); font-size: 10.5pt; line-height: 1.4; color: #000; margin: 0; }
+h1, h2, h3 { font-family: var(--font-sans); line-height: 1.2; }
+h2 { font-size: 16pt; margin: 0 0 4mm; padding-bottom: 2mm; border-bottom: 0.5mm solid #000; }
+h3 { font-size: 11.5pt; margin: 5mm 0 1.5mm; }
+.section { break-before: page; }
+.cover { height: 250mm; display: flex; flex-direction: column; justify-content: center; text-align: center; border: 1mm solid #000; padding: 20mm; }
+.cover .game { font-family: var(--font-sans); font-size: 14pt; letter-spacing: .08em; text-transform: uppercase; }
+.cover .warn { font-family: var(--font-sans); font-size: 30pt; font-weight: 700; margin: 14mm 0; line-height: 1.15; }
+.cover .note { font-size: 11pt; max-width: 120mm; margin: 0 auto; }
+.q { break-inside: avoid; margin: 0 0 4mm; padding: 2.5mm 0 0; border-top: 0.2mm solid #bbb; }
+.q .tag { font-family: var(--font-sans); font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em; color: #444; }
+.q .tag .path { text-transform: none; letter-spacing: 0; }
+.q .prompt { font-weight: 700; margin: 1mm 0; }
+.q table { border-collapse: collapse; width: 100%; }
+.q td { vertical-align: top; padding: 0.6mm 0; }
+.q td.l { width: 62mm; color: #333; padding-right: 3mm; }
+.q .ans { font-weight: 700; }
+.q .note { color: #555; font-size: 9pt; }
+.next { font-family: var(--font-sans); font-weight: 700; border: 0.4mm solid #000; padding: 2.5mm 4mm; margin: 4mm 0 2mm; break-inside: avoid; }
+.lab { break-inside: avoid-page; margin-bottom: 5mm; border-top: 0.2mm solid #bbb; padding-top: 2.5mm; }
+.lab dl { display: grid; grid-template-columns: 34mm 1fr; gap: 0.6mm 3mm; margin: 1mm 0 2mm; }
+.lab dt { color: #444; } .lab dd { margin: 0; }
+.doc { border-left: 0.6mm solid #000; padding: 1mm 0 1mm 4mm; margin-top: 2mm; }
+.doc h4 { font-family: var(--font-sans); margin: 0 0 1.5mm; font-size: 10.5pt; }
+.doc p, .doc ul { margin: 0 0 1.5mm; }
+.fate { margin: 0 0 2mm; } .fate b { font-family: var(--font-sans); }
+.score table { border-collapse: collapse; } .score td { padding: 0.8mm 4mm 0.8mm 0; }
+.intro { color: #333; }
+{% endblock %}
+{% block body %}
+<section class="cover">
+  <div class="game">{{ title }}</div>
+  <div class="warn">Аварийный конверт.<br>Вскрывать, только если сайт недоступен</div>
+  <p class="note">Здесь — все ответы, результаты лаборатории и развязка. Если сайт работает, не открывайте конверт: игра считает баллы и выдаёт подсказки сама.</p>
+</section>
+
+<section class="section">
+  <h2>Как играть без сайта</h2>
+  <p class="intro">Ведущий читает вопрос этапа, команда отвечает устно. Ответ засчитывается, если он совпадает по смыслу с указанным ниже. Когда решены все обязательные вопросы этапа, команда вскрывает следующий конверт. Лабораторию заменяет раздел «Экспертизы»: если команда назвала объект, вид исследования и один из документов-оснований, ведущий зачитывает результат.</p>
+  <div class="score">
+    <h3>Баллы</h3>
+    <table>
+      <tr><td>Бонусный вопрос</td><td>+{{ scoring.bonus }} (одна попытка)</td></tr>
+      <tr><td>Финальный вопрос</td><td>+{{ scoring.final }} (одна попытка)</td></tr>
+      <tr><td>Неверный ответ на обязательный вопрос</td><td>{{ scoring.wrong }}</td></tr>
+      <tr><td>Запрос в лабораторию без оснований</td><td>{{ scoring.lab }}</td></tr>
+      <tr><td>Подсказки уровней 1–3</td><td>−{{ scoring.hints|join(", −") }}; после {{ scoring.auto }} неверных попыток первая — бесплатно</td></tr>
+    </table>
+    <h3>Ранги</h3>
+    <table>
+      {% for rk in scoring.ranks %}
+      <tr><td>{% if rk.min is none %}до {{ rk.max }}{% elif rk.max is none %}от {{ rk.min }}{% else %}{{ rk.min }}–{{ rk.max }}{% endif %}</td><td>{{ rk.name }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</section>
+
+{% for st in stages %}
+<section class="section">
+  <h2>Этап {{ st.n }} · конверт № {{ st.envelope }}</h2>
+  {% for q in st.questions %}
+  <div class="q">
+    <div class="tag"><span class="path">{{ q.path }}</span> · {{ q.kind }}{% if q.points %} · +{{ q.points }}{% endif %}</div>
+    <div class="prompt">{{ q.prompt }}</div>
+    <table>
+      {% for row in q.rows %}
+      <tr>
+        {% if row.label %}<td class="l">{{ row.label }}</td>{% endif %}
+        <td{% if not row.label %} colspan="2"{% endif %}><span class="ans">{{ row.answer }}</span>{% if row.note %}<br><span class="note">{{ row.note }}</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+  {% endfor %}
+  {% if st.next %}<div class="next">Дальше: {{ st.next }}</div>{% else %}<div class="next">Это финал: после ответов прочитайте развязку в конце конверта.</div>{% endif %}
+</section>
+{% endfor %}
+
+<section class="section">
+  <h2>Экспертизы (лаборатория)</h2>
+  <p class="intro">Результат выдаётся, если запрошены объект и любой из видов исследования ниже и названо любое из оснований. Иначе — «Недостаточно оснований», {{ lab_penalty }} баллов. Результат доступен с указанного этапа.</p>
+  {% for x in lab %}
+  <div class="lab">
+    <h3>{{ x.title }}</h3>
+    <dl>
+      <dt>С этапа</dt><dd>{{ x.stage }}</dd>
+      <dt>Объект</dt><dd>{{ x.object }}</dd>
+      <dt>Вид</dt><dd>{% if x.types|length > 1 %}любой из: {% endif %}{{ x.types|join("; ") }}</dd>
+      <dt>Основания</dt><dd>{% for b in x.bases %}{{ b }}{% if not loop.last %}<br>{% endif %}{% endfor %}</dd>
+      {% for p in x.params %}<dt>{{ p.label }}</dt><dd>{{ p.value }}{% if p.note %} ({{ p.note }}){% endif %}</dd>{% endfor %}
+    </dl>
+    <div class="doc">{{ x.body }}</div>
+  </div>
+  {% endfor %}
+</section>
+
+<section class="section">
+  <h2>Развязка</h2>
+  <h3>{{ confession.title }}</h3>
+  <div class="doc">{{ confession.html }}</div>
+  <h3>{{ letter.title }}</h3>
+  <div class="doc">{{ letter.html }}</div>
+  <h3>Что стало с героями</h3>
+  {% for f in fates %}<p class="fate">{% if f.name %}<b>{{ f.name }}.</b> {% endif %}{{ f.text }}</p>{% endfor %}
+</section>
+{% endblock %}

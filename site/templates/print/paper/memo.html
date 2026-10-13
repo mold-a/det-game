@@ -1,0 +1,5 @@
+{# Служебная записка: шапка театра (или meta.org), адресат meta.to, от кого meta.from, текст, подпись. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
+{% block case %}{% endblock %}

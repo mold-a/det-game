@@ -1,0 +1,5 @@
+{# Ответ аптеки и копия рецепта: шапка — meta.org (вымышленная аптека), адресат meta.to, изображения media. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
+{% block case %}{% endblock %}

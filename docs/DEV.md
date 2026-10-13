@@ -70,6 +70,7 @@ Playwright стоит дважды: Python-версия (печать PDF/PNG в
 | `python -m engine qr` | QR-коды для печати → `print/qr/` | P07 |
 | `python -m engine answers` | «Аварийный конверт» → `print/answers.pdf` | P07 |
 | `python -m engine chatshot` | «скриншоты» переписок → `print/chats/` | P07 |
+| `python -m engine paper [--only ID …] [--release]` | бумажные документы конвертов из `content/paper/` → `print/paper/` (PDF, сборники конвертов, превью PNG) | P07 |
 | `python -m engine release` | build --release + check --release + архив dist | P08 |
 | `python -m engine import-cast <xlsx> [--write] [--familiar ID=Имя]` | имена из таблицы персонажей → `content/characters.yaml` (без `--write` — только отчёт и diff) | P09 |
 
@@ -123,13 +124,13 @@ PT Sans и PT Serif (OFL) лежат в `site/assets/fonts/`, подключаю
 
 Если браузер Playwright скачать нельзя, а Chromium уже установлен (например, в облачном окружении),
 укажите путь к нему в переменной `PW_CHROMIUM_PATH` — её учитывают и `npx playwright test`,
-и команды печати (`qr`, `answers`, `chatshot`):
+и команды печати (`qr`, `answers`, `chatshot`, `paper`):
 
 ```
 PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test
 ```
 
-## Печать (`qr`, `chatshot`, `answers`)
+## Печать (`qr`, `chatshot`, `answers`, `paper`)
 
 Результаты — в `print/` (в `.gitignore`: там ответы и ключи страниц, не публиковать).
 Нужен Chromium для Python-пакета `playwright` (см. выше; `PW_CHROMIUM_PATH` тоже работает):
@@ -140,7 +141,35 @@ PW_CHROMIUM_PATH=/opt/pw-browsers/chromium python -m engine qr
 
 Самопроверка QR декодированием — необязательная зависимость `qrcheck` (`zxing-cpp`, `pillow`):
 `pip install -e ".[qrcheck]"`. Без неё `qr` создаёт коды и предупреждает, что проверка пропущена.
-Тесты печати (`tests/test_print.py`) без браузера пропускаются с причиной в отчёте pytest (`-rs`).
+Тесты печати (`tests/test_print.py`, `tests/test_paper.py`) без браузера пропускаются с причиной
+в отчёте pytest (`-rs`).
+
+### Бумажные документы (`paper`)
+
+Тексты конвертов 1–4 — `content/paper/<id>.md` (формат — docs/03 «paper/»), бланки —
+`site/templates/print/paper/<form>.html` (контекст шаблона и классы описаны в `_base.html`).
+
+```
+PW_CHROMIUM_PATH=/opt/pw-browsers/chromium python -m engine paper              # все документы + сборники
+python -m engine paper --only 1-07 1-02                                       # только эти, без сборников
+python -m engine paper --release                                              # для печати к игре
+```
+
+Результат в `print/paper/`: `<id>.pdf` (A4), `envelope-<N>.pdf` — все бумажные документы конверта
+по порядку `documents.yaml`, каждый с новой страницы; `preview/<id>.png` — первая страница для
+просмотра. В консоли — таблица `id | бланк | страниц | статус` (страницы — по факту из PDF;
+`pages_hint` не совпал — пометка в статусе).
+
+- Нет `content/paper/<id>.md` — печатается страница-заглушка «Документ 2-05: текст не готов»;
+  `build` и `check` пишут это в отчёт заглушек (`missing-paper`), `paper --release`, `build --release`
+  и `release` падают.
+- QR-код страницы (та же ссылка, что у `qr`; у облака — без ключа) печатается в правом верхнем углу
+  с подписью `qr_label`; нужен `engine/salts.lock.json` (сначала `build`).
+- `form: chat` — «скриншоты» телефона генерируются на лету из `content/chats/<id>.yaml`.
+- `--release` дополнительно запрещает TODO(content) (и в файле, и после подстановки имён), отсутствующие
+  файлы `media:` и домен-заглушку в QR.
+- Бумага не публикуется: `build` не кладёт её в `dist/`, а `check` (пункт 7, leak scan) ищет шинглы
+  текстов бумаги во всех файлах `dist/`.
 
 ## Импорт имён из таблицы (`import-cast`)
 

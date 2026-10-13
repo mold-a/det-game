@@ -1,0 +1,5 @@
+{# Смета, договор: шапка — meta.org; таблицы — в тексте (Markdown), суммы выровнены вправо. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
+{% block case %}{% endblock %}

@@ -242,7 +242,7 @@ def test_paper_texts_rendered(content):
     assert {"content/paper/1-07.md", "content/paper/1-02.md"} <= srcs
     body = next(t for s, t, _ in texts if s == "content/paper/1-07.md")
     assert make_context(content)["c"].voroncov.short() in body and "{{" not in body
-    assert {st for _, _, st in texts} == {1}
+    assert {st for s, _, st in texts if s in ("content/paper/1-07.md", "content/paper/1-02.md")} == {1}
 
 
 # ---------------------------------------------------------------- --release (без браузера)
@@ -348,3 +348,12 @@ def test_pack1_may_quote_envelope1_paper_only(root, tmp_path):
     probs = pack1_problems({"questions": [{"prompt": texts["content/paper/3-07.md"]}]}, ns, 1)
     assert probs and all("content/paper/3-07.md" in p for p in probs)
     assert scan_text(texts["content/paper/1-07.md"], ns, "x")  # в файле dist/ — утечка и для конверта 1
+
+
+def test_release_command_fails_on_missing_paper(tmp_path):
+    """``python -m engine release``: бумажный документ без текста — ошибка (как TODO(content))."""
+    from engine.release import ReleaseError, release
+
+    with pytest.raises(ReleaseError) as exc:
+        release(dist=tmp_path / "dist", salts_path=tmp_path / "salts.json", out_dir=tmp_path / "print")
+    assert "нет текста бумажного документа content/paper/2-05.md" in str(exc.value)

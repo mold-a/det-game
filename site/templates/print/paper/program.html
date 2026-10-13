@@ -1,0 +1,9 @@
+{# Программка спектакля: шапка театра, автор (meta.author) над крупным названием, дата и место; текст по центру. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
+{% block case %}{% endblock %}
+{% block heading %}
+{% if doc.meta.get("author") %}<p class="paper__author">{{ doc.meta.get("author") }}</p>{% endif %}
+<h1 class="paper__title">{{ doc.title }}</h1>
+{% endblock %}

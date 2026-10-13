@@ -1,0 +1,5 @@
+{# План здания: шапка театра; изображения media во всю ширину, легенда — в тексте. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
+{% block case %}{% endblock %}

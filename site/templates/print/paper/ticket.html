@@ -1,0 +1,14 @@
+{# Билет: рамка с пунктиром, без шапки ведомства; реквизиты — в тексте (Markdown) или meta. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block sheet %}
+<div class="paper__sheet">
+  <header class="paper__head">
+    {{ m.org(doc, w, "none") }}
+    <h1 class="paper__title">{{ doc.title }}</h1>
+    {{ m.requisites(doc) }}
+  </header>
+  <div class="paper__body">{{ doc.body_html }}</div>
+  {{ m.media(doc) }}
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{# Общие части бланков бумажных документов (см. контекст в _base.html). #}
+{% macro lines(v) -%}
+{% if v is string %}{{ v }}{% else %}{% for x in v %}{{ x }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% endif %}
+{%- endmacro %}
+
+{# Шапка организации: meta.org важнее умолчания бланка (police | theater | none). #}
+{% macro org(doc, w, default) -%}
+{% set custom = doc.meta.get('org') %}
+{% if custom %}
+<div class="paper__org">{{ lines(custom) }}</div>
+{% elif default == "police" %}
+<div class="paper__org">{{ w.police.department }}</div>
+{% elif default == "theater" %}
+<div class="paper__org">{{ w.theater.full }}</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro case(w) -%}
+<div class="paper__case">Уголовное дело № {{ w.police.case_no }}</div>
+{%- endmacro %}
+
+{% macro requisites(doc) -%}
+<div class="paper__requisites">{% if doc.place %}<span class="paper__place">{{ doc.place }}</span>{% endif %}{% if doc.date %}<time class="paper__date">{{ doc.date|dt('date') }}</time>{% endif %}</div>
+{%- endmacro %}
+
+{% macro media(doc) -%}
+{% if doc.media %}
+{% set caps = doc.meta.get('captions') or [] %}
+<div class="paper__media">
+  {% for m in doc.media %}
+  <figure class="paper__figure">
+    {% if m.exists %}<img src="{{ m.src }}" alt="">{% else %}<div class="paper__missing">нет файла media/{{ m.path }}</div>{% endif %}
+    {% if caps[loop.index0] is defined %}<figcaption>{{ caps[loop.index0] }}</figcaption>{% endif %}
+  </figure>
+  {% endfor %}
+</div>
+{% endif %}
+{%- endmacro %}
+
+{% macro signatures(doc) -%}
+{% if doc.signed %}
+<div class="paper__signatures">
+  {% for s in doc.signed %}
+  <div class="paper__sign"><span class="role">{{ s.role }}</span><span class="line"></span><span class="name">{{ s.name }}</span></div>
+  {% endfor %}
+</div>
+{% endif %}
+{%- endmacro %}

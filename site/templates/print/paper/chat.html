@@ -1,0 +1,12 @@
+{# Снимки экрана телефона: «скриншоты» из content/chats/<id>.yaml (doc.chats), затем текст (если есть). #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block before_body %}
+{% if doc.chats %}
+<div class="paper__chats">
+  {% for src in doc.chats %}
+  <figure><img src="{{ src }}" alt=""><figcaption>Снимок {{ loop.index }}</figcaption></figure>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

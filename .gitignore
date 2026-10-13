@@ -1,5 +1,5 @@
-dist/
-print/
+/dist/
+/print/
 node_modules/
 .venv/
 __pycache__/

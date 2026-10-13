@@ -49,6 +49,7 @@ python -m engine serve        # локальный сервер dist/ на http:
 python -m engine qr           # QR-коды для печати → print/qr/
 python -m engine answers      # «Аварийный конверт» с ответами → print/answers.pdf
 python -m engine chatshot     # «скриншоты» переписок для печати → print/chats/
+python -m engine paper        # бумажные документы конвертов (content/paper/) → print/paper/*.pdf
 python -m engine names        # таблица падежных форм всех персонажей
 python -m engine import-cast <xlsx>  # имена из таблицы персонажей → content/characters.yaml
 python -m engine release      # build --release + check --release + архив dist
@@ -64,6 +65,7 @@ npx playwright test           # сквозные тесты (после build)
 
 ```
 content/          сюжет, ответы, тексты (приватно) — см. docs/03
+content/paper/    тексты бумажных документов конвертов — только печать, в dist/ не попадают
 engine/salts.lock.json  соли и ключи страниц — коммитится, не пересоздаётся
 media/            исходные фото, аудио, видео
 engine/           сборщик на Python

@@ -1,0 +1,5 @@
+{# Справка пресс-службы: шапка — meta.org (пресс-служба), заголовок, текст, подпись. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
+{% block case %}{% endblock %}

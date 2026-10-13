@@ -1,0 +1,34 @@
+{# Лист A4 с QR-карточками для вырезания (P07): QR 40 × 40 мм, подпись qr_label, линии реза. #}
+{% extends "print/_print_base.html" %}
+{% block style %}
+@page { size: A4; margin: 12mm 15mm; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--font-sans); color: #111; }
+.head { display: flex; justify-content: space-between; font-size: 8pt; color: #666; margin-bottom: 4mm; }
+.grid { border-collapse: collapse; table-layout: fixed; }
+.grid td { width: 60mm; height: 64mm; border: 0.3mm dashed #9a9a9a; padding: 0; vertical-align: top; }
+.card { height: 64mm; display: flex; flex-direction: column; align-items: center; padding-top: 6mm; }
+.qr { width: 40mm; height: 40mm; display: block; }
+.qr svg { width: 40mm; height: 40mm; display: block; }
+.label { margin-top: 3mm; font-size: 10pt; line-height: 1.2; text-align: center; padding: 0 4mm; font-weight: 700; }
+.meta { margin-top: 1.5mm; font-size: 7pt; color: #777; }
+tr { break-inside: avoid; page-break-inside: avoid; }
+{% endblock %}
+{% block body %}
+<div class="head"><span>{{ title }} — QR-коды страниц. Резать по пунктиру.</span><span>Коррекция ошибок H</span></div>
+<table class="grid">
+{% for row in cards|batch(3) %}
+  <tr>
+  {% for c in row %}
+    <td><div class="card">
+      <div class="qr">{{ c.svg }}</div>
+      <div class="label">{{ c.label }}</div>
+      <div class="meta">Конверт {{ c.envelope }} · к документу {{ c.docs|join(", ") }}{% if c.access == "password" %} · вход по паролю{% endif %}</div>
+    </div></td>
+  {% endfor %}
+  {% for _ in range(3 - row|length) %}<td></td>{% endfor %}
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

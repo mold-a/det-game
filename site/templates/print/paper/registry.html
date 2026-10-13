@@ -1,0 +1,5 @@
+{# Выписка из реестра: шапка — meta.org (вымышленный реестр), таблица — в тексте. #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
+{% block case %}{% endblock %}

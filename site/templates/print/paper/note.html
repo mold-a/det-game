@@ -1,0 +1,11 @@
+{# Записка от руки: лист в линейку, без шапки и заголовка (название из documents.yaml не печатается; meta.subtitle — мелко сверху). #}
+{% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block sheet %}
+<div class="paper__sheet">
+  {% if doc.meta.get("subtitle") %}<p class="paper__title">{{ doc.meta.get("subtitle") }}</p>{% endif %}
+  <div class="paper__body">{{ doc.body_html }}</div>
+  {{ m.media(doc) }}
+  {{ m.signatures(doc) }}
+</div>
+{% endblock %}
