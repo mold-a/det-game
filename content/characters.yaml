@@ -139,11 +139,12 @@ characters:
     working: "Дмитрий"           # строка из таблицы персонажей — для import-cast
     role: "Водитель погибшего"
     importance: secondary
-    last: "Горохов"
-    first: "Дмитрий"
-    middle: "Николаевич"
-    gender: m
-    age: 45
+    # Роль играет женщина (таблица персонажей 14.10.2026): рабочие ФИО женские. ID dmitriy не менять.
+    last: "Горохова"
+    first: "Дарья"
+    middle: "Николаевна"
+    gender: f
+    age: 40
     photo: "portraits/dmitriy.jpg"
     in_pool: true
   - id: volskaya
@@ -192,7 +193,7 @@ characters:
     gender: f
     in_pool: false
   - id: belyaev
-    working: "Майор Беляев"           # роль играет родственник — настоящее имя придёт через import-cast
+    working: "Майор Беляев"           # роль играет родственник (по таблице — Авдеенко Михаил) — имя придёт через import-cast
     role: "Майор юстиции, руководитель следственной группы"
     importance: service
     last: "Беляев"

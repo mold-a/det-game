@@ -167,6 +167,26 @@ def patronymic_for(father_first: str, gender: str) -> str:
     return stem + suffix + ("ич" if gender == "m" else "на")
 
 
+# Мужские отчества не на -вич из таблицы особых случаев (Ильич, Никитич, Фомич…).
+_MALE_SPECIAL = frozenset(m.lower() for m, _ in _PATRONYMIC_SPECIAL.values() if not m.lower().endswith("вич"))
+_MALE_ENDINGS: tuple[str, ...] = ("вич",)
+_FEMALE_ENDINGS: tuple[str, ...] = ("вна", "чна")  # -овна/-евна, -ична/-инична
+
+
+def patronymic_gender(middle: str | None) -> str | None:
+    """Пол по отчеству: ``-вич`` (и Ильич, Никитич, Фомич, Кузьмич, Лукич) → ``m``,
+    ``-вна``/``-чна``/``-ична`` → ``f``. Нет отчества или оно нестандартное (оглы, кызы…) —
+    ``None``: пол не угадывается."""
+    value = (middle or "").strip().lower().replace("ё", "е")
+    if not _CYR_NAME.match((middle or "").strip()):
+        return None
+    if value.endswith(_MALE_ENDINGS) or value in _MALE_SPECIAL:
+        return "m"
+    if value.endswith(_FEMALE_ENDINGS):
+        return "f"
+    return None
+
+
 @lru_cache(maxsize=1)
 def _maker() -> PetrovichDeclinationMaker:
     return PetrovichDeclinationMaker()
