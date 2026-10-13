@@ -20,8 +20,13 @@ import {
   advanceStage,
   labDone,
   labRejected,
+  finalStart,
   finalSubmit,
   finalFinish,
+  ackEnvelope,
+  pendingEnvelope,
+  mergeStates,
+  exportFileName,
   createStore,
 } from "../../site/assets/js/core/state.js";
 
@@ -44,6 +49,8 @@ const fresh = () =>
     startedAt: "2026-11-12T10:00:00.000Z",
     keys: { 1: "k1" },
   });
+
+const clone = (v) => JSON.parse(JSON.stringify(v));
 
 class MemoryStorage {
   constructor() {
@@ -125,7 +132,7 @@ describe("§4 попытки и штрафы", () => {
     const s = solve(fresh(), "s1.q1", { time: "21:18" });
     assert.equal(score(s), 0);
     assert.equal(unitStatus(s, "s1.q1"), "solved");
-    assert.deepEqual(s.units["s1.q1"].canon, { time: "21:18" });
+    assert.deepEqual(s.units["s1.q1"], { status: "solved", canon: { time: "21:18" }, given: null });
     assert.equal(solve(s, "s1.q1", { time: "00:00" }), s);
   });
 
@@ -143,6 +150,8 @@ describe("§4 попытки и штрафы", () => {
     assert.equal(hintLevel(s, "s1.q2"), 1);
     assert.equal(score(s), before, "бесплатно");
     assert.equal(score(s), -5 * N);
+    assert.equal(s.log.length, N, "бесплатная автоподсказка в журнал не пишется (F16)");
+    assert.ok(s.log.every((e) => e.r.startsWith("wrong:")));
   });
 
   test("повторы неверного ответа не приближают автоподсказку", () => {
@@ -221,14 +230,14 @@ describe("§4 бонусные вопросы: одна попытка", () => {
     const s = bonusAnswer(fresh(), "s1.b1", { correct: true, canon: "северогорск", points: pts });
     assert.equal(score(s), 15);
     assert.deepEqual(s.log, [{ d: 15, r: "bonus:s1.b1" }]);
-    assert.equal(unitStatus(s, "s1.b1"), "solved");
+    assert.deepEqual(s.units["s1.b1"], { status: "solved", canon: "северогорск", given: null });
   });
 
   test("неверно — 0, вопрос закрыт, вторая попытка невозможна", () => {
-    const s = bonusAnswer(fresh(), "s1.b1", { correct: false, canon: "москва", points: pts });
+    const s = bonusAnswer(fresh(), "s1.b1", { correct: false, given: "москва", points: pts });
     assert.equal(score(s), 0);
-    assert.equal(unitStatus(s, "s1.b1"), "closed");
-    assert.equal(s.units["s1.b1"].canon, "москва", "ответ команды сохранён для разбора");
+    assert.deepEqual(s.log, [], "нулевые записи в журнал не пишутся");
+    assert.deepEqual(s.units["s1.b1"], { status: "closed", canon: null, given: "москва" });
     const again = bonusAnswer(s, "s1.b1", { correct: true, canon: "северогорск", points: pts });
     assert.equal(again, s);
     assert.equal(score(again), 0);
@@ -239,30 +248,43 @@ describe("§4 бонусные вопросы: одна попытка", () => {
     assert.equal(bonusAnswer(s, "b", { correct: true, canon: "x", points: pts }), s);
   });
 
-  test("после начала финала бонусы прошлых этапов закрыты", () => {
-    const s = finalSubmit(fresh(), "s4.f1", { canon: "a" });
-    assert.equal(bonusAnswer(s, "s2.b1", { correct: true, canon: "x", points: pts }), s);
+  test("«Начать финал» закрывает неотвеченные бонусы этапов 1–3", () => {
+    let s = bonusAnswer(fresh(), "s1.b1", { correct: true, canon: "x", points: pts });
+    s = finalStart(s, ["s1.b1", "s2.b1", "s3.b1"]);
+    assert.equal(s.final.started, true);
+    assert.equal(unitStatus(s, "s1.b1"), "solved", "решённый бонус не трогается");
+    assert.deepEqual(s.units["s2.b1"], { status: "closed", canon: null, given: null });
+    assert.equal(unitStatus(s, "s3.b1"), "closed");
+    assert.equal(bonusAnswer(s, "s3.b1", { correct: true, canon: "y", points: pts }), s);
+    assert.equal(score(s), 15);
   });
 });
 
 // ---------------------------------------------------------------------------
 describe("§8 финал", () => {
-  test("ответы фиксируются, счёт не меняется до finalFinish", () => {
-    let s = buyHint(fresh(), "s1.q1", 1, 10); // −10 до финала
-    s = advanceStage(s, 4, "k4");
-    const before = score(s);
-    s = finalSubmit(s, "s4.f1", { canon: "a" });
-    s = finalSubmit(s, "s4.f2", { canon: "b" });
-    assert.equal(score(s), before);
-    assert.equal(s.final.index, 2);
-    const locked = finalSubmit(s, "s4.f1", { canon: "другое" });
-    assert.equal(locked, s, "ответ нельзя изменить");
-    assert.deepEqual(s.final.answers["s4.f1"], { canon: "a" });
+  test("до «Начать финал» ответы финала не принимаются", () => {
+    const s = fresh();
+    assert.equal(finalSubmit(s, "s4.f1", "a"), s);
   });
 
-  test("finalFinish пишет баллы за верные финальные и бонус этапа 4", () => {
-    let s = fresh();
-    for (const p of ["s4.f1", "s4.f2", "s4.f3", "s4.fb"]) s = finalSubmit(s, p, { canon: p });
+  test("ответы фиксируются, счёт не меняется до finalFinish", () => {
+    let s = buyHint(fresh(), "s1.q1", 1, 10); // −10 до финала
+    s = finalStart(advanceStage(s, 4, "k4"));
+    const before = score(s);
+    s = finalSubmit(s, "s4.f1", "a");
+    s = finalSubmit(s, "s4.f2", { who: "b" });
+    assert.equal(score(s), before);
+    assert.equal(s.log.length, 1);
+    assert.equal(s.final.index, 2);
+    assert.equal(s.final.correct, null);
+    const locked = finalSubmit(s, "s4.f1", "другое");
+    assert.equal(locked, s, "ответ нельзя изменить");
+    assert.equal(s.final.answers["s4.f1"], "a");
+  });
+
+  test("finalFinish пишет баллы за верные финальные и бонус этапа 4, сохраняет correct", () => {
+    let s = finalStart(fresh());
+    for (const p of ["s4.f1", "s4.f2", "s4.f3", "s4.fb"]) s = finalSubmit(s, p, p);
     s = finalFinish(
       s,
       {
@@ -278,13 +300,15 @@ describe("§8 финал", () => {
       s.log.map((e) => e.r),
       ["final:s4.f1", "final:s4.f3", "bonus:s4.fb"],
     );
+    assert.deepEqual(s.final.correct, { "s4.f1": true, "s4.f2": false, "s4.f3": true, "s4.fb": true });
     assert.equal(s.finished, true);
   });
 
   test("finalFinish один раз; после конца игры ответы не принимаются", () => {
-    const s = finalFinish(fresh(), { a: { correct: true, kind: "final" } }, PUB.points);
+    const s = finalFinish(finalStart(fresh()), { a: { correct: true, kind: "final" } }, PUB.points);
     assert.equal(finalFinish(s, { a: { correct: true, kind: "final" } }, PUB.points), s);
-    assert.equal(finalSubmit(s, "s4.f9", { canon: "x" }), s);
+    assert.equal(finalSubmit(s, "s4.f9", "x"), s);
+    assert.equal(score(s), 30);
   });
 
   test("баллы финала — параметры", () => {
@@ -294,7 +318,9 @@ describe("§8 финал", () => {
 });
 
 // ---------------------------------------------------------------------------
-describe("§6 счёт = сумма журнала; §7 лаборатория; этапы", () => {
+describe("§6 счёт = сумма журнала; §7 лаборатория; этапы и конверты", () => {
+  const REQ = { object: "inhaler", type: "chem", basis: "1-03", params: [], stage: 1 };
+
   test("счёт может уйти в минус и равен сумме log[].d", () => {
     let s = recordWrong(fresh(), "a", "1", -5);
     s = buyHint(s, "a", 1, 10);
@@ -304,25 +330,29 @@ describe("§6 счёт = сумма журнала; §7 лаборатория; 
     assert.equal(score(s), s.log.reduce((a, e) => a + e.d, 0));
   });
 
-  test("лаборатория: отказ штрафуется один раз, повтор — без штрафа", () => {
-    let s = labRejected(fresh(), "fp1", -5);
+  test("лаборатория: отказ штрафуется один раз, повтор — без штрафа; архив lab.log", () => {
+    let s = labRejected(fresh(), "fp1", -5, REQ);
     assert.deepEqual(s.log, [{ d: -5, r: "lab:fp1" }]);
-    assert.equal(labRejected(s, "fp1", -5), s);
+    assert.deepEqual(s.lab.log, [{ fp: "fp1", ...REQ, ok: false, doc: null }]);
+    assert.equal(labRejected(s, "fp1", -5, REQ), s);
   });
 
   test("лаборатория: выполненный запрос добавляет документ, повтор без штрафа", () => {
-    let s = labDone(fresh(), "fp2", "2-01");
+    let s = labDone(fresh(), "fp2", "2-01", { ...REQ, stage: 2 });
     assert.deepEqual(s.docs, ["2-01"]);
-    assert.equal(labDone(s, "fp2", "2-01"), s);
-    assert.equal(labRejected(s, "fp2", -5), s, "выполненный запрос не штрафуется");
+    assert.equal(s.lab.log[0].ok, true);
+    assert.equal(s.lab.log[0].doc, "2-01");
+    assert.equal(labDone(s, "fp2", "2-01", REQ), s);
+    assert.equal(labRejected(s, "fp2", -5, REQ), s, "выполненный запрос не штрафуется");
     assert.equal(score(s), 0);
   });
 
   test("лаборатория: отклонённый раньше запрос может сработать после перехода этапа", () => {
-    let s = labRejected(fresh(), "fp3", -5);
-    s = labDone(s, "fp3", "3-05");
+    let s = labRejected(fresh(), "fp3", -5, REQ);
+    s = labDone(s, "fp3", "3-05", { ...REQ, stage: 3 });
     assert.deepEqual(s.lab.rejected, []);
     assert.equal(s.lab.done.fp3, "3-05");
+    assert.deepEqual(s.lab.log.map((e) => e.ok), [false, true]);
     assert.equal(score(s), -5, "штраф за прошлый отказ остаётся");
   });
 
@@ -342,20 +372,77 @@ describe("§6 счёт = сумма журнала; §7 лаборатория; 
     assert.equal(s.stage, 3);
   });
 
+  test("окно конверта ждёт «Конверт вскрыт» и переживает перезагрузку (envelopeAck)", () => {
+    let s = fresh();
+    assert.equal(pendingEnvelope(s), null, "конверт №1 — на экране первого запуска");
+    s = advanceStage(s, 2, "k2");
+    assert.equal(pendingEnvelope(s), 2);
+    const reloaded = parseState(JSON.stringify(s));
+    assert.equal(pendingEnvelope(reloaded), 2);
+    s = ackEnvelope(s, 2);
+    assert.equal(pendingEnvelope(s), null);
+    assert.equal(ackEnvelope(s, 2), s);
+    assert.equal(ackEnvelope(s, 5).envelopeAck, 2, "нельзя подтвердить неоткрытый этап");
+  });
+
   test("редьюсеры не мутируют исходное состояние", () => {
     const s = fresh();
     const snapshot = JSON.stringify(s);
     recordWrong(s, "a", "1", -5);
     buyHint(s, "a", 1, 10);
     solve(s, "a", "x");
-    labRejected(s, "f", -5);
-    finalSubmit(s, "s4.f1", {});
+    labRejected(s, "f", -5, REQ);
+    finalSubmit(finalStart(s, ["s1.b1"]), "s4.f1", "x");
     finalFinish(s, {}, PUB.points);
+    ackEnvelope(advanceStage(s, 2, "k"), 2);
     assert.equal(JSON.stringify(s), snapshot);
   });
 });
 
 // ---------------------------------------------------------------------------
+describe("слияние вкладок (FORMATS §7.2)", () => {
+  test("журналы и множества объединяются, словари — по продвинутому значению, этапы — максимум", () => {
+    const base = fresh();
+    const a = {
+      ...clone(base),
+      stage: 3,
+      envelopeAck: 2,
+      units: { "s1.q1": { status: "solved", canon: "x", given: null }, "s1.b1": { status: "closed", canon: null, given: "y" } },
+      wrong: { q: ["h1", "h2"] },
+      hints: { q: 2 },
+      docs: ["2-01"],
+      lab: { done: { f1: "2-01" }, rejected: ["f2"], log: [{ t: "2026-11-12T10:00:01.000Z", fp: "f1", ok: true }] },
+      log: [{ t: "2026-11-12T10:00:01.000Z", d: -5, r: "wrong:q" }],
+    };
+    const b = {
+      ...clone(base),
+      stage: 2,
+      envelopeAck: 2,
+      units: { "s1.b1": { status: "solved", canon: "z", given: null } },
+      wrong: { q: ["h2", "h3"] },
+      hints: { q: 1, r: 1 },
+      docs: ["3-05"],
+      lab: { done: { f2: "3-05" }, rejected: [], log: [{ t: "2026-11-12T10:00:02.000Z", fp: "f2", ok: true }] },
+      log: [
+        { t: "2026-11-12T10:00:01.000Z", d: -5, r: "wrong:q" },
+        { t: "2026-11-12T10:00:03.000Z", d: -10, r: "hint:r:1" },
+      ],
+    };
+    const m = mergeStates(a, b);
+    assert.equal(m.stage, 3);
+    assert.equal(m.units["s1.q1"].status, "solved");
+    assert.equal(m.units["s1.b1"].status, "solved", "solved > closed");
+    assert.deepEqual(m.wrong.q.sort(), ["h1", "h2", "h3"]);
+    assert.deepEqual(m.hints, { q: 2, r: 1 });
+    assert.deepEqual(m.docs.sort(), ["2-01", "3-05"]);
+    assert.deepEqual(m.lab.done, { f1: "2-01", f2: "3-05" });
+    assert.deepEqual(m.lab.rejected, [], "f2 перенесён в done");
+    assert.equal(m.lab.log.length, 2);
+    assert.deepEqual(m.log.map((e) => e.r), ["wrong:q", "hint:r:1"], "общая запись не дублируется");
+    assert.equal(score(m), -15);
+  });
+});
+
 describe("§10 хранилище, экспорт, импорт, совместимость", () => {
   function playSome(store) {
     store.update(() => fresh());
@@ -496,6 +583,7 @@ describe("§10 хранилище, экспорт, импорт, совмест�
   test("несовместимый saltsId — прогресс несовместим", () => {
     const s = fresh();
     assert.equal(isCompatible(s, PUB), true);
+    assert.equal(isCompatible(s, { ...PUB, gameId: "other" }), false);
     assert.equal(isCompatible(s, { ...PUB, saltsId: "salts-B" }), false);
     assert.equal(isCompatible({ ...s, v: STATE_VERSION + 1 }, PUB), false);
     assert.equal(isCompatible(null, PUB), false);
@@ -505,5 +593,40 @@ describe("§10 хранилище, экспорт, импорт, совмест�
     const other = { ...fresh(), saltsId: "salts-OLD" };
     const parsed = parseState(JSON.stringify(other));
     assert.equal(isCompatible(parsed, PUB), false);
+  });
+  test("две вкладки: локальная запись, не дошедшая до хранилища, сливается с внешней", () => {
+    const storage = new MemoryStorage();
+    const tab1 = createStore({ storage, gameId: "g", now: clock(), events: null });
+    tab1.update(() => fresh());
+    const tab2 = createStore({ storage, gameId: "g", now: clock(), events: null });
+    // Хранилище на время отказывает tab1: изменение остаётся только в её памяти.
+    const realSet = storage.setItem.bind(storage);
+    storage.setItem = () => {
+      throw new Error("busy");
+    };
+    tab1.update((s) => buyHint(s, "s1.q1", 1, 10));
+    storage.setItem = realSet;
+    tab2.update((s) => recordWrong(s, "s1.q2", "h", -5));
+    assert.equal(score(tab2.get()), -5, "tab2 о покупке не знает");
+    assert.equal(score(tab1.get()), -10, "tab1 работает в памяти");
+  });
+
+  test("другая вкладка начала заново — локальная копия не воскрешает старую партию", () => {
+    const storage = new MemoryStorage();
+    const tab1 = createStore({ storage, gameId: "g", now: clock(), events: null });
+    tab1.update(() => fresh());
+    tab1.update((s) => recordWrong(s, "q", "h", -5));
+    const tab2 = createStore({ storage, gameId: "g", now: clock(), events: null });
+    tab2.reset();
+    const next = tab1.update((s) => s);
+    assert.equal(next, null);
+    tab2.update(() => ({ ...fresh(), startedAt: "2026-11-12T12:00:00.000Z" }));
+    const s = tab1.update((st) => st);
+    assert.equal(score(s), 0, "новая партия не смешивается со старой");
+  });
+
+  test("имя файла экспорта: detgame-<gameId>-<YYYYMMDD-HHMM>.json", () => {
+    const d = new Date(2026, 10, 12, 9, 5);
+    assert.equal(exportFileName("zakulisami", d), "detgame-zakulisami-20261112-0905.json");
   });
 });
