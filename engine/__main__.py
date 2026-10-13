@@ -54,6 +54,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("import-cast", help="имена из таблицы персонажей → content/characters.yaml")
     p.add_argument("xlsx", type=Path, help="путь к таблице .xlsx")
+    p.add_argument("--write", action="store_true",
+                   help="записать characters.yaml (без флага — только отчёт и diff)")
+    p.add_argument("--familiar", action="append", default=[], metavar="ID=ИМЯ",
+                   help="новое дружеское имя (familiar) персонажа, если настоящее имя изменилось; "
+                        "можно повторять")
+    p.add_argument("--content", type=Path, default=None, help=argparse.SUPPRESS)  # для тестов
 
     sub.add_parser("release", help="build --release + check --release + архив dist")
     sub.add_parser("vectors", help="тестовые векторы криптографии → tests/vectors/crypto.json")
@@ -97,6 +103,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_answers()
     if args.command == "release":
         return cmd_release()
+    if args.command == "import-cast":
+        return cmd_import_cast(args.xlsx, write=args.write, familiar=args.familiar, content=args.content)
     return not_implemented(args.command)
 
 
@@ -249,6 +257,25 @@ def cmd_answers() -> int:
 
     return _guarded_print(run)
 
+
+
+def cmd_import_cast(xlsx: Path, *, write: bool, familiar: list[str], content: Path | None) -> int:
+    from engine.content import CONTENT_DIR
+    from engine.importcast import format_report, import_cast
+
+    overrides: dict[str, str] = {}
+    for item in familiar:
+        cid, sep, name = item.partition("=")
+        if not sep or not cid.strip() or not name.strip():
+            print(f"--familiar {item!r}: ожидается ID=Имя, например --familiar voroncov=Петя", file=sys.stderr)
+            return EXIT_CONTENT_ERROR
+        overrides[cid.strip()] = name.strip()
+    rep = import_cast(xlsx, content_root=content or CONTENT_DIR, write=write, familiar=overrides)
+    out, err = format_report(rep, write)
+    print(out)
+    if err:
+        print(err, file=sys.stderr)
+    return 0 if rep.ok else EXIT_CONTENT_ERROR
 
 
 def cmd_release() -> int:

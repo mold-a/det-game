@@ -79,12 +79,13 @@ def html_to_pdf(b: object, html: str, out: Path, *, landscape: bool = False, foo
     return out
 
 
-def html_to_png(b: object, html: str, out: Path, *, width: int, height: int) -> Path:
-    """Снимок ровно ``width × height`` пикселей (device scale factor 1)."""
+def html_to_png(b: object, html: str, out: Path, *, width: int, height: int, scale: float = 1) -> Path:
+    """Снимок окна ``width × height`` CSS-пикселей; файл — ``width·scale × height·scale`` пикселей
+    (по умолчанию ``scale`` = 1: ровно ``width × height``)."""
     out = Path(out)
     tmp = _with_tmp_html(html, out)
     try:
-        page = b.new_page(viewport={"width": width, "height": height}, device_scale_factor=1)
+        page = b.new_page(viewport={"width": width, "height": height}, device_scale_factor=scale)
         page.goto(tmp.as_uri(), wait_until="load")
         page.evaluate("document.fonts.ready")
         page.screenshot(path=str(out), full_page=False)

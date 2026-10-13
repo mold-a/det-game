@@ -7,6 +7,10 @@
 
 Отсутствующий файл текста (``body``, ``confession``, ``letter``) — не ошибка, а
 заглушка (решение 4): попадает в ``Content.missing`` и в ``collect_todos``.
+
+Тексты бумажных документов ``content/paper/<id>.md`` (только печать, в ``dist/`` не попадают)
+проверяются здесь же; нет файла для документа ``kind: paper`` — запись ``missing-paper`` в
+``Content.paper_missing`` и ``collect_todos`` (ошибка только в ``--release``).
 """
 
 from __future__ import annotations
@@ -43,6 +47,7 @@ from engine.models import (
     FormField,
     NewsPage,
     PageBase,
+    PaperFrontMatter,
     Question,
     Settings,
     Stage,
@@ -53,6 +58,9 @@ from engine.names import DeclensionError, Person, patronymic_for, surname_for
 from engine.util import format_loc, iter_strings, read_text
 
 CONTENT_DIR = ROOT / "content"
+# Бланки бумажных документов: form → site/templates/print/paper/<form>.html
+PAPER_TEMPLATES = ROOT / "site" / "templates" / "print" / "paper"
+PAPER_DIR = "paper"
 TODO_MARK = "TODO(content)"
 _ID_RE = re.compile(ID_PATTERN)
 
@@ -95,7 +103,8 @@ class ContentError(Exception):
 @dataclass(frozen=True)
 class Todo:
     """Заглушка ``TODO(content)``. ``kind``: value — в значении, comment — в комментарии YAML,
-    text — в тексте Markdown, missing-file — нет файла текста (будет заглушка)."""
+    text — в тексте Markdown, missing-file — нет файла текста (будет заглушка),
+    missing-paper — нет текста бумажного документа ``content/paper/<id>.md``."""
 
     file: str
     loc: str
@@ -114,6 +123,17 @@ class DocFile:
     meta_raw: dict
     meta: DocFrontMatter | None
     body: str
+
+
+@dataclass
+class PaperFile:
+    """Текст бумажного документа ``content/paper/<id>.md`` (печать, не сайт)."""
+
+    path: str  # относительно content/: «paper/1-07.md»
+    meta_raw: dict
+    meta: PaperFrontMatter
+    body: str
+    body_line: int  # номер строки файла, с которой начинается тело (для TODO)
 
 
 @dataclass(frozen=True)
@@ -154,6 +174,8 @@ class Content:
     chats: dict[str, ChatFile] = field(default_factory=dict)  # content/chats/<id>.yaml — для печати (P07)
     docs: dict[str, DocFile] = field(default_factory=dict)  # путь .md → документ с front matter
     texts: dict[str, str] = field(default_factory=dict)  # путь .md → текст (тела страниц)
+    paper: dict[str, PaperFile] = field(default_factory=dict)  # id документа → текст для печати
+    paper_missing: list[Todo] = field(default_factory=list)  # бумажные документы без текста
     raw: dict[str, Any] = field(default_factory=dict)  # «content/…yaml» → разобранный YAML
     missing: list[Todo] = field(default_factory=list)
     warnings: list[ContentIssue] = field(default_factory=list)
@@ -369,8 +391,10 @@ def _check_unique(ld: _Loading, rel: str, items: list, base: tuple, what: str = 
             seen[v] = i
 
 
-def load_content(root: Path | str = CONTENT_DIR) -> Content:
-    """Прочитать и проверить ``content/``. Ошибки → ``ContentError`` со списком."""
+def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None = None) -> Content:
+    """Прочитать и проверить ``content/``. Ошибки → ``ContentError`` со списком.
+
+    ``paper_templates`` — папка бланков бумажных документов (по умолчанию ``PAPER_TEMPLATES``)."""
     ld = _Loading(Path(root))
 
     settings = ld.model("settings.yaml", Settings, ld.read_yaml("settings.yaml"))
@@ -412,12 +436,13 @@ def load_content(root: Path | str = CONTENT_DIR) -> Content:
     if pages is not None:
         _check_pages(ld, pages, characters, documents, texts)
     _check_chats(ld, chats, characters, documents)
+    paper, paper_missing = _load_paper(ld, documents, chats, Path(paper_templates or PAPER_TEMPLATES))
 
     for use in media_refs(characters or [], pages or {}, docs, name=ld.name):
         _check_media(ld, use)
 
     if characters is not None and world is not None:
-        _check_templates(ld, characters, world, docs, texts)
+        _check_templates(ld, characters, world, docs, texts, paper)
 
     if ld.errors:
         raise ContentError(ld.errors)
@@ -435,6 +460,8 @@ def load_content(root: Path | str = CONTENT_DIR) -> Content:
         chats=chats,
         docs=docs,
         texts=texts,
+        paper=paper,
+        paper_missing=paper_missing,
         raw=ld.raw,
         missing=ld.missing,
         warnings=ld.warnings,
@@ -916,6 +943,93 @@ def _check_chats(ld: _Loading, chats: dict[str, ChatFile], characters: list[Char
                         ld.err(rel, (*sloc, "items", ii), "у вызова должно быть who или name")
 
 
+def _body_start(text: str) -> int:
+    """Номер строки (с 1), с которой в файле с front matter начинается тело."""
+    lines = text.splitlines()
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                return i + 2
+    return 1
+
+
+def form_templates(tdir: Path) -> list[str]:
+    """Бланки бумажных документов: ``<form>.html`` без «_» в начале (служебные — ``_base`` и т. п.)."""
+    return sorted(p.stem for p in Path(tdir).glob("*.html") if not p.name.startswith("_")) if Path(tdir).is_dir() else []
+
+
+def _load_paper(ld: _Loading, documents: list[Document] | None, chats: dict[str, ChatFile],
+                tdir: Path) -> tuple[dict[str, PaperFile], list[Todo]]:
+    """``content/paper/<id>.md``: front matter (``PaperFrontMatter``) + Markdown. Необязательная папка."""
+    paper: dict[str, PaperFile] = {}
+    pdir = ld.root / PAPER_DIR
+    files = sorted(pdir.glob("*.md")) if pdir.is_dir() else []
+    docs_by_id = {d.id: d for d in documents} if documents is not None else None
+    forms = form_templates(tdir)
+    seen: dict[str, str] = {}
+    for p in files:
+        rel = f"{PAPER_DIR}/{p.name}"
+        text = read_text(p)
+        try:
+            post = frontmatter.loads(text)
+        except yaml.YAMLError as e:
+            ld.err(rel, "front matter", _yaml_error_text(e))
+            continue
+        meta_raw = dict(post.metadata)
+        if not meta_raw:
+            ld.err(rel, "front matter", "нет front matter (--- id, form … ---) в начале файла")
+            continue
+        try:
+            meta = PaperFrontMatter.model_validate(meta_raw)
+        except ValidationError as e:
+            ld.errors.extend(_pyd_issues(ld.name(rel), e, ("front matter",)))
+            continue
+        fm = ("front matter",)
+        if meta.id != p.stem:
+            ld.err(rel, (*fm, "id"), f"id «{meta.id}» должен совпадать с именем файла «{p.stem}»")
+            continue
+        if meta.id in seen:
+            ld.err(rel, (*fm, "id"), f"дубликат id «{meta.id}» (уже в {ld.name(seen[meta.id])})")
+            continue
+        seen[meta.id] = rel
+        if meta.form not in forms:
+            ld.err(rel, (*fm, "form"), f"нет бланка «{meta.form}»: нужен шаблон "
+                                       f"site/templates/print/paper/{meta.form}.html (есть: {', '.join(forms) or '—'})")
+        if docs_by_id is not None:
+            d = docs_by_id.get(meta.id)
+            if d is None:
+                ld.err(rel, (*fm, "id"), f"документа «{meta.id}» нет в documents.yaml")
+                continue
+            if d.kind != "paper":
+                ld.err(rel, (*fm, "id"), f"документ «{meta.id}» в documents.yaml — kind: {d.kind}, "
+                                         "а текст в paper/ бывает только у kind: paper")
+            if meta.stage is not None and meta.stage != d.stage:
+                ld.err(rel, (*fm, "stage"), f"stage: {meta.stage}, а в documents.yaml документ «{meta.id}» "
+                                            f"лежит в конверте {d.stage}")
+            if meta.qr is True and d.page is None:
+                ld.err(rel, (*fm, "qr"), f"qr: true, но у документа «{meta.id}» в documents.yaml нет page "
+                                         "(не на что ссылаться)")
+        if meta.form == "chat" and meta.id not in chats:
+            ld.err(rel, (*fm, "form"), f"form: chat — нужен content/chats/{meta.id}.yaml (снимки экрана "
+                                       "генерируются из него)")
+        for mi, m in enumerate(meta.media):
+            use = MediaUse(ld.name(rel), format_loc((*fm, "media", mi)), m, "paper")
+            n_before = len(ld.errors)
+            _check_media(ld, use)
+            if len(ld.errors) == n_before and not MEDIA_MIME[Path(m).suffix.lower()].startswith("image/"):
+                ld.errors.append(ContentIssue(use.file, use.loc, f"«{m}»: в бумажный документ печатаются только "
+                                                                 "изображения"))
+        paper[meta.id] = PaperFile(path=rel, meta_raw=meta_raw, meta=meta, body=post.content,
+                                   body_line=_body_start(text))
+    missing: list[Todo] = []
+    for i, d in enumerate(documents or []):
+        if d.kind == "paper" and d.id not in paper and d.id not in seen:
+            missing.append(Todo(ld.name("documents.yaml"), format_loc(("documents", i)),
+                                f"нет текста бумажного документа {ld.root.name}/{PAPER_DIR}/{d.id}.md "
+                                "— при печати будет заглушка", "missing-paper"))
+    return paper, missing
+
+
 def _load_pages(ld: _Loading) -> dict[str, PageBase] | None:
     pages_dir = ld.root / "pages"
     if not pages_dir.is_dir():
@@ -1065,7 +1179,8 @@ def _check_media(ld: _Loading, use: MediaUse) -> None:
 
 
 def _check_templates(ld: _Loading, characters: list[Character], world: dict,
-                     docs: dict[str, DocFile], texts: dict[str, str]) -> None:
+                     docs: dict[str, DocFile], texts: dict[str, str],
+                     paper: dict[str, PaperFile] | None = None) -> None:
     """Отрендерить все строки контента: опечатка в шаблоне — ошибка с путём до поля."""
     from engine.templating import check_tree, make_context
 
@@ -1083,6 +1198,11 @@ def _check_templates(ld: _Loading, characters: list[Character], world: dict,
             ld.errors.append(ContentIssue(f, loc, msg))
     for path, text in texts.items():
         for f, loc, msg in check_tree(text, ctx, ld.name(path), ("текст",)):
+            ld.errors.append(ContentIssue(f, loc, msg))
+    for pf in (paper or {}).values():
+        for f, loc, msg in check_tree(pf.meta_raw, ctx, ld.name(pf.path), ("front matter",)):
+            ld.errors.append(ContentIssue(f, loc, msg))
+        for f, loc, msg in check_tree(pf.body, ctx, ld.name(pf.path), ("текст",)):
             ld.errors.append(ContentIssue(f, loc, msg))
 
 
@@ -1152,4 +1272,23 @@ def collect_todos(content: Content) -> list[Todo]:
             if TODO_MARK in line:
                 todos.append(Todo(prefix + rel, f"строка {ln}", line.strip(), "text"))
     todos.extend(content.missing)
+    todos.extend(paper_todos(content))
+    return todos
+
+
+def paper_todos(content: Content) -> list[Todo]:
+    """TODO(content) бумажных документов: в front matter (value, с путём до поля), в тексте
+    (text, с номером строки файла) и документы без текста (missing-paper)."""
+    todos: list[Todo] = []
+    prefix = f"{content.root.name}/"
+    for pf in content.paper.values():
+        fname = prefix + pf.path
+        for loc, s in iter_strings(pf.meta_raw, ("front matter",)):
+            if TODO_MARK in s:
+                todos.append(Todo(fname, format_loc(loc), _todo_line(s), "value"))
+        lines = read_text(content.root / pf.path).splitlines()
+        for ln in range(pf.body_line, len(lines) + 1):
+            if TODO_MARK in lines[ln - 1]:
+                todos.append(Todo(fname, f"строка {ln}", lines[ln - 1].strip(), "text"))
+    todos.extend(content.paper_missing)
     return todos

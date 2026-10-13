@@ -210,8 +210,8 @@ characters:
   - { id: marina_sister, working: "Сестра Марины", role: "Дочь погибшего, сестра Марины; живёт в другом городе", importance: background, father: voroncov, last: "Воронцова", first: "TODO(content)", middle: "Ивановна", gender: f, in_pool: false }
   - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
   - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь Громова", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь {{ c.gromov.last('gen') }}", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
   - { id: rodionov_director, working: "Г. Родионов, директор ООО «Сценическая мастерская»", role: "Директор ООО «Сценическая мастерская»", importance: background, last: "Родионов", first: "Геннадий", middle: "Павлович", gender: m, in_pool: false }
   - { id: rodionov_creditor, working: "Брат Родионова, кредитор Волкова", role: "Кредитор Волкова, брат директора ООО", importance: background, last: "Родионов", first: "Виталий", middle: "Павлович", gender: m, in_pool: false }
   - { id: appraiser, working: "Эксперт, оценивший табакерку", role: "Эксперт-оценщик", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: gromov_guard, working: "Охранник Громова", role: "Охранник Громова", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: gromov_guard, working: "Охранник Громова", role: "Охранник {{ c.gromov.last('gen') }}", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }

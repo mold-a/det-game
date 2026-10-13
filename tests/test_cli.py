@@ -2,7 +2,6 @@ import os
 import subprocess
 import sys
 
-import pytest
 
 from engine import ROOT
 from engine.__main__ import PLANNED_STEP
@@ -36,27 +35,19 @@ def test_expected_command_set():
     }
 
 
-@pytest.mark.parametrize(
-    "args",
-    # vectors реализована в P02 (tests/test_crypto.py)
-    # names, rotate-salts, build, check, dump-answers реализованы в P03 (tests/test_names.py,
-    # tests/test_salts.py, tests/test_build.py)
-    [[c] for c in sorted(PLANNED_STEP)
-     if c not in {"import-cast", "rotate-salts", "vectors", "names", "build", "check", "dump-answers",
-                  "qr", "chatshot", "answers", "release"}]
-    + [["import-cast", "cast.xlsx"]],
-)
-def test_stub_returns_2(args):
-    res = run_engine(*args)
-    assert res.returncode == 2
-    out = res.stdout.decode("utf-8")
-    assert f"Будет реализовано в {PLANNED_STEP[args[0]]}" in out
+def test_all_commands_implemented():
+    # import-cast реализована в P09 (tests/test_importcast.py) — заглушек не осталось.
+    res = run_engine("import-cast", "--help")
+    assert res.returncode == 0
+    assert "--write" in res.stdout.decode("utf-8")
 
 
 def test_cyrillic_output_survives_non_utf8_console():
     # Имитация консоли Windows с однобайтовой кодировкой: reconfigure в __main__
     # должен переключить вывод на UTF-8, а не упасть с UnicodeEncodeError.
-    res = run_engine("import-cast", "cast.xlsx", env_extra={"PYTHONIOENCODING": "ascii", "PYTHONUTF8": "0"})
-    assert res.returncode == 2, res.stderr.decode("utf-8", "replace")
-    assert "Будет реализовано" in res.stdout.decode("utf-8")
+    res = run_engine("import-cast", "нет-такого.xlsx",
+                     env_extra={"PYTHONIOENCODING": "ascii", "PYTHONUTF8": "0"})
+    assert res.returncode == 1, res.stderr.decode("utf-8", "replace")
+    assert "Таблица: нет-такого.xlsx" in res.stdout.decode("utf-8")
+    assert "файл не найден" in res.stderr.decode("utf-8")
     assert b"UnicodeEncodeError" not in res.stderr

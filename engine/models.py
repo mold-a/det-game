@@ -600,3 +600,28 @@ ChatScreenAny = Annotated[NotificationScreen | ChatScreen | CallsScreen, Field(d
 class ChatFile(Strict):
     id: Id
     screens: Annotated[list[ChatScreenAny], Field(min_length=1)]
+
+
+# ---------------------------------------------------------------- paper/<id>.md (печать, бумажные документы)
+# Тексты документов конвертов 1–4: front matter + Markdown. Только для печати (print/paper/),
+# в dist/ не попадают. Бланк ``form`` — имя шаблона site/templates/print/paper/<form>.html
+# (список расширяемый: проверяется наличие шаблона, а не перечисление здесь).
+
+
+class PaperSignature(Strict):
+    role: str
+    name: str
+
+
+class PaperFrontMatter(Strict):
+    id: Id
+    form: Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_-]*$")]
+    title: str | None = None  # по умолчанию — из documents.yaml
+    stage: PosInt | None = None  # необязательно; если указан — сверяется с documents.yaml
+    date: str | None = None
+    place: str | None = None
+    signed: list[PaperSignature] = []
+    media: list[str] = []
+    qr: bool | None = None  # по умолчанию — true, если у документа в documents.yaml есть page
+    pages_hint: PosInt | None = None
+    meta: dict[str, Any] = {}
