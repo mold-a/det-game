@@ -1,0 +1,660 @@
+# FORMATS. Контракт данных между сборщиком (`engine/`) и браузером (`site/`)
+
+Версия 1, 2026-10-13. Документ уточняет `docs/02-architecture.md`, но не меняет его. Решения автора — `docs/PLAN.md` §9 (все 10 вопросов приняты «по умолчанию») и принятые пункты §8. Там, где docs/02 допускает варианты, выбор помечен **Решение Fn**; полный список — в §10.
+
+Обозначения в таблицах: **об.** — обязательное поле (`да` / `нет` / `null` — поле есть всегда, но может быть `null`). **Пишет / читает** — модуль. `engine/*` — Python, `core/*`, `app/*`, `pages/*` — JS в `site/assets/js/`.
+
+---
+
+## 0. Общие соглашения
+
+| Что | Правило |
+|---|---|
+| Кодировка | Все файлы в `dist/` и `tests/.answers.json` — UTF-8. JSON пишется `json.dumps(..., ensure_ascii=False, separators=(",", ":"))`. Пробелов нет, порядок ключей — как в примерах. Leak scan всё равно раскрывает `\uXXXX`. |
+| Имена ключей | **Решение F1.** Во всех JSON в `dist/`, в прогрессе и в `.answers.json` ключи пишутся в `camelCase` (как `saltsId`, `buildId`, `startedAt` в docs/02 §4). Исключение — поля контейнера `v`, `alg`, `aad`, `n`, `c` (docs/02 §3.1). |
+| Байты | base64url без `=` (`b64u`). Ключи — 32 байта, соли — 16 байт (`salt_start`, `salt_stage_N`, `salt_cloud`, соли единиц), nonce — 12 байт. |
+| Хеши | Если не оговорено иное — SHA-256 в нижнем hex. |
+| Версии | У каждого внутреннего JSON есть `"v": 1`. Клиент, встретив неизвестную `v`, показывает «Прогресс несовместим со сборкой» или «Пакет не расшифровался». |
+| Пути единиц | Путь вопроса: `s<n>.<qid>`. Путь единицы: `s<n>.<qid>` для простого вопроса, `s<n>.<qid>.<fid>` для поля формы (docs/03 §5). |
+| Тексты | `prompt`, `help`, `label`, тексты вариантов и карточек, подсказки, `onComplete`, названия — **простой текст**: клиент вставляет его через `textContent`. Поля `*Html` и `html` — готовый HTML, его отрендерил и экранировал сборщик. Клиент вставляет его через `innerHTML` как есть. |
+| Медиа в HTML | В зашифрованных HTML-фрагментах (пакеты, экспертизы, развязка, закрытые страницы) **нет** `src="/m/…"`. Вместо него стоит `data-media="<i>"` — индекс в массиве `media` того же объекта. В открытых страницах, которые отрендерил сборщик, `src` прямой (§5). |
+
+### 0.1. Контейнер `Box` (docs/02 §3.1)
+
+```json
+{ "v": 1, "alg": "A256GCM", "aad": "pack/2", "n": "q0bM3m0dL4Zx8pQe", "c": "…" }
+```
+
+| Поле | Тип | Об. | Пишет | Читает |
+|---|---|---|---|---|
+| `v` | `1` | да | `engine/crypto.seal` | `core/crypto.open` |
+| `alg` | `"A256GCM"` | да | то же | то же: иное значение — ошибка |
+| `aad` | string | да | то же | то же: передаётся в `additionalData` как UTF-8 |
+| `n` | b64u, 12 байт | да | то же | то же |
+| `c` | b64u, `ciphertext ‖ tag(16)` | да | то же | то же |
+
+Открытый текст любого `Box` в этом документе — JSON в UTF-8, «внутренний JSON».
+
+### 0.2. Ключи и строки (сводка docs/02 §3, без изменений)
+
+| Назначение | Формула | AAD |
+|---|---|---|
+| Ключ этапа 1 | `K1 = PBKDF2(UTF8("detgame/stage/v1|start"), saltStart, iter.stage)` | — |
+| Ключ этапа N+1 | `PBKDF2(UTF8(stageSecret(N, pairs)), saltStage_N, iter.stage)`, где `stageSecret = "detgame/stage/v1|" + N + "\x1f" + join("\x1f", path + "=" + canon)` | — |
+| Пакет N | `HKDF(K_N, UTF8("detgame/pack/v1|" + N))` | `pack/N` |
+| Проверка ответа | `PBKDF2(UTF8("detgame/answer/v1|" + path + "|" + x), unit.salt, iter.answer)` | `ans/<path>` |
+| Экспертиза | `HKDF(K_n, labInfo(object, type, basis, params))` (§3) | `lab` |
+| Развязка | `HKDF(K_4, UTF8("detgame/finale/v1"))` | `finale` |
+| Закрытая страница | `K_p` из фрагмента `#k=` | `page/<slug>` |
+| Облако | `PBKDF2(UTF8("detgame/cloud/v1|" + normalize("password", ввод)), salt, iter)` | `page/cloud` |
+| Зашифрованное медиа | Случайный ключ файла (решение 6) | `media/<hash>` |
+
+HKDF везде: SHA-256, соль — 32 нулевых байта, длина 32.
+
+---
+
+## 1. `dist/data/public.json` — открытые данные
+
+Открытый JSON, без шифрования. Пишет `engine/packs.build_public`, читают `core/game.loadPublic` и `core/state.isCompatible`. Ничего сюжетного: только то, что перечислено в docs/02 §3.5.
+
+```json
+{
+  "v": 1,
+  "gameId": "zakulisami",
+  "title": "За кулисами правды",
+  "stages": 4,
+  "saltStart": "3q2-7wAAAQIDBAUGBwgJCg",
+  "iter": { "answer": 150000, "stage": 300000 },
+  "entriesPad": 8,
+  "points": { "bonus": 15, "final": 30 },
+  "penalties": { "wrongAttempt": -5, "labNoBasis": -5 },
+  "hints": { "cost": [10, 20, 40], "autoAfterWrong": 3 },
+  "ranks": [
+    { "min": null, "max": 99, "name": "Стажёр" },
+    { "min": 100, "max": 180, "name": "Следователь" },
+    { "min": 181, "max": null, "name": "Шерлок" }
+  ],
+  "defaultYear": 2026,
+  "saltsId": "9f1c…64 hex",
+  "buildId": "20261013T193309Z-1a2b3c4d"
+}
+```
+
+| Поле | Тип | Об. | Источник | Кто читает и зачем |
+|---|---|---|---|---|
+| `v` | `1` | да | — | `core/game` |
+| `gameId` | string `[a-z0-9_-]+` | да | `settings.game_id` | `core/state`: ключ `localStorage` `detgame:<gameId>` |
+| `title` | string | да | `settings.title` | `app/*`: заголовок |
+| `stages` | int | да | число этапов в `stages.yaml` | `core/game`: последний этап — финал |
+| `saltStart` | b64u, 16 байт | да | `salts.lock.json` | `core/game.startKey` |
+| `iter.answer`, `iter.stage` | int | да | `settings.crypto` | `core/game`, `core/crypto` |
+| `entriesPad` | int | да | `settings.crypto.entries_pad` | только для справки и тестов |
+| `points`, `penalties`, `hints` | см. пример | да | `settings` | `core/state` (баллы, штрафы, цена и порог подсказок) |
+| `ranks` | `[{min: int\|null, max: int\|null, name}]` | да | `settings.ranks` | `app/final` |
+| `defaultYear` | int | да | `settings.default_year` | `core/normalize` (тип `date`) |
+| `saltsId` | hex | да | `sha256(canonical_json(salts.lock.json))` | `core/state.isCompatible` |
+| `buildId` | string | да | **Решение F2**, см. ниже | показ в меню, имя архива релиза; на совместимость прогресса **не влияет** |
+
+**Решение F2 (`buildId`, PLAN F8).** Формат `YYYYMMDDTHHMMSSZ-<8 hex>`: UTC-время сборки, затем первые 8 символов `sha256(canonical_json(public.json без поля buildId))`.
+
+---
+
+## 2. `dist/data/pack-N.json` — пакет этапа
+
+### 2.1. Внешний вид
+
+Файл целиком — один `Box` (§0.1) с `aad = "pack/N"`. Обёрток нет.
+
+**Решение F3.** Клиент открывает пакеты `1..stage` при каждой загрузке и держит их в памяти. Расшифрованные пакеты не сохраняются в `localStorage`.
+
+### 2.2. Внутренний JSON пакета
+
+Пишет `engine/packs.build_pack`. Читают `core/game` (вопросы, единицы, ключ следующего этапа), `core/lab` (каталог и записи), `app/*` (тексты, документы).
+
+```json
+{
+  "v": 1,
+  "n": 1,
+  "envelope": 1,
+  "introHtml": "<p>TODO(content): вводное письмо майора Беляева …</p>",
+  "onComplete": "Ответ принят. Вскройте конверт № 2.",
+  "saltStage": "bm9uY2UtMTYtYnl0ZXM",
+  "questions": [
+    {
+      "id": "q1", "path": "s1.q1", "kind": "mandatory", "type": "form",
+      "prompt": "Заполните справку о погибшем.", "help": null,
+      "hints": ["Все четыре ответа …", "Время — в карте вызова …", "21:18; Завьялов Ю. В.; астма; Горохов Д. Н."],
+      "fields": [
+        { "id": "time", "path": "s1.q1.time", "type": "time", "label": "Время констатации смерти", "help": null,
+          "unit": { "path": "s1.q1.time", "type": "time", "salt": "…", "entries": [ { "v": 1, "alg": "A256GCM", "aad": "ans/s1.q1.time", "n": "…", "c": "…" } ] } },
+        { "id": "conflict", "path": "s1.q1.conflict", "type": "person", "label": "С кем у погибшего был конфликт в день смерти", "help": null,
+          "pool": ["zavyalov", "volkov", "marina", "kirill", "stas", "reznikova", "gnedich", "viktor", "oleg", "inna", "dmitriy", "volskaya", "gromov"],
+          "unit": { "path": "s1.q1.conflict", "type": "person", "salt": "…", "entries": ["…8 Box…"] } }
+      ]
+    },
+    {
+      "id": "q2", "path": "s1.q2", "kind": "mandatory", "type": "order",
+      "prompt": "Расставьте события вечера 10 ноября в хронологическом порядке.", "help": null,
+      "hints": ["…", "…", "…"],
+      "items": [ { "id": "m2", "text": "Ссора в гримёрке № 4" }, { "id": "k3", "text": "Воронцов проходит через служебный вход" } ],
+      "unit": { "path": "s1.q2", "type": "order", "salt": "…", "entries": ["…"] }
+    },
+    {
+      "id": "b1", "path": "s1.b1", "kind": "bonus", "type": "text",
+      "prompt": "Где, по официальной информации, находился Громов М. А. вечером 10 ноября?", "help": null,
+      "hints": [],
+      "unit": { "path": "s1.b1", "type": "text", "salt": "…", "entries": ["…"] }
+    }
+  ],
+  "characters": {
+    "zavyalov": { "full": "Завьялов Юрий Викторович", "short": "Завьялов Ю. В.", "photo": { "src": "/m/5d41402abc4b2a76b9719d911017c592.jpg", "mime": "image/jpeg", "alt": "Завьялов Юрий Викторович" } },
+    "kirill":   { "full": "Сомов Кирилл Евгеньевич", "short": "Сомов К. Е.", "photo": { "src": null, "missing": true, "mime": "image/jpeg", "alt": "Сомов Кирилл Евгеньевич" } }
+  },
+  "documents": [
+    { "id": "1-01", "stage": 1, "kind": "paper", "title": "Письмо руководителя следственной группы", "link": null },
+    { "id": "1-12", "stage": 1, "kind": "online", "title": "Страница Громова М. А. в соцсети «Круг»", "link": "/p/gromov/" }
+  ],
+  "lab": {
+    "types": [ { "id": "chem", "title": "Химическое исследование", "ord": 0 } ],
+    "objects": [
+      { "id": "water", "title": "Бутылка воды из гримёрки № 4", "ord": 3, "params": [] },
+      { "id": "theater_cam", "title": "Камера в коридоре гримёрок", "ord": 6, "params": [] }
+    ],
+    "entries": [ { "v": 1, "alg": "A256GCM", "aad": "lab", "n": "…", "c": "…" } ]
+  }
+}
+```
+
+**Пакет (верхний уровень)**
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `v` | `1` | да | — |
+| `n` | int | да | Номер этапа. Клиент сверяет его с номером файла. |
+| `envelope` | int | да | `stages[].envelope`. |
+| `introHtml` | HTML | да | Вводное письмо: шаблон Jinja → Markdown → HTML. |
+| `onComplete` | string | null | Сообщение после решения последнего обязательного вопроса этапа (PLAN C5). На последнем этапе — `null`. |
+| `saltStage` | b64u, 16 байт | null | `salt_stage_N` для вывода `K_{N+1}`. На последнем этапе — `null`. |
+| `questions` | `Question[]` | да | Порядок — как в `content/`. **Этот порядок задаёт порядок пар в `stageSecret`** (§2.4). |
+| `characters` | `{id: Character}` | да | Только персонажи из пулов вопросов **этого** пакета (PLAN B3). Других полей (`role`, `age`, …) нет. |
+| `documents` | `Document[]` | да | Документы этапа `n` видов `paper` и `online`. **Решение F4:** документы `kind: lab` в пакет **не** попадают — их ID и название клиент получает из записи экспертизы (§3). Поэтому список документов не подсказывает, какие экспертизы существуют. |
+| `lab` | `LabCatalog` | да | Каталог и записи экспертиз этапа `n` (§2.3). |
+
+**Question**
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `id` | string | да | `question.id` |
+| `path` | string | да | `s<n>.<id>`: ключ в прогрессе (`units`, `wrong`, `hints`) |
+| `kind` | `"mandatory" \| "bonus" \| "final"` | да | — |
+| `type` | тип docs/01 §3 | да | `form` или тип единицы |
+| `prompt` | text | да | — |
+| `help` | text | null | docs/03 §6а |
+| `hints` | text[] | да | Ровно 3 у `mandatory`, `[]` у остальных |
+| `fields` | `Field[]` | только `form` | Поля по порядку из `content` |
+| `unit` | `Unit` | только не-`form` | Проверочная единица вопроса; `unit.path == path` |
+| `options` | `[{id, text}]` | только `choice`, `multi` | Порядок — из `content` (docs/01 §3) |
+| `pool` | `string[]` (ID) | только `person`, `persons` | Порядок показа. `default` раскрыт сборщиком в `in_pool: true` в порядке `characters.yaml` (PLAN B4). Имена и портреты — в `pack.characters[id]`. **Решение F5:** в пуле только ID, без копий объектов персонажа. |
+| `items` | `[{id, text}]` | только `order` | **Уже перемешаны** сборщиком: детерминированно, перестановка ≠ ответу (PLAN C3). Клиент показывает их как есть. |
+
+Тип `document` не содержит списка вариантов: клиент строит его сам из полученных документов. Это документы всех видов из открытых этапов (`pack.documents` пакетов `1..stage`) плюс `progress.docs` (PLAN C8).
+
+**Field** (поле формы) — те же поля ввода, что у вопроса: `id`, `path`, `type`, `label` (text, обяз.), `help` (null), `options`, `pool`, `items`, `unit`. Поля `kind`, `hints`, `prompt`, `fields` у поля формы отсутствуют.
+
+**Unit**
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `path` | string | да | Путь единицы |
+| `type` | тип нормализации | да | Как нормализовать ввод (`normalize(type, …)`) |
+| `salt` | b64u, 16 байт | да | Соль единицы из `salts.lock.json` |
+| `entries` | `Box[]` | да | Не меньше `entriesPad`, перемешаны. У всех записей `aad = "ans/<path>"`, включая записи-паддинг; длина `c` одинакова. Открытый текст настоящей записи — `{"c": "<канон>"}`. |
+
+**Character** (в `pack.characters`)
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `full` | text | да | `full()`, именительный падеж |
+| `short` | text | да | `short()` — «Фамилия И. О.» с неразрывными пробелами (решение 7) |
+| `photo` | `MediaRef` | null | Портрет. Портреты — открытые медиа (решение 5), поэтому у ссылки нет `key`. |
+
+**Document** (в `pack.documents`)
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `id` | string | да | `1-01` … |
+| `stage` | int | да | — |
+| `kind` | `"paper" \| "online"` | да | Отметки «бумага» и «онлайн» на панели |
+| `title` | text | да | Отрендеренное название |
+| `link` | string | null | **Решение F6.** У `online` — `"/p/<slug>/"`, документ кликабелен на панели. У `paper` всегда `null`, даже если у документа есть `page`: закрытые страницы открываются только по QR. Ключа страницы в пакете нет. |
+
+### 2.3. `LabCatalog` (PLAN D5)
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `types` | `[{id, title, ord}]` | да | Все виды исследований — **только в `pack-1`**; в остальных пакетах `[]` |
+| `objects` | `[{id, title, ord, params}]` | да | Объекты с `from_stage == n`; у `pack-1` — также объекты без `from_stage`. `ord` — индекс в `expertise.yaml`: клиент объединяет каталоги открытых пакетов и сортирует по `ord`. |
+| `objects[].params` | `[{id, type: "text"\|"time"\|"date"\|"number", label}]` | да | Порядок параметров = порядок в `p` (§3). `[]`, если параметров нет. |
+| `entries` | `Box[]` | да | Записи экспертиз этапа `n`, `aad = "lab"`, не меньше `entriesPad` с паддингом, перемешаны. Пустой этап — только паддинг. |
+
+### 2.4. Как клиент использует пакет (нормативно)
+
+1. **Проверка единицы.** `x = normalize(unit.type, ввод, {defaultYear})`. Если `x === null` — ввод невалиден, попытка не засчитывается. Иначе `K = answerKey(unit.path, x, unit.salt, iter.answer)`, затем перебираются все `entries` с AAD `ans/<path>`. Успех → `JSON.parse(...).c` — канон. Ни одна запись не открылась → неверно.
+2. **Форма.** Все поля проверяются параллельно (`Promise.all`). Вопрос засчитан, только если верны все поля. Какое поле неверно, клиент не сообщает.
+3. **`pairs` для `stageSecret(n, pairs)`.** Проходим `questions` по порядку и берём только `kind == "mandatory"`. Для формы добавляем `(field.unit.path, canon)` по порядку `fields`, иначе — `(question.unit.path, canon)`. `K_{n+1} = PBKDF2(UTF8(stageSecret), saltStage, iter.stage)`. Затем клиент сразу открывает `pack-(n+1).json`; если не открылся — состояние ошибки «Пакет не расшифровался».
+4. **Этап 4 (финал).** Сначала вопросы `final` в порядке пакета, затем `bonus` — сортирует клиент (PLAN C4).
+
+---
+
+## 3. Запись экспертизы
+
+### 3.1. Запрос, `p`, `labInfo`, `fp`
+
+Запрос: `object`, `type`, `basis` — ID документа из полученных, `params` — значения в порядке `object.params`.
+
+| Шаг | Формула |
+|---|---|
+| Нормализация параметров | `pᵢ = normalize(param.type, ввод, {defaultYear})`. Хотя бы одно `null` → подсказка формата, запрос не отправляется и штрафа нет. |
+| `p` | `params.length ? pᵢ.join("|") : ""` |
+| `labInfo` | `UTF8("detgame/lab/v1|" + object + "|" + type + "|" + basis + "|" + p)`. При пустых параметрах строка заканчивается на `|` (решение 1). |
+| `fp` (`labFingerprint`) | **Решение F7:** `b64u(SHA-256(UTF8(object + "|" + type + "|" + basis + "|" + p)))` — та же строка без префикса `detgame/lab/v1|` (PLAN D4). |
+
+Пример: камеры вокзала, основание `3-07`, ввод «30.10», «14:35», «касса 2». Тогда `p = "2026-10-30|14:35|2"`, а `labInfo = "detgame/lab/v1|station_cam|video|3-07|2026-10-30|14:35|2"`.
+
+Поиск: для `n` от текущего этапа до 1 вычисляем `key = HKDF(K_n, labInfo)` и перебираем `pack-n.lab.entries` с AAD `lab`. Берём первую успешную запись, то есть самый поздний этап (docs/02 §3.6). Кеш прогресса используется только для решения о штрафе, проверка выполняется всегда.
+
+### 3.2. Внутренний JSON записи
+
+Документ-результат:
+
+```json
+{
+  "v": 1,
+  "doc": "4-08",
+  "title": "Записи камер вокзала",
+  "form": "video",
+  "html": "<article class=\"blank blank--video\">… <img data-media=\"0\" alt=\"Стоп-кадр\"> …</article>",
+  "media": [ { "src": "/m/0cc175b9c0f1b6a831c399e269772661.bin", "mime": "image/jpeg", "key": "…", "aad": "media/0cc175b9c0f1b6a831c399e269772661", "size": 184233, "alt": "Стоп-кадр" } ]
+}
+```
+
+Атмосферный результат (PLAN D1):
+
+```json
+{ "v": 1, "doc": null, "title": "Камера в коридоре гримёрок: запрос видеозаписей", "form": null,
+  "html": "<p>Камера в коридоре гримёрок неисправна с 27.10.2026. Записей за 10.11.2026 нет.</p>", "media": [] }
+```
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `v` | `1` | да | — |
+| `doc` | string | null | ID документа из `documents.yaml`; `null` — атмосферный результат |
+| `title` | text | да | Для документа — `title` из `documents.yaml`. Для атмосферного — **Решение F8:** `"<название объекта>: <название вида в нижнем регистре первой буквы>"` |
+| `form` | `"expert" \| "operator" \| "video" \| "protocol" \| "letter"` | null | Бланк из front matter; у атмосферного — `null` |
+| `html` | HTML | да | Документ — тело, обёрнутое в `site/templates/blanks/<form>.html`. Атмосферный — `<p>` с экранированным `text`. |
+| `media` | `MediaRef[]` | да | Медиа из front matter `media:`; на них ссылаются `data-media` в `html` |
+
+Поведение клиента (`core/lab`, `core/state`):
+- **успех, `doc != null`:** документ добавляется в `progress.docs` и становится доступен как основание и как ответ на вопрос типа `document`;
+- **успех, `doc == null`:** показать текст; в документы не добавляется, штрафа нет;
+- **неудача:** штраф `penalties.labNoBasis`, только если `fp` ещё нет ни в `lab.done`, ни в `lab.rejected` (§7).
+
+---
+
+## 4. `dist/data/finale.json` — развязка
+
+Внешний вид: один `Box`, `aad = "finale"`, ключ `HKDF(K_4, "detgame/finale/v1")`. **Решение F9 (решение 10):** клиент скачивает файл только после отправки последнего ответа финала, расшифровывает его и не сохраняет содержимое в `localStorage`.
+
+```json
+{
+  "v": 1,
+  "confession": { "title": "Протокол допроса подозреваемого Волкова Артёма Андреевича", "form": "protocol", "html": "<article class=\"blank blank--protocol\">…</article>", "media": [] },
+  "letter": { "title": "Письмо Ивана — Марине", "form": "letter", "html": "<article class=\"blank blank--letter\">…</article>", "media": [] },
+  "fates": [
+    { "who": "volkov", "name": "Волков Артём Андреевич", "text": "Осуждён к 13 годам лишения свободы …" },
+    { "who": null, "name": null, "text": "У театра новый художественный руководитель. …" }
+  ],
+  "answers": {
+    "s1.q1.time": "21:18",
+    "s1.q1.conflict": "Завьялов Юрий Викторович",
+    "s1.q1.disease": "астма",
+    "s1.q2": "Воронцов проходит через служебный вход → Волков проходит через служебный вход → …",
+    "s2.q2": "Тарасова Марина Олеговна, Лёвин Станислав Игоревич, …",
+    "s3.q3.doc": "3-06 — Заключение эксперта: исследование таблетницы",
+    "s4.f3": "Из лекарств Завьялова Ю. В."
+  }
+}
+```
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `confession`, `letter` | `{title, form, html, media: MediaRef[]}` | да | Как запись экспертизы без `doc` |
+| `fates[]` | `{who: id\|null, name: text\|null, text}` | да | Порядок — из `finale.yaml`. `name` = `full()` персонажа `who`. |
+| `answers` | `{unitPath: text}` | да | Показываемый верный ответ для **каждой** единицы всех этапов (решение 10, PLAN F1). Баллы и итоги здесь не хранятся: их считает клиент. |
+
+**Решение F10 — как сборщик формирует текст `answers`.**
+
+| Тип | Текст |
+|---|---|
+| `text`, `time`, `number` | Отрендеренный `answer.canon` до нормализации |
+| `date` | Канон в виде `ДД.ММ.ГГГГ` |
+| `choice` | `text` варианта |
+| `multi` | Тексты вариантов через `"; "` в порядке `options` |
+| `person` | `full()` |
+| `persons` | `full()` через `", "` в порядке пула |
+| `document` | `"<id> — <название>"` |
+| `order` | `text` карточек через `" → "` в верном порядке |
+
+---
+
+## 5. Ссылка на медиа `MediaRef`
+
+Пишет `engine/media.MediaPlan.ref`. Читают `core/media.mediaUrl`, шаблоны открытых страниц, `pages/shell.js`, `app/*`.
+
+```json
+{ "src": "/m/5d41402abc4b2a76b9719d911017c592.jpg", "mime": "image/jpeg", "size": 48213, "alt": "Громов Михаил Анатольевич" }
+{ "src": "/m/0cc175b9c0f1b6a831c399e269772661.bin", "mime": "video/mp4", "size": 14211040, "key": "…43 символа b64u…", "aad": "media/0cc175b9c0f1b6a831c399e269772661", "alt": "Видеофайл" }
+{ "src": null, "missing": true, "mime": "image/jpeg", "alt": "Здесь будет фото" }
+```
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `src` | string \| null | да | Абсолютный путь от корня сайта. `null` — файла нет в `media/` (**Решение F11**, правка PLAN §1 `media.py`): клиент или шаблон рисует серую заглушку «Здесь будет …», а в `--release` это ошибка. |
+| `mime` | string | да | По расширению исходника: `.jpg/.jpeg` → `image/jpeg`, `.png`, `.webp`, `.svg` → `image/svg+xml`, `.mp3` → `audio/mpeg`, `.m4a` → `audio/mp4`, `.mp4` → `video/mp4`. Иное расширение — ошибка валидации. |
+| `size` | int | нет | Размер файла в `dist/` в байтах; клиент показывает по нему прогресс загрузки видео |
+| `key` | b64u, 32 байта | только у зашифрованных | Случайный ключ файла, генерируется заново при каждой сборке (решение 6). Одинаков во всех объектах, которые ссылаются на этот файл. |
+| `aad` | `"media/<hash>"` | только у зашифрованных | — |
+| `alt` | text | нет | Альтернативный текст; по умолчанию — подпись из контекста или имя персонажа |
+| `w`, `h` | int | нет | Зарезервировано. Сборщик v1 их не заполняет (зависимости для чтения изображений нет); клиент не должен на них полагаться. |
+| `missing` | `true` | нет | Только вместе с `src: null` |
+
+Имена файлов: `<hash>` = первые 32 hex-символа `sha256(байты исходного файла)`. Открытый файл — `/m/<hash>.<ext>` (расширение в нижнем регистре), зашифрованный — `/m/<hash>.bin` = `nonce(12) ‖ ciphertext ‖ tag(16)`, AES-256-GCM, `aad = "media/<hash>"` (docs/02 §4а).
+
+Как решается, шифровать ли файл (PLAN §1, `media.py`):
+- портреты из `characters[].photo` — всегда открытые (решение 5);
+- иначе файл открытый, если на него ссылается хоть один открытый объект (открытая страница);
+- иначе — зашифрованный.
+
+Клиент: `mediaUrl(ref)` возвращает `ref.src`, если нет `key`. Иначе делает `fetch(src)` → `openMedia(key, bytes, aad)` → `URL.createObjectURL(new Blob([pt], {type: mime}))`. Видео и аудио: `playsinline`, прогресс — по `size`.
+
+---
+
+## 6. Вымышленные страницы
+
+### 6.1. Один фрагмент на страницу
+
+**Решение F12.** Для каждой страницы есть один Jinja-шаблон `site/templates/pages/<slug>.html` — фрагмент содержимого без `<html>` и `<head>`. Его рендерит сборщик (`make_site_env`, автоэкранирование включено) с контекстом:
+
+| Переменная | Тип | Смысл |
+|---|---|---|
+| `page` | dict | Модель `page.yaml`, все строки уже отрендерены шаблонами контента (`c`, `w`). Тела `body` уже превращены в HTML-поле `body_html`. Поля `password`, `forbidden`, `qr_label`, `doc` удалены. |
+| `people` | `{id: {full, short}}` | Персонажи, на которых ссылается страница: `profile.person`, `participants` |
+| `media(rel)` | функция → `Markup` | Возвращает атрибуты медиа: для открытой страницы — `src="/m/…" data-mime="…"`, для фрагмента payload — `data-media="<i>"`, где `i` — индекс в `payload.media`. Отсутствующий файл → `data-missing="1" data-alt="…"` плюс заглушка в CSS. |
+| `dt(iso, fmt)` | фильтр | Даты мира игры: `2026-11-10T19:30` → `10.11.2026, 19:30` (PLAN E8) |
+
+Интерактивность (поиск по справочнику, сортировка реестра, «Свойства файла», плеер) работает только с DOM фрагмента. Нужные данные лежат в `data-*`-атрибутах, отдельного структурированного JSON нет.
+
+### 6.2. Открытая страница (`locked: false`)
+
+`dist/p/<slug>/index.html` = `page_open.html`, внутри которого вставлен отрендеренный фрагмент. Медиа подключены прямым `src`. `payload.json` нет.
+
+### 6.3. Закрытая по ключу (`locked: true`)
+
+- `dist/p/<slug>/index.html` = `page_shell.html` (§9) без сюжетного текста.
+- `dist/p/<slug>/payload.json` = один `Box`, `aad = "page/<slug>"`, ключ `K_p` из `salts.lock.json`.
+- QR: `https://<домен>/p/<slug>/#k=<b64u(K_p)>`.
+
+Внутренний JSON:
+
+```json
+{ "v": 1, "slug": "inna", "title": "Кадр", "html": "<section class=\"pg-inna\">… <img data-media=\"0\" alt=\"\"> …</section>",
+  "media": [ { "src": "/m/….bin", "mime": "image/jpeg", "key": "…", "aad": "media/…", "alt": "…" } ] }
+```
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `v` | `1` | да | — |
+| `slug` | string | да | Клиент сверяет его со своим slug |
+| `title` | text | да | `<title>` после расшифровки. Для `video` — `page.title`, для остальных — `brand`. |
+| `html` | HTML | да | Отрендеренный фрагмент §6.1 |
+| `media` | `MediaRef[]` | да | По индексам `data-media` |
+
+`pages/shell.js`:
+1. Берёт `#k=` из адреса или ключ из `sessionStorage["detgame:page:<slug>"]` (значение — b64u ключа).
+2. Делает `replaceState` без фрагмента.
+3. Выполняет `fetch("/p/<slug>/payload.json")` и `open`.
+4. Вставляет `html`, затем для каждого `[data-media]` вызывает `mediaUrl`.
+5. Если ключа нет или он неверный — показывает «Ссылка повреждена. Отсканируйте QR-код ещё раз».
+
+### 6.4. Облако (`locked: password`)
+
+`dist/p/cloud/payload.json`:
+
+```json
+{ "salt": "…16 байт b64u…", "iter": 300000, "box": { "v": 1, "alg": "A256GCM", "aad": "page/cloud", "n": "…", "c": "…" } }
+```
+
+| Поле | Тип | Об. | Смысл |
+|---|---|---|---|
+| `salt` | b64u | да | `salt_cloud` |
+| `iter` | int | да | `settings.crypto.iter_stage` |
+| `box` | `Box` | да | Внутри — тот же JSON, что в §6.3 |
+
+Ключ: `cloudKey(normalize("password", ввод), salt, iter)`. Неверный пароль → «Неверный пароль», без штрафа и без блокировки. **Решение F13:** после успешного входа в `sessionStorage["detgame:page:cloud"]` сохраняется b64u **выведенного ключа**, а не пароля. Тогда перезагрузка не просит пароль повторно. Папка «Для М.» во фрагменте — только замок; содержимого нет.
+
+---
+
+## 7. Прогресс — `localStorage["detgame:<gameId>"]`
+
+Пишет и читает только `core/state.js`; `app/*` работают через `store.update(fn)`. Уточнение docs/02 §4:
+
+```json
+{
+  "v": 1,
+  "gameId": "zakulisami",
+  "saltsId": "9f1c…",
+  "buildId": "20261013T193309Z-1a2b3c4d",
+  "team": "Мамины сыщики",
+  "startedAt": "2026-11-12T18:02:11.512Z",
+  "stage": 2,
+  "envelopeAck": 2,
+  "finished": false,
+  "keys": { "1": "…b64u…", "2": "…b64u…" },
+  "units": {
+    "s1.q1": { "status": "solved", "canon": { "time": "21:18", "conflict": "zavyalov", "disease": "астма", "delivered": "dmitriy" }, "given": null },
+    "s1.q2": { "status": "solved", "canon": "k3,p8,d1,x5,m2,t7,b9,r4", "given": null },
+    "s1.b1": { "status": "closed", "canon": null, "given": "москва" }
+  },
+  "wrong": { "s2.q1": ["3b1f…64 hex", "a90c…64 hex"] },
+  "hints": { "s2.q1": 2 },
+  "lab": {
+    "done": { "Qm9…fp": "2-01", "Zm9…fp": null },
+    "rejected": ["eHl…fp"],
+    "log": [ { "t": "2026-11-12T18:40:00.000Z", "fp": "Qm9…fp", "object": "inhaler", "type": "chem", "basis": "1-03", "params": [], "stage": 2, "ok": true, "doc": "2-01" } ]
+  },
+  "docs": ["2-01"],
+  "final": { "started": false, "index": 0, "answers": {}, "correct": null },
+  "log": [
+    { "t": "2026-11-12T18:20:05.000Z", "d": -5, "r": "wrong:s2.q1" },
+    { "t": "2026-11-12T18:31:40.000Z", "d": -20, "r": "hint:s2.q1:2" }
+  ]
+}
+```
+
+| Поле | Тип | Смысл и правила |
+|---|---|---|
+| `v` | `1` | — |
+| `gameId`, `saltsId`, `buildId` | string | Сохраняются при старте. Совместимость: `saltsId == public.saltsId` **и** `keys[stage]` открывает `pack-<stage>`, иначе «Прогресс несовместим…» (docs/02 §4). `buildId` — только для справки. |
+| `team` | string | Название команды |
+| `startedAt` | ISO-8601 UTC | — |
+| `stage` | int 1…`stages` | Наибольший открытый этап |
+| `envelopeAck` | int | **Решение F14.** Наибольший этап, для которого нажато «Конверт вскрыт». Если `stage > envelopeAck`, после перезагрузки снова показывается модальное окно «Откройте конверт №N». |
+| `finished` | bool | Все ответы финала отправлены и итоги записаны |
+| `keys` | `{"<n>": b64u}` | `K_n` как байты; `"1"` записывается при старте |
+| `units[qpath]` | `{status, canon, given}` | Ключ — **путь вопроса**. `status`: `"solved"` (верно) или `"closed"` (бонус: неверная единственная попытка, либо не отвечен к началу финала). `canon`: для простого вопроса — строка, для формы — `{fieldId: canon}`; при `closed` — `null`. `given`: нормализованный ответ команды для разбора, если вопрос не решён (строка или `{fieldId: значение}`), иначе `null`. Нерешённый обязательный вопрос в `units` отсутствует. |
+| `wrong[qpath]` | hex[] | Хеши уже проверенных неверных ответов: повтор не штрафуется (§7.1) |
+| `hints[qpath]` | int 1…3 | Наибольший открытый уровень; уровни открываются строго по порядку |
+| `lab.done` | `{fp: docId \| null}` | Успешные запросы: `null` — атмосферный результат |
+| `lab.rejected` | fp[] | Отклонённые. Если запрос из этого списка позже срабатывает, его `fp` переносится в `done` и удаляется отсюда. |
+| `lab.log` | `LabLogEntry[]` | **Решение F15.** Архив запросов для `/lab/`: читаемые параметры запроса (`object`, `type`, `basis`, `params` в нормализованном виде), `stage` на момент запроса, `ok`, `doc`. Расшифрованный результат не хранится: при открытии из архива клиент повторяет поиск §3.1 по сохранённым параметрам (только HKDF, быстро). |
+| `docs` | string[] | Полученные документы экспертиз в порядке получения |
+| `final` | `{started, index, answers, correct}` | `started` — нажато «Начать финал»; в этот момент все неотвеченные бонусы этапов 1–3 получают `closed`. `index` — число отправленных ответов. `answers`: `{qpath: нормализованное значение}` (для формы — объект по полям), порядок — финальные, затем бонус. `correct`: `null` до конца финала, потом `{qpath: bool}` — проверка по `entries` пакета 4 выполняется один раз, после последнего ответа (docs/01 §8). |
+| `log[]` | `{t, d, r}` | Только изменения счёта (`d ≠ 0`); счёт = Σ `d` |
+
+**Причины `r` (Решение F16)**
+
+| `r` | `d` | Когда |
+|---|---|---|
+| `wrong:<qpath>` | `penalties.wrongAttempt` | Новый неверный ответ на обязательный вопрос |
+| `hint:<qpath>:<level>` | `−hints.cost[level−1]` | Покупка подсказки. Бесплатная автоподсказка уровня 1 в `log` **не пишется** (счёт не меняется), но ставит `hints[qpath] = 1`. |
+| `bonus:<qpath>` | `points.bonus` | Верный бонус этапов 1–3 — сразу. Бонус этапа 4 — после последнего ответа финала. |
+| `final:<qpath>` | `points.final` | Верный финальный ответ — после последнего ответа финала |
+| `lab:<fp>` | `penalties.labNoBasis` | Новый отклонённый запрос |
+
+### 7.1. `wrongHash` (Решение F17)
+
+```
+body  = простой вопрос: normalized
+        форма:          join("\x1f", fieldId + "=" + normalized   для полей в порядке pack.fields)
+wrongHash(qpath, body) = hex(SHA-256(UTF8("detgame/wrong/v1|" + qpath + "|" + body)))
+```
+
+Хеш считает только JS (`crypto.subtle.digest`), паритет с Python не нужен. Невалидный ввод (`normalize → null`) не хешируется и не считается попыткой.
+
+### 7.2. Несколько вкладок
+
+`store.update(fn)` перечитывает `localStorage`, применяет `fn` и пишет. При слиянии с внешней версией:
+- `log` и `lab.log` объединяются по паре (`t`, `r`) или (`t`, `fp`);
+- `wrong`, `docs`, `lab.rejected` объединяются как множества;
+- `lab.done`, `units`, `hints`, `keys` объединяются по ключам; при конфликте побеждает «продвинутое» значение: `solved` > `closed`, бо́льший уровень подсказки;
+- `stage`, `envelopeAck` и `final.index` — максимум.
+
+Если хранилище недоступно, игра идёт в памяти и показывает предупреждение.
+
+Экспорт и импорт — этот же JSON целиком в файле `detgame-<gameId>-<YYYYMMDD-HHMM>.json`.
+
+---
+
+## 8. `tests/.answers.json` (`python -m engine dump-answers`)
+
+Пишет `engine/dump.py`. Читают `tests/e2e/*`, `tests/js/lab.test.mjs`, `tests/js/state.test.mjs`. Файл в `.gitignore`: в нём ответы, ключи страниц и пароль облака.
+
+```json
+{
+  "v": 1,
+  "gameId": "zakulisami",
+  "settings": { "points": { "bonus": 15, "final": 30 }, "penalties": { "wrongAttempt": -5, "labNoBasis": -5 },
+                "hints": { "cost": [10, 20, 40], "autoAfterWrong": 3 }, "iter": { "answer": 150000, "stage": 300000 }, "defaultYear": 2026 },
+  "stages": [
+    { "n": 1, "envelope": 1, "questions": [
+      { "path": "s1.q1", "kind": "mandatory", "type": "form", "fields": [
+        { "path": "s1.q1.time", "id": "time", "type": "time", "input": "21:18", "canon": "21:18", "variants": ["21:18"], "wrong": ["21:17", "21:19", "08:15", "21:04", "20:18"] },
+        { "path": "s1.q1.conflict", "id": "conflict", "type": "person", "input": "zavyalov", "canon": "zavyalov", "variants": ["zavyalov"], "wrong": ["volkov", "marina", "stas", "kirill", "oleg"] }
+      ] },
+      { "path": "s1.q2", "kind": "mandatory", "type": "order", "input": ["k3", "p8", "d1", "x5", "m2", "t7", "b9", "r4"], "canon": "k3,p8,d1,x5,m2,t7,b9,r4", "variants": ["k3,p8,d1,x5,m2,t7,b9,r4"], "wrong": ["…"] },
+      { "path": "s1.b1", "kind": "bonus", "type": "text", "input": "Северогорск", "canon": "северогорск", "variants": ["северогорск", "северогорске", "в северогорске", "г северогорск", "город северогорск"], "wrong": ["…"] }
+    ] }
+  ],
+  "finalOrder": ["s4.f1", "s4.f2", "s4.f3", "s4.f4", "s4.f5", "s4.fb"],
+  "lab": [
+    { "result": "station-video", "object": "station_cam", "types": ["video"], "stage": 4, "bases": ["3-07"],
+      "params": { "date": { "input": "30.10.2026", "variants": ["2026-10-30"] }, "time": { "input": "14:37", "variants": ["14:30", "…", "14:44"] }, "window": { "input": "2", "variants": ["2"] } },
+      "doc": "4-08", "title": "Записи камер вокзала", "wrongBasis": "1-03" }
+  ],
+  "pages": [
+    { "slug": "call", "access": "open", "url": "/p/call/" },
+    { "slug": "inna", "access": "key", "url": "/p/inna/#k=…", "key": "…" },
+    { "slug": "cloud", "access": "password", "url": "/p/cloud/", "password": "TODO(content)" }
+  ],
+  "expected": { "maxScore": 225, "perfectRunScore": 225 }
+}
+```
+
+| Поле | Смысл |
+|---|---|
+| `stages[].questions[]` | В порядке пакета. Для формы — `fields[]`. |
+| `input` | Что ввести или выбрать в интерфейсе: отрендеренный `answer.canon` до нормализации; для ID-типов — ID; для `multi`, `persons`, `order` — массив ID. |
+| `canon` | Нормализованный канон |
+| `variants` | Все допустимые нормализованные варианты, включая раскрытые допуски |
+| `wrong` | 5 правдоподобных неверных значений, ровно те, что использует `check` (docs/06 §3.3) |
+| `finalOrder` | Порядок показа на `/final/`: финальные, затем бонус |
+| `lab[]` | По результату: виды, основания, параметры — `input` для ввода и `variants` после нормализации; `doc` (`null` у атмосферных), `title` записи; `wrongBasis` — полученный к этому этапу документ, который не является основанием |
+| `pages[]` | `access`: `open`, `key` или `password`. `key` — из `salts.lock.json`. `password` — из `cloud/page.yaml`, сырой, до нормализации. |
+| `expected.maxScore` | 5 × `bonus` + 5 × `final` по текущему контенту |
+| `expected.perfectRunScore` | Счёт прохождения без ошибок, подсказок и запросов без оснований, со всеми бонусами |
+
+---
+
+## 9. Шаблоны сайта: контексты, ассеты, данные
+
+### 9.1. Пути — абсолютные от корня домена
+
+**Решение F18.** Все ссылки на ассеты, данные и медиа — абсолютные от корня: `/assets/…`, `/data/…`, `/m/…`, `/p/<slug>/payload.json`. Почему:
+1. Страницы лежат на трёх глубинах (`/`, `/lab/`, `/p/<slug>/`) и используют общий `base.html`. С абсолютными путями шаблонам не нужен вычисляемый префикс, а общие JS-модули обращаются к `/data/…` одинаково с любой страницы.
+2. QR-коды и так требуют, чтобы сайт жил в корне домена (`https://<домен>/p/<slug>/#k=…`, docs/02 §3.8).
+3. `python -m engine serve` раздаёт `dist/` как корень, Playwright работает с `baseURL = http://127.0.0.1:8000`.
+
+Ограничения:
+- Хостинг в подпапке (например, project-site GitHub Pages без своего домена) не поддерживается. Валидатор `settings.domain` должен требовать, чтобы в домене не было пути: `https://host` без `/что-то`. Это проверка P03, ошибка в `--release`.
+- `url(...)` внутри CSS остаются относительными к самому CSS-файлу (как сейчас в `fonts.css`) — это не зависит от глубины страницы.
+- Импорты между ES-модулями — относительные (`./crypto.js`).
+
+Кеширование (для P08 `DEPLOY.md`):
+- HTML, `/data/*`, `/p/*/payload.json`, `/assets/js/*`, `/assets/css/*` — `Cache-Control: no-cache`, то есть с ревалидацией. В именах этих файлов нет хеша, а статические `import` не несут версию.
+- `/assets/fonts/*` и `/m/*` — `max-age=31536000, immutable`: в именах медиа есть хеш, шрифты не меняются.
+
+### 9.2. Общие правила рендера
+
+- Шаблоны рендерит `engine` через `make_site_env` (автоэкранирование включено). **В контекст попадает только открытое:** `pub` (ровно тот dict, который записан в `public.json`), `chrome` и параметры конкретной страницы. Объект контента, пакеты и ответы в контекст не передаются — это гарантируется кодом и проверяется leak scan.
+- Сайт не вставляет JSON в HTML. Страницы загружают данные через `fetch("/data/public.json")` и т. д.
+- Порядок скриптов на каждой странице:
+  1. `<script src="/assets/js/boot.js"></script>` — классический скрипт, проверяет `file:`, `isSecureContext`, `crypto.subtle` и поддержку модулей (PLAN R6);
+  2. `<script type="module" src="<entry>"></script>`;
+  3. `<noscript>` с сообщением.
+
+### 9.3. Контексты
+
+`chrome` = `{ "system": w.brands.system, "department": w.police.department, "caseNo": w.police.case_no }`. **Решение F19:** это оформление интерфейса, а не сюжетные данные. Шапка «Дело № 47/2026» и название системы рендерятся прямо в HTML, а не хранятся в `public.json`.
+
+| Шаблон | Переменные | Выход |
+|---|---|---|
+| `base.html` | `pub`, `chrome`, `title` (str), `entry` (путь JS-модуля или `null`), `css` (список путей `/assets/css/…`), `body_class` (str), `robots` = `"noindex, nofollow"` | Каркас: `<meta name="robots">`, `<meta name="viewport">`, `fonts.css`, `base.css`, `css`, `boot.js`, `entry` |
+| `index.html` | `base.html` + `rules` (5–6 строк правил с числами из `pub`: цены подсказок, штрафы, порог автоподсказки) | `dist/index.html`, `entry = /assets/js/app/main.js` |
+| `lab.html` | `base.html` | `dist/lab/index.html`, `entry = /assets/js/app/lab.js` |
+| `final.html` | `base.html` | `dist/final/index.html`, `entry = /assets/js/app/final.js` |
+| `page_open.html` | `base.html` (без `chrome` в разметке) + `slug`, `brand`, `fragment` (`Markup` — отрендеренный `pages/<slug>.html`) | `dist/p/<slug>/index.html`, `css = ["/assets/css/pages/<slug>.css"]` (у `video` — `app.css`), `entry` — скрипт интерактива страницы или `null` |
+| `page_shell.html` | `base.html` + `slug`, `access` (`"key"` или `"password"`), `brand` (`<title>` оболочки, PLAN E7; для `video` — `chrome.system`), `account` (только облако: логин из `cloud.account`, он виден до входа), `css` | `dist/p/<slug>/index.html`, `entry = /assets/js/pages/shell.js`. Сюжетных текстов нет. |
+
+Страница находит данные по фиксированным путям:
+- `/data/public.json`, `/data/pack-<n>.json`, `/data/finale.json`;
+- закрытая страница — `/p/<slug>/payload.json`; `slug` берётся из `document.body.dataset.slug`, его выставляет `page_shell.html`.
+
+`robots.txt` — `User-agent: *` / `Disallow: /`.
+
+---
+
+## 10. Решения этого документа
+
+Решения в рамках вариантов docs/02 и PLAN; решения автора 1–10 — в `PLAN.md` §9.
+
+| № | Решение |
+|---|---|
+| F1 | Ключи JSON — `camelCase`. Исключение — контейнер `Box` (`v`, `alg`, `aad`, `n`, `c`). |
+| F2 | `buildId = YYYYMMDDTHHMMSSZ-<8 hex sha256(public.json без buildId)>`; на совместимость не влияет. |
+| F3 | Файлы пакетов и развязки — голый `Box`. Расшифрованные пакеты живут только в памяти. |
+| F4 | Документы `kind: lab` в пакеты не включаются: их ID и название приходят из записи экспертизы. |
+| F5 | `pool` — список ID; данные персонажей — один раз в `pack.characters` (только из пулов пакета). |
+| F6 | `Document.link`: у `online` — `/p/<slug>/`, у `paper` — всегда `null` (ключей закрытых страниц в пакетах нет). |
+| F7 | `fp = b64u(sha256(UTF8(object|type|basis|p)))` — строка `labInfo` без префикса. |
+| F8 | Название атмосферного результата: «<объект>: <вид>». Запись содержит `doc: null`, `form: null`, `html` с `<p>`. |
+| F9 | `finale.json` скачивается и расшифровывается только после последнего ответа финала и не сохраняется. |
+| F10 | Правила текста верного ответа в `finale.answers` по типам (§4). |
+| F11 | Отсутствующее медиа: `src: null`, `missing: true`. Файлов-плейсхолдеров в `dist/` нет. |
+| F12 | Один Jinja-фрагмент `pages/<slug>.html` для открытой страницы и для payload; медиа через хелпер `media(rel)`; payload — `{v, slug, title, html, media}`. |
+| F13 | Облако хранит в `sessionStorage` выведенный ключ, а не пароль. |
+| F14 | В прогресс добавлен `envelopeAck` — модальное окно конверта переживает перезагрузку. |
+| F15 | В прогресс добавлен `lab.log` — читаемый архив запросов; результат повторно выводится, а не кешируется. |
+| F16 | `log` содержит только изменения счёта; причины `wrong:`, `hint:<p>:<lvl>`, `bonus:`, `final:`, `lab:<fp>`; бесплатная автоподсказка в `log` не пишется. |
+| F17 | `wrongHash = hex(sha256(UTF8("detgame/wrong/v1|" + qpath + "|" + body)))`; `body` для формы — `id=value` через `\x1f` в порядке полей. |
+| F18 | Абсолютные пути от корня домена; сайт только в корне домена (`settings.domain` без пути); политика кеширования — §9.1. |
+| F19 | `chrome` (название системы, отдел, номер дела) рендерится в HTML, а не хранится в `public.json`. |
