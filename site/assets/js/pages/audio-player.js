@@ -30,7 +30,7 @@ export function formatTime(sec) {
   return h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
-/** «0:47» / «1:02:03» → секунды; иначе NaN. */
+/** «М:СС» / «Ч:ММ:СС» → секунды; иначе NaN. */
 export function parseTime(text) {
   const m = /^\s*(?:(\d+):)?(\d+):(\d{2})\s*$/.exec(text || "");
   if (!m) return NaN;
