@@ -1,17 +1,49 @@
-<section class="pg-pharma">
-  <p class="pg-pharma__brand">{{ page.brand }}</p>
-  <label class="pg-pharma__search">Поиск <input type="search" name="q"></label>
-  {% for d in page.drugs|sort(attribute="name") %}
-  <article class="pg-pharma__drug" data-search="{{ d.name }} {{ d.trade|join(' ') }}">
-    <h2>{{ d.name }}</h2>
-    <dl>
-      <dt>Торговые названия</dt><dd>{{ d.trade|join(", ") }}</dd>
-      <dt>Фармакологическая группа</dt><dd>{{ d.group }}</dd>
-      <dt>Показания</dt><dd>{{ d.indications }}</dd>
-      <dt>Противопоказания</dt><dd>{{ d.contraindications }}</dd>
-      <dt>Побочные эффекты</dt><dd>{{ d.side_effects }}</dd>
-    </dl>
-  </article>
+{# pharma — справочник «Фармаспр» (docs/04: «pharma»). Закрытая страница (ключ в QR).
+   Все карточки — одного формата, ни одна ничем не выделена. Интерактив — pages/pharma.js:
+   поиск по названию и действующему веществу через base() (без регистра и «ё»), алфавитный
+   указатель. Данные для поиска — в data-name / data-trade (торговые названия через «|»). #}
+{% import "pages/_ui.html" as ui %}
+{% set drugs = page.drugs|sort(attribute="name") %}
+<div class="fs">
+  <header class="fs-head">
+    <span class="brandmark brandmark--pharma"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ page.brand }}</span></span>
+    <span class="fs-head__sub">справочник лекарственных средств</span>
+  </header>
+
+  <div class="fs-search" role="search">
+    <label class="fs-search__label" for="fs-q">Поиск по торговому названию или действующему веществу</label>
+    <div class="fs-search__row">
+      <input class="fs-search__input" id="fs-q" type="search" name="q" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button class="fs-search__clear" type="button" data-act="clear" hidden>Сбросить</button>
+    </div>
+    <p class="fs-search__count" id="fs-count" role="status" aria-live="polite"></p>
+  </div>
+
+  <nav class="fs-index" aria-labelledby="fs-index-h">
+    <h2 class="fs-index__h" id="fs-index-h">Алфавитный указатель</h2>
+    <ul class="fs-index__list" role="list" id="fs-index"></ul>
+  </nav>
+
+  <div class="fs-list" id="fs-list">
+  {% for d in drugs %}
+    {% set trades = [] %}
+    {% for t in d.trade %}{% if not ui.is_todo(t) %}{% set _ = trades.append(t) %}{% endif %}{% endfor %}
+    <article class="fs-card" id="drug-{{ loop.index }}" data-name="{{ d.name }}" data-trade="{{ trades|join('|') }}" aria-labelledby="drug-{{ loop.index }}-h" tabindex="-1">
+      <h2 class="fs-card__h" id="drug-{{ loop.index }}-h">{{ d.name }}</h2>
+      <table class="fs-card__table">
+        <tbody>
+          <tr><th scope="row">Торговые названия</th><td>{% if trades %}{{ trades|join(", ") }}{% else %}<span class="ph-text">Здесь будут торговые названия</span>{% endif %}</td></tr>
+          <tr><th scope="row">Действующее вещество</th><td>{{ d.name }}</td></tr>
+          <tr><th scope="row">Фармакологическая группа</th><td>{{ ui.text(d.group, "группа") }}</td></tr>
+          <tr><th scope="row">Показания</th><td>{{ ui.text(d.indications, "показания") }}</td></tr>
+          <tr><th scope="row">Противопоказания</th><td>{{ ui.text(d.contraindications, "противопоказания") }}</td></tr>
+          <tr><th scope="row">Побочные эффекты</th><td>{{ ui.text(d.side_effects, "побочные эффекты") }}</td></tr>
+        </tbody>
+      </table>
+    </article>
   {% endfor %}
-  <p class="pg-pharma__disclaimer"><small>{{ page.disclaimer }}</small></p>
-</section>
+  </div>
+  <p class="fs-empty" id="fs-empty" hidden>Ничего не найдено. Проверьте написание или введите часть названия.</p>
+
+  <footer class="fs-foot"><small>{{ page.disclaimer }}</small></footer>
+</div>
