@@ -90,8 +90,12 @@ def text_shingles(text: str) -> set[str]:
     return out
 
 
+# Заглушки отсутствующих данных «Здесь будет …» (F11) шаблоны собирают из частей — это обвязка.
+PLACEHOLDER = "здесь будет"
+
+
 def is_stop_shingle(sh: str) -> bool:
-    return all(t in STOPWORDS for t in sh.split(" "))
+    return all(t in STOPWORDS for t in sh.split(" ")) or PLACEHOLDER in sh
 
 
 @dataclass
