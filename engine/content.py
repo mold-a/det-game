@@ -292,6 +292,7 @@ class _Loading:
         self.warnings: list[ContentIssue] = []
         self.missing: list[Todo] = []
         self.raw: dict[str, Any] = {}
+        self.page_slugs: set[str] = set()  # папки pages/ с page.yaml (даже если схема не прошла)
 
     # имя файла в сообщениях: «content/stages.yaml»
     def name(self, rel: str) -> str:
@@ -473,7 +474,7 @@ def _check_documents(ld: _Loading, documents: list[Document], stages: list[Stage
             ld.err(rel, (*loc, "page"), "у документа kind: online должно быть поле page")
         if d.kind == "lab" and d.page is not None:
             ld.err(rel, (*loc, "page"), "у документа kind: lab не бывает page")
-        if d.page is not None and pages is not None and d.page not in pages:
+        if d.page is not None and pages is not None and d.page not in ld.page_slugs:
             ld.err(rel, (*loc, "page"), f"страницы «{d.page}» нет в content/pages/")
 
 
@@ -809,6 +810,7 @@ def _load_pages(ld: _Loading) -> dict[str, PageBase] | None:
         if not (d / "page.yaml").is_file():
             ld.err(f"pages/{slug}", "", "нет файла page.yaml")
             continue
+        ld.page_slugs.add(slug)
         data = ld.read_yaml(rel)
         if data is None:
             continue

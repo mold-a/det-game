@@ -21,6 +21,8 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+from engine.util import canonical_json
+
 KEY_LEN = 32
 NONCE_LEN = 12
 TAG_LEN = 16
@@ -40,8 +42,8 @@ UNIT_SEP = "\x1f"
 _B64U = re.compile(r"[A-Za-z0-9_-]*")
 
 
-class CryptoError(Exception):
-    """Неверный ключ, AAD, повреждённый контейнер или кодировка."""
+class CryptoError(ValueError):
+    """Неверный ключ, AAD, повреждённый контейнер или кодировка (не голый ``InvalidTag``)."""
 
 
 # --- кодирование -----------------------------------------------------------------
@@ -245,8 +247,3 @@ def lab_info(object_id: str, type_id: str, basis: str, params: Sequence[str]) ->
 def cloud_key(password_norm: str, salt: bytes, iters: int) -> bytes:
     """``PBKDF2(UTF8("detgame/cloud/v1|" + password(ввод)), salt_cloud, ITER_STAGE)``."""
     return pbkdf2(utf8(CLOUD_PREFIX + password_norm), salt, iters)
-
-
-def canonical_json(obj: object) -> bytes:
-    """Канонический JSON: сортировка ключей, без пробелов, UTF-8."""
-    return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
