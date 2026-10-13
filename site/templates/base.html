@@ -8,6 +8,9 @@
 <title>{{ title }}</title>
 <link rel="stylesheet" href="/assets/css/fonts.css">
 <link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/app.css">
+<link rel="stylesheet" href="/assets/css/blank.css">
+<link rel="stylesheet" href="/assets/css/print.css" media="print">
 {% for href in css %}
 <link rel="stylesheet" href="{{ href }}">
 {% endfor %}
@@ -17,6 +20,7 @@
 {% endif %}
 </head>
 <body class="{{ body_class }}"{% block body_attrs %}{% endblock %}>
+{% block boot_fallback %}{% endblock %}
 {% block body %}{% endblock %}
 <noscript>Для работы сайта включите JavaScript в браузере.</noscript>
 </body>

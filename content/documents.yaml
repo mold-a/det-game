@@ -43,6 +43,8 @@ documents:
   - { id: "3-07", stage: 3, kind: paper, title: "Железнодорожный билет" }
   - { id: "3-08", stage: 3, kind: paper, title: "Протокол осмотра автомобиля {{ c.dmitriy.short('gen') }}" }
   - { id: "3-09", stage: 3, kind: paper, page: pharma, title: "Справочник лекарственных средств «{{ w.brands.pharma }}»" }
+  - { id: "3-10", stage: 3, kind: paper, title: "Объяснение {{ c.gromov.short('gen') }}" }
+  - { id: "3-11", stage: 3, kind: paper, title: "Протокол повторного опроса: {{ c.volskaya.short() }}" }
 
   # --- Конверт 4 ---
   # 4-01 — сама страница облака (онлайн-документ в списке «Документы дела»);

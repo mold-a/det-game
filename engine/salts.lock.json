@@ -1,0 +1,43 @@
+{
+  "cloud": "R6niNDbiFV0bxbQq3eftZA",
+  "pages": {
+    "inna": "9DoJ0ikUfEe6qjfHG8IxROsc1aBOerXhJBAoHAmqWQs",
+    "pharma": "f11XdEpSkIVPvARnrA1Q6LXrVf1td4Mk3e2JzqzLZZU",
+    "video": "2NjeJgHKz7pC9Ef-u4V64lQ8aMoT2DDhwCBZTwABwbs"
+  },
+  "stages": {
+    "1": "1DnPLW9a-F_theulrtJnXQ",
+    "2": "jAGmr27HHr-URXqA0b_2jw",
+    "3": "BoW84CceMMRgzBbdIpvyhA",
+    "4": "iea_r5ae_UqfeqPo3kxNHg"
+  },
+  "start": "xP0fbwgZbHfKbswhhR3Khg",
+  "units": {
+    "s1.b1": "OtLWWghBJgIZIC0PG0R7Hg",
+    "s1.q1.conflict": "_O8IQrJFItukz2ElMD8FVA",
+    "s1.q1.delivered": "vw5svCt5O2qkVnO2tx20zw",
+    "s1.q1.disease": "y2EFIo4k-mJ8_CZPxrnEug",
+    "s1.q1.time": "95dD7__7RZdELp5FhB0JtA",
+    "s1.q2": "zg5IHEG3rQhURPwLTsWwyw",
+    "s2.b1": "FsfgifNpWvkeh6lD5xLv5g",
+    "s2.q1.back": "fq28zIISzI1FLi7BXOaFgg",
+    "s2.q1.left": "SgAIkySePOM0ZNGOcNaLbQ",
+    "s2.q2": "LBHE153bqlEyiZbSM3r_iw",
+    "s3.b1.plan": "YYq3cjGqT-0i5zLq4AtYuQ",
+    "s3.b1.time": "gN4BNsEe_s-KVMiQM8Loxg",
+    "s3.b2": "TlCYxutCEJz4e6Hn9-EvsA",
+    "s3.b3": "9buIfDpV2iM5IL2QE8bHVQ",
+    "s3.q1": "lUH1a0WnKoWTPEDT57uSFg",
+    "s3.q2": "j4BZyB75L0_K1vx9KANf-Q",
+    "s3.q3.doc": "Vyoax2e01f9ZrD40eytFVw",
+    "s3.q3.how": "8SigUi7z4ojxEY1ck259KA",
+    "s4.f1": "0wyEoNy3Nji7WJQ2MKm06Q",
+    "s4.f2": "wz1-E1CLxcMRjNuusi7uNA",
+    "s4.f3": "rNgwbr-f27_iOOxS4Rtz2g",
+    "s4.f4": "YT-8uXuc5HDUJPuzwd_ERg",
+    "s4.f5": "ZcUWRZRnFVYeVu2hhIsFIQ",
+    "s4.fb": "M_38Ws37dAIS-bKE8HvNGA",
+    "s4.fb2": "L-wL5TqHHFe20crIKdqXsQ"
+  },
+  "version": 1
+}

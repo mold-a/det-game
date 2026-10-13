@@ -39,9 +39,11 @@ def test_expected_command_set():
 @pytest.mark.parametrize(
     "args",
     # vectors реализована в P02 (tests/test_crypto.py)
-    # names и rotate-salts реализованы в P03 (tests/test_names.py, tests/test_salts.py)
-    [[c] for c in sorted(PLANNED_STEP) if c not in {"import-cast", "rotate-salts", "vectors", "names"}]
-    + [["build", "--release"], ["check", "--release"], ["import-cast", "cast.xlsx"]],
+    # names, rotate-salts, build, check, dump-answers реализованы в P03 (tests/test_names.py,
+    # tests/test_salts.py, tests/test_build.py)
+    [[c] for c in sorted(PLANNED_STEP)
+     if c not in {"import-cast", "rotate-salts", "vectors", "names", "build", "check", "dump-answers"}]
+    + [["import-cast", "cast.xlsx"]],
 )
 def test_stub_returns_2(args):
     res = run_engine(*args)
@@ -53,7 +55,7 @@ def test_stub_returns_2(args):
 def test_cyrillic_output_survives_non_utf8_console():
     # Имитация консоли Windows с однобайтовой кодировкой: reconfigure в __main__
     # должен переключить вывод на UTF-8, а не упасть с UnicodeEncodeError.
-    res = run_engine("build", env_extra={"PYTHONIOENCODING": "ascii", "PYTHONUTF8": "0"})
+    res = run_engine("qr", env_extra={"PYTHONIOENCODING": "ascii", "PYTHONUTF8": "0"})
     assert res.returncode == 2, res.stderr.decode("utf-8", "replace")
     assert "Будет реализовано" in res.stdout.decode("utf-8")
     assert b"UnicodeEncodeError" not in res.stderr

@@ -99,21 +99,6 @@ def release_problems(content: Content, todos: list[Todo], missing_media: list[st
     return problems
 
 
-def rules_lines(pub: dict) -> list[str]:
-    """5–6 строк правил с числами из ``public.json`` (FORMATS §9.3)."""
-    costs = ", ".join(str(c) for c in pub["hints"]["cost"])
-    return [
-        f"Дело разбито на {pub['stages']} этапа. Каждый этап — отдельный конверт; вскрывайте его, только когда "
-        "сайт скажет.",
-        "Ответьте верно на все обязательные вопросы этапа — откроется следующий конверт.",
-        f"Неверный ответ на обязательный вопрос: {pub['penalties']['wrongAttempt']} баллов.",
-        f"Подсказки стоят {costs} баллов; после {pub['hints']['autoAfterWrong']} неверных попыток первая "
-        "открывается бесплатно.",
-        f"Бонусный вопрос — одна попытка, +{pub['points']['bonus']}. Финальный — +{pub['points']['final']}.",
-        "Прогресс хранится в этом браузере; его можно сохранить в файл.",
-    ]
-
-
 def _write_json(path: Path, obj: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(dumps(obj))
@@ -205,8 +190,7 @@ def build(
                 page_keys[slug] = b64u_encode(salts.page_key(slug))
 
         for out_rel, (tpl, entry) in APP_ENTRIES.items():
-            ctx_html = dict(base_ctx, title=pub["title"], entry=entry, css=["/assets/css/app.css"],
-                            body_class="app", rules=rules_lines(pub))
+            ctx_html = dict(base_ctx, title=pub["title"], entry=entry, css=[], body_class="app")
             write_text(tmp / out_rel, site_env.get_template(tpl).render(**ctx_html))
 
         assets = site_dir / "assets"

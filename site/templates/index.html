@@ -3,13 +3,5 @@
 {% include "_chrome.html" %}
 <main id="app" class="app">
   <h1>{{ pub.title }}</h1>
-  <section class="rules">
-    <h2>Как устроена игра</h2>
-    <ul>
-    {% for line in rules %}
-      <li>{{ line }}</li>
-    {% endfor %}
-    </ul>
-  </section>
 </main>
 {% endblock %}

@@ -46,7 +46,8 @@ def access_of(page: PageBase) -> str:
 
 
 def page_css(slug: str) -> list[str]:
-    return ["/assets/css/app.css"] if slug == "video" else [f"/assets/css/pages/{slug}.css"]
+    """Стили страницы сверх base.html (base, app, blank, print подключены всегда); у video — только app.css."""
+    return [] if slug == "video" else [f"/assets/css/pages/{slug}.css"]
 
 
 def page_data(content: Content, page: PageBase, ctx: dict) -> dict:

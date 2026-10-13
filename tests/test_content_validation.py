@@ -84,7 +84,7 @@ def test_units_order_and_kinds():
     c = load_content(CONTENT)
     us = units(c)
     paths = [u.path for u in us]
-    assert len(us) == 23
+    assert len(us) == 25
     assert len(set(paths)) == len(paths)
     # PLAN C7: поля формы — по порядку, вопросы — по порядку
     assert paths[:5] == ["s1.q1.time", "s1.q1.conflict", "s1.q1.disease", "s1.q1.delivered", "s1.q2"]

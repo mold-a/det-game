@@ -349,7 +349,7 @@ def check(
                     problems.append(f"нейтральный пример «{ex}» совпадает с ответом {u.path}")
     short = ", ".join(sorted({v for v, _ in ns.short})) or "—"
     rep.add("7. Leak scan", problems,
-            f"иголок: {len(ns.needles)}, примеров интерфейса: {len(examples)}; короче 4 символов (не ищутся): {short}")
+            f"иголок: {len(ns.needles)}, примеров интерфейса: {len(examples)}; не ищутся (короче 4 символов): «{short}»")
 
     # 8. Заглушки
     todos = collect_todos(content)

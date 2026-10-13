@@ -109,7 +109,7 @@ def test_for_current_content(tmp_path):
     c = load_content()
     path = tmp_path / "salts.lock.json"
     s = ensure_for_content(c, path)
-    assert len(s.data["units"]) == 23
+    assert len(s.data["units"]) == 25
     assert set(s.data["stages"]) == {"1", "2", "3", "4"}
     assert set(s.data["pages"]) == {"inna", "pharma", "video"}  # locked: true; cloud — по паролю
     assert len(b64u_decode(s.data["pages"]["video"])) == 32

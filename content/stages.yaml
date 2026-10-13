@@ -114,10 +114,10 @@ stages:
         prompt: "Почему {{ c.gromov.short() }} {{ c.gromov.g('пытался', 'пыталась') }} уйти из театра?"
         options:
           - { id: o1, text: "Опасался вопросов полиции по давнему делу" }
-          - { id: o2, text: "Опаздывал на самолёт" }
+          - { id: o2, text: "{{ c.gromov.g('Опаздывал', 'Опаздывала') }} на самолёт" }
           - { id: o3, text: "Официально в это время {{ c.gromov.g('он был', 'она была') }} на совещании в другом городе" }
           - { id: o4, text: "Не хотел попасть в объективы журналистов из-за семейного скандала" }
-          - { id: o5, text: "Плохо себя почувствовал" }
+          - { id: o5, text: "Плохо себя {{ c.gromov.g('почувствовал', 'почувствовала') }}" }
         answer: { canon: o3 }
 
   # ================================================================== ЭТАП 3
@@ -207,6 +207,18 @@ stages:
         pool: default
         answer: { canon: kirill }
 
+      - id: b3
+        kind: bonus
+        type: choice
+        prompt: "Зачем {{ c.gromov.short() }} на самом деле {{ c.gromov.g('приезжал', 'приезжала') }} в театр 10 ноября?"
+        options:
+          - { id: incognito, text: "Посмотреть премьеру неофициально, без протокола" }
+          - { id: voroncov, text: "Встретиться с {{ c.voroncov.last('ins') }}" }
+          - { id: fund, text: "Встретиться с {{ c.zavyalov.last('ins') }} по поводу денег фонда «{{ w.money.fund }}»" }
+          - { id: governor, text: "Проверить готовность театра к визиту губернатора" }
+          - { id: volskaya, text: "Передать {{ c.volskaya.last('dat') }} документы" }
+        answer: { canon: fund }
+
   # ================================================================== ЭТАП 4 (финал)
   - n: 4
     envelope: 4
@@ -267,3 +279,9 @@ stages:
         prompt: "Кто вынес телефон погибшего из театра?"
         pool: default
         answer: { canon: zavyalov }
+      - id: fb2
+        kind: bonus
+        type: persons
+        prompt: "Кто знал, что табакерка, проданная {{ c.volskaya.last('dat') }}, — копия?"
+        pool: [voroncov, zavyalov, volkov, marina, kirill, gnedich, volskaya, gromov]
+        answer: { canon: [voroncov, zavyalov] }
