@@ -38,6 +38,10 @@ def test_dist_layout(built):
         assert (dist / rel).is_file(), rel
     assert not (dist / "p" / "news" / "payload.json").exists()
     assert (dist / "robots.txt").read_text(encoding="utf-8") == "User-agent: *\nDisallow: /\n"
+    headers = (dist / "_headers").read_text(encoding="utf-8")
+    blocks = {b.splitlines()[0]: b for b in headers.split("\n\n") if b.strip() and not b.startswith("#")}
+    assert "no-cache" in blocks["/data/*"] and "immutable" in blocks["/m/*"] and "immutable" in blocks["/assets/fonts/*"]
+    assert "Cache-Control" not in blocks["/*"] and "noindex" in blocks["/*"]
     for p in dist.rglob("*.html"):
         assert '<meta name="robots" content="noindex, nofollow">' in p.read_text(encoding="utf-8"), p
     pub = json.loads((dist / "data/public.json").read_text(encoding="utf-8"))

@@ -95,6 +95,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_chatshot()
     if args.command == "answers":
         return cmd_answers()
+    if args.command == "release":
+        return cmd_release()
     return not_implemented(args.command)
 
 
@@ -246,6 +248,25 @@ def cmd_answers() -> int:
         return 0
 
     return _guarded_print(run)
+
+
+
+def cmd_release() -> int:
+    from engine.release import ReleaseError, release
+
+    def run() -> int:
+        try:
+            rep = release()
+        except ReleaseError as e:
+            print(str(e), file=sys.stderr)
+            return EXIT_CONTENT_ERROR
+        print(rep.check.table())
+        size = rep.archive.stat().st_size / 1024 / 1024
+        print(f"Релиз готов: {rep.archive} ({size:.1f} МБ), buildId {rep.build_id}.")
+        print("Выкладка — docs/DEPLOY.md; перед игрой — docs/CHECKLIST.md.")
+        return 0
+
+    return _guarded(run)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,161 @@
+/*
+ * print.css — печатная версия документов лаборатории и развязки (docs/05 §3):
+ * A4, без меню и интерфейса, чёрным по белому. Подключается обычной ссылкой
+ * на всех страницах системы расследования; правила действуют только при печати.
+ */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm;
+  }
+
+  :root {
+    --paper: #fff;
+    --sheet: #fff;
+    --rule: #000;
+    --field-line: #000;
+    --folder: #fff;
+    --folder-edge: #000;
+    --ink: #000;
+    --muted: #000;
+    --seal: #000;
+    --seal-ink: #fff;
+    --seal-soft: transparent;
+    --fine: #000;
+    --fine-on-folder: #000;
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+  }
+
+  /* Интерфейс не печатается. */
+  .app-header,
+  .menu,
+  .side,
+  .scorelog,
+  .notice,
+  .skip-link,
+  .modal-backdrop,
+  .btn,
+  .blank__actions,
+  .q__actions,
+  .no-print,
+  nav,
+  button {
+    display: none !important;
+  }
+
+  .layout {
+    display: block;
+    max-width: none;
+    padding: 0;
+  }
+
+  .sheet,
+  .blank {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .doc-text,
+  .blank__body {
+    max-width: none;
+    font-size: 11.5pt;
+    line-height: 1.5;
+  }
+
+  .blank__title {
+    font-size: 16pt;
+  }
+
+  .blank__fields dd,
+  .blank__org,
+  .doc-text th,
+  .doc-text td {
+    border-color: #000;
+  }
+
+  .stamp {
+    color: #000;
+  }
+
+  .stamp__ink {
+    filter: none;
+    opacity: 1;
+  }
+
+  h1,
+  h2,
+  h3,
+  .blank__title {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  p,
+  li,
+  tr,
+  figure,
+  .blank__sign {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  img {
+    max-height: 120mm;
+    object-fit: contain;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  /* Печать одного документа из окна или страницы (docview.js: html.print-doc). */
+  html.print-doc body > * {
+    display: none !important;
+  }
+
+  html.print-doc body > .modal-backdrop,
+  html.print-doc body > .app-root {
+    display: block !important;
+    position: static;
+    padding: 0;
+    background: none;
+  }
+
+  html.print-doc .app-root > :not(.layout),
+  html.print-doc .layout > :not(.main),
+  html.print-doc .main > :not(:has(.doc-view.is-printing)),
+  html.print-doc .sheet > :not(:has(.doc-view.is-printing)):not(.doc-view) {
+    display: none !important;
+  }
+
+  html.print-doc body:has(.modal-backdrop) > .app-root {
+    display: none !important;
+  }
+
+  html.print-doc .modal {
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  html.print-doc .modal__title,
+  html.print-doc .modal__actions,
+  html.print-doc .modal__close {
+    display: none !important;
+  }
+}

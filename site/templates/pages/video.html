@@ -1,15 +1,51 @@
-<section class="pg-video">
-  <h1>{{ page.title }}</h1>
-  <p class="pg-video__source">{{ page.source }}</p>
-  <p class="pg-video__file"><span class="clue">{{ page.file.name }}</span> · {{ page.file.size }}</p>
-  <video {{ media(page.video, page.file.name) }} controls playsinline preload="none"></video>
-  <details class="pg-video__props">
-    <summary>Свойства файла</summary>
-    <dl>
-      <dt>Дата создания</dt><dd class="clue">{{ page.file.created|dt }}</dd>
-      <dt>Устройство</dt><dd>{{ page.file.device }}</dd>
-      <dt>Длительность</dt><dd>{{ page.file.duration }}</dd>
-      <dt>Разрешение</dt><dd>{{ page.file.resolution }}</dd>
-    </dl>
-  </details>
-</section>
+{# video — «Электронное дело», раздел изъятых файлов (docs/04: «video»). Закрытая страница.
+   Стиль — как у системы расследования (base.css). Интерактив — pages/video.js: видео
+   загружается и расшифровывается по кнопке (с прогрессом по размеру), «Свойства файла» —
+   раскрывающаяся панель. Страница ничего не подсвечивает в самом видео. #}
+{% import "pages/_ui.html" as ui %}
+{% set f = page.file %}
+{% set a = media(page.video, f.name) %}
+<div class="ev">
+  <h1 class="ev-title">{{ page.title }}</h1>
+  <p class="ev-source">{{ page.source }}</p>
+
+  <section class="ev-file" aria-labelledby="ev-file-name">
+    <div class="ev-file__head">
+      <span class="ev-file__icon" aria-hidden="true"></span>
+      <div class="ev-file__info">
+        <p class="ev-file__name clue" data-clue="filename" id="ev-file-name">{{ f.name }}</p>
+        <p class="ev-file__size">Видеофайл · {{ ui.text(f.size, "размер файла") }}</p>
+      </div>
+    </div>
+
+    <div class="ev-player" data-player="video"{% if ui.missing(a) %} data-missing="1"{% endif %}>
+      {% if ui.missing(a) %}
+      <div class="ph ph--video"><span class="ph__label">Здесь будет видео</span></div>
+      {% else %}
+      <video class="ev-player__video" {{ a }} controls playsinline preload="metadata"></video>
+      <div class="ev-player__load" data-role="load" hidden>
+        <button class="ev-btn ev-btn--primary" type="button" data-act="load">Загрузить видео</button>
+        <div class="ev-progress" data-role="progress" hidden>
+          <div class="ev-progress__bar"><span data-role="bar"></span></div>
+          <p class="ev-progress__text" data-role="ptext" role="status"></p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="ev-props">
+      <button class="ev-btn" type="button" data-act="props" aria-expanded="false" aria-controls="ev-props-panel">Свойства файла</button>
+      <div class="ev-props__panel" id="ev-props-panel" data-role="props">
+        <h2 class="ev-props__h">Свойства файла</h2>
+        <dl class="ev-props__list">
+          <div><dt>Имя файла</dt><dd>{{ f.name }}</dd></div>
+          <div><dt>Дата создания</dt><dd class="clue" data-clue="created"><time datetime="{{ f.created }}">{{ f.created|dt("date") }} {{ f.created|dt("time") }}</time></dd></div>
+          <div><dt>Устройство</dt><dd>{{ ui.text(f.device, "модель устройства") }}</dd></div>
+          <div><dt>Длительность</dt><dd>{{ ui.text(f.duration, "длительность") }}</dd></div>
+          <div><dt>Разрешение</dt><dd>{{ ui.text(f.resolution, "разрешение") }}</dd></div>
+          <div><dt>Размер</dt><dd>{{ ui.text(f.size, "размер файла") }}</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+</div>

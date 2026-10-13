@@ -30,6 +30,22 @@ from engine.util import b64u_encode, write_text
 SITE = ROOT / "site"
 ROBOTS = "noindex, nofollow"
 ROBOTS_TXT = "User-agent: *\nDisallow: /\n"
+# Заголовки для хостингов с файлом `_headers` (Netlify, Cloudflare Pages) — FORMATS §9.1, docs/DEPLOY.md.
+# Правило на каждый путь отдельно и без общего `/*` для Cache-Control: оба хостинга склеивают значения
+# совпавших правил, и «no-cache» смешался бы с «immutable».
+NO_CACHE_PATHS = ("/", "/index.html", "/lab/*", "/final/*", "/p/*", "/data/*", "/assets/js/*", "/assets/css/*",
+                  "/robots.txt")
+IMMUTABLE_PATHS = ("/assets/fonts/*", "/m/*")
+
+
+def headers_file() -> str:
+    lines = ["# Создано python -m engine build. Кеширование — docs/DEPLOY.md, FORMATS §9.1.", "", "/*",
+             "  X-Robots-Tag: noindex, nofollow", "  X-Content-Type-Options: nosniff", ""]
+    for p in NO_CACHE_PATHS:
+        lines += [p, "  Cache-Control: no-cache", ""]
+    for p in IMMUTABLE_PATHS:
+        lines += [p, "  Cache-Control: public, max-age=31536000, immutable", ""]
+    return "\n".join(lines)
 APP_ENTRIES = {
     "index.html": ("index.html", "/assets/js/app/main.js"),
     "lab/index.html": ("lab.html", "/assets/js/app/lab.js"),
@@ -197,6 +213,7 @@ def build(
         if assets.is_dir():
             shutil.copytree(assets, tmp / "assets", ignore=shutil.ignore_patterns(".gitkeep", "*.md"))
         write_text(tmp / "robots.txt", ROBOTS_TXT)
+        write_text(tmp / "_headers", headers_file())
         plan.emit(tmp)
     except BaseException:
         shutil.rmtree(tmp, ignore_errors=True)

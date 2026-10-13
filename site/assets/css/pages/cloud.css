@@ -1,0 +1,678 @@
+/*
+ * pages/cloud.css — облачное хранилище «Тучка» (brands.cloud), документ 4-01. Вход по паролю.
+ *
+ * ИТОГОВЫЕ РЕШЕНИЯ (P06; сверено с docs/05 §2–3, без отдельного согласования — разрешение автора)
+ * -----------------------------------------------------------------------------
+ * Характер: дружелюбный файловый менеджер — светлые панели, папки-плитки, жёлтая
+ *   плашка публикации по расписанию (статичная, таймер не тикает).
+ * Палитра (основа — docs/05 §2):
+ *   светлая: фон #F7FAFC, панели #E3EEF7, бренд #3A7BD5 (значки, рамки, крупные элементы),
+ *            бренд-текст #2E66B5 (5,6:1 на белом — ссылки, «мои» сообщения), предупреждение
+ *            #F2C94C с текстом #3B2F00 (10:1), текст #1E2A38, второстепенный #556372 (6,1:1),
+ *            линии #D3DFEA;
+ *   тёмная:  фон #0F151C, панели #18222D, бренд #7FB0F0, текст #E3EAF2, второстепенный
+ *            #9DAABA, линии #2A3644; жёлтая плашка остаётся жёлтой (это сигнал).
+ * Шрифт: системный sans-serif.
+ * Текстовый логотип: «тучка» строчными полужирными + контурная тучка с тремя косыми
+ *   штрихами дождя (inline SVG в data-URI). Не похоже на заполненное синее облако
+ *   «Облака Mail.ru», «летающую тарелку» Яндекс Диска, треугольник Google Drive и
+ *   коробку Dropbox.
+ * Раскладка телефона:
+ *   ┌────────────────────────────┐
+ *   │ ☂ тучка           логин    │
+ *   │ ┃! Публикация по расписанию: 13.11.2026, 10:04. Последнее …  ← [Улика], жёлтая
+ *   │ ┌─────────┐┌─────────┐     │ папки плитками 2×2
+ *   │ │▭ Реестр ││▭ Перепис│     │
+ *   │ │▭ Если вы││▭ Для М.🔒│     │
+ *   │ Реестр                     │
+ *   │ [Дата][Лот][Покупатель]…   │ кнопки сортировки (переносятся)
+ *   │ ┌ Дата        14.04.2023 ┐ │ строки — карточками «колонка: значение»,
+ *   │ │ Лот         …          │ │ ничего не обрезается
+ *   │ │ Комментарий З. знал, … │ │
+ *   │ └────────────────────────┘ │
+ *   └────────────────────────────┘
+ *   ≥ 900 px: папки — колонка 240 px слева, справа — открытая папка; реестр — таблица.
+ */
+
+body.page--cloud {
+  --tc-bg: #f7fafc;
+  --tc-panel: #e3eef7;
+  --tc-card: #ffffff;
+  --tc-brand: #3a7bd5;
+  --tc-brand-text: #2e66b5;
+  --tc-brand-ink: #ffffff;
+  --tc-warn: #f2c94c;
+  --tc-warn-ink: #3b2f00;
+  --tc-text: #1e2a38;
+  --tc-muted: #556372;
+  --tc-line: #d3dfea;
+  --tc-ph: #e6ebf0;
+  --tc-ph-text: #556372;
+  --tc-error: #b3261e;
+  --tc-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --tc-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath d='M9.5 19h14.2a5.3 5.3 0 0 0 .7-10.55 7.4 7.4 0 0 0-14.2 1.6A4.5 4.5 0 0 0 9.5 19z' fill='%23E3EEF7' stroke='%233A7BD5' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M11.5 22.5l-1.5 4M17.5 22.5l-1.5 4M23.5 22.5l-1.5 4' stroke='%233A7BD5' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  color-scheme: light;
+  background: var(--tc-bg);
+  color: var(--tc-text);
+  font-family: var(--tc-font);
+}
+
+@media (prefers-color-scheme: dark) {
+  body.page--cloud {
+    --tc-bg: #0f151c;
+    --tc-panel: #18222d;
+    --tc-card: #141c25;
+    --tc-brand: #7fb0f0;
+    --tc-brand-text: #8dbaf3;
+    --tc-brand-ink: #0f151c;
+    --tc-text: #e3eaf2;
+    --tc-muted: #9daaba;
+    --tc-line: #2a3644;
+    --tc-ph: #1f2a36;
+    --tc-ph-text: #aab6c4;
+    --tc-error: #ff8a80;
+    --tc-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath d='M9.5 19h14.2a5.3 5.3 0 0 0 .7-10.55 7.4 7.4 0 0 0-14.2 1.6A4.5 4.5 0 0 0 9.5 19z' fill='%2318222D' stroke='%237FB0F0' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M11.5 22.5l-1.5 4M17.5 22.5l-1.5 4M23.5 22.5l-1.5 4' stroke='%237FB0F0' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+}
+
+.page--cloud :focus-visible {
+  outline: 3px solid var(--tc-brand);
+  outline-offset: 2px;
+}
+
+/* --- логотип */
+
+.brandmark--cloud {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brandmark--cloud .brandmark__sign {
+  width: 34px;
+  height: 32px;
+  background: var(--tc-logo) center / contain no-repeat;
+}
+
+.brandmark--cloud .brandmark__name {
+  color: var(--tc-brand-text);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+}
+
+/* --- оболочка: вход */
+
+.page--cloud .shell {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.page--cloud .shell__head {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 24px;
+}
+
+.page--cloud .shell__head .brandmark__sign {
+  width: 48px;
+  height: 44px;
+}
+
+.page--cloud .shell__head .brandmark__name {
+  font-size: 32px;
+}
+
+.page--cloud .shell__status {
+  text-align: center;
+  color: var(--tc-muted);
+}
+
+.shell__login {
+  display: grid;
+  gap: 16px;
+  padding: 24px 20px;
+  border: 1px solid var(--tc-line);
+  border-radius: 14px;
+  background: var(--tc-card);
+}
+
+.shell__title {
+  font-size: 21px;
+  text-align: center;
+}
+
+.shell__field {
+  display: grid;
+  gap: 6px;
+}
+
+.shell__label {
+  font-size: 14px;
+  color: var(--tc-muted);
+}
+
+.shell__field input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid #8a9aab;
+  border-radius: 10px;
+  background: var(--tc-card);
+  color: var(--tc-text);
+  font-size: 17px;
+}
+
+.shell__field input[readonly] {
+  background: var(--tc-panel);
+  border-color: var(--tc-line);
+  color: var(--tc-muted);
+}
+
+.shell__field input[aria-invalid="true"] {
+  border-color: var(--tc-error);
+}
+
+.shell__error {
+  color: var(--tc-error);
+  font-weight: 600;
+}
+
+.shell__submit {
+  min-height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--tc-brand-text);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.shell__submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.page--cloud .shell__broken,
+.page--cloud .shell__failed {
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--tc-panel);
+  font-size: 17px;
+}
+
+/* --- после входа */
+
+.tc {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.tc-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--tc-card);
+  border-bottom: 1px solid var(--tc-line);
+}
+
+.tc-bar__account {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--tc-muted);
+  font-size: 14px;
+  text-align: right;
+}
+
+/* Плашка публикации: статичная, жёлтая, всегда целиком. */
+.tc-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 12px 16px 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--tc-warn);
+  color: var(--tc-warn-ink);
+  border: 1px solid #d9ad25;
+}
+
+.tc-banner__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--tc-warn-ink);
+  color: var(--tc-warn);
+  font-weight: 800;
+}
+
+.tc-banner__text {
+  font-size: 16px;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-banner__text time {
+  white-space: nowrap;
+}
+
+/* --- папки */
+
+.tc-layout {
+  display: grid;
+  gap: 12px;
+  padding: 12px 16px 0;
+}
+
+.tc-folders__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tc-folder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 1px solid var(--tc-line);
+  border-radius: 12px;
+  background: var(--tc-card);
+  color: var(--tc-text);
+  text-decoration: none;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.tc-folder:hover {
+  border-color: var(--tc-brand);
+}
+
+.tc-folder[aria-current="true"] {
+  background: var(--tc-panel);
+  border-color: var(--tc-brand);
+  box-shadow: inset 0 0 0 1px var(--tc-brand);
+}
+
+.tc-folder__title {
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+/* Значок папки: корешок + тело. */
+.tc-folder__icon {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: 24px;
+  height: 18px;
+  margin-top: 3px;
+  border-radius: 3px;
+  background: var(--tc-brand);
+}
+
+.tc-folder__icon::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -4px;
+  width: 11px;
+  height: 6px;
+  border-radius: 3px 3px 0 0;
+  background: var(--tc-brand);
+}
+
+.tc-folder--locked .tc-folder__icon,
+.tc-folder--locked .tc-folder__icon::before,
+.tc-panel--locked .tc-folder__icon,
+.tc-panel--locked .tc-folder__icon::before {
+  background: var(--tc-muted);
+}
+
+/* Замок: дужка + корпус. */
+.tc-folder__lock,
+.tc-locked__icon {
+  position: relative;
+  flex: none;
+  display: inline-block;
+  width: 14px;
+  height: 11px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--tc-text);
+}
+
+.tc-folder__lock::before,
+.tc-locked__icon::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 9px;
+  height: 8px;
+  border: 2px solid var(--tc-text);
+  border-bottom: 0;
+  border-radius: 6px 6px 0 0;
+}
+
+/* --- панель папки */
+
+.tc-panel {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--tc-line);
+  border-radius: 12px;
+  background: var(--tc-card);
+  scroll-margin-top: 8px;
+}
+
+.tc:not(.has-tabs) .tc-panel + .tc-panel {
+  margin-top: 12px;
+}
+
+.tc-panel__h {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 20px;
+}
+
+.tc-meta {
+  margin-top: 8px;
+  color: var(--tc-muted);
+  font-size: 13px;
+}
+
+/* --- реестр */
+
+.tc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-table th {
+  text-align: left;
+  padding: 0;
+}
+
+.tc-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--tc-text);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+}
+
+.tc-sort__arrow {
+  width: 0;
+  height: 0;
+  border: 5px solid transparent;
+  opacity: 0.35;
+  border-top-color: currentColor;
+  margin-top: 5px;
+}
+
+th[aria-sort="ascending"] .tc-sort__arrow {
+  opacity: 1;
+  border-top-color: transparent;
+  border-bottom-color: var(--tc-brand-text);
+  margin-top: -5px;
+}
+
+th[aria-sort="descending"] .tc-sort__arrow {
+  opacity: 1;
+  border-top-color: var(--tc-brand-text);
+}
+
+th[aria-sort="ascending"] .tc-sort,
+th[aria-sort="descending"] .tc-sort {
+  color: var(--tc-brand-text);
+}
+
+.tc-table td {
+  padding: 10px;
+  vertical-align: top;
+  border-top: 1px solid var(--tc-line);
+  line-height: 1.4;
+}
+
+.tc-empty {
+  color: var(--tc-muted);
+}
+
+/* Телефон и узкий планшет: строки — карточки «колонка: значение», заголовки — кнопки сортировки. */
+@media (max-width: 759px) {
+  .tc-table,
+  .tc-table thead,
+  .tc-table tbody,
+  .tc-table tr,
+  .tc-table th,
+  .tc-table td {
+    display: block;
+  }
+
+  .tc-table thead tr {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .tc-sort {
+    width: auto;
+    padding: 0 12px;
+    border: 1px solid var(--tc-line);
+    border-radius: 999px;
+    font-size: 14px;
+  }
+
+  .tc-table tbody tr {
+    padding: 4px 0;
+    border: 1px solid var(--tc-line);
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+
+  .tc-table td {
+    display: grid;
+    grid-template-columns: minmax(6.5em, 34%) 1fr;
+    gap: 8px;
+    padding: 6px 12px;
+    border-top: 0;
+  }
+
+  .tc-table td::before {
+    content: attr(data-label);
+    color: var(--tc-muted);
+    font-size: 13px;
+    padding-top: 1px;
+  }
+}
+
+/* --- переписка */
+
+.tc-chat__with {
+  margin-bottom: 12px;
+  color: var(--tc-muted);
+  font-size: 14px;
+}
+
+.tc-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--tc-panel);
+}
+
+.tc-chat__day {
+  align-self: center;
+  margin: 6px 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--tc-card);
+  color: var(--tc-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tc-msg {
+  max-width: min(85%, 560px);
+  padding: 8px 12px 6px;
+  border-radius: 14px;
+  line-height: 1.4;
+}
+
+.tc-msg--them {
+  align-self: flex-start;
+  background: var(--tc-card);
+  border: 1px solid var(--tc-line);
+  border-bottom-left-radius: 4px;
+}
+
+.tc-msg--me {
+  align-self: flex-end;
+  background: var(--tc-brand-text);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.tc-msg__who {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.tc-msg__text {
+  white-space: pre-line;
+}
+
+.tc-msg__time {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  text-align: right;
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- обращение */
+
+.tc-doc {
+  max-width: 42em;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.tc-doc p + p {
+  margin-top: 0.9em;
+}
+
+/* --- закрытая папка */
+
+.tc-locked {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 16px;
+  border: 1px dashed var(--tc-muted);
+  border-radius: 12px;
+  background: var(--tc-panel);
+}
+
+.tc-locked__icon {
+  width: 28px;
+  height: 22px;
+  margin: 12px 0 0;
+  border-radius: 4px;
+}
+
+.tc-locked__icon::before {
+  left: 4px;
+  right: 4px;
+  bottom: 20px;
+  height: 14px;
+  border-width: 4px;
+  border-radius: 12px 12px 0 0;
+}
+
+.tc-locked__text {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* --- заглушки «Здесь будет …» */
+
+.page--cloud .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--tc-ph);
+  color: var(--tc-ph-text);
+  font-size: 14px;
+  text-align: center;
+}
+
+.page--cloud .ph-text {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--tc-ph);
+  color: var(--tc-ph-text);
+  font-size: 14px;
+  white-space: normal;
+}
+
+@media (min-width: 900px) {
+  .tc-banner {
+    margin: 16px 24px 0;
+  }
+
+  .tc-bar {
+    padding: 12px 24px;
+  }
+
+  .tc-layout {
+    grid-template-columns: 240px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding: 16px 24px 0;
+  }
+
+  .tc-folders__list {
+    grid-template-columns: 1fr;
+  }
+
+  .tc-panel {
+    padding: 20px 24px;
+  }
+}

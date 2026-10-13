@@ -1,25 +1,99 @@
-<section class="pg-cloud">
-  <p class="pg-cloud__brand">{{ page.brand }}</p>
-  <p class="pg-cloud__account">{{ page.account }}</p>
-  <p class="pg-cloud__banner clue">Публикация по расписанию: <time>{{ page.banner.scheduled|dt }}</time>. Последнее подтверждение: <time>{{ page.banner.last_confirmation|dt }}</time></p>
-  {% for f in page.folders %}
-  <section class="pg-cloud__folder pg-cloud__folder--{{ f.kind }}" data-folder="{{ f.id }}">
-    <h2>{{ f.title }}</h2>
-    {% if f.kind == "table" %}
-    <table>
-      <thead><tr>{% for col in f.columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
-      <tbody>{% for row in f.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
-    </table>
-    {% elif f.kind == "chat" %}
-    <p class="pg-cloud__participants">{% for pid in f.participants %}{{ people[pid].full }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-    {% for m in f.messages %}
-    <p class="msg" data-from="{{ m['from'] }}"><b>{{ people[m['from']].short }}</b> <time>{{ m.datetime|dt }}</time> {{ m.text }}</p>
+{# cloud — облако «Тучка» (docs/04: «cloud»). Закрыто паролем (FORMATS §6.4).
+   Плашка публикации — статичная (таймер не тикает). Интерактив — pages/cloud.js: переключение
+   папок, сортировка реестра по колонкам (значения — data-sort). Без JS все папки видны подряд.
+   Папка kind=locked — только замок, содержимого во фрагменте нет. #}
+{% import "pages/_ui.html" as ui %}
+<div class="tc">
+  <header class="tc-bar">
+    <span class="brandmark brandmark--cloud"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ page.brand }}</span></span>
+    <span class="tc-bar__account" title="Учётная запись">{{ ui.text(page.account, "логин") }}</span>
+  </header>
+
+  <div class="tc-banner clue" data-clue="banner" role="note">
+    <span class="tc-banner__icon" aria-hidden="true">!</span>
+    <p class="tc-banner__text">Публикация по расписанию: <b><time datetime="{{ page.banner.scheduled }}">{{ page.banner.scheduled|dt }}</time></b>. Последнее подтверждение: <time datetime="{{ page.banner.last_confirmation }}">{{ page.banner.last_confirmation|dt }}</time></p>
+  </div>
+
+  <div class="tc-layout">
+    <nav class="tc-folders" aria-label="Папки">
+      <ul class="tc-folders__list" role="list">
+        {% for f in page.folders %}
+        <li>
+          <a class="tc-folder tc-folder--{{ f.kind }}" href="#{{ 'tc-' ~ f.id }}" data-folder-link="{{ f.id }}">
+            <span class="tc-folder__icon" aria-hidden="true"></span>
+            <span class="tc-folder__title">{{ f.title }}</span>
+            {% if f.kind == "locked" %}<span class="tc-folder__lock" aria-label="защищена паролем"></span>{% endif %}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div class="tc-panels">
+    {% for f in page.folders %}
+      <section class="tc-panel tc-panel--{{ f.kind }}" id="tc-{{ f.id }}" data-folder="{{ f.id }}" aria-labelledby="tc-{{ f.id }}-h" tabindex="-1">
+        <h2 class="tc-panel__h" id="tc-{{ f.id }}-h"><span class="tc-folder__icon" aria-hidden="true"></span>{{ f.title }}</h2>
+
+        {% if f.kind == "table" %}
+        <div class="tc-table-wrap">
+          <table class="tc-table" data-sortable>
+            <thead>
+              <tr>
+                {% for col in f.columns %}
+                <th scope="col" aria-sort="none"><button type="button" class="tc-sort" data-col="{{ loop.index0 }}">{{ col }}<span class="tc-sort__arrow" aria-hidden="true"></span></button></th>
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in f.rows %}
+              <tr>
+                {% for cell in row %}
+                {% set label = f.columns[loop.index0] if loop.index0 < f.columns|length else "" %}
+                <td data-label="{{ label }}" data-sort="{{ cell|replace('TODO(content)', '') }}">
+                  {%- if "TODO(content)" in cell %}{% set rest = cell|replace("TODO(content)", "")|trim("-") %}{% if rest %}{{ rest }} {% endif %}<span class="ph-text">Здесь будет {{ label|lower or "значение" }}</span>
+                  {%- elif loop.index0 == 0 %}<time datetime="{{ cell }}">{{ cell|dt("date") }}</time>
+                  {%- elif cell == "" %}<span class="tc-empty" aria-label="пусто">—</span>
+                  {%- else %}{{ cell }}{% endif -%}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="tc-meta">Строк: {{ f.rows|length }}. Нажмите на заголовок колонки, чтобы отсортировать.</p>
+
+        {% elif f.kind == "chat" %}
+        {% set me = f.participants[0] %}
+        <p class="tc-chat__with">{% for pid in f.participants %}{{ people[pid].full }}{% if not loop.last %} — {% endif %}{% endfor %}</p>
+        {% if f.messages %}
+        <ol class="tc-chat" role="list">
+          {% set ns = namespace(day="") %}
+          {% for m in f.messages %}
+          {% set day = m.datetime|dt("date") %}
+          {% if day != ns.day %}{% set ns.day = day %}<li class="tc-chat__day"><span>{{ day }}</span></li>{% endif %}
+          <li class="tc-msg {{ 'tc-msg--me' if m['from'] == me else 'tc-msg--them' }}" data-from="{{ m['from'] }}">
+            <span class="tc-msg__who">{{ people[m['from']].short }}</span>
+            <p class="tc-msg__text">{{ m.text }}</p>
+            <time class="tc-msg__time" datetime="{{ m.datetime }}">{{ m.datetime|dt("time") }}</time>
+          </li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <div class="ph ph--block"><span class="ph__label">Здесь будет переписка</span></div>
+        {% endif %}
+
+        {% elif f.kind == "letter" %}
+        <div class="tc-doc">{{ f.body_html }}</div>
+
+        {% else %}
+        <div class="tc-locked">
+          <span class="tc-locked__icon" aria-hidden="true"></span>
+          <p class="tc-locked__text">Папка защищена отдельным паролем.</p>
+        </div>
+        {% endif %}
+      </section>
     {% endfor %}
-    {% elif f.kind == "letter" %}
-    <div class="pg-cloud__letter">{{ f.body_html }}</div>
-    {% else %}
-    <p class="pg-cloud__locked">Папка защищена отдельным паролем.</p>
-    {% endif %}
-  </section>
-  {% endfor %}
-</section>
+    </div>
+  </div>
+</div>

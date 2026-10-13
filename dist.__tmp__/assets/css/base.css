@@ -1,0 +1,376 @@
+/*
+ * base.css — токены, шрифты, сброс, тёмная тема, фокус, reduced motion.
+ * Подключается на всех страницах системы расследования (и как основа для video).
+ *
+ * ИТОГОВЫЕ РЕШЕНИЯ ПО ДИЗАЙНУ (сверено с docs/05-design.md §1, §3; P04 без
+ * отдельного согласования плана — разрешение автора, 2026-10-13)
+ * -----------------------------------------------------------------------------
+ * Предмет: «служебный бланк и фиолетовая печать». Скромная служебная программа
+ * провинциального отдела. Единственная яркая деталь — фиолетовый штамп.
+ *
+ * Цвета (светлая тема — ровно HEX из docs/05):
+ *   --paper  #EDF0F2 бланк (фон страницы)      --rule   #C8D3DC разлиновка
+ *   --folder #D9D3C1 папка (шапка, боковая)    --ink    #1F2633 чернила (текст)
+ *   --seal   #5B3FA3 печать (штамп, основная кнопка, ссылки, фокус)
+ *   --fine   #A8382B штраф (только списания и ошибки)
+ * Производные (добавлены, в docs/05 их нет):
+ *   --sheet #F8F9FA — лист бланка под вопросами и документами: чуть светлее фона,
+ *     чтобы «участок бланка» читался без тени и карточек;
+ *   --muted #4F5A69 — второстепенный текст (6,1:1 на бланке, 4,7:1 на папке);
+ *   --field-line #738290 — нижняя линия поля ввода: --rule (#C8D3DC) даёт только
+ *     1,3:1, а у элементов управления нужно ≥ 3:1 (WCAG 1.4.11); --rule остаётся
+ *     для разлиновки и разделителей;
+ *   --fine-on-folder #963024 — тот же «штраф» на картоне папки: #A8382B на #D9D3C1
+ *     даёт 4,3:1 (< AA для мелкого текста журнала); на бланке — исходный #A8382B.
+ * Тёмная тема (prefers-color-scheme: dark) — HEX из docs/05: фон #1B2029, текст
+ *   #E3E6EA, папка #2A2F38, печать #A994E6; остальное подобрано под AA:
+ *   лист #212733, разлиновка #3A4453, линия поля #76849A, штраф #EE8A7B, muted #A3ACB8.
+ *   Контраст текста: чернила 13:1, muted ≥ 5,8:1, печать ≥ 5,1:1, штраф ≥ 5,4:1
+ *   на всех фонах обеих тем (проверено расчётом WCAG).
+ *
+ * Шрифты: PT Sans — интерфейс; PT Serif — тексты документов (межстрочный 1,6,
+ *   до 70 знаков). Подключение — fonts.css (ссылкой из base.html), локальные woff2.
+ *   Номера документов — PT Sans с табличными цифрами (font-variant-numeric).
+ *   Без капслока и разрядки в подписях. Капитель только у штампа — это
+ *   изображение печати, а не подпись.
+ * Шкала: 14 / 16 / 19 / 23 / 28 px (--fs-1…--fs-5), база 16, поля ввода ≥ 16 px
+ *   на любой ширине (iOS не увеличивает страницу).
+ * Отступы: 4 / 8 / 12 / 16 / 24 / 32 / 48 (--sp-1…--sp-7). Скругления 2–3 px —
+ *   бумага, а не «плитки». Теней нет нигде, кроме модального окна (одна мягкая
+ *   тень, чтобы окно отделялось от затемнения).
+ *
+ * Раскладка главного экрана (app.css):
+ *   ≥ 900 px — две колонки: вопросы (лист бланка, до 720 px) | боковая панель
+ *     цвета папки 280–320 px (документы дела, «Лаборатория», журнал баллов).
+ *   < 900 px — одна колонка: вопросы, затем документы, лаборатория, журнал.
+ *   Шапка цвета папки, липкая на всех ширинах: номер дела, команда, счёт,
+ *     этапы ①②③④; на телефоне — в две строки, счёт виден всегда.
+ *   Вопрос — участок бланка: номер и формулировка, поля-строки с нижней линией
+ *     (как графы бланка), отделён от соседнего двойной линией разлиновки.
+ *     НЕ карточки с тенью; решённый вопрос получает штамп, а не зелёную рамку.
+ *   Пометка «Бонус, одна попытка» — строчными, в тонкой рамке цвета чернил.
+ *   Заменено относительно типового шаблона: карточки с тенью → участки бланка;
+ *     капслок-заголовки секций → обычный 19 px полужирный; зелёный «успех» →
+ *     фиолетовый штамп; градиентов нет.
+ * Кнопки ≥ 44 × 44 px. Основная — заливка печатью, второстепенная — контур
+ *   чернилами. Фокус — обводка 3 px цветом печати со смещением 2 px.
+ * Движение одно: штамп «Принято» опускается (scale 1,15 → 1 с поворотом,
+ *   180 мс). prefers-reduced-motion — без анимации и переходов.
+ */
+
+/* fonts.css (@font-face, --font-sans, --font-serif) подключается шаблоном base.html
+   отдельной ссылкой перед этим файлом (docs/FORMATS.md §9.3) — здесь без @import. */
+
+/* ------------------------------------------------------------------ токены */
+
+:root {
+  color-scheme: light dark;
+
+  --paper: #edf0f2;
+  --sheet: #f8f9fa;
+  --rule: #c8d3dc;
+  --field-line: #738290;
+  --folder: #d9d3c1;
+  --folder-edge: #c4bca5;
+  --ink: #1f2633;
+  --muted: #4f5a69;
+  --seal: #5b3fa3;
+  --seal-ink: #ffffff; /* текст на заливке печатью */
+  --seal-soft: rgba(91, 63, 163, 0.1);
+  --fine: #a8382b;
+  --fine-on-folder: #963024;
+  --backdrop: rgba(31, 38, 51, 0.55);
+
+  --font-ui: var(--font-sans);
+  --font-doc: var(--font-serif);
+
+  --fs-1: 0.875rem; /* 14 */
+  --fs-2: 1rem; /* 16 */
+  --fs-3: 1.1875rem; /* 19 */
+  --fs-4: 1.4375rem; /* 23 */
+  --fs-5: 1.75rem; /* 28 */
+  --lh-ui: 1.45;
+  --lh-doc: 1.6;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  --radius: 2px;
+  --radius-2: 3px;
+  --tap: 44px; /* минимальная цель нажатия */
+  --focus: 3px solid var(--seal);
+  --measure-doc: 70ch;
+  --col-main: 720px;
+  --col-side: 300px;
+
+  --stamp-duration: 180ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1b2029;
+    --sheet: #212733;
+    --rule: #3a4453;
+    --field-line: #76849a;
+    --folder: #2a2f38;
+    --folder-edge: #3a404b;
+    --ink: #e3e6ea;
+    --muted: #a3acb8;
+    --seal: #a994e6;
+    --seal-ink: #1b2029;
+    --seal-soft: rgba(169, 148, 230, 0.14);
+    --fine: #ee8a7b;
+    --fine-on-folder: #ee8a7b;
+    --backdrop: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ------------------------------------------------------------------ сброс */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  tab-size: 4;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-2);
+  line-height: var(--lh-ui);
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+ul,
+ol,
+dl,
+dd,
+figure,
+blockquote {
+  margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: var(--fs-5);
+}
+h2 {
+  font-size: var(--fs-4);
+}
+h3 {
+  font-size: var(--fs-3);
+}
+
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+
+img,
+svg,
+video,
+canvas,
+audio {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+}
+
+/* Поля ввода — не меньше 16 px на любой ширине (иначе iOS увеличивает страницу). */
+input,
+select,
+textarea {
+  font-size: max(16px, 1em);
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--seal);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.tnum,
+.doc-id {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ------------------------------------------------------------------ фокус */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus);
+  outline-offset: 2px;
+}
+
+/* Для старых браузеров без :focus-visible — обводка всегда. */
+@supports not selector(:focus-visible) {
+  :focus {
+    outline: var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+::selection {
+  background: var(--seal);
+  color: var(--seal-ink);
+}
+
+/* ------------------------------------------------------------------ служебное */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--sp-2);
+  top: -100px;
+  z-index: 100;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--sheet);
+  color: var(--seal);
+  border: 1px solid var(--seal);
+}
+
+.skip-link:focus {
+  top: var(--sp-2);
+}
+
+/* ------------------------------------------------------------------ экран boot.js */
+
+html.boot-failed body > :not(.boot-screen) {
+  display: none !important;
+}
+
+/* Статический блок base.html для file:// (boot.js там не загружается, F18).
+   Виден, только если boot.js не выполнился. */
+html.boot-ok .boot-fallback {
+  display: none !important;
+}
+
+.boot-fallback {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--sp-5) var(--sp-4);
+  border-bottom: 3px solid var(--fine);
+}
+
+.boot-screen {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.boot-screen__title {
+  font-size: var(--fs-4);
+  margin-bottom: var(--sp-4);
+}
+
+.boot-screen__subtitle {
+  font-size: var(--fs-3);
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+
+.boot-screen__reason {
+  padding-left: var(--sp-4);
+  border-left: 3px solid var(--fine);
+}
+
+.boot-screen__list {
+  padding-left: 1.25em;
+}
+
+.boot-screen__cmd {
+  white-space: nowrap;
+  font-size: 0.95em;
+}
+
+.boot-screen__list li + li {
+  margin-top: var(--sp-2);
+}
+
+/* ------------------------------------------------------------------ движение */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
