@@ -15,12 +15,15 @@ test("две вкладки: запрос в лаборатории виден �
 
   // И обратно: штраф на главном экране → вкладка лаборатории обновила счёт.
   const q = A.stages[0].questions.find((x) => x.type === "order")!;
+  // Фоновая вкладка не рисует кадры (rAF): действия Playwright ждут видимую вкладку.
+  await page.bringToFront();
   const { fillQuestion, submit } = await import("./helpers");
   await fillQuestion(page, q, q.wrong[0]);
   await submit(page, q.path);
   await expect.poll(() => headerScore(lab)).toBe(A.settings.penalties.labNoBasis + A.settings.penalties.wrongAttempt);
 
   // Обе записи в журнале — ни одна вкладка не затёрла другую.
+  await lab.bringToFront();
   await lab.reload();
   expect(await headerScore(lab)).toBe(A.settings.penalties.labNoBasis + A.settings.penalties.wrongAttempt);
 });

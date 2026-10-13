@@ -8,7 +8,7 @@
 documents:
   # --- Конверт 1 (папка дела) ---
   - { id: "1-01", stage: 1, kind: paper, title: "Письмо руководителя следственной группы" }
-  - { id: "1-02", stage: 1, kind: paper, title: "Рапорт сержанта полиции {{ c.kovalev.short() }}" }
+  - { id: "1-02", stage: 1, kind: paper, title: "Рапорт сержанта полиции {{ c.kovalev.short('gen') }}" }
   - { id: "1-03", stage: 1, kind: paper, title: "Карта вызова скорой медицинской помощи" }
   - { id: "1-04", stage: 1, kind: paper, title: "Предварительное заключение судебно-медицинского эксперта" }
   - { id: "1-05", stage: 1, kind: paper, page: call, title: "Расшифровка анонимного звонка в дежурную часть" }

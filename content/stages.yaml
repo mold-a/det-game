@@ -7,9 +7,11 @@ stages:
   # ================================================================== ЭТАП 1
   - n: 1
     envelope: 1
+    # Требование к вводному письму этапа 1: без слов о причине смерти и болезни погибшего (спойлер этапов 1–3);
+    # текст попадает в pack-1, ключ которого выводится из публичных данных.
     intro: |
       TODO(content): вводное письмо майора {{ c.belyaev.last('gen') }} — анонимный звонок, давление сверху,
-      срок «к 10:00 13 ноября». Без слов «отравление», «таблетки», «астма».
+      срок «к 10:00 13 ноября».
     on_complete: "Ответ принят. Вскройте конверт № 2."
     questions:
       - id: q1
@@ -283,5 +285,5 @@ stages:
         kind: bonus
         type: persons
         prompt: "Кто знал, что табакерка, проданная {{ c.volskaya.last('dat') }}, — копия?"
-        pool: [voroncov, zavyalov, volkov, marina, kirill, gnedich, volskaya, gromov]
+        pool: [volkov, marina, voroncov, gnedich, kirill, zavyalov, volskaya, gromov]   # верные ответы не подряд и не в начале
         answer: { canon: [voroncov, zavyalov] }
