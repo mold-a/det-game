@@ -377,3 +377,59 @@ def test_content_error_message_format(root):
     text = str(exc.value)
     assert text.startswith("Ошибки в контенте (1):")
     assert "content/pages/call/page.yaml: doc: документа «9-99» нет в documents.yaml" in text
+
+
+@pytest.mark.parametrize("domain", ["https://example.ru/", "https://example.ru/game", "http://example.ru",
+                                    "example.ru", "https://example.ru?x=1"])
+def test_domain_root_only(root, domain):
+    edit_text(root, "settings.yaml", 'domain: "https://example.ru"', f'domain: "{domain}"')
+    assert_error(root, "content/settings.yaml: domain:", f"domain {domain!r}")
+
+
+def test_domain_with_port_ok(root):
+    edit_text(root, "settings.yaml", 'domain: "https://example.ru"', 'domain: "https://example.ru:8443"')
+    assert load_content(root).settings.domain == "https://example.ru:8443"
+
+
+def test_cloud_chat_message_from_alias(root):
+    """Ключ «from» в YAML читается через алиас поля from_ и проверяется по participants."""
+    edit_text(root, "pages/cloud/page.yaml", "    messages: []",
+              '    messages:\n'
+              '      - { from: zavyalov, datetime: "2026-09-01T10:00", text: "Привет" }\n'
+              '      - { from: voroncov, datetime: "2026-09-01T10:05", text: "Ответ" }')
+    c = load_content(root)
+    chat = next(f for f in c.pages["cloud"].folders if f.kind == "chat")
+    assert [m.from_ for m in chat.messages] == ["zavyalov", "voroncov"]
+
+
+def test_cloud_chat_message_errors(root):
+    edit_text(root, "pages/cloud/page.yaml", "    messages: []",
+              '    messages:\n'
+              '      - { from: gromov, datetime: "2026-09-01T10:00", text: "Чужой" }\n'
+              '      - { from_: zavyalov, datetime: "2026-09-01T10:00", text: "Имя поля Python" }')
+    errs = assert_error(root, "content/pages/cloud/page.yaml: folders[1].messages[1].from:",
+                        "обязательное поле отсутствует")
+    assert any("folders[1].messages[1].from_" in e and "лишнее поле" in e for e in errs)
+
+
+def test_cloud_chat_message_sender_not_participant(root):
+    edit_text(root, "pages/cloud/page.yaml", "    messages: []",
+              '    messages:\n      - { from: gromov, datetime: "2026-09-01T10:00", text: "Чужой" }')
+    assert_error(root, "folders[1].messages[0].from", "«gromov» не входит в participants")
+
+
+def test_media_extension_and_path(root):
+    edit_text(root, "pages/call/page.yaml", '"audio/anonymous_call.mp3"', '"audio/anonymous_call.wav"')
+    edit_text(root, "characters.yaml", '"portraits/zavyalov.jpg"', '"../portraits/zavyalov.jpg"')
+    errs = assert_error(root, "content/pages/call/page.yaml: audio:", "расширение «.wav»")
+    assert any("characters[1].photo" in e and "без «..»" in e for e in errs)
+
+
+def test_missing_media_is_not_error():
+    # media/ в репозитории нет совсем (PLAN A2) — загрузка всё равно проходит
+    c = load_content(CONTENT)
+    from engine.content import media_refs
+
+    refs = media_refs(c.characters, c.pages, c.docs)
+    assert {r.context for r in refs} == {"portrait", "open", "locked"}
+    assert any(r.path == "lab/station_cam.jpg" and r.context == "locked" for r in refs)

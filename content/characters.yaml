@@ -146,7 +146,7 @@ characters:
   - id: volskaya
     working: "Софья Вольская"           # строка из таблицы персонажей — для import-cast
     role: "Меценат, попечитель театра"
-    importance: secondary
+    importance: key                   # повышена до ключевой (решение автора 2026-10-13)
     last: "Вольская"
     first: "Софья"
     middle: "Аркадьевна"
@@ -155,13 +155,14 @@ characters:
     photo: "portraits/volskaya.jpg"
     in_pool: true
   - id: gromov
-    working: "Михаил Громов"           # строка из таблицы персонажей — для import-cast
+    working: "Михаил Громов"           # строка из таблицы персонажей — для import-cast (рабочее имя роли не меняется)
     role: "Заместитель главы администрации города по социальной политике"
-    importance: secondary
-    last: "Громов"
-    first: "Михаил"
-    middle: "Анатольевич"
-    gender: m
+    importance: key                   # повышен до ключевого (решение автора 2026-10-13)
+    # Роль играет девушка: рабочие ФИО женские, настоящие подставятся в P09. ID gromov не менять.
+    last: "Громова"
+    first: "Маргарита"
+    middle: "Анатольевна"
+    gender: f
     age: 57
     photo: "portraits/gromov.jpg"
     in_pool: true

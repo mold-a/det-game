@@ -31,12 +31,19 @@ const PUB = {
   gameId: "testgame",
   saltsId: "salts-A",
   points: { bonus: 15, final: 30 },
-  penalties: { wrong_attempt: -5, lab_no_basis: -5 },
-  hints: { cost: [10, 20, 40], auto_after_wrong: 3 },
+  penalties: { wrongAttempt: -5, labNoBasis: -5 },
+  hints: { cost: [10, 20, 40], autoAfterWrong: 3 },
 };
 
 const fresh = () =>
-  newState({ saltsId: PUB.saltsId, buildId: "b1", team: "Команда", startedAt: "2026-11-12T10:00:00.000Z" });
+  newState({
+    gameId: PUB.gameId,
+    saltsId: PUB.saltsId,
+    buildId: "b1",
+    team: "Команда",
+    startedAt: "2026-11-12T10:00:00.000Z",
+    keys: { 1: "k1" },
+  });
 
 class MemoryStorage {
   constructor() {
@@ -74,11 +81,11 @@ function clock(start = Date.parse("2026-11-12T10:00:00Z")) {
 describe("§4 попытки и штрафы", () => {
   test("неверная попытка обязательного вопроса — штраф из настроек", () => {
     let s = fresh();
-    s = recordWrong(s, "s1.q2", "h1", PUB.penalties.wrong_attempt);
+    s = recordWrong(s, "s1.q2", "h1", PUB.penalties.wrongAttempt);
     assert.equal(score(s), -5);
     assert.deepEqual(s.log, [{ d: -5, r: "wrong:s1.q2" }]);
     assert.equal(wrongCount(s, "s1.q2"), 1);
-    s = recordWrong(s, "s1.q2", "h2", PUB.penalties.wrong_attempt);
+    s = recordWrong(s, "s1.q2", "h2", PUB.penalties.wrongAttempt);
     assert.equal(score(s), -10);
   });
 
@@ -122,8 +129,8 @@ describe("§4 попытки и штрафы", () => {
     assert.equal(solve(s, "s1.q1", { time: "00:00" }), s);
   });
 
-  test(`автоподсказка уровня 1 бесплатно после ${PUB.hints.auto_after_wrong} ошибок`, () => {
-    const N = PUB.hints.auto_after_wrong;
+  test(`автоподсказка уровня 1 бесплатно после ${PUB.hints.autoAfterWrong} ошибок`, () => {
+    const N = PUB.hints.autoAfterWrong;
     let s = fresh();
     for (let i = 0; i < N - 1; i++) {
       s = recordWrong(s, "s1.q2", `h${i}`, -5);
@@ -291,7 +298,7 @@ describe("§6 счёт = сумма журнала; §7 лаборатория; 
   test("счёт может уйти в минус и равен сумме log[].d", () => {
     let s = recordWrong(fresh(), "a", "1", -5);
     s = buyHint(s, "a", 1, 10);
-    s = labRejected(s, "fp1", PUB.penalties.lab_no_basis);
+    s = labRejected(s, "fp1", PUB.penalties.labNoBasis);
     s = bonusAnswer(s, "b", { correct: true, canon: "x", points: 15 });
     assert.equal(score(s), -5);
     assert.equal(score(s), s.log.reduce((a, e) => a + e.d, 0));
