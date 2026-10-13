@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 from typing import Annotated, Any, Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
@@ -38,6 +39,19 @@ LIST_TYPES = frozenset({"multi", "persons", "order"})
 # Типы, ответ которых — ID (один или список).
 ID_TYPES = frozenset({"choice", "multi", "person", "persons", "order", "document"})
 QuestionKind = Literal["mandatory", "bonus", "final"]
+
+
+# FORMATS §5: расширение медиа → MIME. Иное расширение — ошибка валидации.
+MEDIA_MIME: dict[str, str] = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+    ".svg": "image/svg+xml",
+    ".mp3": "audio/mpeg",
+    ".m4a": "audio/mp4",
+    ".mp4": "video/mp4",
+}
 
 
 class Strict(BaseModel):
@@ -85,6 +99,20 @@ class Settings(Strict):
     hints: HintsSettings
     ranks: Annotated[list[Rank], Field(min_length=1)]
     leak_watchlist: list[str] = []
+
+    @field_validator("domain", mode="after")
+    @classmethod
+    def _domain_root_only(cls, v: str) -> str:
+        """FORMATS F18: сайт живёт только в корне домена — ``https://host[:port]`` без пути."""
+        u = urlsplit(v)
+        if u.scheme != "https" or not u.hostname:
+            raise ValueError(f"domain {v!r}: нужен адрес вида https://host (схема https)")
+        if u.path or u.query or u.fragment or "?" in v or "#" in v:
+            raise ValueError(f"domain {v!r}: без пути, «/» в конце, параметров и фрагмента — "
+                             "сайт размещается только в корне домена")
+        if u.username or u.password:
+            raise ValueError(f"domain {v!r}: без логина и пароля")
+        return v
 
 
 # ---------------------------------------------------------------- characters.yaml
@@ -423,6 +451,9 @@ class CloudBanner(Strict):
 
 
 class ChatMessage(Strict):
+    # В YAML ключ — «from» (зарезервированное слово Python); читается только по алиасу.
+    model_config = ConfigDict(extra="forbid", strict=True, validate_by_alias=True, validate_by_name=False)
+
     from_: Id = Field(alias="from")
     datetime: str
     text: str
