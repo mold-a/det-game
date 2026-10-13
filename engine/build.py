@@ -8,6 +8,7 @@ HTML системы → ассеты и robots.txt → медиа. ``dist/`` с�
 
 from __future__ import annotations
 
+import re
 import shutil
 import time
 from dataclasses import dataclass, field
@@ -115,6 +116,42 @@ def release_problems(content: Content, todos: list[Todo], missing_media: list[st
     return problems
 
 
+def strip_css_comments(css: str) -> str:
+    """Убрать комментарии ``/* … */`` из CSS: в dist не попадают заметки разработчиков (макеты,
+    примеры с сюжетом). Строки в кавычках и ``url(…)`` без кавычек не трогаются; ``/*! … */``
+    (лицензии) сохраняются."""
+    out: list[str] = []
+    i, n = 0, len(css)
+    while i < n:
+        ch = css[i]
+        if ch in "\"'":
+            j = i + 1
+            while j < n and css[j] != ch:
+                j += 2 if css[j] == "\\" else 1
+            out.append(css[i:j + 1])
+            i = j + 1
+        elif css.startswith("url(", i) and not css[i + 4:i + 5] in ("'", '"'):
+            j = css.find(")", i)
+            j = n if j < 0 else j + 1
+            out.append(css[i:j])
+            i = j
+        elif css.startswith("/*", i) and not css.startswith("/*!", i):
+            j = css.find("*/", i + 2)
+            i = n if j < 0 else j + 2
+        else:
+            out.append(ch)
+            i += 1
+    return re.sub(r"\n[ \t]*\n(?:[ \t]*\n)+", "\n\n", "".join(out))
+
+
+def _copy_asset(src: str, dst: str) -> str:
+    if src.endswith(".css"):
+        write_text(Path(dst), strip_css_comments(Path(src).read_text(encoding="utf-8")))
+        shutil.copystat(src, dst)
+        return dst
+    return shutil.copy2(src, dst)
+
+
 def _write_json(path: Path, obj: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(dumps(obj))
@@ -211,7 +248,8 @@ def build(
 
         assets = site_dir / "assets"
         if assets.is_dir():
-            shutil.copytree(assets, tmp / "assets", ignore=shutil.ignore_patterns(".gitkeep", "*.md"))
+            shutil.copytree(assets, tmp / "assets", ignore=shutil.ignore_patterns(".gitkeep", "*.md"),
+                            copy_function=_copy_asset)
         write_text(tmp / "robots.txt", ROBOTS_TXT)
         write_text(tmp / "_headers", headers_file())
         plan.emit(tmp)

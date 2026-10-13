@@ -82,7 +82,7 @@ def test_release_passes_on_complete_copy(tmp_path):
         zf.extractall(out)
     # в архиве нет открытых ответов: leak scan по распакованному архиву
     prep = prepare(cdir, salts, create_salts=False)
-    assert scan(out, leak_needles(prep).needles) == []
+    assert scan(out, leak_needles(prep)) == []
     # медиа на месте: открытые — копии, закрытые — .bin
     assert any(n.startswith("m/") and n.endswith(".bin") for n in names)
     assert any(n.startswith("m/") and n.endswith(".jpg") for n in names)

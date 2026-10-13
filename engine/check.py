@@ -175,7 +175,7 @@ def public_texts(content: Content, ctx: dict) -> list[str]:
     """Тексты, открытые по замыслу: их шинглы — не утечка, даже если повторяются в закрытых текстах.
 
     Бренды, шапка, логин облака (оболочка закрытой страницы, PLAN E7), заглушки сборщика,
-    тексты этапа 1 (pack-1 открывается публичным ключом) и строки открытых страниц.
+    тексты этапа 1 кроме подсказок (pack-1 открывается публичным ключом) и строки открытых страниц.
     """
     from engine.documents import STUB_HTML
     from engine.media import _PLACEHOLDER_ALT
@@ -198,7 +198,6 @@ def public_texts(content: Content, ctx: dict) -> list[str]:
         for spec in [q, *(q.fields or [])]:
             out += [r(getattr(spec, "prompt", None)), r(getattr(spec, "label", None)), r(spec.help)]
             out += [r(o.text) for o in spec.options or []] + [r(i.text) for i in spec.items or []]
-        out += [r(h) for h in q.hints]
     out += [r(d.title) for d in content.documents if d.stage == first.n]
     out += [r(t.title) for t in content.expertise.types]
     out += [r(o.title) for o in content.expertise.objects if o.from_stage == first.n]

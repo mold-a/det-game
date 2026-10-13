@@ -490,6 +490,10 @@ html:has(.app-header) {
   border-bottom: 1px solid var(--rule);
 }
 
+.q--final-link .q__actions {
+  margin-top: var(--sp-4);
+}
+
 .q__actions {
   display: flex;
   flex-wrap: wrap;

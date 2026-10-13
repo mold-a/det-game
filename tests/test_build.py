@@ -14,7 +14,8 @@ from engine.build import BuildError, build, prepare
 from engine.check import check, leak_needles
 from engine.content import ContentError, load_content
 from engine.dump import answers_data, dump_answers
-from engine.leakscan import scan, scan_text, snippet
+from engine.build import strip_css_comments
+from engine.leakscan import is_stop_shingle, scan, scan_text, text_shingles
 from engine.media import media_hash
 from engine import util
 
@@ -115,10 +116,20 @@ def test_util_b64u_is_crypto():
 # ---------------------------------------------------------------- leak scan
 
 
-def test_snippet_rule():
-    assert snippet("TODO(content): полный текст документа. Обязательно: что-то ещё") == \
-        "полный текст документа обязательно что"
-    assert snippet("Короткий текст") == "короткий текст"
+def test_shingle_rules():
+    sh = text_shingles("TODO(content): полный текст документа. Обязательно: что-то ещё")
+    assert "полный текст документа обязательно" in sh
+    assert not any("todo" in x for x in sh)  # маркер разрывает текст
+    assert text_shingles("Короткий текст") == set()
+    assert is_stop_shingle("так же как в") and not is_stop_shingle("так же как пропранолол")
+    assert is_stop_shingle("здесь будет фото профиля")
+
+
+def test_strip_css_comments():
+    css = '/* макет: Пропранолол */a{b:url(data:x/*y*/z)}/*! OFL */c{content:"/* keep */";d:url(\'a/*b\')}'
+    out = strip_css_comments(css)
+    assert "Пропранолол" not in out and "/*! OFL */" in out
+    assert 'url(data:x/*y*/z)' in out and '"/* keep */"' in out and "url('a/*b')" in out
 
 
 def test_leak_scan_catches_planted(built, tmp_path):
@@ -145,20 +156,24 @@ def test_leak_scan_catches_planted(built, tmp_path):
 def test_leak_scan_whole_words_only(built):
     _, _, salts, _ = built
     prep = prepare(CONTENT, salts, create_salts=False)
-    ns = leak_needles(prep).needles
+    ns = leak_needles(prep)
     assert scan_text("астматический", ns, "f") == []  # не целое слово
     assert scan_text("Астма", ns, "f")
-    assert any(n.kind == "watchlist" for n in ns) and any(n.kind == "snippet" for n in ns)
+    assert any(n.kind == "watchlist" for n in ns.needles) and ns.shingles
 
 
 def test_leak_scan_watchlist_and_hint(built, tmp_path):
     _, _, salts, _ = built
     prep = prepare(CONTENT, salts, create_salts=False)
-    ns = leak_needles(prep).needles
+    ns = leak_needles(prep)
     (tmp_path / "a.html").write_text("ООО «Сценическая  мастерская»", encoding="utf-8")
     (tmp_path / "b.html").write_text("Все четыре ответа есть в документах папки, начните с карты", encoding="utf-8")
+    # середина подсказки этапа 3 (не начало) — шинглы по всему тексту
+    (tmp_path / "c.md").write_text("Ингалятор и успокоительное у погибшего были свои", encoding="utf-8")
+    (tmp_path / "пропранолол.txt").write_text("x", encoding="utf-8")  # имя файла
+    (tmp_path / "ok.html").write_text("Так же как в прошлый раз", encoding="utf-8")
     found = {f.file for f in scan(tmp_path, ns)}
-    assert found == {"a.html", "b.html"}
+    assert found == {"a.html", "b.html", "c.md", "<имена файлов>"}
 
 
 # ---------------------------------------------------------------- страницы, медиа, release

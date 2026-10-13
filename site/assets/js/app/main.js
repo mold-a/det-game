@@ -143,7 +143,7 @@ function renderGame() {
       "div",
       { class: "stage-head" },
       h("h2", { class: "stage-head__title", id: titleId }, T.stage.title(n)),
-      h("span", { class: "stage-head__meta" }, `${T.envelope.title(pack.envelope)} — ${T.envelope.opened.toLowerCase()}`),
+      h("span", { class: "stage-head__meta" }, T.stage.envelopeOpened(pack.envelope)),
     ),
     renderLetter(pack),
   );
@@ -152,7 +152,7 @@ function renderGame() {
     sheet.appendChild(
       h(
         "div",
-        { class: "q" },
+        { class: "q q--final-link" },
         h("p", null, T.final.finalStageText),
         h("div", { class: "q__actions" }, h("a", { class: "btn btn--primary", href: "/final/" }, state.finished ? T.final.toResults : T.final.toFinal)),
       ),

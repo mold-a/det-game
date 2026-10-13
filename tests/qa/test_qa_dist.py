@@ -748,7 +748,6 @@ GAPS = {
 
 
 @pytest.mark.parametrize("name", list(GAPS))
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="QA: пробел engine check — см. отчёт QA P02/P03")
 def test_check_gap(env, tmp_path, name):
     new = _new_problems(env, _mutated(env, tmp_path, lambda d: GAPS[name](env, d)))
     assert new, f"check не заметил: {name}"
