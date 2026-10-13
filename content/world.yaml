@@ -67,8 +67,8 @@ brands:
   messenger: "Весточка"
 
 devices:
-  victim_phone: "iPhone"
-  victim_phone_tail: "12"
-  volkov_phone: "Samsung SM-A546"
+  victim_phone: "Орбита 12"            # вымышленная марка телефона погибшего
+  victim_number_tail: "47-12"          # последние цифры абонентского номера погибшего (4-10, 3-03)
+  volkov_phone: "Альтаир A54"          # вымышленная марка и модель телефона Волкова
   volkov_video_file: "VID_20261108_141203.mp4"
   volkov_video_created: "2026-11-08T14:12:03"

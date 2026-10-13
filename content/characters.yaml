@@ -18,7 +18,7 @@ characters:
     gender: m
     age: 56
     photo: "portraits/voroncov.jpg"
-    in_pool: true
+    in_pool: false          # погибший — не вариант в вопросах «кто…»
   - id: zavyalov
     working: "Юрий Завьялов"           # строка из таблицы персонажей — для import-cast
     role: "Художественный руководитель театра, председатель фонда «Сцена»"
