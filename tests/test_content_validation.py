@@ -132,8 +132,9 @@ def test_collect_todos():
     todos = collect_todos(c)
     kinds = {t.kind for t in todos}
     assert {"value", "comment", "text", "missing-file"} <= kinds
-    assert any(t.file == "content/characters.yaml" and t.loc.endswith(".last") for t in todos)
-    assert any(t.file == "content/pages/cloud/page.yaml" and t.loc == "password" for t in todos)
+    # имена фоновых и пароль облака заполнены 14.10.2026 — проверяем другие заглушки-значения
+    assert any(t.file == "content/chats/4-06.yaml" and t.kind == "value" for t in todos)
+    assert any(t.file == "content/world.yaml" and t.loc.endswith("kirill_habit") for t in todos)
     assert any(t.file == "content/settings.yaml" and "домен" in t.text for t in todos)
     for t in todos:
         assert t.file.startswith("content/") and t.loc

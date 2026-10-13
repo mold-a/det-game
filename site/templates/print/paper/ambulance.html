@@ -1,5 +1,42 @@
-{# Карта вызова скорой помощи: шапка — meta.org (станция), без № уголовного дела. #}
+{# Карта вызова скорой медицинской помощи: шапка — meta.org (станция), без № уголовного дела.
+   Табличная форма: номер карты клетками, время этапов вызова клетками, поля, разделы текста
+   («## Жалобы», «## Объективно» …), рамка с диагнозом, результат, подписи.
+   meta: number — номер карты; form_no — пометка формы в углу (вымышленная, необязательно);
+         times — время этапов: словарь {«Приём вызова»: «21:04», …} или список [{label, value}];
+         fields — поля карты: словарь {«Пациент»: «…», «Возраст»: «56 лет», …} (адрес — place);
+         diagnosis — диагноз (рамка); result — результат выезда. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
-{% block case %}{% endblock %}
+{% macro cells(v) -%}
+{% set s = (v or '')|string|trim %}
+{% if s|length == 5 and s[2] == ':' %}<span class="cells">{% for ch in s %}{% if ch == ':' %}<b>:</b>{% else %}<i>{{ ch }}</i>{% endif %}{% endfor %}</span>
+{%- elif s and s|length <= 8 and s.replace(' ', '').isdigit() %}<span class="cells">{% for ch in s.replace(' ', '') %}<i>{{ ch }}</i>{% endfor %}</span>
+{%- elif s %}<span class="cells cells--text"><i>{{ s }}</i></span>
+{%- else %}<span class="cells"><i></i><i></i><b>:</b><i></i><i></i></span>{% endif %}
+{%- endmacro %}
+{% block sheet %}
+<header class="paper__head">
+  <div class="amb__top">
+    <div class="amb__org">{% if doc.meta.get('org') %}{{ m.lines(doc.meta.get('org')) }}{% endif %}</div>
+    {% if doc.meta.get('form_no') %}<div class="amb__formno">{{ m.lines(doc.meta.get('form_no')) }}</div>{% endif %}
+  </div>
+  <h1 class="amb__title"><span>{{ doc.title }}</span>{% if doc.meta.get('number') %}<span>№</span>{{ cells((doc.meta.get('number')|string).replace('№', '')|trim) }}{% endif %}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+  {% if doc.date %}<div class="amb__date">{{ m.longdate(doc.date) }}</div>{% endif %}
+</header>
+{% set times = doc.meta.get('times') %}
+{% if times %}
+<div class="amb__times">
+  {% call(label, value) m.pairs(times) %}<div class="amb__time"><div class="amb__time-label">{{ label }}</div>{{ cells(value) }}</div>{% endcall %}
+</div>
+{% endif %}
+<div class="amb__grid">
+  {% if doc.place %}{{ m.field("Адрес вызова", doc.place, "fld--wide") }}{% endif %}
+  {% call(label, value) m.pairs(doc.meta.get('fields')) %}{{ m.field(label, value, "fld--wide" if (value|string|length) > 34 else "") }}{% endcall %}
+</div>
+<div class="paper__body">{{ doc.body_html }}</div>
+{% if doc.meta.get('diagnosis') %}<div class="amb__box"><div class="amb__box-label">Диагноз</div><div class="amb__box-value">{{ m.lines(doc.meta.get('diagnosis')) }}</div></div>{% endif %}
+{% if doc.meta.get('result') %}{{ m.field("Результат выезда", doc.meta.get('result')) }}{% endif %}
+{{ m.media(doc) }}
+{{ m.signatures(doc) }}
+{% endblock %}

@@ -62,3 +62,5 @@ documents:
   - { id: "4-11", stage: 4, kind: paper, title: "Письмо эксперта-оценщика" }
   - { id: "4-12", stage: 4, kind: paper, title: "Переписка {{ c.volskaya.short('gen') }} с {{ c.voroncov.short('ins') }}" }
   - { id: "4-13", stage: 4, kind: paper, page: cloud, title: "Записка {{ c.kirill.short('gen') }}" }
+  # 4-14 — третий опрос Марины (SCENARIO: «Этап 4: признаёт, что он уезжал»); на ответы не влияет (предложение разработчика, STORY-BIBLE §5).
+  - { id: "4-14", stage: 4, kind: paper, title: "Протокол повторного опроса: {{ c.marina.short() }}" }

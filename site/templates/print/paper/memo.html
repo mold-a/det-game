@@ -1,5 +1,25 @@
-{# Служебная записка: шапка театра (или meta.org), адресат meta.to, от кого meta.from, текст, подпись. #}
+{# Служебная записка: шапка театра (или meta.org) слева, адресат meta.to и автор meta.from справа,
+   заголовок, «№ … от …» (meta.number, date), тема meta.subtitle («О …»), текст с красной строки,
+   подпись; meta.incoming — синий штамп входящей регистрации (строка или список строк). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
-{% block case %}{% endblock %}
+{% block sheet %}
+<header class="paper__head">
+  <div class="memo__top">
+    <div class="memo__org">{{ m.org_text(doc, w, "theater") }}{% if doc.place %}<small>{{ doc.place }}</small>{% endif %}</div>
+    <div class="memo__addr">
+      {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
+      {% if doc.meta.get('from') %}<div class="paper__from">{{ m.lines(doc.meta.get('from')) }}</div>{% endif %}
+    </div>
+  </div>
+  <h1 class="paper__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('number') or doc.date %}
+  <div class="memo__no">{% if doc.meta.get('number') %}№ {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}{% if doc.date %} от {{ doc.date|dt('date') }}{% endif %}</div>
+  {% endif %}
+  {% if doc.meta.get('subtitle') %}<p class="memo__subject">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+</header>
+<div class="paper__body">{{ doc.body_html }}</div>
+{{ m.media(doc) }}
+{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "theater"), "") if doc.meta.get('seal') else "") }}
+{% if doc.meta.get('incoming') %}<div class="memo__incoming">{{ m.rstamp(doc.meta.get('incoming')) }}</div>{% endif %}
+{% endblock %}

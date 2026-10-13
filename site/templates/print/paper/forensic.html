@@ -1,4 +1,22 @@
-{# Заключение судебно-медицинского эксперта: шапка — meta.org (бюро), № дела, дата и место, подпись эксперта. #}
+{# Заключение судебно-медицинского эксперта: угловой штамп бюро (meta.org, meta.address, № и дата),
+   № дела, заголовок, сведения об эксперте (meta.expert — строка или список строк), разделы текста
+   «## …» с римской нумерацией, подпись эксперта и печать бюро (meta.seal: текст в центре или false);
+   «Лист N» внизу листа. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
+{% block sheet %}
+<header class="paper__head">
+  <div class="forensic__head">
+    {{ m.corner(doc, w, "none") }}
+    <div class="forensic__copy">{{ m.case(w) }}{% if doc.place %}<div>{{ doc.place }}</div>{% endif %}</div>
+  </div>
+  <h1 class="paper__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+</header>
+{% if doc.meta.get('expert') %}
+<div class="forensic__expert"><div class="forensic__expert-label">Сведения об эксперте</div>{{ m.lines(doc.meta.get('expert')) }}</div>
+{% endif %}
+<div class="paper__body">{{ doc.body_html }}</div>
+{{ m.media(doc) }}
+{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для заключений")) }}
+{% endblock %}

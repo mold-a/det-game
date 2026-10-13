@@ -1,2 +1,10 @@
-{# Рапорт: шапка следственного отдела, № дела, адресат (meta.to) справа, дата, подпись. #}
+{# Рапорт: короткий служебный документ. Шапка следственного отдела (или meta.org), № дела,
+   адресат meta.to справа («Начальнику …»), от кого meta.from, заголовок разрядкой, текст с красной
+   строки, подпись и дата под ней (длинная форма: «10» ноября 2026 г.). #}
 {% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block requisites %}{% if doc.place %}<div class="paper__requisites"><span class="paper__place">{{ doc.place }}</span></div>{% endif %}{% endblock %}
+{% block signatures %}
+{{ m.signatures(doc) }}
+{% if doc.date %}<div class="report__date">{{ m.longdate(doc.date) }}{% set t = m.iso_time(doc.date)|trim %}{% if t %}, {{ t }}{% endif %}</div>{% endif %}
+{% endblock %}

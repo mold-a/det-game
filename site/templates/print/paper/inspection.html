@@ -1,2 +1,37 @@
-{# Протокол осмотра (места, автомобиля): шапка следственного отдела, № дела, место и дата, подписи. #}
+{# Протокол осмотра (места, предмета, автомобиля): шапка следственного отдела, № дела, город и дата,
+   время начала и окончания, участники, условия, текст, подписи; «Лист N» внизу листа.
+   meta: start, end — «22:05»; by — кто составил; object — что осмотрено; participants — участвующие
+   лица (строка или список); conditions — условия осмотра (освещение, погода). #}
 {% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block sheet %}
+{% set start = doc.meta.get('start') or m.iso_time(doc.date)|trim %}
+{% set end = doc.meta.get('end') %}
+<header class="paper__head">
+  {{ m.org(doc, w, "police") }}
+  {{ m.case(w) }}
+  {% if doc.meta.get('number') %}<div class="paper__number">{{ doc.meta.get('number') }}</div>{% endif %}
+  <h1 class="proto__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="proto__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+  <div class="proto__line">
+    {{ m.uline("г. " ~ w.city, "(место составления)") }}
+    {{ m.uline(m.longdate(doc.date) if doc.date else "", "(дата)") }}
+  </div>
+  {% if start or end %}
+  <div class="proto__times">
+    {{ m.field("Осмотр начат в", m.hm(start) if start else "") }}
+    {{ m.field("Осмотр окончен в", m.hm(end) if end else "") }}
+  </div>
+  {% endif %}
+  <div class="proto__fields">
+    {% if doc.place %}{{ m.field("Место осмотра", doc.place) }}{% endif %}
+    {% if doc.meta.get('object') %}{{ m.field("Объект осмотра", doc.meta.get('object')) }}{% endif %}
+    {% if doc.meta.get('by') %}{{ m.field("Осмотр произвёл", doc.meta.get('by')) }}{% endif %}
+    {% if doc.meta.get('participants') %}{{ m.field("Участвующие лица", doc.meta.get('participants')) }}{% endif %}
+    {% if doc.meta.get('conditions') %}{{ m.field("Условия осмотра", doc.meta.get('conditions')) }}{% endif %}
+  </div>
+</header>
+<div class="paper__body">{{ doc.body_html }}</div>
+{{ m.media(doc) }}
+{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "", "") if doc.meta.get('seal') else "") }}
+{% endblock %}

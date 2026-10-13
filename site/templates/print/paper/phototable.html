@@ -1,2 +1,23 @@
-{# Фототаблица: шапка следственного отдела, № дела; изображения media по два в ряд, подписи — meta.captions. #}
+{# Фототаблица: шапка следственного отдела, № дела, место и дата; снимки media в сетке
+   (meta.columns: 1–3, по умолчанию 2; meta.aspect — пропорции кадра, «4 / 3» по умолчанию,
+   для камер — «16 / 9»), подписи «Фото N. …» из meta.captions; текст — под снимками;
+   подписи и печать отдела «Для пакетов» (meta.seal: false — без печати). #}
 {% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% macro photos() %}
+{% if doc.media %}
+{% set caps = doc.meta.get('captions') or [] %}
+<div class="photos" style="--cols: {{ doc.meta.get('columns') or 2 }}; --aspect: {{ doc.meta.get('aspect') or '4 / 3' }}">
+  {% for x in doc.media %}
+  <figure class="photo">
+    <div class="photo__frame">{% if x.exists %}<img src="{{ x.src }}" alt="">{% else %}<div class="paper__missing">нет файла media/{{ x.path }}</div>{% endif %}</div>
+    <figcaption><b>Фото {{ x.n }}.</b>{% if caps[loop.index0] is defined %} {{ caps[loop.index0] }}{% endif %}</figcaption>
+  </figure>
+  {% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+{% block before_body %}{{ photos() }}{% endblock %}
+{% block media %}{% endblock %}
+{% block body %}{{ doc.body_html }}{% endblock %}
+{% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "Для пакетов")) }}{% endblock %}

@@ -1,2 +1,39 @@
-{# Протокол (опроса, допроса, повторного опроса): шапка следственного отдела, № дела, место и дата, подписи. #}
+{# Протокол (опроса, допроса, повторного опроса), объяснение, расшифровка: шапка следственного отдела,
+   № дела, город и дата, время начала и окончания, кто составил и кого опросили, подписи;
+   внизу каждого листа — «Лист N» и место для подписи опрошенного (@page sheeted).
+   meta: start, end — «22:05» (если не заданы, start берётся из времени в date «…T22:05»);
+         by — кто составил (должность, ФИО); person — кого опросили (строка или список строк:
+         ФИО, год рождения, место работы…); person_label — подпись поля (по умолчанию «Опрошен(а)»).
+   Несколько протоколов в одном документе (1-08) — разделы «## …» в тексте; с нового листа —
+   <div class="page-break"></div>. Вопросы и ответы — абзацы, начинающиеся с **Вопрос:** / **Ответ:**. #}
 {% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block sheet %}
+{% set start = doc.meta.get('start') or m.iso_time(doc.date)|trim %}
+{% set end = doc.meta.get('end') %}
+<header class="paper__head">
+  {{ m.org(doc, w, "police") }}
+  {{ m.case(w) }}
+  {% if doc.meta.get('number') %}<div class="paper__number">{{ doc.meta.get('number') }}</div>{% endif %}
+  <h1 class="proto__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="proto__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+  <div class="proto__line">
+    {{ m.uline("г. " ~ w.city, "(место составления)") }}
+    {{ m.uline(m.longdate(doc.date) if doc.date else "", "(дата)") }}
+  </div>
+  {% if start or end %}
+  <div class="proto__times">
+    {{ m.field("Начато в", m.hm(start) if start else "") }}
+    {{ m.field("Окончено в", m.hm(end) if end else "") }}
+  </div>
+  {% endif %}
+  <div class="proto__fields">
+    {% if doc.place %}{{ m.field("Место проведения", doc.place) }}{% endif %}
+    {% if doc.meta.get('by') %}{{ m.field("Составил(а)", doc.meta.get('by')) }}{% endif %}
+    {% if doc.meta.get('person') %}{{ m.field(doc.meta.get('person_label') or "Опрошен(а)", doc.meta.get('person')) }}{% endif %}
+  </div>
+</header>
+<div class="paper__body">{{ doc.body_html }}</div>
+{{ m.media(doc) }}
+{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "", "") if doc.meta.get('seal') else "") }}
+{% endblock %}

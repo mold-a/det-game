@@ -1,11 +1,18 @@
-{# Записка от руки: лист в линейку, без шапки и заголовка (название из documents.yaml не печатается; meta.subtitle — мелко сверху). #}
+{# Записка от руки: листок из блокнота в линейку с полем, чуть повёрнут; без шапки и заголовка
+   (название из documents.yaml не печатается; meta.subtitle — мелко сверху листка, например дата).
+   Текст — PT Serif курсивом «чернилами»; подпись — только фамилия/имя справа (doc.signed[].name).
+   QR-код страницы (если есть) — в углу листа A4, вне листка. meta.caption — подпись под листком
+   на листе дела (например, «Обнаружена в …»). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
 {% block sheet %}
-<div class="paper__sheet">
-  {% if doc.meta.get("subtitle") %}<p class="paper__title">{{ doc.meta.get("subtitle") }}</p>{% endif %}
-  <div class="paper__body">{{ doc.body_html }}</div>
-  {{ m.media(doc) }}
-  {{ m.signatures(doc) }}
+<div class="note">
+  <div class="note__inner">
+    {% if doc.meta.get("subtitle") %}<p class="note__head">{{ doc.meta.get("subtitle") }}</p>{% endif %}
+    <div class="paper__body">{{ doc.body_html }}</div>
+    {% if doc.signed %}<div class="paper__signatures">{% for s in doc.signed %}<div class="paper__sign"><span class="name">{{ s.name }}</span></div>{% endfor %}</div>{% endif %}
+  </div>
 </div>
+{{ m.media(doc) }}
+{% if doc.meta.get("caption") %}<p class="note__caption">{{ doc.meta.get("caption") }}</p>{% endif %}
 {% endblock %}

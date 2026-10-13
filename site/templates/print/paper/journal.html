@@ -1,5 +1,29 @@
-{# Журнал (охраны, помощника режиссёра, светового пульта): шапка театра; записи — таблицей в тексте. #}
+{# Журнал (охраны, помощника режиссёра, светового пульта): разлинованная страница журнала.
+   Шапка театра (или meta.org) мелко, название журнала, номер листа (meta.sheet), строка
+   meta.period («Начат: … Окончен: …», строка или список); записи — таблицей в тексте (Markdown);
+   под таблицей линовка продолжается до низа листа. Подписи — если есть. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
-{% block case %}{% endblock %}
+{% block sheet %}
+<header class="journal__head">
+  <div class="journal__top">
+    <div>
+      <div class="journal__org">{{ m.org_text(doc, w, "theater") }}</div>
+      <h1 class="journal__title">{{ doc.title }}</h1>
+    </div>
+    <div class="journal__sheet">{% if doc.meta.get('sheet') %}Лист <b>{{ doc.meta.get('sheet') }}</b>{% endif %}</div>
+  </div>
+  <div class="journal__meta">
+    {% if doc.meta.get('subtitle') %}<span>{{ doc.meta.get('subtitle') }}</span>{% endif %}
+    {% if doc.date %}<span>{{ doc.date|dt('date') }}</span>{% endif %}
+    {% if doc.place %}<span>{{ doc.place }}</span>{% endif %}
+    {% if doc.meta.get('period') %}<span>{{ m.lines(doc.meta.get('period')) }}</span>{% endif %}
+  </div>
+</header>
+<div class="journal__page">
+  <div class="paper__body">{{ doc.body_html }}</div>
+  {{ m.media(doc) }}
+  <div class="journal__filler"></div>
+</div>
+{{ m.signatures(doc) }}
+{% endblock %}

@@ -303,6 +303,10 @@ def test_empty_background_name(tmp_path, content):
 
     raw = tmp_path / "raw"
     shutil.copytree(CONTENT_DIR, raw)
+    chars = raw / "characters.yaml"  # имя врача СМП в content заполнено — вернуть заглушку для проверки
+    chars.write_text(chars.read_text(encoding="utf-8").replace(
+        'last: "Сафронов", first: "Артур", middle: "Вадимович"',
+        'last: "TODO(content)", first: "TODO(content)", middle: ""'), encoding="utf-8")
     cast, bg = identity_rows(raw)
     bg["paramedic"][2] = None
     rep = import_cast(write_xlsx(tmp_path / "t2.xlsx", cast, bg), content_root=raw)

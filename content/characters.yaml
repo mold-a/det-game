@@ -202,16 +202,27 @@ characters:
     gender: m
     in_pool: false
 
-  # --- фоновые (только упоминаются) — TODO(content): имена из листа «Фоновые имена» ---
-  - { id: nina_actress, working: "Исполнительница роли Нины", role: "Исполнительница роли Нины", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
-  - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
-  - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: marina_sister, working: "Сестра Марины", role: "Дочь погибшего, сестра Марины; живёт в другом городе", importance: background, father: voroncov, last: "Воронцова", first: "TODO(content)", middle: "Ивановна", gender: f, in_pool: false }
-  - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь {{ c.gromov.last('gen') }}", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  # --- фоновые (только упоминаются). Рабочие имена — предложение разработчика (STORY-BIBLE, раздел 4);
+  #     автор может заменить родственниками через лист «Фоновые имена» и import-cast ---
+  - { id: nina_actress, working: "Исполнительница роли Нины", role: "Исполнительница роли Нины", importance: background, last: "Светлова", first: "Полина", middle: "Андреевна", gender: f, in_pool: false }
+  - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "Карпова", first: "Ирина", middle: "Львовна", gender: f, in_pool: false }
+  - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "Бурцев", first: "Николай", middle: "Сергеевич", gender: m, in_pool: false }
+  - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "Гайнуллин", first: "Руслан", middle: "Тимурович", gender: m, in_pool: false }
+  - { id: marina_sister, working: "Сестра Марины", role: "Дочь погибшего, сестра Марины; живёт в другом городе", importance: background, father: voroncov, last: "Воронцова", first: "Вера", middle: "Ивановна", gender: f, in_pool: false }
+  - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "Сафронов", first: "Артур", middle: "Вадимович", gender: m, in_pool: false }
+  - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "Мухин", first: "Пётр", middle: "Семёнович", gender: m, in_pool: false }
+  - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь {{ c.gromov.last('gen') }}", importance: background, last: "Кравец", first: "Яна", middle: "Олеговна", gender: f, in_pool: false }
   - { id: rodionov_director, working: "Г. Родионов, директор ООО «Сценическая мастерская»", role: "Директор ООО «Сценическая мастерская»", importance: background, last: "Родионов", first: "Геннадий", middle: "Павлович", gender: m, in_pool: false }
   - { id: rodionov_creditor, working: "Брат Родионова, кредитор Волкова", role: "Кредитор Волкова, брат директора ООО", importance: background, last: "Родионов", first: "Виталий", middle: "Павлович", gender: m, in_pool: false }
-  - { id: appraiser, working: "Эксперт, оценивший табакерку", role: "Эксперт-оценщик", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
-  - { id: gromov_guard, working: "Охранник Громова", role: "Охранник {{ c.gromov.last('gen') }}", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: appraiser, working: "Эксперт, оценивший табакерку", role: "Эксперт-оценщик", importance: background, last: "Савельев", first: "Дмитрий", middle: "Олегович", gender: m, in_pool: false }
+  - { id: gromov_guard, working: "Охранник Громова", role: "Охранник {{ c.gromov.last('gen') }}", importance: background, last: "Панов", first: "Егор", middle: "Валерьевич", gender: m, in_pool: false }
+  # Новые фоновые лица (предложение разработчика, STORY-BIBLE §4, S-26). cast: false — чисто служебные, import-cast их не трогает.
+  - { id: foh_admin, working: "Администратор зала", role: "Администратор зрительского зала (вызвала скорую)", importance: background, last: "Белова", first: "Татьяна", middle: "Юрьевна", gender: f, in_pool: false }
+  - { id: usher, working: "Капельдинер бельэтажа", role: "Капельдинер бельэтажа (ложи № 1 и № 2)", importance: background, last: "Котова", first: "Зинаида", middle: "Петровна", gender: f, in_pool: false }
+  - { id: prod_manager, working: "Заведующий постановочной частью", role: "Заведующий постановочной частью (смета 4-02)", importance: background, last: "Ярцев", first: "Борис", middle: "Глебович", gender: m, in_pool: false }
+  - { id: kovalev_partner, working: "Напарник Ковалёва", cast: false, role: "Младший сержант полиции, напарник {{ c.kovalev.last('gen') }}", importance: background, last: "Сабиров", first: "Ринат", middle: "Альбертович", gender: m, in_pool: false }
+  - { id: duty_officer, working: "Дежурный дежурной части", cast: false, role: "Оперативный дежурный (принял анонимный звонок)", importance: background, last: "Дронова", first: "Олеся", middle: "Игоревна", gender: f, in_pool: false }
+  - { id: witness1, working: "Понятой 1", cast: false, role: "Понятая", importance: background, last: "Гусева", first: "Нина", middle: "Алексеевна", gender: f, in_pool: false }
+  - { id: witness2, working: "Понятой 2", cast: false, role: "Понятой", importance: background, last: "Лапин", first: "Константин", middle: "Ефимович", gender: m, in_pool: false }
+  - { id: pharmacist, working: "Заведующая аптекой", cast: false, role: "Заведующая аптекой «{{ w.brands.pharmacy }}»", importance: background, last: "Зотова", first: "Людмила", middle: "Борисовна", gender: f, in_pool: false }
+  - { id: cardiologist, working: "Кардиолог Завьялова", cast: false, role: "Врач-кардиолог (рецепт 4-04)", importance: background, last: "Ветров", first: "Сергей", middle: "Маратович", gender: m, in_pool: false }

@@ -1,14 +1,52 @@
-{# Билет: рамка с пунктиром, без шапки ведомства; реквизиты — в тексте (Markdown) или meta. #}
+{# Железнодорожный билет вымышленного перевозчика: бланк билета с защитной сеткой, корешок
+   с линией отрыва, без ведомственной шапки. Все значения — из meta (контент), бланк их только
+   раскладывает:
+   meta.org — перевозчик («АО «…»»); meta.kind — вид документа (по умолчанию «Проездной документ»);
+   meta.number — серия и номер; meta.route — маршрут крупно;
+   meta.cells — главные клетки: словарь {«Поезд»: «…», «Отправление»: «…», «Вагон»: «7», «Место»: «15»}
+     (до 8 клеток, по 4 в ряд); meta.fields — строки под клетками: словарь {«Пассажир»: «…», …};
+   meta.price — стоимость; meta.issued — где и когда продан (строка или список);
+   meta.stub — клетки корешка (словарь; по умолчанию — первые 4 клетки meta.cells).
+   Текст документа (если есть) — под билетом, как пометка на листе дела. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
 {% block sheet %}
-<div class="paper__sheet">
-  <header class="paper__head">
-    {{ m.org(doc, w, "none") }}
-    <h1 class="paper__title">{{ doc.title }}</h1>
-    {{ m.requisites(doc) }}
-  </header>
-  <div class="paper__body">{{ doc.body_html }}</div>
-  {{ m.media(doc) }}
+{% set cells = doc.meta.get('cells') or {} %}
+{% set stub = doc.meta.get('stub') or cells %}
+<div class="paper__head">
+  <h1 class="paper__title proto__title" style="text-align:left;margin-top:0">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="ticket-sheet__note">{{ doc.meta.get('subtitle') }}</p>{% endif %}
 </div>
+<div class="ticket">
+  <div class="ticket__main">
+    <div class="ticket__head">
+      <div>
+        <div class="ticket__carrier">{% if doc.meta.get('org') %}{{ m.lines(doc.meta.get('org')) }}{% endif %}</div>
+        <div class="ticket__kind">{{ doc.meta.get('kind') or "Проездной документ" }}</div>
+      </div>
+      {% if doc.meta.get('number') %}<div class="ticket__no">Серия, номер<b>{{ doc.meta.get('number') }}</b></div>{% endif %}
+    </div>
+    {% if doc.meta.get('route') %}<div class="ticket__route">{{ doc.meta.get('route') }}</div>{% endif %}
+    {% if cells %}
+    <div class="ticket__grid">
+      {% call(label, value) m.pairs(cells) %}<div class="tcell{% if (value|string|length) <= 3 %} tcell--big{% endif %}"><span class="tcell__l">{{ label }}</span><span class="tcell__v">{{ value }}</span></div>{% endcall %}
+    </div>
+    {% endif %}
+    <div class="ticket__rows">
+      {% call(label, value) m.pairs(doc.meta.get('fields')) %}{{ m.field(label, value) }}{% endcall %}
+      {% if doc.meta.get('price') %}{{ m.field("Стоимость", doc.meta.get('price')) }}{% endif %}
+    </div>
+    {% if doc.meta.get('issued') %}<div class="ticket__issued">{{ m.lines(doc.meta.get('issued')) }}</div>{% endif %}
+  </div>
+  <div class="ticket__stub">
+    <div class="ticket__stub-title">Корешок · контроль</div>
+    {% set ns = namespace(i=0) %}
+    {% call(label, value) m.pairs(stub) %}{% set ns.i = ns.i + 1 %}{% if ns.i <= 4 %}<div class="tcell"><span class="tcell__l">{{ label }}</span><span class="tcell__v">{{ value }}</span></div>{% endif %}{% endcall %}
+    {% if doc.meta.get('number') %}<div class="tcell"><span class="tcell__l">№</span><span class="tcell__v">{{ doc.meta.get('number') }}</span></div>{% endif %}
+    <div class="ticket__bars" aria-hidden="true"></div>
+  </div>
+</div>
+<div class="paper__body">{{ doc.body_html }}</div>
+{{ m.media(doc) }}
+{{ m.signatures(doc) }}
 {% endblock %}

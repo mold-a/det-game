@@ -234,7 +234,8 @@ def test_release_fails_with_todos(built, tmp_path):
         build(dist=tmp_path / "dist", salts_path=salts, release=True)
     text = str(exc.value)
     assert "TODO(content)" in text and "комментарий" in text
-    assert "нет медиафайла" in text and "пароль облака" in text and "домен-заглушка" in text
+    # пароль облака задан в content (14.10.2026) — проверка «пароль облака не задан» здесь больше не срабатывает
+    assert "нет медиафайла" in text and "домен-заглушка" in text
     assert not (tmp_path / "dist").exists()
     rep = check(dist=dist, salts_path=salts, release=True)
     assert not next(r for r in rep.rows if r.name.startswith("8.")).ok

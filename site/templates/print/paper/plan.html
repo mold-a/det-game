@@ -1,5 +1,95 @@
-{# План здания: шапка театра; изображения media во всю ширину, легенда — в тексте. #}
+{# План здания: шапка театра; чертёжная рамка со схемой, указатель «С», легенда и штамп чертежа.
+   Схема — изображения media (во всю ширину) или, если их нет, рисунок по meta.rooms:
+   meta: grid — размер поля схемы в условных единицах {w: 100, h: 70};
+         rooms — помещения [{n, name, x, y, w, h, mark: true (штриховка), label: false (не писать
+                 название внутри)}]; номер n попадает в легенду;
+         doors — проёмы [{x, y, len, dir: h|v}]; labels — подписи [{x, y, text, size, rotate}];
+         marks — точки [{x, y, text, kind: dot|cross|camera}];
+         legend — заголовок легенды (по умолчанию «Экспликация помещений»);
+         scale — масштаб («1:200»), sheet — лист («1»), floor — этаж/уровень, north: false — без «С».
+   Текст документа — под легендой (примечания). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
-{% block case %}{% endblock %}
+{% block sheet %}
+{% set rooms = doc.meta.get('rooms') or [] %}
+{% set grid = doc.meta.get('grid') or {} %}
+{% set gw = grid.get('w', 100) %}{% set gh = grid.get('h', 70) %}
+<header class="paper__head">
+  {{ m.org(doc, w, "theater") }}
+  <h1 class="paper__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+</header>
+<div class="plan__frame">
+  {% if doc.media %}
+  {% for x in doc.media %}{% if x.exists %}<img src="{{ x.src }}" alt="">{% else %}<div class="paper__missing">нет файла media/{{ x.path }}</div>{% endif %}{% endfor %}
+  {% elif rooms %}
+  <svg class="plan__svg" viewBox="-2 -2 {{ gw + 4 }} {{ gh + 4 }}" font-family="PT Sans, sans-serif" aria-hidden="true">
+    <defs>
+      <pattern id="hatch-{{ doc.id }}" width="1.6" height="1.6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <line x1="0" y1="0" x2="0" y2="1.6" stroke="#222" stroke-width=".35"/>
+      </pattern>
+    </defs>
+    {% for r in rooms %}
+    <rect x="{{ r.x }}" y="{{ r.y }}" width="{{ r.w }}" height="{{ r.h }}" fill="{{ 'url(#hatch-' ~ doc.id ~ ')' if r.get('mark') else '#fff' }}" stroke="#111" stroke-width=".7"/>
+    {% endfor %}
+    {% for d in doc.meta.get('doors') or [] %}
+    {% if d.get('dir', 'h') == 'v' %}
+    <line x1="{{ d.x }}" y1="{{ d.y }}" x2="{{ d.x }}" y2="{{ d.y + d.get('len', 3) }}" stroke="#fff" stroke-width="1.4"/>
+    <path d="M{{ d.x }},{{ d.y }} a{{ d.get('len', 3) }},{{ d.get('len', 3) }} 0 0,1 {{ d.get('len', 3) }},{{ d.get('len', 3) }}" fill="none" stroke="#555" stroke-width=".25"/>
+    {% else %}
+    <line x1="{{ d.x }}" y1="{{ d.y }}" x2="{{ d.x + d.get('len', 3) }}" y2="{{ d.y }}" stroke="#fff" stroke-width="1.4"/>
+    <path d="M{{ d.x }},{{ d.y }} a{{ d.get('len', 3) }},{{ d.get('len', 3) }} 0 0,0 {{ d.get('len', 3) }},{{ d.get('len', 3) }}" fill="none" stroke="#555" stroke-width=".25"/>
+    {% endif %}
+    {% endfor %}
+    {% for r in rooms %}
+    {% set cx = r.x + r.w / 2 %}{% set cy = r.y + r.h / 2 %}
+    {% set show = r.get('label', true) and r.get('name') and r.w >= 12 %}
+    {% if r.get('n') is not none and r.get('n') != '' %}
+    <circle cx="{{ cx }}" cy="{{ cy - (1.8 if show else 0) }}" r="1.9" fill="#fff" stroke="#111" stroke-width=".3"/>
+    <text x="{{ cx }}" y="{{ cy - (1.8 if show else 0) + 0.8 }}" text-anchor="middle" font-size="2.2" font-weight="700">{{ r.n }}</text>
+    {% endif %}
+    {% if show %}
+    <text x="{{ cx }}" y="{{ cy + 2.6 }}" text-anchor="middle" font-size="{{ r.get('size', 1.9) }}" {% if r.get('mark') %}paint-order="stroke" stroke="#fff" stroke-width=".9"{% endif %}>{{ r.name }}</text>
+    {% endif %}
+    {% endfor %}
+    {% for mk in doc.meta.get('marks') or [] %}
+    {% set kind = mk.get('kind', 'dot') %}
+    {% if kind == 'cross' %}
+    <path d="M{{ mk.x - 1.2 }},{{ mk.y - 1.2 }} l2.4,2.4 m0,-2.4 l-2.4,2.4" stroke="#111" stroke-width=".55"/>
+    {% elif kind == 'camera' %}
+    <path d="M{{ mk.x }},{{ mk.y }} l2.6,-1.4 v2.8 z" fill="#111"/><rect x="{{ mk.x - 1.6 }}" y="{{ mk.y - 0.9 }}" width="1.8" height="1.8" fill="#111"/>
+    {% else %}
+    <circle cx="{{ mk.x }}" cy="{{ mk.y }}" r=".9" fill="#111"/>
+    {% endif %}
+    {% if mk.get('text') %}<text x="{{ mk.x + 1.8 }}" y="{{ mk.y - 1.4 }}" font-size="1.8" font-style="italic">{{ mk.text }}</text>{% endif %}
+    {% endfor %}
+    {% for lb in doc.meta.get('labels') or [] %}
+    <text x="{{ lb.x }}" y="{{ lb.y }}" text-anchor="middle" font-size="{{ lb.get('size', 2) }}" letter-spacing=".15" fill="#333"{% if lb.get('rotate') %} transform="rotate({{ lb.rotate }} {{ lb.x }} {{ lb.y }})"{% endif %}>{{ lb.text }}</text>
+    {% endfor %}
+  </svg>
+  {% else %}
+  <div class="paper__missing" style="min-height: 150mm">место для схемы: media или meta.rooms</div>
+  {% endif %}
+  {% if doc.meta.get('north', true) is not false %}
+  <svg class="plan__north" viewBox="0 0 20 28" aria-hidden="true"><path d="M10 2 L16 20 L10 16 L4 20 Z" fill="#111"/><path d="M10 2 L4 20 L10 16 Z" fill="#fff" stroke="#111" stroke-width=".8"/><text x="10" y="27" text-anchor="middle" font-family="PT Sans, sans-serif" font-size="7" font-weight="700">С</text></svg>
+  {% endif %}
+</div>
+<div class="plan__bottom">
+  <div class="plan__legend">
+    {% set numbered = rooms|selectattr('n')|list if rooms else [] %}
+    {% if numbered %}
+    <div class="plan__legend-title">{{ doc.meta.get('legend') or "Экспликация помещений" }}</div>
+    <ol>{% for r in numbered %}<li><b>{{ r.n }}</b><span>{{ r.get('name', '') }}</span></li>{% endfor %}</ol>
+    {% endif %}
+    <div class="paper__body">{{ doc.body_html }}</div>
+  </div>
+  <table class="plan__stamp">
+    <tr><td>Объект</td><td class="big">{{ m.org_text(doc, w, "theater") }}</td></tr>
+    <tr><td>Чертёж</td><td>{{ doc.meta.get('subtitle') or doc.title }}</td></tr>
+    {% if doc.meta.get('floor') %}<tr><td>Уровень</td><td>{{ doc.meta.get('floor') }}</td></tr>{% endif %}
+    <tr><td>Масштаб</td><td>{{ doc.meta.get('scale') or "без масштаба" }}</td></tr>
+    <tr><td>Лист</td><td>{{ doc.meta.get('sheet') or "1" }}{% if doc.date %} · {{ doc.date|dt('date') }}{% endif %}</td></tr>
+    {% for s in doc.signed %}<tr><td>{{ s.role }}</td><td>{{ s.name }}</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

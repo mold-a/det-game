@@ -7,7 +7,7 @@ record:
   datetime: "{{ w.dates.anonymous_call }}"   # [Улика] 11.11.2026 07:50:12
   number: "Номер скрыт"
   duration: "0:47"                            # TODO(content): реальная длительность записи
-  operator: "TODO(content): ФИО дежурного"
+  operator: "{{ c.duty_officer.short() }}"
 audio: "audio/anonymous_call.mp3"             # media/ — TODO(content): запись голоса
 # TODO(content): какая фраза-привычка Кирилла звучит в звонке (по ней игроки узнают звонившего, бонус s3.b2) — решит автор.
 # На первом опросе (1-08) Кирилл этой фразы НЕ говорит.

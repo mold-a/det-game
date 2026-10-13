@@ -1,5 +1,18 @@
-{# Справка: шапка — meta.org, крупный заголовок, текст, подпись. #}
+{# Справка: угловой штамп организации (meta.org, meta.address, № и дата), адресат meta.to справа,
+   крупный заголовок разрядкой, текст, подпись и печать организации (meta.seal: текст в центре
+   или false). QR-код страницы (если есть) — в правом верхнем углу. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "none") }}{% endblock %}
-{% block case %}{% endblock %}
+{% block sheet %}
+<header class="paper__head">
+  <div class="letterrow">
+    {{ m.corner(doc, w, "none") }}
+    {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
+  </div>
+  <h1 class="paper__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+</header>
+<div class="paper__body">{{ doc.body_html }}</div>
+{{ m.media(doc) }}
+{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для справок")) }}
+{% endblock %}

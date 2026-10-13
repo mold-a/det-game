@@ -1,9 +1,38 @@
-{# Программка спектакля: шапка театра, автор (meta.author) над крупным названием, дата и место; текст по центру. #}
+{# Программка спектакля: лист A4 в театральной рамке. Название театра, сезон (meta.season), маска,
+   автор (meta.author), крупное название (title), жанр (meta.subtitle), дата и место, текст
+   в две колонки: «## Действующие лица и исполнители» — таблица «роль | исполнитель» с отточием,
+   «## Порядок спектакля» и т. д. Внизу — meta.footer (строка, необязательно).
+   meta.badge — плашка над названием («Премьера»), meta.mask: false — без маски. Цвет — бордовый акцент. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m %}
-{% block org %}{{ m.org(doc, w, "theater") }}{% endblock %}
-{% block case %}{% endblock %}
-{% block heading %}
-{% if doc.meta.get("author") %}<p class="paper__author">{{ doc.meta.get("author") }}</p>{% endif %}
-<h1 class="paper__title">{{ doc.title }}</h1>
+{% macro corner_svg(pos) -%}
+<svg class="prog__corner prog__corner--{{ pos }}" viewBox="0 0 30 30" aria-hidden="true"><path d="M2 28 V8 Q2 2 8 2 H28" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M6 28 V11 Q6 6 11 6 H28" fill="none" stroke="currentColor" stroke-width=".5"/><circle cx="11" cy="11" r="2.2" fill="currentColor"/><path d="M14 11 Q20 11 22 6 M11 14 Q11 20 6 22" fill="none" stroke="currentColor" stroke-width=".7"/></svg>
+{%- endmacro %}
+{% block sheet %}
+<div class="prog">
+  {{ corner_svg('tl') }}{{ corner_svg('tr') }}{{ corner_svg('bl') }}{{ corner_svg('br') }}
+  <div class="prog__theater">{{ m.org_text(doc, w, "theater") }}</div>
+  {% if doc.meta.get('season') %}<div class="prog__season">{{ doc.meta.get('season') }}</div>{% endif %}
+  {% if doc.meta.get('mask', true) is not false %}
+  <svg class="prog__mask" viewBox="0 0 120 56" aria-hidden="true">
+    <path fill="currentColor" fill-rule="evenodd" d="M60 15 C52 7 32 3 15 9 C6 12 2 19 4 27 C7 37 20 43 34 41 C45 39 52 34 56 31 C58 29.6 62 29.6 64 31 C68 34 75 39 86 41 C100 43 113 37 116 27 C118 19 114 12 105 9 C88 3 68 7 60 15 Z
+      M22 22 C26 16 38 15 45 20 C47 22 46 25 43 27 C37 30 27 30 22 27 C20 26 20 24 22 22 Z
+      M98 22 C94 16 82 15 75 20 C73 22 74 25 77 27 C83 30 93 30 98 27 C100 26 100 24 98 22 Z"/>
+    <path d="M4 27 C-2 34 2 46 10 52 M5 30 C2 38 6 46 14 50" fill="none" stroke="currentColor" stroke-width="1"/>
+    <path d="M116 27 C122 34 118 46 110 52 M115 30 C118 38 114 46 106 50" fill="none" stroke="currentColor" stroke-width="1"/>
+    <path d="M60 15 C58 9 60 3 64 1 M60 15 C62 9 66 6 70 6" fill="none" stroke="currentColor" stroke-width=".9"/>
+    <circle cx="60" cy="21" r="1.6" fill="#fff"/>
+  </svg>
+  {% endif %}
+  {% if doc.meta.get('badge') %}<div class="prog__when"><b>{{ doc.meta.get('badge') }}</b></div>{% endif %}
+  {% if doc.meta.get('author') %}<p class="prog__author">{{ doc.meta.get('author') }}</p>{% endif %}
+  <h1 class="prog__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="prog__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+  <svg class="prog__rule" viewBox="0 0 140 10" aria-hidden="true"><path d="M2 5 H58 M82 5 H138" stroke="currentColor" stroke-width=".6"/><path d="M70 1 L74 5 L70 9 L66 5 Z" fill="currentColor"/><circle cx="62" cy="5" r="1.2" fill="currentColor"/><circle cx="78" cy="5" r="1.2" fill="currentColor"/></svg>
+  {% if doc.date or doc.place %}
+  <div class="prog__when">{% if doc.date %}<b>{{ m.longdate(doc.date)|replace('«', '')|replace('»', '')|replace(' г.', ' года') }}</b>{% set t = m.iso_time(doc.date)|trim %}{% if t %} · начало в {{ t }}{% endif %}{% endif %}{% if doc.place %}<br>{{ doc.place }}{% endif %}</div>
+  {% endif %}
+  <div class="paper__body">{{ doc.body_html }}</div>
+  {% if doc.meta.get('footer') %}<div class="prog__foot">{{ m.lines(doc.meta.get('footer')) }}</div>{% endif %}
+</div>
 {% endblock %}

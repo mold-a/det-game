@@ -1,2 +1,8 @@
-{# Опись: по умолчанию шапка следственного отдела; чужая организация — meta.org. Таблица — в тексте (Markdown). #}
+{# Опись: по умолчанию шапка следственного отдела и № дела; чужая организация — meta.org (тогда без
+   № дела, если не задан meta.case: true). Таблица — в тексте (Markdown): первая колонка — № позиции
+   (узкая, по центру), строки через одну с фоном. meta.total — строка итога под таблицей. #}
 {% extends "print/paper/_doc.html" %}
+{% import "print/paper/_macros.html" as m %}
+{% block case %}{% if not doc.meta.get('org') or doc.meta.get('case') %}{{ m.case(w) }}{% endif %}{% endblock %}
+{% block heading %}<h1 class="paper__title proto__title">{{ doc.title }}</h1>{% endblock %}
+{% block after_body %}{% if doc.meta.get('total') %}<div class="inv__total">{{ doc.meta.get('total') }}</div>{% endif %}{% endblock %}

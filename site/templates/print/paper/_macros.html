@@ -15,12 +15,114 @@
 {% endif %}
 {%- endmacro %}
 
+{# Название организации одной строкой (для печати-кружка). #}
+{% macro org_text(doc, w, default) -%}
+{% set custom = doc.meta.get('org') %}
+{%- if custom -%}{% if custom is string %}{{ custom }}{% else %}{{ custom|join(' · ') }}{% endif %}
+{%- elif default == "police" %}{{ w.police.department }}
+{%- elif default == "theater" %}{{ w.theater.full }}
+{%- endif -%}
+{%- endmacro %}
+
 {% macro case(w) -%}
 <div class="paper__case">Уголовное дело № {{ w.police.case_no }}</div>
 {%- endmacro %}
 
+{# Метка материалов дела: номер документа в игре (как в списке «Документы дела» на сайте).
+   meta.docmark: false — не печатать. #}
+{% macro docmark(doc, w) -%}
+{% if doc.meta.get('docmark', true) is not false %}
+<div class="paper__docmark" aria-hidden="true"><span class="paper__docmark-case">Дело № {{ w.police.case_no }}</span><span class="paper__docmark-id">{{ doc.id }}</span></div>
+{% endif %}
+{%- endmacro %}
+
 {% macro requisites(doc) -%}
 <div class="paper__requisites">{% if doc.place %}<span class="paper__place">{{ doc.place }}</span>{% endif %}{% if doc.date %}<time class="paper__date">{{ doc.date|dt('date') }}</time>{% endif %}</div>
+{%- endmacro %}
+
+{# ISO-дата «2026-11-10[T21:14]» → «10» ноября 2026 г.; не-ISO строка — как есть. #}
+{% macro longdate(s) -%}
+{%- set months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"] -%}
+{%- if s is string and s|length >= 10 and s[4] == '-' and s[7] == '-' and s[5:7]|int >= 1 and s[5:7]|int <= 12 -%}
+«{{ s[8:10] }}» {{ months[s[5:7]|int - 1] }} {{ s[0:4] }} г.
+{%- else -%}{{ s or "" }}{%- endif -%}
+{%- endmacro %}
+
+{# Время из ISO-даты «2026-11-10T21:14» → «21:14»; без времени — пусто. #}
+{% macro iso_time(s) -%}
+{%- if s is string and s|length >= 16 and s[10] == 'T' %}{{ s[11:16] }}{% endif -%}
+{%- endmacro %}
+
+{# «21:14» → «21 ч 14 мин» (как в бланках протоколов); иное — как есть. #}
+{% macro hm(t) -%}
+{%- if t is string and t|length == 5 and t[2] == ':' -%}{{ t[0:2] }} ч {{ t[3:5] }} мин{%- else -%}{{ t }}{%- endif -%}
+{%- endmacro %}
+
+{# Поле бланка: подпись слева, значение на линии. #}
+{% macro field(label, value, cls="") -%}
+<div class="fld {{ cls }}"><span class="fld__label">{{ label }}</span><span class="fld__value">{{ lines(value) if value else "" }}</span></div>
+{%- endmacro %}
+
+{# Поле с подстрочной подсказкой под линией: «(фамилия, имя, отчество)». #}
+{% macro uline(value, hint="", cls="") -%}
+<div class="uline {{ cls }}"><div class="uline__value">{{ lines(value) if value else "" }}</div>{% if hint %}<div class="uline__hint">{{ hint }}</div>{% endif %}</div>
+{%- endmacro %}
+
+{# Пары «подпись — значение» из словаря или списка [{label, value}] (meta.times, meta.fields …). #}
+{% macro pairs(v) -%}
+{%- if v is mapping -%}
+{%- for k, x in v.items() %}{{ caller(k, x) }}{% endfor -%}
+{%- elif v -%}
+{%- for it in v %}{% if it is mapping %}{{ caller(it.get('label', ''), it.get('value', '')) }}{% else %}{{ caller('', it) }}{% endif %}{% endfor -%}
+{%- endif -%}
+{%- endmacro %}
+
+{# Печать-кружок вымышленной организации: текст по кругу (вписывается в окружность), в центре —
+   meta.seal (строка) или умолчание бланка. meta.seal: false — без печати. Цвет — синие чернила. #}
+{% macro seal(doc, ring, center="", cls="") -%}
+{% set opt = doc.meta.get('seal', true) %}
+{% if opt is not false and ring %}
+{% set c = opt if opt is string else center %}
+{% set ring_text = (ring ~ ' ★ ')|upper %}
+{% set n = ring_text|length %}
+{% set fs = [5.4, 260 / n]|min %}
+<svg class="seal {{ cls }}" viewBox="0 0 100 100" aria-hidden="true">
+  <defs><path id="seal-{{ doc.id }}-{{ cls|replace(' ', '-') }}" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs>
+  <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="2.2"/>
+  <circle cx="50" cy="50" r="44.4" fill="none" stroke="currentColor" stroke-width=".7"/>
+  <circle cx="50" cy="50" r="27" fill="none" stroke="currentColor" stroke-width="1"/>
+  <text font-size="{{ '%.2f'|format(fs) }}" font-weight="700" fill="currentColor" font-family="PT Sans, sans-serif">
+    <textPath href="#seal-{{ doc.id }}-{{ cls|replace(' ', '-') }}" textLength="234" lengthAdjust="spacing">{{ ring_text }}</textPath>
+  </text>
+  {% if c %}
+  {% set words = c.split(' ') %}
+  {% if words|length > 1 and c|length > 9 %}
+  {% set half = (words|length + 1) // 2 %}
+  <text x="50" y="48" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" font-family="PT Sans, sans-serif">{{ words[:half]|join(' ') }}</text>
+  <text x="50" y="57" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" font-family="PT Sans, sans-serif">{{ words[half:]|join(' ') }}</text>
+  {% else %}
+  <text x="50" y="53" text-anchor="middle" font-size="{{ 9 if c|length <= 7 else 7 }}" font-weight="700" fill="currentColor" font-family="PT Sans, sans-serif">{{ c }}</text>
+  {% endif %}
+  {% endif %}
+</svg>
+{% endif %}
+{%- endmacro %}
+
+{# Прямоугольный штамп (входящий номер, «Копия верна» и т. п.). #}
+{% macro rstamp(v, cls="") -%}
+{% if v %}<div class="rstamp {{ cls }}">{{ lines(v) }}</div>{% endif %}
+{%- endmacro %}
+
+{# Угловой штамп бланка письма: организация, адрес (meta.address), № и дата. #}
+{% macro corner(doc, w, default="none") -%}
+<div class="corner">
+  {% set custom = doc.meta.get('org') %}
+  <div class="corner__org">{% if custom %}{{ lines(custom) }}{% elif default == "police" %}{{ w.police.department }}{% elif default == "theater" %}{{ w.theater.full }}{% endif %}</div>
+  {% if doc.meta.get('address') %}<div class="corner__addr">{{ lines(doc.meta.get('address')) }}</div>{% endif %}
+  <div class="corner__no">
+    <span class="corner__cell">{% if doc.date %}{{ doc.date|dt('date') }}{% endif %}</span><span>№</span><span class="corner__cell">{{ (doc.meta.get('number') or '')|replace('№', '')|trim }}</span>
+  </div>
+</div>
 {%- endmacro %}
 
 {% macro media(doc) -%}
@@ -37,12 +139,16 @@
 {% endif %}
 {%- endmacro %}
 
-{% macro signatures(doc) -%}
+{# Подписи: должность — линия с пометкой «(подпись)» — фамилия. #}
+{% macro signatures(doc, seal_html="") -%}
 {% if doc.signed %}
 <div class="paper__signatures">
   {% for s in doc.signed %}
-  <div class="paper__sign"><span class="role">{{ s.role }}</span><span class="line"></span><span class="name">{{ s.name }}</span></div>
+  <div class="paper__sign"><span class="role">{{ s.role }}</span><span class="line"><span class="hint">(подпись)</span></span><span class="name">{{ s.name }}</span></div>
   {% endfor %}
+  {% if seal_html %}<div class="paper__seal">{{ seal_html }}</div>{% endif %}
 </div>
+{% elif seal_html %}
+<div class="paper__signatures"><div class="paper__seal paper__seal--solo">{{ seal_html }}</div></div>
 {% endif %}
 {%- endmacro %}
