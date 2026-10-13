@@ -1,0 +1,17 @@
+{
+  "name": "det-game-tests",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Только для тестов: JS-модули сайта (node:test) и сквозные тесты (Playwright).",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test:js": "node --test \"tests/js/*.test.mjs\"",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "~1.63.0"
+  }
+}

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "det-game"
+version = "0.1.0"
+description = "За кулисами правды — сборщик онлайн-части детективной игры"
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=6.0,<7",
+    "Jinja2>=3.1,<4",
+    "pydantic>=2.14,<3",
+    "cryptography>=50.0,<51",
+    "segno>=1.6,<2",
+    "pytrovich>=0.2,<1",
+    # та же минорная, что у @playwright/test в package.json: одна сборка Chromium
+    "playwright>=1.63,<1.64",
+    "markdown-it-py>=4.2,<5",
+    "python-frontmatter>=1.3,<2",
+    "openpyxl>=3.1,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1,<10",
+]
+
+[tool.setuptools]
+# Явно: в корне лежат site/, content/, media/, print/ — автопоиск на них споткнётся.
+packages = ["engine"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
