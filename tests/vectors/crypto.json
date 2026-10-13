@@ -1,0 +1,472 @@
+{
+  "_comment": "Сгенерировано `python -m engine vectors` (engine/vectors.py). Не редактировать руками. Байты — base64url без «=», если не сказано иное.",
+  "version": 1,
+  "b64u": {
+    "valid": [
+      {
+        "hex": "",
+        "b64u": ""
+      },
+      {
+        "hex": "66",
+        "b64u": "Zg"
+      },
+      {
+        "hex": "666f",
+        "b64u": "Zm8"
+      },
+      {
+        "hex": "666f6f",
+        "b64u": "Zm9v"
+      },
+      {
+        "hex": "666f6f62",
+        "b64u": "Zm9vYg"
+      },
+      {
+        "hex": "666f6f6261",
+        "b64u": "Zm9vYmE"
+      },
+      {
+        "hex": "666f6f626172",
+        "b64u": "Zm9vYmFy"
+      },
+      {
+        "hex": "fbffbf",
+        "b64u": "-_-_"
+      },
+      {
+        "hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+        "b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0-P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn-AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq-wsbKztLW2t7i5uru8vb6_wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t_g4eLj5OXm5-jp6uvs7e7v8PHy8_T19vf4-fr7_P3-_w"
+      }
+    ],
+    "invalid": [
+      "AA==",
+      "a+b/",
+      "ab c",
+      "A",
+      "AAAAA",
+      "AB",
+      "AAB",
+      "Zm9vYg=",
+      "Zm9v\n"
+    ]
+  },
+  "pbkdf2": [
+    {
+      "password": "password",
+      "password_hex": "70617373776f7264",
+      "salt": "oPlvDSuIBeJ9U2UuCy354A",
+      "iterations": 1,
+      "key": "aY0nwIvx3erDLYI23wpLqAt3NwrLn708jTcgiWBQtHU"
+    },
+    {
+      "password": "detgame/answer/v1|s1.q1.time|08:15",
+      "password_hex": "64657467616d652f616e737765722f76317c73312e71312e74696d657c30383a3135",
+      "salt": "vrGXlNAErQQ-o66x5AoVBw",
+      "iterations": 1000,
+      "key": "VYGqvdOHCyK88Lf1QA2pO9vJ5RbdLQ6Lk8dRYE8v90o"
+    },
+    {
+      "password": "detgame/cloud/v1|пароль ёлка",
+      "password_hex": "64657467616d652f636c6f75642f76317cd0bfd0b0d180d0bed0bbd18c20d191d0bbd0bad0b0",
+      "salt": "NVVJIETGbLX8qYMaixDAWw",
+      "iterations": 150000,
+      "key": "o_f8nu9k8FgIBEIzZ0HvyMncVoklNMkZpTlF5gDfklA"
+    }
+  ],
+  "hkdf": [
+    {
+      "ikm": "Rx4TMLDvRvx4Vl_rR4MHlJA-D9Vrqs0UGvh3FVA5PMQ",
+      "info": "detgame/pack/v1|2",
+      "okm": "fXXq29qXkrK_NMAca4PdH7kYnYUrotl8uvU22DUutyU"
+    },
+    {
+      "ikm": "cblQvl7_8aK9FgFRVwIaMQRErDzKmuZzJA_Rsl4zcuE",
+      "info": "detgame/lab/v1|obj-1|type_a|doc-1|08:15|ёж",
+      "okm": "KQfp5xZaILNp5sZGdykf1c4txhmNsguG1Y1MR7Kuvl8"
+    }
+  ],
+  "aesgcm": [
+    {
+      "key": "NzAiwrEdRW8KeAwYq811XFh8aSNwNOdzfCWuYpVvBUw",
+      "aad": "pack/2",
+      "plaintext": "{\"intro\":\"Тестовое письмо этапа\",\"n\":2}",
+      "container": {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "pack/2",
+        "n": "-EJNgBDMoZ6FZPO4",
+        "c": "08EYuIX9Q6oHljRdiSo3U4bHrMMOwpGbD4P5nrEitHB_6gaz0ikj1eX58yQcI8R0XZg2mmdVtm65_7AR7Pcw5u6WiHja7XSQJno"
+      }
+    },
+    {
+      "key": "yEvsyWRh9i0rfZPCKgg92Br97lPKwvzOzOJKJtp38wE",
+      "aad": "lab",
+      "plaintext": "{\"doc\":\"x-01\",\"html\":\"<p>Результат — «тест» ✓</p>\"}",
+      "container": {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "VapOc6SdmUhnkMvy",
+        "c": "fgsU6b097bqfBSwZEdeRlRdogu6mux5kQc5zbPgcIqrSXhTg7UvNEkoTTS5Vc94ywWCsTO6ItAqL4t6F9JfU4qSrs7DhOOKP4-5BEg40DbRWhea9Ab0"
+      }
+    },
+    {
+      "key": "cSsXO19yf9GFoRjgqupXC9sFsq0NWSTCIzQwIk_QEEs",
+      "aad": "page/cloud",
+      "plaintext": "",
+      "container": {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "page/cloud",
+        "n": "UfYfCxjl291mIikH",
+        "c": "M61kZvImYbiOdZYoM_owwg"
+      }
+    }
+  ],
+  "media": {
+    "key": "_E2ErHXTiP1OPh3GjSabMXxgGpoSbpfnFyu0fhvXBak",
+    "aad": "media/09a7104bac1dd418",
+    "data": "hmCSuNBHi3OQ0zja1u_qiU9zqXkmJAV9GdJC1llkbs0tQHhpkvbx3A8HNcxPVVz0AIrkPDRLY0JTjE-ff26kw5IkZu1y1ffNWUkTbBRHgGsMOHNoksXP4s4fA5vTyPOTpTfrDQ",
+    "blob": "u7DuWsesx5A4cbG4IotLTzVsqPJHIfcjxHO5CYNanEvMXiw-I07cwa8eVAVMe4p-OZz0NAsL3OZE9FN8SLeoliuZniaRbXocF_RBNQoiwi3nd8ygFxmu_a_dBGakZZ0gn9Uq6LeBBxDJgvsKPh2Ueh9-d_iEFs9Dne49J1kSIMc"
+  },
+  "helpers": {
+    "answer_key": [
+      {
+        "path": "s1.q1.time",
+        "normalized": "08:15",
+        "salt": "0s2GeGM6td-fYcIbNaPxZQ",
+        "iterations": 1000,
+        "secret": "detgame/answer/v1|s1.q1.time|08:15",
+        "key": "8sQ3rLerJzlXxXFQX7VYdd9s8Jx-qnaHXBocGbSDnHQ"
+      },
+      {
+        "path": "s2.q4",
+        "normalized": "еж в тумане",
+        "salt": "0s2GeGM6td-fYcIbNaPxZQ",
+        "iterations": 1000,
+        "secret": "detgame/answer/v1|s2.q4|еж в тумане",
+        "key": "CyUAPQUhHV9-kZ5PKnncieRviKHxn6AqKnIs6-9CTHQ"
+      }
+    ],
+    "start_key": {
+      "salt": "R4ezB6FbjLYMW3alUuI3uw",
+      "iterations": 1000,
+      "key": "VIdF-hAX2QVELsdCiSQqO7wUvX544VFIYPU7uIm7zfw"
+    },
+    "stage_secret": [
+      {
+        "n": 1,
+        "pairs": [
+          [
+            "s1.q1.time",
+            "08:15"
+          ],
+          [
+            "s1.q2",
+            "zavyalov"
+          ],
+          [
+            "s1.q3.who",
+            "gromov,oleg"
+          ]
+        ],
+        "secret": "detgame/stage/v1|1\u001fs1.q1.time=08:15\u001fs1.q2=zavyalov\u001fs1.q3.who=gromov,oleg"
+      },
+      {
+        "n": 3,
+        "pairs": [
+          [
+            "s3.q1",
+            "ёж"
+          ]
+        ],
+        "secret": "detgame/stage/v1|3\u001fs3.q1=ёж"
+      },
+      {
+        "n": 2,
+        "pairs": [],
+        "secret": "detgame/stage/v1|2\u001f"
+      }
+    ],
+    "stage_key": {
+      "n": 1,
+      "pairs": [
+        [
+          "s1.q1.time",
+          "08:15"
+        ],
+        [
+          "s1.q2",
+          "zavyalov"
+        ],
+        [
+          "s1.q3.who",
+          "gromov,oleg"
+        ]
+      ],
+      "salt": "95BXWwfwjkNubnhXx5ZFIQ",
+      "iterations": 1000,
+      "key": "UWLBMe_lklMpoNMBfsajVWTdCFKWowLCDbrJ_dMtE2M"
+    },
+    "pack_info": [
+      {
+        "n": 1,
+        "info": "detgame/pack/v1|1"
+      },
+      {
+        "n": 4,
+        "info": "detgame/pack/v1|4"
+      }
+    ],
+    "pack_key": {
+      "stage_key": "UWLBMe_lklMpoNMBfsajVWTdCFKWowLCDbrJ_dMtE2M",
+      "n": 2,
+      "key": "0dDrW79OAFXqp8t3ddLJSUhq5Mt9Ca2M67eaSoKIznQ"
+    },
+    "lab_info": [
+      {
+        "object": "obj-1",
+        "type": "type_a",
+        "basis": "doc-1",
+        "params": [],
+        "info": "detgame/lab/v1|obj-1|type_a|doc-1|"
+      },
+      {
+        "object": "obj-1",
+        "type": "type_a",
+        "basis": "",
+        "params": [],
+        "info": "detgame/lab/v1|obj-1|type_a||"
+      },
+      {
+        "object": "obj-2",
+        "type": "type_b",
+        "basis": "doc-2",
+        "params": [
+          "08:15"
+        ],
+        "info": "detgame/lab/v1|obj-2|type_b|doc-2|08:15"
+      },
+      {
+        "object": "obj-2",
+        "type": "type_b",
+        "basis": "doc-2",
+        "params": [
+          "08:15",
+          "2026-03-05",
+          "ёж"
+        ],
+        "info": "detgame/lab/v1|obj-2|type_b|doc-2|08:15|2026-03-05|ёж"
+      }
+    ],
+    "finale_info": "detgame/finale/v1",
+    "finale_key": {
+      "stage_key": "UWLBMe_lklMpoNMBfsajVWTdCFKWowLCDbrJ_dMtE2M",
+      "key": "DMXxwc8XoO17GX11Q8qZVi3OjgHur40NB4xAtZtG_5U"
+    },
+    "cloud_key": {
+      "input": " Пароль-Ёлка 2026 ",
+      "normalized": "парольелка2026",
+      "salt": "bB8rQ2V-0DERowppqZWl_Q",
+      "iterations": 1000,
+      "key": "FWq74f7vxWnM2fij8iq12s7b-ETRDdIMkFe0x_Rh6GQ"
+    }
+  },
+  "answer_unit": {
+    "path": "s1.q1.time",
+    "type": "time",
+    "salt": "k7bjqj2g3CzVjzM5ohLZ2Q",
+    "iterations": 1000,
+    "canonical": "08:15",
+    "variants": [
+      "08:14",
+      "08:15",
+      "08:16"
+    ],
+    "entries_pad": 8,
+    "entries": [
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "5dB53ZIFZtSttJqd",
+        "c": "VwlaxvZlE2nuqPlUg1uaKbbLUahEhbRTrVzJDZU"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "oP52laqZ8V9CrNZa",
+        "c": "fZUXChHflfQO5GZ_ZwsH9D_1hKxetGVu839fIk0"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "xAtgoi-wowAK4Rpc",
+        "c": "HKjKrrrfWyYcRKZfqJJguJHIAFTJB7b8xzoRTIo"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "_24sbboXag_hTr1k",
+        "c": "2qzWrSfIgNefb3qbrpajrOL4AqS6DYo2NhEVGZc"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "qkcuiuS56tvDWWz6",
+        "c": "RgwBFX7SWwQ5ibyEhJdpOBODHsHWuuuE2-_J71E"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "h2C3p4oFrbJeSoJf",
+        "c": "aUkwXZs2sk1k9mYFecsg9Pz0qMRBQpZvIgpID5A"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "6Cuhl65avBvtdFFm",
+        "c": "qt7JvfMH8no3y3jIwtM5WhU-jATwiB-jgXK7Wao"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "ans/s1.q1.time",
+        "n": "Gxeh2NletewdJ5Mb",
+        "c": "bhSH2lQTkXjqnrHNtHbok3DuqeEIug7vO-KRu4E"
+      }
+    ],
+    "accept": [
+      {
+        "input": "8.15",
+        "normalized": "08:15"
+      },
+      {
+        "input": "814",
+        "normalized": "08:14"
+      },
+      {
+        "input": "8 ч 16 мин",
+        "normalized": "08:16"
+      }
+    ],
+    "reject": [
+      {
+        "input": "08:17",
+        "normalized": "08:17"
+      },
+      {
+        "input": "08:13",
+        "normalized": "08:13"
+      },
+      {
+        "input": "20:15",
+        "normalized": "20:15"
+      }
+    ]
+  },
+  "lab_entry": {
+    "stage_key": "Jed3rseLKZj04SLbNUtrKT_e4H1fWWQf2C-bj92LW4A",
+    "request": {
+      "object": "obj-1",
+      "type": "type_a",
+      "basis": "doc-1",
+      "params": []
+    },
+    "plaintext": "{\"doc\":\"x-02\",\"html\":\"<p>Заключение</p>\",\"media\":[],\"title\":\"Тест\"}",
+    "wrong_requests": [
+      {
+        "object": "obj-1",
+        "type": "type_a",
+        "basis": "doc-2",
+        "params": []
+      },
+      {
+        "object": "obj-1",
+        "type": "type_a",
+        "basis": "",
+        "params": []
+      },
+      {
+        "object": "obj-1",
+        "type": "type_a",
+        "basis": "doc-1",
+        "params": [
+          "08:15"
+        ]
+      },
+      {
+        "object": "obj-2",
+        "type": "type_a",
+        "basis": "doc-1",
+        "params": []
+      }
+    ],
+    "entries": [
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "oRZrOwHhnttpMoTP",
+        "c": "y44ie_zbcQMCq2slfHw-C72bWBJbYJroB7XhUn3Eg_6siFSOguHF8ZwGuNyHLspOZ_9nCe2IczAzAgS1GrGEJ_Z-aEe7cZnvXV9ZOz2SUSJ5gTiY-szY1y-rCRSmmbloUQ"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "RkVQpX2jroxZtMMF",
+        "c": "dG2HAviBWMP4k0bws76Bk8xvLXDvXoelqFwYXSgXtOk-YsW94gL6B0xpDus6afrnjYRSEiisrMYo3zcJhnTm6bbqxLMzkoU3JxgNJNBAgE40hOJdaBhIikN8Au0GZHC8iA"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "AfbRKYF4d7duq2SC",
+        "c": "OxJMJhGAgWXmJ64Gt8AubGRPmbWlUXYYTjzDoCUi0B72iwPqion4ZRx4Ixjs0FPVRC3xrivN3XU3YhUyeJaDB5Cb_kkIsQOazRtQpJHIZ1bSrg3B7ld9RwDuMJfRLTQg5Q"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "p19o3HTw2WgwkspA",
+        "c": "84ZF5O4xQovMV9NqWpOH3OEONto1Zwzg4V4Q69_ez8hqRtRoybgVwD-JmtQ8uN5muTd60QCN-GOChbl2cKxbC1XcFkngofSl_N8sIPLu_NaBvzYgPNmwAkWrXsccR_4uyA"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "MrDk5HM_gffA-BJR",
+        "c": "CgZyV8GfGiI2gN7b_u2n9xMRTkkvxIFFwIxyms__ppBhuLPST-vylu_0g9DpM3CzEX2PWCWnQRojTAWkzjZQieixe1Nce9ahVkeULLwvtaYRfhH91RqY5wJZPC6_MfoXzA"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "DgqAcNrNHsVeRTF-",
+        "c": "QSKshbPmOMzUt1kA2-8vdxuCoZo-Z9EEjvnrS2YBYZkok-1lIANT6oKTm-x354QMCwfThh7gtkF8TxJ8FHD6QLv2B1bHHWE2KsoFVjoPKieqMUVlKlZVwNHzeUQP3zeBew"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "CImkNjW_SoH825Um",
+        "c": "_Lb3LuZXemlkm2z5sQnOmIvthGZf9sabu8qhIw_ay18e0GSzikoPbT-Zt00j2o5Nwy0Y1lcFdaqUKgG4aU2hHk0U83Scqcdh9cpqCethuAzMXBQVizpQrK42XRl3wNV0jg"
+      },
+      {
+        "v": 1,
+        "alg": "A256GCM",
+        "aad": "lab",
+        "n": "jw2uFg3SdpnjC8_e",
+        "c": "DbypJlkrqTbwgNEk8WEwji9aA-M5B6ZKkWPOYgdw5i8LTmKANkeTz5ZvNCl9rNnXchKfO-Wl1bFNxiRMGgXEVNXDoBRBdBy1fAZjsFyKc3FhhRdhLmRfN2RxbScGDZBE8g"
+      }
+    ]
+  }
+}

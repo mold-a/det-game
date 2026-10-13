@@ -57,3 +57,26 @@ def b64u_decode(text: str) -> bytes:
     if b64u_encode(raw) != text:  # отсекает лишние символы и неканоничные хвосты
         raise ValueError("неканоничная строка base64url")
     return raw
+
+
+def format_loc(parts: tuple | list) -> str:
+    """``("stages", 2, "questions", 0, "answer")`` → ``stages[2].questions[0].answer``."""
+    out = ""
+    for p in parts:
+        if isinstance(p, int):
+            out += f"[{p}]"
+        else:
+            out += ("." if out else "") + str(p)
+    return out
+
+
+def iter_strings(obj: Any, loc: tuple = ()):
+    """Все строки дерева YAML/JSON с путями: ``(loc_tuple, str)``. Ключи словарей не обходятся."""
+    if isinstance(obj, str):
+        yield loc, obj
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            yield from iter_strings(v, (*loc, k))
+    elif isinstance(obj, (list, tuple)):
+        for i, v in enumerate(obj):
+            yield from iter_strings(v, (*loc, i))

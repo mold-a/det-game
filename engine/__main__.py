@@ -74,7 +74,65 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "serve":
         return serve(DIST, port=args.port)
+    if args.command == "vectors":
+        from engine.vectors import make_crypto_vectors  # лениво: --help без cryptography
+
+        print(f"Векторы криптографии записаны: {make_crypto_vectors()}")
+        return 0
+    if args.command == "names":
+        return cmd_names()
+    if args.command == "rotate-salts":
+        return cmd_rotate_salts(args.yes)
     return not_implemented(args.command)
+
+
+EXIT_CONTENT_ERROR = 1
+EXIT_REFUSED = 2
+
+
+def _load_content_or_report():
+    """Загрузить content/; при ошибках — напечатать их в stderr и вернуть None."""
+    from engine.content import ContentError, load_content
+
+    try:
+        return load_content()
+    except ContentError as e:
+        print(e.report(), file=sys.stderr)
+        return None
+
+
+def cmd_names() -> int:
+    from engine.names import format_names_table
+
+    content = _load_content_or_report()
+    if content is None:
+        return EXIT_CONTENT_ERROR
+    print(format_names_table(content.characters))
+    return 0
+
+
+def cmd_rotate_salts(yes: bool) -> int:
+    from engine import salts
+
+    if not yes:
+        print(
+            "Отказ: rotate-salts пересоздаёт ВСЕ соли и ключи закрытых страниц.\n"
+            "Старые QR-коды перестанут открывать страницы, сохранённый прогресс игроков станет несовместим.\n"
+            "Если это действительно нужно: python -m engine rotate-salts --yes",
+            file=sys.stderr,
+        )
+        return EXIT_REFUSED
+    content = _load_content_or_report()
+    if content is None:
+        return EXIT_CONTENT_ERROR
+    new = salts.rotate_for_content(content, salts.SALTS_LOCK, confirm=True)
+    pages = ", ".join(sorted(new.data["pages"])) or "—"
+    print(f"Соли и ключи страниц пересозданы: {new.path} (saltsId {new.id[:12]}…).")
+    print(
+        f"ВНИМАНИЕ: перепечатайте QR-коды закрытых страниц ({pages}) — python -m engine qr; "
+        "старые коды больше не работают. Пересоберите сайт: python -m engine build."
+    )
+    return 0
 
 
 if __name__ == "__main__":

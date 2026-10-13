@@ -18,7 +18,7 @@ const RE_MARK = /^\p{M}$/u;
 const RE_DIGIT_GROUP = /[0-9]+/g;
 const RE_ID = /^[a-z0-9_-]+$/;
 
-/** NFC → toLowerCase → «ё»→«е» → M* удалить, не L*/N* → пробел → схлопнуть пробелы. */
+// NFC → toLowerCase → «ё»→«е» → M* удалить, не L* и не N* → пробел → схлопнуть пробелы.
 export function base(s) {
   const lowered = String(s).normalize("NFC").toLowerCase().replaceAll("ё", "е");
   let out = "";

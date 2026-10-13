@@ -31,7 +31,7 @@ _PART = {"last": NamePart.LASTNAME, "first": NamePart.FIRSTNAME, "middle": NameP
 _GENDER = {"m": Gender.MALE, "f": Gender.FEMALE}
 
 
-class NameError_(ValueError):
+class DeclensionError(ValueError):
     """Неверный падеж, часть имени или пол."""
 
 
@@ -42,7 +42,7 @@ def _maker() -> PetrovichDeclinationMaker:
 
 def check_case(case: str) -> str:
     if case not in _CASE:
-        raise NameError_(f"неизвестный падеж {case!r}; допустимы: {', '.join(CASES)}")
+        raise DeclensionError(f"неизвестный падеж {case!r}; допустимы: {', '.join(CASES)}")
     return case
 
 
@@ -61,9 +61,9 @@ def decline(
     """Форма части имени в падеже. Ручная форма из ``forms`` важнее библиотеки."""
     check_case(case)
     if part not in _PART:
-        raise NameError_(f"неизвестная часть имени {part!r}; допустимы: {', '.join(PARTS)}")
+        raise DeclensionError(f"неизвестная часть имени {part!r}; допустимы: {', '.join(PARTS)}")
     if gender not in _GENDER:
-        raise NameError_(f"неизвестный пол {gender!r}; допустимы: m, f")
+        raise DeclensionError(f"неизвестный пол {gender!r}; допустимы: m, f")
     manual = (forms or {}).get(part, {}) or {}
     if case in manual:
         return manual[case]
