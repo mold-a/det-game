@@ -1,0 +1,60 @@
+# Реестр материалов дела.
+# kind: paper — в конверте `stage` (сайт только знает о нём)
+#       online — страница сайта (page = slug из content/pages/)
+#       lab — выдаётся лабораторией по запросу
+# Бумажный документ с QR-кодом: kind: paper + page.
+# Названия этапов 2–4 попадают только в зашифрованные пакеты.
+
+documents:
+  # --- Конверт 1 (папка дела) ---
+  - { id: "1-01", stage: 1, kind: paper, title: "Письмо руководителя следственной группы" }
+  - { id: "1-02", stage: 1, kind: paper, title: "Рапорт сержанта полиции {{ c.kovalev.short() }}" }
+  - { id: "1-03", stage: 1, kind: paper, title: "Карта вызова скорой медицинской помощи" }
+  - { id: "1-04", stage: 1, kind: paper, title: "Предварительное заключение судебно-медицинского эксперта" }
+  - { id: "1-05", stage: 1, kind: paper, page: call, title: "Расшифровка анонимного звонка в дежурную часть" }
+  - { id: "1-06", stage: 1, kind: paper, title: "План здания театра" }
+  - { id: "1-07", stage: 1, kind: paper, title: "Программка спектакля «{{ w.play.title }}»" }
+  - { id: "1-08", stage: 1, kind: paper, title: "Протоколы опроса (13 человек)" }
+  - { id: "1-09", stage: 1, kind: paper, title: "Протокол осмотра гримёрки № {{ w.theater.dressing_room_victim }}: опись вещей" }
+  - { id: "1-10", stage: 1, kind: paper, title: "Фототаблица к осмотру гримёрки № {{ w.theater.dressing_room_victim }}" }
+  - { id: "1-11", stage: 1, kind: paper, title: "Журнал охраны служебного входа" }
+  - { id: "1-12", stage: 1, kind: online, page: gromov, title: "Страница {{ c.gromov.short('gen') }} в соцсети «{{ w.brands.social }}»" }
+  - { id: "1-13", stage: 1, kind: online, page: news, title: "Новость портала «{{ w.brands.news }}»" }
+
+  # --- Конверт 2 ---
+  - { id: "2-01", stage: 2, kind: lab, title: "Заключение эксперта: ингалятор погибшего" }
+  - { id: "2-02", stage: 2, kind: paper, title: "Протокол повторного опроса: {{ c.marina.short() }}" }
+  - { id: "2-03", stage: 2, kind: paper, title: "Кадры наружной камеры служебного входа, 19:30–19:55" }
+  - { id: "2-04", stage: 2, kind: paper, title: "Протокол повторного опроса: {{ c.oleg.short() }}" }
+  - { id: "2-05", stage: 2, kind: paper, title: "Журнал помощника режиссёра" }
+  - { id: "2-06", stage: 2, kind: paper, title: "Фото кабинета художественного руководителя" }
+  - { id: "2-07", stage: 2, kind: paper, title: "Журнал светового пульта" }
+  - { id: "2-08", stage: 2, kind: paper, title: "Опись костюмерного цеха" }
+  - { id: "2-09", stage: 2, kind: paper, page: inna, title: "Страница {{ c.inna.short('gen') }} в фотосети «{{ w.brands.photo }}»" }
+  - { id: "2-10", stage: 2, kind: paper, title: "Справка пресс-службы администрации города" }
+
+  # --- Конверт 3 ---
+  - { id: "3-01", stage: 3, kind: paper, title: "Протокол повторного опроса: {{ c.reznikova.short() }}" }
+  - { id: "3-02", stage: 3, kind: paper, title: "Протокол повторного опроса: {{ c.dmitriy.short() }}" }
+  - { id: "3-03", stage: 3, kind: paper, title: "Снимки экрана с телефона {{ c.kirill.short('gen') }}" }
+  - { id: "3-04", stage: 3, kind: paper, title: "Протокол повторного опроса: {{ c.kirill.short() }}" }
+  - { id: "3-05", stage: 3, kind: lab, title: "Заключение эксперта: судебно-химическое исследование крови" }
+  - { id: "3-06", stage: 3, kind: lab, title: "Заключение эксперта: исследование таблетницы" }
+  - { id: "3-07", stage: 3, kind: paper, title: "Железнодорожный билет" }
+  - { id: "3-08", stage: 3, kind: paper, title: "Протокол осмотра автомобиля {{ c.dmitriy.short('gen') }}" }
+  - { id: "3-09", stage: 3, kind: paper, page: pharma, title: "Справочник лекарственных средств «{{ w.brands.pharma }}»" }
+
+  # --- Конверт 4 ---
+  - { id: "4-01", stage: 4, kind: online, page: cloud, title: "Облачное хранилище погибшего «{{ w.brands.cloud }}»" }
+  - { id: "4-02", stage: 4, kind: paper, title: "Смета и договор на изготовление декораций" }
+  - { id: "4-03", stage: 4, kind: paper, title: "Выписка из реестра юридических лиц: ООО «{{ w.money.llc }}»" }
+  - { id: "4-04", stage: 4, kind: paper, title: "Ответ аптеки и копия рецепта" }
+  - { id: "4-05", stage: 4, kind: paper, title: "Служебная записка о ремонте камеры" }
+  - { id: "4-06", stage: 4, kind: paper, title: "Снимок экрана рабочего чата театра" }
+  - { id: "4-07", stage: 4, kind: paper, page: video, title: "Видеофайл с телефона {{ c.volkov.short('gen') }}" }
+  - { id: "4-08", stage: 4, kind: lab, title: "Записи камер вокзала" }
+  - { id: "4-09", stage: 4, kind: paper, title: "Протокол повторного опроса: {{ c.gnedich.short() }}" }
+  - { id: "4-10", stage: 4, kind: lab, title: "Ответ оператора связи" }
+  - { id: "4-11", stage: 4, kind: paper, title: "Письмо эксперта-оценщика" }
+  - { id: "4-12", stage: 4, kind: paper, title: "Переписка {{ c.volskaya.short('gen') }} с {{ c.voroncov.short('ins') }}" }
+  - { id: "4-13", stage: 4, kind: paper, page: cloud, title: "Записка {{ c.kirill.short('gen') }}" }

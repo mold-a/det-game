@@ -1,0 +1,9 @@
+dist/
+print/
+node_modules/
+.venv/
+__pycache__/
+*.egg-info/
+test-results/
+playwright-report/
+tests/.answers.json

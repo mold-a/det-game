@@ -1,0 +1,20 @@
+slug: gromov
+doc: "1-12"
+locked: false
+qr_label: "Страница в соцсети «{{ w.brands.social }}»"
+brand: "{{ w.brands.social }}"
+profile:
+  person: gromov
+  position: "{{ c.gromov.role }}"
+  city: "{{ w.city }}"
+  avatar: "portraits/gromov.jpg"
+  cover: "gromov/cover.jpg"           # TODO(content)
+posts:
+  # [Улика] — этот пост обязателен и неизменен
+  - datetime: "2026-11-10T19:30"
+    geo: "{{ w.neighbor_city }}"
+    text: "Рабочее совещание по развитию культурной инфраструктуры. Обсудили планы на следующий год."
+    photo: "gromov/meeting.jpg"       # TODO(content): фото родственника «на совещании»
+    likes: 47
+    comments: []
+  # TODO(content): ещё 7–9 постов за октябрь–ноябрь — открытия, поздравления, субботники; 1–3 комментария с семейным юмором

@@ -1,0 +1,14 @@
+slug: news
+doc: "1-13"
+locked: false
+qr_label: "Новость городского портала"
+forbidden: ["астма", "таблетк", "отравлен", "21:18"]   # сборщик проверяет, что этого нет в тексте страницы
+brand: "{{ w.brands.news }}"
+article:
+  datetime: "2026-11-11T09:15"
+  headline: "На премьере скончался народный артист {{ c.voroncov.first() }} {{ c.voroncov.last() }}"
+  photo: "news/voroncov_arbenin.jpg"  # TODO(content): фото в образе Арбенина
+  body: "pages/news/article.md"       # TODO(content): версия «сердечный приступ», цитата {{ c.zavyalov.last('gen') }}
+sidebar: []                           # TODO(content): 5–6 посторонних городских новостей
+comments: []                          # TODO(content): 4–6 комментариев читателей
+ads: []                               # TODO(content): 2–3 баннера вымышленных местных фирм

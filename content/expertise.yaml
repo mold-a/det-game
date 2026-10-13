@@ -1,0 +1,100 @@
+# Лаборатория. Запрос = объект + вид + основание (+ параметры).
+# Совпало с результатом открытого этапа → документ. Иначе «Недостаточно оснований», штраф.
+# Результаты без `doc` — «атмосферные»: короткий текст, документ не добавляется.
+
+objects:
+  # from_stage: с какого этапа объект виден в списке (по умолчанию 1). Верная догадка до нужного этапа
+  # не наказывается штрафом — объект просто ещё недоступен.
+  - { id: inhaler, title: "Ингалятор погибшего (найден в кулисе)", from_stage: 2 }
+  - { id: pillbox, title: "Таблетница погибшего", from_stage: 3 }
+  - { id: blood, title: "Образцы крови погибшего", from_stage: 3 }
+  - { id: water, title: "Бутылка воды из гримёрки № {{ w.theater.dressing_room_victim }}" }
+  - { id: costume, title: "Сценический костюм погибшего" }
+  - { id: phone, title: "Телефон погибшего", from_stage: 4 }
+  - { id: theater_cam, title: "Камера в коридоре гримёрок" }
+  - id: station_cam
+    title: "Камеры железнодорожного вокзала"
+    from_stage: 4                 # объект появляется в списке только с этапа 4 (по умолчанию — с этапа 1)
+    params:                       # параметры запроса задаются на объекте
+      - { id: date, type: date, label: "Дата" }
+      - { id: time, type: time, label: "Время" }
+      - { id: window, type: number, label: "Номер кассы" }
+
+types:
+  - { id: chem, title: "Химическое исследование" }
+  - { id: content, title: "Исследование содержимого" }
+  - { id: prints, title: "Дактилоскопическое исследование" }
+  - { id: operator, title: "Запрос данных оператора связи" }
+  - { id: video, title: "Запрос видеозаписей" }
+
+results:
+  # --- этап 1 ---
+  - id: theater-cam
+    object: theater_cam
+    types: [video]
+    stage: 1
+    bases: ["1-06"]
+    text: "Камера в коридоре гримёрок неисправна с 27.10.2026. Записей за 10.11.2026 нет."
+
+  # --- этап 2 ---
+  - id: inhaler-chem
+    object: inhaler
+    types: [chem, content]
+    stage: 2
+    bases: ["1-03", "1-08", "2-02"]
+    doc: "2-01"
+    body: "documents/2-01.md"
+  - id: inhaler-prints
+    object: inhaler
+    types: [prints]
+    stage: 2
+    bases: ["1-03", "1-08", "2-02"]
+    text: "На ингаляторе обнаружены следы пальцев рук погибшего. Других пригодных следов нет."
+
+  # --- этап 3 ---
+  - id: blood-chem
+    object: blood
+    types: [chem]
+    stage: 3
+    bases: ["3-01", "2-02", "1-04"]
+    doc: "3-05"
+    body: "documents/3-05.md"
+  - id: pillbox-content
+    object: pillbox
+    types: [content, chem]
+    stage: 3
+    bases: ["2-02", "3-01", "1-09", "1-10"]
+    doc: "3-06"
+    body: "documents/3-06.md"
+  - id: pillbox-prints
+    object: pillbox
+    types: [prints]
+    stage: 3
+    bases: ["2-02", "3-01", "1-09", "1-10"]
+    text: "На таблетнице обнаружены следы пальцев рук погибшего. Других пригодных следов нет."
+  - id: water-chem
+    object: water
+    types: [chem]
+    stage: 1
+    bases: ["1-09", "1-10"]
+    text: "Питьевая вода. Посторонних веществ не обнаружено."
+
+  # --- этап 4 ---
+  - id: phone-operator
+    object: phone
+    types: [operator]
+    stage: 4
+    bases: ["1-09", "3-03"]
+    doc: "4-10"
+    body: "documents/4-10.md"
+  - id: station-video
+    object: station_cam
+    types: [video]
+    stage: 4
+    bases: ["3-07"]
+    params_answer:
+      date: { canon: "30.10.2026" }
+      time: { canon: "14:37", tolerance_min: 7 }
+      window: { canon: "2" }
+    doc: "4-08"
+    body: "documents/4-08.md"

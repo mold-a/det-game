@@ -1,0 +1,12 @@
+slug: call
+doc: "1-05"
+locked: false
+qr_label: "Запись анонимного звонка"
+title: "{{ w.police.duty }}: архив входящих вызовов"
+record:
+  datetime: "{{ w.dates.anonymous_call }}"   # [Улика] 11.11.2026 07:50:12
+  number: "Номер скрыт"
+  duration: "0:47"                            # TODO(content): реальная длительность записи
+  operator: "TODO(content): ФИО дежурного"
+audio: "audio/anonymous_call.mp3"             # media/ — TODO(content): запись голоса
+note: "Расшифровка — в материалах дела (1-05)."

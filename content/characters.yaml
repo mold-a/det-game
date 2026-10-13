@@ -1,0 +1,210 @@
+# РАБОЧИЕ ИМЕНА. В семейной версии заменяются настоящими (шаг P09) — из таблицы
+# «Персонажи_За_кулисами_правды.xlsx», колонка «ФИО в документах».
+# ID не менять: они участвуют в ответах и криптографии.
+# working — рабочее имя роли ровно как в таблице (колонка «Роль (рабочее имя)» или «Кто»); по нему import-cast находит строку.
+#
+# importance: key | secondary | service | background
+# in_pool: участвует в списках персонажей для вопросов по умолчанию
+
+characters:
+  # --- ключевые ---
+  - id: voroncov
+    working: "Иван Воронцов"           # строка из таблицы персонажей — для import-cast
+    role: "Народный артист, исполнитель роли Арбенина"
+    importance: key
+    last: "Воронцов"
+    first: "Иван"
+    middle: "Сергеевич"
+    gender: m
+    age: 56
+    photo: "portraits/voroncov.jpg"
+    in_pool: true
+  - id: zavyalov
+    working: "Юрий Завьялов"           # строка из таблицы персонажей — для import-cast
+    role: "Художественный руководитель театра, председатель фонда «Сцена»"
+    importance: key
+    last: "Завьялов"
+    first: "Юрий"
+    middle: "Викторович"
+    gender: m
+    age: 61
+    photo: "portraits/zavyalov.jpg"
+    in_pool: true
+  - id: volkov
+    working: "Артём Волков"           # строка из таблицы персонажей — для import-cast
+    role: "Актёр, дублёр роли Арбенина"
+    importance: key
+    last: "Волков"
+    first: "Артём"
+    middle: "Андреевич"
+    gender: m
+    age: 31
+    photo: "portraits/volkov.jpg"
+    in_pool: true
+  - id: marina
+    working: "Марина Тарасова"           # строка из таблицы персонажей — для import-cast
+    role: "Супруга погибшего"
+    importance: key
+    last: "Тарасова"
+    first: "Марина"
+    middle: "Олеговна"
+    gender: f
+    age: 52
+    photo: "portraits/marina.jpg"
+    in_pool: true
+  - id: kirill
+    working: "Кирилл"           # строка из таблицы персонажей — для import-cast
+    role: "Друг погибшего, программист"
+    importance: key
+    last: "Сомов"
+    first: "Кирилл"
+    middle: "Евгеньевич"
+    gender: m
+    age: 56
+    photo: "portraits/kirill.jpg"
+    in_pool: true
+
+  # --- второстепенные ---
+  - id: stas
+    working: "Стас Лёвин"           # строка из таблицы персонажей — для import-cast
+    role: "Актёр, исполнитель роли Звездича"
+    importance: secondary
+    last: "Лёвин"
+    first: "Станислав"
+    middle: "Игоревич"
+    gender: m
+    age: 44
+    photo: "portraits/stas.jpg"
+    in_pool: true
+  - id: reznikova
+    working: "Светлана Резникова"           # строка из таблицы персонажей — для import-cast
+    role: "Помощник режиссёра"
+    importance: secondary
+    last: "Резникова"
+    first: "Светлана"
+    middle: "Павловна"
+    gender: f
+    age: 47
+    photo: "portraits/reznikova.jpg"
+    in_pool: true
+  - id: gnedich
+    working: "Елена Гнедич"           # строка из таблицы персонажей — для import-cast
+    role: "Заведующая костюмерным цехом"
+    importance: secondary
+    last: "Гнедич"
+    first: "Елена"
+    middle: "Михайловна"
+    gender: f
+    age: 63
+    photo: "portraits/gnedich.jpg"
+    in_pool: true
+  - id: viktor
+    working: "Виктор «Мастер»"           # строка из таблицы персонажей — для import-cast
+    role: "Художник по свету"
+    importance: secondary
+    last: "Кузнецов"
+    first: "Виктор"
+    middle: "Ильич"
+    nick: "Мастер"
+    gender: m
+    age: 50
+    photo: "portraits/viktor.jpg"
+    in_pool: true
+  - id: oleg
+    working: "Олег Петрович"           # строка из таблицы персонажей — для import-cast
+    role: "Охранник служебного входа"
+    importance: secondary
+    last: "Зуев"
+    first: "Олег"
+    middle: "Петрович"
+    gender: m
+    age: 64
+    photo: "portraits/oleg.jpg"
+    in_pool: true
+  - id: inna
+    working: "Инна"           # строка из таблицы персонажей — для import-cast
+    role: "Буфетчица"
+    importance: secondary
+    last: "Рябова"
+    first: "Инна"
+    middle: "Сергеевна"
+    gender: f
+    age: 29
+    photo: "portraits/inna.jpg"
+    in_pool: true
+  - id: dmitriy
+    working: "Дмитрий"           # строка из таблицы персонажей — для import-cast
+    role: "Водитель погибшего"
+    importance: secondary
+    last: "Горохов"
+    first: "Дмитрий"
+    middle: "Николаевич"
+    gender: m
+    age: 45
+    photo: "portraits/dmitriy.jpg"
+    in_pool: true
+  - id: volskaya
+    working: "Софья Вольская"           # строка из таблицы персонажей — для import-cast
+    role: "Меценат, попечитель театра"
+    importance: secondary
+    last: "Вольская"
+    first: "Софья"
+    middle: "Аркадьевна"
+    gender: f
+    age: 54
+    photo: "portraits/volskaya.jpg"
+    in_pool: true
+  - id: gromov
+    working: "Михаил Громов"           # строка из таблицы персонажей — для import-cast
+    role: "Заместитель главы администрации города по социальной политике"
+    importance: secondary
+    last: "Громов"
+    first: "Михаил"
+    middle: "Анатольевич"
+    gender: m
+    age: 57
+    photo: "portraits/gromov.jpg"
+    in_pool: true
+
+  # --- служебные ---
+  - id: kovalev
+    working: "Сержант Ковалёв"           # строка из таблицы персонажей — для import-cast
+    role: "Сержант полиции"
+    importance: service
+    last: "Ковалёв"
+    first: "Денис"
+    middle: "Олегович"
+    gender: m
+    in_pool: false
+  - id: sme
+    working: "Судмедэксперт"           # строка из таблицы персонажей — для import-cast
+    role: "Судебно-медицинский эксперт"
+    importance: service
+    last: "Лисицына"
+    first: "Наталья"
+    middle: "Викторовна"
+    gender: f
+    in_pool: false
+  - id: belyaev
+    working: "Майор Беляев"           # строка из таблицы персонажей — для import-cast
+    role: "Майор юстиции, руководитель следственной группы"
+    importance: service
+    last: "Беляев"
+    first: "Андрей"
+    middle: "Николаевич"
+    gender: m
+    in_pool: false
+
+  # --- фоновые (только упоминаются) — TODO(content): имена из листа «Фоновые имена» ---
+  - { id: nina_actress, working: "Исполнительница роли Нины", role: "Исполнительница роли Нины", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: marina_sister, working: "Сестра Марины", role: "Сестра Тарасовой", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь Громова", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: f, in_pool: false }
+  - { id: rodionov_director, working: "Г. Родионов, директор ООО «Сценическая мастерская»", role: "Директор ООО «Сценическая мастерская»", importance: background, last: "Родионов", first: "Геннадий", middle: "Павлович", gender: m, in_pool: false }
+  - { id: rodionov_creditor, working: "Брат Родионова, кредитор Волкова", role: "Кредитор Волкова, брат директора ООО", importance: background, last: "Родионов", first: "Виталий", middle: "Павлович", gender: m, in_pool: false }
+  - { id: appraiser, working: "Эксперт, оценивший табакерку", role: "Эксперт-оценщик", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }
+  - { id: gromov_guard, working: "Охранник Громова", role: "Охранник Громова", importance: background, last: "TODO(content)", first: "TODO(content)", middle: "", gender: m, in_pool: false }

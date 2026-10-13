@@ -1,0 +1,74 @@
+# Мир игры. Все названия вымышленные, кроме Москвы и пьесы Лермонтова.
+city: "Верхнеречинск"
+city_gen: "Верхнеречинска"
+city_pre: "Верхнеречинске"
+neighbor_city: "Северогорск"
+neighbor_city_pre: "Северогорске"
+
+theater:
+  full: "Верхнеречинский областной драматический театр"
+  short: "ВОДТ"
+  address: "Театральная площадь, 3"
+  dressing_room_victim: "4"
+  dressing_room_wall: "3"      # гримёрка за стеной, где был Лёвин
+  staff_wifi: "TEATR_STAFF"
+
+play:
+  title: "Маскарад"
+  author: "М. Ю. Лермонтов"
+  role_main: "Арбенин"
+  role_nina: "Нина"
+  role_zvezdich: "Звездич"
+  schedule:
+    act1: "19:00–20:10"
+    intermission: "20:10–20:30"
+    act2: "20:30–21:40"
+
+dates:
+  premiere: "2026-11-10"
+  premiere_weekday: "вторник"
+  anonymous_call: "2026-11-11T07:50:12"
+  game_day: "2026-11-12"
+  publication: "2026-11-13T10:04"
+
+train:
+  route: "Верхнеречинск — Москва"
+  departure: "23:40"
+  car: 7
+  seat: 15
+  bought: "2026-10-30T14:37"
+  cashier_window: 2
+
+money:
+  fund: "Сцена"
+  llc: "Сценическая мастерская"
+  auctions: "Закрытые вечера"
+  contract_rub: 1800000
+  market_rub: 600000
+  snuffbox_rub: 2400000
+  suitcase_cash_rub: 400000
+
+places:
+  bridge: "Речной мост"
+  zavyalov_street: "Заречная улица"
+
+police:
+  department: "Следственный отдел по г. Верхнеречинску"
+  duty: "Дежурная часть ОП «Центральный»"
+  case_no: "47/2026"
+
+brands:
+  system: "Электронное дело"
+  social: "Круг"
+  photo: "Кадр"
+  news: "Верхнеречье сегодня"
+  cloud: "Тучка"
+  pharma: "Фармаспр"
+  messenger: "Весточка"
+
+devices:
+  victim_phone: "iPhone"
+  victim_phone_tail: "12"
+  volkov_phone: "Samsung SM-A546"
+  volkov_video_file: "VID_20261108_141203.mp4"
+  volkov_video_created: "2026-11-08T14:12:03"

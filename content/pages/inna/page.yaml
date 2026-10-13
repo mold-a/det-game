@@ -1,0 +1,16 @@
+slug: inna
+doc: "2-09"
+locked: true
+qr_label: "Страница в фотосети «{{ w.brands.photo }}»"
+brand: "{{ w.brands.photo }}"
+profile:
+  person: inna
+  avatar: "portraits/inna.jpg"
+  bio: "TODO(content)"
+posts:
+  # [Улика] — брошь должна совпадать с описью костюмерного цеха (2-08)
+  - datetime: "2026-11-11T21:40"
+    photo: "inna/brooch.jpg"          # TODO(content)
+    caption: "TODO(content): подпись в духе «новая красота»"
+    likes: 23
+  # TODO(content): ещё 8–11 фото — быт, еда, кошки, кофе

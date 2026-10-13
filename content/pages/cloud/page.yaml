@@ -1,0 +1,31 @@
+slug: cloud
+doc: "4-01"
+qr_label: "Облачное хранилище"
+locked: password                      # пароль из записки 4-13
+password: "TODO(content)"             # не словарное слово; нормализуется как password
+brand: "{{ w.brands.cloud }}"
+account: "TODO(content): логин погибшего"
+banner:
+  scheduled: "{{ w.dates.publication }}"
+  last_confirmation: "2026-11-10T10:04"
+folders:
+  - id: registry
+    title: "Реестр"
+    kind: table
+    columns: ["Дата", "Лот", "Покупатель", "Цена, ₽", "Комментарий"]
+    rows:
+      # [Улика] строка о табакерке
+      - ["2024-TODO(content)", "Табакерка, серебро, клеймо «Фаберже»", "С. А. В.", "2 400 000", "З. знал, что копия"]
+      # TODO(content): ещё 30–40 строк за 10 лет
+  - id: chat
+    title: "Переписка"
+    kind: chat
+    participants: [voroncov, zavyalov]
+    messages: []                      # TODO(content): ультиматум, сентябрь 2026
+  - id: letter
+    title: "Если вы это читаете"
+    kind: letter
+    body: "pages/cloud/if_you_read_this.md" # TODO(content): обращение к тому, кто откроет архив; без имени убийцы
+  - id: for_m
+    title: "Для М."
+    kind: locked                      # «Папка защищена отдельным паролем»; содержимое — в развязке
