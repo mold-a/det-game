@@ -89,6 +89,12 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_check(args.release)
     if args.command == "dump-answers":
         return cmd_dump_answers()
+    if args.command == "qr":
+        return cmd_qr()
+    if args.command == "chatshot":
+        return cmd_chatshot()
+    if args.command == "answers":
+        return cmd_answers()
     return not_implemented(args.command)
 
 
@@ -186,6 +192,60 @@ def cmd_dump_answers() -> int:
         return 0
 
     return _guarded(run)
+
+
+
+def _guarded_print(fn):
+    """Как _guarded, плюс «нет браузера» → понятный текст и код 1."""
+    from engine.printing import PrintError
+
+    def run() -> int:
+        try:
+            return fn()
+        except PrintError as e:
+            print(f"Печать невозможна: {e}", file=sys.stderr)
+            return EXIT_CONTENT_ERROR
+
+    return _guarded(run)
+
+
+def cmd_qr() -> int:
+    from engine.qr import run as qr_run
+
+    def run() -> int:
+        rep = qr_run()
+        for c in rep.cards:
+            mark = {True: "проверен", False: "НЕ СОВПАЛ", None: "не проверен"}[c.verified]
+            print(f"  {c.slug:<8} {c.access:<8} {mark:<11} {c.url}")
+        print(f"QR-коды: {rep.cards[0].png.parent if rep.cards else ''}; лист: {rep.sheet}")
+        for w in rep.warnings:
+            print(f"ВНИМАНИЕ: {w}", file=sys.stderr)
+        return 1 if any(c.verified is False for c in rep.cards) else 0
+
+    return _guarded_print(run)
+
+
+def cmd_chatshot() -> int:
+    from engine.chatshot import run as chat_run
+
+    def run() -> int:
+        paths = chat_run()
+        for p in paths:
+            print(f"  {p}")
+        print(f"Скриншоты переписок: {len(paths)} PNG 1080×2340")
+        return 0
+
+    return _guarded_print(run)
+
+
+def cmd_answers() -> int:
+    from engine.emergency import run as answers_run
+
+    def run() -> int:
+        print(f"Аварийный конверт: {answers_run()} (содержит ответы — не публиковать)")
+        return 0
+
+    return _guarded_print(run)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,516 @@
+/*
+ * pages/news.css — портал «Верхнеречье сегодня» (brands.news), документ 1-13.
+ *
+ * ИТОГОВЫЕ РЕШЕНИЯ (P06; сверено с docs/05 §2–3, без отдельного согласования — разрешение автора)
+ * -----------------------------------------------------------------------------
+ * Характер: перегруженный региональный портал — красная плашка «Срочно», рубрики,
+ *   пёстрые баннеры местных (вымышленных) фирм, колонка городских новостей, комментарии.
+ * Палитра (основа — docs/05 §2):
+ *   светлая: фон #F5F5F5, лист #FFFFFF, бренд #C8262C (красный; 5,6:1 на белом),
+ *            текст #1A1A1A, второстепенный #5F5F5F (6,4:1), линии #E2E2E2;
+ *            баннеры: жёлтый #FFE36E, зелёный #1F6E4A, сиреневый #EDE4FF — «как у местных фирм».
+ *   тёмная:  фон #121212, лист #1C1C1C, бренд #FF6B6F, текст #EAEAEA,
+ *            второстепенный #ABABAB, линии #333333.
+ * Шрифт: PT Serif — логотип и заголовки; PT Sans — текст и интерфейс (локальные файлы).
+ * Текстовый логотип: «Верхнеречье» PT Serif полужирным + «сегодня» белым на красной
+ *   скошенной плашке. Без глобусов, «молний» и чужих доменов.
+ * Раскладка телефона:
+ *   ┌─────────────────────────────┐
+ *   │ 11.11.2026          Войти   │ тонкая строка
+ *   │ Верхнеречье [сегодня]       │ логотип
+ *   │ Главное Город Культура …    │ красная лента рубрик (переносится)
+ *   │ [ БАННЕР местной фирмы ]    │
+ *   │ [Срочно] Культура           │
+ *   │ На премьере скончался …     │ PT Serif 26 px
+ *   │ 11.11.2026, 09:15           │
+ *   │ [фото в роли Арбенина]      │
+ *   │ текст статьи …              │
+ *   │ Комментарии (N) …           │
+ *   │ Новости города …            │ колонка уходит вниз
+ *   └─────────────────────────────┘
+ *   ≥ 960 px: статья 1fr | колонка 300 px.
+ * Отличие от реальных: своя красная плашка-тег у логотипа, без узнаваемых сеток
+ *   федеральных порталов (Лента, РБК, Фонтанка и т. п.).
+ */
+
+body.page--news {
+  --nw-bg: #f5f5f5;
+  --nw-sheet: #ffffff;
+  --nw-brand: #c8262c;
+  --nw-brand-ink: #ffffff;
+  --nw-text: #1a1a1a;
+  --nw-muted: #5f5f5f;
+  --nw-line: #e2e2e2;
+  --nw-ph: #e6e6e6;
+  --nw-ph-text: #555555;
+  color-scheme: light;
+  background: var(--nw-bg);
+  color: var(--nw-text);
+  font-family: var(--font-sans, "PT Sans", sans-serif);
+}
+
+@media (prefers-color-scheme: dark) {
+  body.page--news {
+    --nw-bg: #121212;
+    --nw-sheet: #1c1c1c;
+    --nw-brand: #ff6b6f;
+    --nw-brand-ink: #1a0405;
+    --nw-text: #eaeaea;
+    --nw-muted: #ababab;
+    --nw-line: #333333;
+    --nw-ph: #2a2a2a;
+    --nw-ph-text: #b5b5b5;
+    color-scheme: dark;
+  }
+}
+
+.page--news :focus-visible {
+  outline: 3px solid var(--nw-brand);
+  outline-offset: 2px;
+}
+
+.nw {
+  max-width: 1180px;
+  margin: 0 auto;
+  background: var(--nw-sheet);
+}
+
+/* --- шапка */
+
+.nw-head {
+  border-bottom: 3px solid var(--nw-brand);
+}
+
+.nw-head__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--nw-line);
+  font-size: 14px;
+  color: var(--nw-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-link {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--nw-text);
+  font: inherit;
+  font-weight: 700;
+}
+
+.nw-link:disabled,
+.nw-btn:disabled,
+.nw-share__btn:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.nw-head__brand {
+  padding: 12px 16px 10px;
+}
+
+.nw-logo {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  font-family: var(--font-serif, "PT Serif", serif);
+  line-height: 1;
+}
+
+.nw-logo__main {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.nw-logo__tag {
+  position: relative;
+  top: -3px;
+  padding: 3px 10px 4px;
+  background: var(--nw-brand);
+  color: var(--nw-brand-ink);
+  font-family: var(--font-sans, "PT Sans", sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  transform: skewX(-10deg);
+}
+
+.nw-nav {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0 8px;
+  background: var(--nw-brand);
+}
+
+.nw-nav__item {
+  padding: 10px 8px;
+  color: var(--nw-brand-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.nw-nav__item.is-current {
+  box-shadow: inset 0 -3px 0 var(--nw-brand-ink);
+}
+
+/* --- баннеры */
+
+.nw-ad--top {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--nw-line);
+}
+
+.nw-banner {
+  position: relative;
+  display: block;
+  padding: 14px 16px 22px;
+  border-radius: 2px;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.nw-banner__title {
+  display: block;
+  font-family: var(--font-serif, "PT Serif", serif);
+  font-size: 19px;
+  margin-bottom: 2px;
+}
+
+.nw-banner__mark {
+  position: absolute;
+  right: 6px;
+  bottom: 3px;
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.nw-banner--0 {
+  background: #ffe36e;
+  color: #2b2100;
+  border: 2px dashed #b38f00;
+}
+
+.nw-banner--1 {
+  background: #1f6e4a;
+  color: #ffffff;
+}
+
+.nw-banner--2 {
+  background: #ede4ff;
+  color: #2a1a57;
+  border-left: 6px solid #7b5cd6;
+}
+
+.nw-banner--side {
+  margin-top: 16px;
+}
+
+/* --- раскладка */
+
+.nw-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.nw-main {
+  min-width: 0;
+}
+
+.nw-article {
+  padding: 16px;
+}
+
+.nw-article__flags {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.nw-urgent {
+  padding: 3px 10px;
+  background: var(--nw-brand);
+  color: var(--nw-brand-ink);
+  font-weight: 700;
+}
+
+.nw-rubric {
+  color: var(--nw-muted);
+}
+
+.nw-article__h {
+  font-family: var(--font-serif, "PT Serif", serif);
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.nw-article__meta {
+  margin-top: 8px;
+  color: var(--nw-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-article__photo {
+  margin: 16px -16px 0;
+  background: var(--nw-bg);
+}
+
+.nw-photo {
+  width: 100%;
+  height: auto;
+}
+
+.nw-article__photo .ph {
+  aspect-ratio: 3 / 2;
+}
+
+.nw-article__body {
+  margin-top: 16px;
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 42em;
+}
+
+.nw-article__body p + p {
+  margin-top: 0.9em;
+}
+
+.nw-article__body blockquote {
+  margin: 1em 0;
+  padding: 4px 0 4px 16px;
+  border-left: 4px solid var(--nw-brand);
+  font-family: var(--font-serif, "PT Serif", serif);
+  font-style: italic;
+}
+
+.nw-share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--nw-line);
+  font-size: 14px;
+  color: var(--nw-muted);
+}
+
+.nw-share__btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--nw-line);
+  border-radius: 2px;
+  background: var(--nw-sheet);
+  color: var(--nw-text);
+  font: inherit;
+}
+
+/* --- комментарии */
+
+.nw-section-h {
+  font-family: var(--font-serif, "PT Serif", serif);
+  font-size: 21px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--nw-text);
+  margin-bottom: 12px;
+}
+
+.nw-count {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 6px;
+  border-radius: 2px;
+  background: var(--nw-brand);
+  color: var(--nw-brand-ink);
+  font-family: var(--font-sans, "PT Sans", sans-serif);
+  font-size: 15px;
+  text-align: center;
+  vertical-align: 3px;
+}
+
+.nw-comments {
+  padding: 8px 16px 16px;
+}
+
+.nw-comments__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nw-comment {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--nw-line);
+}
+
+.nw-comment__head {
+  font-size: 14px;
+  color: var(--nw-muted);
+}
+
+.nw-comment__head b {
+  color: var(--nw-text);
+  margin-right: 6px;
+}
+
+.nw-comment__text {
+  margin-top: 4px;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.nw-comment-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nw-comment-form__field {
+  flex: 1 1 200px;
+  padding: 11px 12px;
+  border: 1px solid var(--nw-line);
+  color: var(--nw-muted);
+  font-size: 15px;
+  background: var(--nw-bg);
+}
+
+.nw-btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  background: var(--nw-brand);
+  color: var(--nw-brand-ink);
+  font: inherit;
+  font-weight: 700;
+}
+
+/* --- колонка */
+
+.nw-side {
+  padding: 8px 16px 16px;
+  border-top: 6px solid var(--nw-bg);
+}
+
+.nw-side__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nw-side__item {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--nw-line);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.nw-side__item time {
+  color: var(--nw-brand);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.nw-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px;
+  background: #1a1a1a;
+  color: #d0d0d0;
+  font-size: 13px;
+}
+
+.nw-foot__brand {
+  font-family: var(--font-serif, "PT Serif", serif);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* --- заглушки «Здесь будет …» */
+
+.page--news .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px;
+  background: var(--nw-ph);
+  color: var(--nw-ph-text);
+  font-size: 14px;
+  text-align: center;
+}
+
+.page--news .ph--ad {
+  min-height: 72px;
+  border: 1px dashed var(--nw-muted);
+}
+
+.page--news .ph--side {
+  margin-top: 16px;
+  min-height: 160px;
+}
+
+.page--news .ph--block {
+  min-height: 96px;
+}
+
+.page--news .ph-text {
+  padding: 0 6px;
+  background: var(--nw-ph);
+  color: var(--nw-ph-text);
+}
+
+@media (min-width: 768px) {
+  .nw-head__top,
+  .nw-head__brand,
+  .nw-ad--top,
+  .nw-article,
+  .nw-comments,
+  .nw-side,
+  .nw-foot {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .nw-nav {
+    padding: 0 16px;
+  }
+
+  .nw-logo__main {
+    font-size: 40px;
+  }
+
+  .nw-article__h {
+    font-size: 34px;
+  }
+
+  .nw-article__photo {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+@media (min-width: 960px) {
+  .nw-layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+
+  .nw-side {
+    border-top: 0;
+    border-left: 1px solid var(--nw-line);
+    padding-top: 16px;
+  }
+}

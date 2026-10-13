@@ -1,18 +1,60 @@
-{# Оболочка закрытой страницы: без сюжетного текста (FORMATS §6.3, §9.3). #}
+{# Оболочка закрытой страницы (FORMATS §6.3–6.4, §9.3): без сюжетного текста.
+   Содержимое — в /p/<slug>/payload.json, его расшифровывает /assets/js/pages/shell.js.
+   Видно до расшифровки только: название бренда (brand), для облака — логин (account),
+   для video — шапка системы из chrome (F19). Тексты ниже — интерфейсные. #}
 {% extends "base.html" %}
 {% block body_attrs %} data-slug="{{ slug }}" data-access="{{ access }}"{% endblock %}
 {% block body %}
+{% if slug == "video" %}
+{# У video нет своего CSS в списке css (FORMATS §9.3: стиль системы), стили плеера и карточки — здесь. #}
+<link rel="stylesheet" href="/assets/css/pages/video.css">
+{% endif %}
 <main id="page" class="pg pg--{{ slug }} pg--shell">
-  <p class="shell__brand">{{ brand }}</p>
-  {% if access == "password" %}
-  <form class="shell__login" autocomplete="off">
-    <label>Логин <input name="login" value="{{ account }}" readonly></label>
-    <label>Пароль <input name="password" type="password"></label>
-    <button type="submit">Войти</button>
-    <p class="shell__error" hidden>Неверный пароль</p>
-  </form>
-  {% endif %}
-  <p class="shell__broken" hidden>Ссылка повреждена. Отсканируйте QR-код ещё раз.</p>
-  <div id="page-content"></div>
+  <div class="shell" id="shell"{% if slug == "video" %} data-keep-head="1"{% endif %}>
+    {% if slug == "video" %}
+    <header class="ev-bar">
+      <span class="ev-bar__system">{{ chrome.system }}</span>
+      <span class="ev-bar__dept">{{ chrome.department }}</span>
+      <span class="ev-bar__case">Дело № {{ chrome.caseNo }}</span>
+    </header>
+    {% else %}
+    <header class="shell__head">
+      <span class="brandmark brandmark--{{ slug }}"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span>
+    </header>
+    {% endif %}
+
+    <div class="shell__body">
+      <p class="shell__status" id="shell-status" role="status">Открываем страницу…</p>
+
+      {% if access == "password" %}
+      {% set acc = account or "" %}
+      <form class="shell__login" id="shell-login" autocomplete="off" novalidate hidden>
+        <h1 class="shell__title">Вход в хранилище</h1>
+        <label class="shell__field">
+          <span class="shell__label">Логин</span>
+          {% if "TODO(content)" in acc or not acc %}
+          <input name="login" value="" placeholder="Здесь будет логин" readonly aria-readonly="true">
+          {% else %}
+          <input name="login" value="{{ acc }}" readonly aria-readonly="true">
+          {% endif %}
+        </label>
+        <label class="shell__field">
+          <span class="shell__label">Пароль</span>
+          <input name="password" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+        </label>
+        <p class="shell__error" id="shell-error" role="alert" hidden>Неверный пароль</p>
+        <button class="shell__submit" type="submit">Войти</button>
+      </form>
+      {% endif %}
+
+      <div class="shell__broken" id="shell-broken" role="alert" hidden>
+        <p class="shell__broken-text">Ссылка повреждена. Отсканируйте QR-код ещё раз.</p>
+      </div>
+      <div class="shell__failed" id="shell-failed" role="alert" hidden>
+        <p>Страница не загрузилась. Проверьте подключение к интернету и обновите страницу.</p>
+      </div>
+    </div>
+  </div>
+  <div id="page-content" class="page-content"></div>
 </main>
 {% endblock %}

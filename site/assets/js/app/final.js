@@ -30,10 +30,6 @@ let game = null;
 let header = null;
 let main = null;
 
-if (ctx) {
-  ctx.store.onExternalChange(() => start());
-  await start();
-}
 
 async function verify(s) {
   try {
@@ -229,7 +225,7 @@ function reviewTable(finale) {
               "td",
               { "data-label": T.final.colTeam },
               v === undefined || v === null ? T.final.noAnswer : displayValue(spec, v, { characters: pack.characters, documents: game.docs }),
-              h("span", { class: "review__verdict" }, ` — ${T.final.verdict[ok]}`),
+              ok ? null : h("span", { class: "review__verdict" }, ` — ${T.final.verdict[false]}`),
             ),
             h("td", { "data-label": T.final.colRight }, finale.answers?.[spec.unit.path] ?? T.final.noAnswer),
           ),
@@ -263,7 +259,6 @@ function renderEnding(finale, part) {
       { class: "fates" },
       (finale.fates ?? []).map((f) => h("li", { class: "fates__item" }, f.name ? h("strong", { class: "fates__name" }, f.name) : null, f.name ? " " : null, f.text)),
     );
-  const title = part === 0 ? finale.confession?.title : part === 1 ? finale.letter?.title : T.final.fates;
   const actions = h("div", { class: "q__actions no-print" });
   if (part < 2) {
     next.addEventListener("click", () => renderEnding(finale, part + 1));
@@ -276,7 +271,14 @@ function renderEnding(finale, part) {
   actions.appendChild(back);
   sheet(
     `${T.final.ending}. ${parts[part]}`,
-    h("div", { class: "q ending" }, title && part === 2 ? null : h("h2", { class: "ending__title" }, title), content, actions),
+    // Название документа — в самом бланке; у судеб — заголовок раздела.
+    h("div", { class: "q ending" }, content, actions),
   );
   main.querySelector("#final-title")?.focus();
+}
+
+// Запуск — в конце модуля: все объявления выше уже инициализированы.
+if (ctx) {
+  ctx.store.onExternalChange(() => start());
+  await start();
 }

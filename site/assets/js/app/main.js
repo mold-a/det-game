@@ -25,10 +25,6 @@ import {
 import { b64uEncode } from "../core/crypto.js";
 
 const ctx = await initPage();
-if (ctx) {
-  ctx.store.onExternalChange(() => start());
-  await start();
-}
 
 /** Проверка файла прогресса при загрузке: ключ текущего этапа открывает его пакет. */
 async function verify(s) {
@@ -390,4 +386,10 @@ async function envelopeModal({ title, envelope, ack }) {
   }
   document.getElementById("stage-title")?.scrollIntoView({ block: "start" });
   document.getElementById("main")?.focus({ preventScroll: true });
+}
+
+// Запуск — в конце модуля: все объявления выше уже инициализированы.
+if (ctx) {
+  ctx.store.onExternalChange(() => start());
+  await start();
 }

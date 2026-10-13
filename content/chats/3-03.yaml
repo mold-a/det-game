@@ -1,0 +1,38 @@
+# Документ 3-03 «Снимки экрана с телефона Кирилла» — печать (python -m engine chatshot → print/chats/).
+# Требования — docs/PAPER-REQUIREMENTS.md (S-07, S-09):
+#   - уведомление облака о НЕУДАЧНОЙ попытке входа 10.11 около 19:40;
+#   - номер погибшего в звонках/контактах оканчивается на w.devices.victim_number_tail (сверка с 4-10).
+# Экраны: kind notification | chat | calls. Все строки — шаблоны (c, w). Время — как на экране телефона.
+id: "3-03"
+screens:
+  - kind: notification
+    time: "19:41"
+    date: "{{ w.dates.premiere_weekday }}, 10 ноября"
+    items:
+      - app: "{{ w.brands.cloud }}"
+        title: "Неудачная попытка входа"
+        text: "TODO(content): текст уведомления — вход в аккаунт с нового устройства, неверный пароль"
+        time: "19:40"
+      - app: "{{ w.brands.messenger }}"
+        title: "{{ c.voroncov.first() }}"
+        text: "TODO(content): короткое сообщение-превью или убрать"
+        time: "TODO(content)"
+  - kind: calls
+    owner: kirill
+    time: "TODO(content)"
+    items:
+      - who: voroncov
+        number: "TODO(content): +7 … {{ w.devices.victim_number_tail }}"
+        time: "TODO(content)"
+        direction: out
+      - who: voroncov
+        number: "TODO(content): +7 … {{ w.devices.victim_number_tail }}"
+        time: "TODO(content)"
+        direction: missed
+  - kind: chat
+    owner: kirill
+    with: voroncov
+    date: "10 ноября"
+    messages:
+      - { from: kirill, time: "19:43", text: "TODO(content): Кирилл пишет, что кто-то пытался войти в облако", status: delivered }
+      - { from: kirill, time: "TODO(content)", text: "TODO(content): просит перезвонить", status: delivered }

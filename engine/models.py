@@ -519,3 +519,70 @@ PAGE_MODELS: dict[str, type[PageBase]] = {
     "cloud": CloudPage,
     "video": VideoPage,
 }
+
+
+# ---------------------------------------------------------------- chats/<id>.yaml (P07, печать)
+# «Скриншоты» телефона для бумажных документов: экран блокировки с уведомлениями,
+# переписка в вымышленном мессенджере, список вызовов. Только для печати (print/chats/).
+
+
+class NotificationItem(Strict):
+    app: str
+    title: str
+    text: str
+    time: str
+
+
+class NotificationScreen(Strict):
+    kind: Literal["notification"]
+    time: str  # время в строке состояния и на экране блокировки
+    date: str  # «вторник, 10 ноября»
+    items: Annotated[list[NotificationItem], Field(min_length=1)]
+
+
+class ChatLine(Strict):
+    """Сообщение. ``from`` — ID персонажа; ``name`` — подпись вместо имени персонажа
+    (например, для участника рабочего чата без ID)."""
+
+    model_config = ConfigDict(extra="forbid", strict=True, validate_by_alias=True, validate_by_name=False)
+
+    from_: Id | None = Field(default=None, alias="from")
+    name: str | None = None
+    time: str
+    text: str
+    status: Literal["sent", "delivered", "read"] | None = None
+
+
+class ChatScreen(Strict):
+    model_config = ConfigDict(extra="forbid", strict=True, validate_by_alias=True, validate_by_name=False)
+
+    kind: Literal["chat"]
+    owner: Id | None = None  # чей телефон: его сообщения справа
+    with_: Id | None = Field(default=None, alias="with")  # личная переписка
+    title: str | None = None  # название группового чата
+    time: str | None = None  # время в строке состояния (по умолчанию — время последнего сообщения)
+    date: str | None = None  # разделитель дня над сообщениями
+    messages: Annotated[list[ChatLine], Field(min_length=1)]
+
+
+class CallItem(Strict):
+    who: Id | None = None
+    name: str | None = None  # подпись, если это не персонаж или номер не сохранён
+    number: str
+    time: str
+    direction: Literal["in", "out", "missed"]
+
+
+class CallsScreen(Strict):
+    kind: Literal["calls"]
+    owner: Id | None = None
+    time: str
+    items: Annotated[list[CallItem], Field(min_length=1)]
+
+
+ChatScreenAny = Annotated[NotificationScreen | ChatScreen | CallsScreen, Field(discriminator="kind")]
+
+
+class ChatFile(Strict):
+    id: Id
+    screens: Annotated[list[ChatScreenAny], Field(min_length=1)]

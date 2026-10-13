@@ -122,3 +122,16 @@ PT Sans и PT Serif (OFL) лежат в `site/assets/fonts/`, подключаю
 ```
 PW_CHROMIUM_PATH=/opt/pw-browsers/chromium npx playwright test
 ```
+
+## Печать (`qr`, `chatshot`, `answers`)
+
+Результаты — в `print/` (в `.gitignore`: там ответы и ключи страниц, не публиковать).
+Нужен Chromium для Python-пакета `playwright` (см. выше; `PW_CHROMIUM_PATH` тоже работает):
+
+```
+PW_CHROMIUM_PATH=/opt/pw-browsers/chromium python -m engine qr
+```
+
+Самопроверка QR декодированием — необязательная зависимость `qrcheck` (`zxing-cpp`, `pillow`):
+`pip install -e ".[qrcheck]"`. Без неё `qr` создаёт коды и предупреждает, что проверка пропущена.
+Тесты печати (`tests/test_print.py`) без браузера пропускаются с причиной в отчёте pytest (`-rs`).

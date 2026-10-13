@@ -1,11 +1,69 @@
-<section class="pg-call">
-  <h1 class="pg-call__title">{{ page.title }}</h1>
-  <dl class="pg-call__record">
-    <dt>Дата и время</dt><dd class="clue" data-clue="datetime">{{ page.record.datetime|dt }}</dd>
-    <dt>Номер</dt><dd>{{ page.record.number }}</dd>
-    <dt>Длительность</dt><dd>{{ page.record.duration }}</dd>
-    <dt>Оператор</dt><dd>{{ page.record.operator }}</dd>
-  </dl>
-  <div class="pg-call__player"><audio {{ media(page.audio, "Запись звонка") }} preload="none"></audio></div>
-  <p class="pg-call__note">{{ page.note }}</p>
-</section>
+{# call — запись анонимного звонка (docs/04: «call»). Открытая страница, entry — pages/audio-player.js. #}
+{% import "pages/_ui.html" as ui %}
+{% set rec = page.record %}
+{% set a = media(page.audio, "Запись звонка") %}
+<div class="dc">
+  <header class="dc-top">
+    <span class="dc-mark" aria-hidden="true">ДЧ</span>
+    <span class="dc-top__title">{{ page.title }}</span>
+  </header>
+
+  <section class="dc-card" aria-labelledby="dc-card-h">
+    <h1 class="dc-card__h" id="dc-card-h">Карточка вызова</h1>
+    <dl class="dc-grid">
+      <div class="dc-grid__row dc-grid__row--main">
+        <dt>Дата и время</dt>
+        <dd class="dc-when clue" data-clue="datetime"><time datetime="{{ page.record.datetime }}">{{ rec.datetime|dt }}</time></dd>
+      </div>
+      <div class="dc-grid__row">
+        <dt>Номер</dt>
+        <dd>{{ ui.text(rec.number, "номер") }}</dd>
+      </div>
+      <div class="dc-grid__row">
+        <dt>Длительность</dt>
+        <dd class="dc-num">{{ ui.text(rec.duration, "длительность") }}</dd>
+      </div>
+      <div class="dc-grid__row">
+        <dt>Оператор</dt>
+        <dd>{{ ui.text(rec.operator, "ФИО оператора") }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="dc-player" aria-label="Аудиозапись вызова"
+           data-player="audio"{% if ui.missing(a) %} data-missing="1"{% endif %}
+           data-duration="{{ '' if ui.is_todo(rec.duration) else rec.duration }}">
+    {% if not ui.missing(a) %}<audio class="dc-player__audio" {{ a }} preload="metadata" playsinline></audio>{% endif %}
+    {% set bars %}{% for h in [22,38,30,54,70,46,62,84,58,40,66,92,74,50,36,58,80,96,72,48,30,44,68,86,60,42,56,78,64,38,26,48,72,90,66,44,34,52,76,58,40,28,46,62,80,54,36,24] %}<i style="--h:{{ h }}%"></i>{% endfor %}{% endset %}
+    <div class="dc-player__wave" aria-hidden="true">
+      <div class="dc-wave">{{ bars }}</div>
+      <div class="dc-wave dc-wave--played">{{ bars }}</div>
+    </div>
+    <div class="dc-player__controls">
+      <button class="dc-btn dc-btn--play" type="button" data-act="play" aria-label="Воспроизвести" disabled>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h4.5v15H6zM13.5 4.5H18v15h-4.5z"/></svg>
+      </button>
+      <button class="dc-btn" type="button" data-act="back" aria-label="Назад на 10 секунд" disabled>−10</button>
+      <button class="dc-btn" type="button" data-act="fwd" aria-label="Вперёд на 10 секунд" disabled>+10</button>
+      <span class="dc-time dc-num"><span data-role="cur">0:00</span> / <span data-role="dur">{{ '—:—' if ui.is_todo(rec.duration) else rec.duration }}</span></span>
+    </div>
+    <label class="dc-seek">
+      <span class="visually-hidden">Перемотка</span>
+      <input type="range" data-role="seek" min="0" max="1000" step="1" value="0" disabled>
+    </label>
+    <div class="dc-vol">
+      <button class="dc-btn dc-btn--mute" type="button" data-act="mute" aria-label="Выключить звук" aria-pressed="false" disabled>
+        <svg class="i-vol" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4.5v15L8 15H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="i-muted" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4.5v15L8 15H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <label class="dc-vol__range">
+        <span class="visually-hidden">Громкость</span>
+        <input type="range" data-role="vol" min="0" max="100" step="5" value="100" disabled>
+      </label>
+    </div>
+    <p class="dc-player__msg" data-role="msg" role="status">{% if ui.missing(a) %}<span class="ph-text">Здесь будет запись звонка</span>{% endif %}</p>
+  </section>
+
+  <p class="dc-note">{{ page.note }}</p>
+</div>

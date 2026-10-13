@@ -1,0 +1,14 @@
+# Документ 4-12 «Переписка Вольской с Воронцовым» — печать (python -m engine chatshot).
+# Требования — docs/PAPER-REQUIREMENTS.md (В4): Вольская спрашивает о подлинности табакерки,
+# Воронцов уходит от ответа («не сейчас», «давай после премьеры»). Вместе с реестром облака — ответ на s4.fb2.
+id: "4-12"
+screens:
+  - kind: chat
+    owner: volskaya
+    with: voroncov
+    date: "TODO(content): дата переписки"
+    messages:
+      - { from: volskaya, time: "TODO(content)", text: "TODO(content): Вольская спрашивает, подлинная ли табакерка", status: read }
+      - { from: voroncov, time: "TODO(content)", text: "TODO(content): уходит от ответа — «не сейчас»" }
+      - { from: volskaya, time: "TODO(content)", text: "TODO(content): настаивает", status: read }
+      - { from: voroncov, time: "TODO(content)", text: "TODO(content): «давай после премьеры»" }

@@ -115,7 +115,7 @@ def test_render_all_content_strings():
         assert "{{" not in render(doc.body, ctx, path)
     for path, text in c.texts.items():
         render(text, ctx, path)
-    assert n == 6 + 7  # 7 файлов YAML без world.yaml + 7 страниц
+    assert n == 6 + len(c.pages) + len(c.chats)  # файлы YAML без world.yaml + страницы + переписки
     # пример: шаблон с персонажем и миром
     assert render("{{ c.zavyalov.short() }}, {{ w.theater.short }}", ctx) == "Завьялов Ю. В., ВОДТ"
 

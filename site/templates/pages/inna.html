@@ -1,17 +1,61 @@
+{# inna — профиль в фотосети «Кадр» (docs/04: «inna»). Закрытая страница (ключ в QR).
+   Интерактив — pages/gallery.js: по нажатию на снимок — крупно, подпись, дата, отметки.
+   Дата видна и на плитке, чтобы снимок от 11.11.2026 находился без лишних касаний. #}
+{% import "pages/_ui.html" as ui %}
 {% set who = people[page.profile.person] %}
-<section class="pg-photo">
-  <p class="pg-photo__brand">{{ page.brand }}</p>
-  <header class="pg-photo__profile">
-    <img {{ media(page.profile.avatar, who.full) }} alt="{{ who.full }}">
-    <h1>{{ who.full }}</h1>
-    <p>{{ page.profile.bio }}</p>
+{% set posts = page.posts|sort(attribute="datetime", reverse=True) %}
+<div class="kd">
+  <header class="kd-bar">
+    <span class="brandmark brandmark--inna"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ page.brand }}</span></span>
+    <button class="kd-btn kd-btn--line" type="button" disabled>Войти</button>
   </header>
-  <div class="pg-photo__grid">
-  {% for post in page.posts %}
-    <figure class="pg-photo__item" data-datetime="{{ post.datetime }}">
-      <img {{ media(post.photo, post.caption or "") }} alt="{{ post.caption or '' }}">
-      <figcaption><time>{{ post.datetime|dt }}</time> {{ post.caption or "" }} · Нравится: {{ post.likes }}</figcaption>
-    </figure>
+
+  <section class="kd-profile" aria-labelledby="kd-name">
+    <div class="kd-profile__ava">{{ ui.img(media, page.profile.avatar, who.full, "фото профиля", "kd-ava") }}</div>
+    <div class="kd-profile__info">
+      <h1 class="kd-profile__name" id="kd-name">{{ who.full }}</h1>
+      <p class="kd-profile__stats"><b>{{ posts|length }}</b> {{ "снимок" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("снимка" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "снимков") }}</p>
+      <p class="kd-profile__bio">{{ ui.text(page.profile.bio, "описание профиля") }}</p>
+      <button class="kd-btn kd-btn--fill" type="button" disabled>Подписаться</button>
+    </div>
+  </section>
+
+  <ul class="kd-grid" role="list" aria-label="Снимки">
+  {% for post in posts %}
+    {% set label = "Снимок от " ~ (post.datetime|dt) %}
+    {% set a = media(post.photo, post.caption or label) %}
+    <li class="kd-tile" data-datetime="{{ post.datetime }}">
+      <button class="kd-tile__btn" type="button" data-index="{{ loop.index0 }}" aria-haspopup="dialog" aria-label="{{ label }}">
+        {% if ui.missing(a) %}
+        <span class="ph ph--img kd-tile__img"><span class="ph__label">Здесь будет фото</span></span>
+        {% else %}
+        <img class="kd-tile__img" {{ a }} alt="" loading="lazy" decoding="async">
+        {% endif %}
+        <span class="kd-tile__date"><time datetime="{{ post.datetime }}">{{ post.datetime|dt("date") }}</time></span>
+      </button>
+      {# Данные для просмотра крупно (gallery.js). #}
+      <div class="kd-tile__meta" hidden>
+        <p class="kd-view__caption">{{ ui.text(post.caption, "подпись к снимку") }}</p>
+        <p class="kd-view__when"><time datetime="{{ post.datetime }}">{{ post.datetime|dt }}</time></p>
+        <p class="kd-view__likes"><span class="kd-spark" aria-hidden="true"></span>Отметок: <b>{{ post.likes }}</b></p>
+      </div>
+    </li>
   {% endfor %}
-  </div>
-</section>
+  </ul>
+
+  <dialog class="kd-view" id="kd-view" aria-label="Снимок">
+    <div class="kd-view__frame">
+      <div class="kd-view__media"></div>
+      <div class="kd-view__side">
+        <p class="kd-view__who">{{ who.full }}</p>
+        <div class="kd-view__meta"></div>
+        <button class="kd-btn kd-btn--line kd-view__decor" type="button" disabled>Отметить</button>
+      </div>
+      <div class="kd-view__nav">
+        <button class="kd-iconbtn" type="button" data-act="prev" aria-label="Предыдущий снимок">‹</button>
+        <button class="kd-iconbtn" type="button" data-act="next" aria-label="Следующий снимок">›</button>
+        <button class="kd-iconbtn kd-iconbtn--close" type="button" data-act="close" aria-label="Закрыть">×</button>
+      </div>
+    </div>
+  </dialog>
+</div>

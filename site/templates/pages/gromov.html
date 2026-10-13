@@ -1,22 +1,67 @@
+{# gromov — профиль в соцсети «Круг» (docs/04: «gromov»). Открытая страница, без скриптов:
+   кнопки «Подписаться», «Нравится», «Поделиться» и т. п. — неактивные декорации. #}
+{% import "pages/_ui.html" as ui %}
 {% set who = people[page.profile.person] %}
-<section class="pg-social">
-  <p class="pg-social__brand">{{ page.brand }}</p>
-  <header class="pg-social__profile">
-    <img class="pg-social__cover" {{ media(page.profile.cover, "") }} alt="">
-    <img class="pg-social__avatar" {{ media(page.profile.avatar, who.full) }} alt="{{ who.full }}">
-    <h1>{{ who.full }}</h1>
-    <p>{{ page.profile.position }}</p>
-    <p>{{ page.profile.city }}</p>
+{% set posts = page.posts|sort(attribute="datetime", reverse=True) %}
+<div class="kr">
+  <header class="kr-bar">
+    <span class="kr-logo"><span class="kr-logo__ring" aria-hidden="true"></span>{{ page.brand }}</span>
+    <span class="kr-bar__search" aria-hidden="true">Поиск людей и сообществ</span>
+    <button class="kr-btn kr-btn--ghost" type="button" disabled>Войти</button>
   </header>
-  {% for post in page.posts %}
-  <article class="pg-social__post" data-datetime="{{ post.datetime }}">
-    <p class="pg-social__meta"><time>{{ post.datetime|dt }}</time>{% if post.geo %} · <span class="geo">{{ post.geo }}</span>{% endif %}</p>
-    <p>{{ post.text }}</p>
-    {% if post.photo %}<img {{ media(post.photo, "") }} alt="">{% endif %}
-    <p class="pg-social__likes">Нравится: {{ post.likes }}</p>
-    {% for cm in post.comments %}
-    <p class="pg-social__comment"><b>{{ cm.author }}</b> {{ cm.text }}</p>
-    {% endfor %}
-  </article>
+
+  <section class="kr-profile" aria-labelledby="kr-name">
+    <div class="kr-profile__cover">{{ ui.img(media, page.profile.cover, "", "обложка профиля", "kr-cover") }}</div>
+    <div class="kr-profile__card">
+      <div class="kr-profile__avatar">{{ ui.img(media, page.profile.avatar, who.full, "фото профиля", "kr-avatar") }}</div>
+      <h1 class="kr-profile__name" id="kr-name">{{ who.full }}</h1>
+      <p class="kr-profile__position">{{ ui.text(page.profile.position, "должность") }}</p>
+      <p class="kr-profile__city"><span class="kr-pin" aria-hidden="true"></span>{{ ui.text(page.profile.city, "город") }}</p>
+      <div class="kr-profile__actions">
+        <button class="kr-btn kr-btn--primary" type="button" disabled>Подписаться</button>
+        <button class="kr-btn" type="button" disabled>Написать</button>
+      </div>
+      <p class="kr-profile__stats"><b>{{ posts|length }}</b> {{ "публикация" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("публикации" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "публикаций") }}</p>
+    </div>
+  </section>
+
+  <nav class="kr-tabs" aria-label="Разделы профиля">
+    <span class="kr-tabs__item is-current" aria-current="page">Публикации</span>
+    <span class="kr-tabs__item">Фото</span>
+    <span class="kr-tabs__item">Сведения</span>
+  </nav>
+
+  <div class="kr-feed">
+  {% for post in posts %}
+    <article class="kr-post{% if post.geo %} has-geo{% endif %}" data-datetime="{{ post.datetime }}">
+      <header class="kr-post__head">
+        <span class="kr-post__ava">{{ ui.img(media, page.profile.avatar, "", "фото", "kr-ava-sm") }}</span>
+        <span class="kr-post__who">
+          <b class="kr-post__name">{{ who.full }}</b>
+          <span class="kr-post__meta">
+            <time datetime="{{ post.datetime }}" class="kr-post__time">{{ post.datetime|dt }}</time>
+            {%- if post.geo %}<span class="kr-post__geo"><span class="kr-pin" aria-hidden="true"></span>{{ post.geo }}</span>{% endif %}
+          </span>
+        </span>
+      </header>
+      <p class="kr-post__text">{{ ui.text(post.text, "текст публикации") }}</p>
+      {% if post.photo %}
+      <figure class="kr-post__photo">{{ ui.img(media, post.photo, post.text, "фото к публикации", "kr-photo") }}</figure>
+      {% endif %}
+      <footer class="kr-post__actions">
+        <button class="kr-act" type="button" disabled><span class="kr-act__ico kr-act__ico--like" aria-hidden="true"></span>Нравится <b>{{ post.likes }}</b></button>
+        <button class="kr-act" type="button" disabled><span class="kr-act__ico kr-act__ico--comment" aria-hidden="true"></span>Комментарии <b>{{ post.comments|length }}</b></button>
+        <button class="kr-act" type="button" disabled><span class="kr-act__ico kr-act__ico--share" aria-hidden="true"></span>Поделиться</button>
+      </footer>
+      {% if post.comments %}
+      <ul class="kr-comments" role="list">
+        {% for cm in post.comments %}
+        <li class="kr-comment"><b class="kr-comment__author">{{ cm.author }}</b> <span class="kr-comment__text">{{ cm.text }}</span></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </article>
   {% endfor %}
-</section>
+  </div>
+  <p class="kr-foot">© {{ page.brand }}, 2026</p>
+</div>

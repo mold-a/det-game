@@ -1,0 +1,24 @@
+{# Общие макросы фрагментов вымышленных страниц (FORMATS §6.1). Не страница: сборщик рендерит
+   только pages/<slug>.html для slug из content/pages/.
+
+   Заглушки (P06 п.4): значение с «TODO(content)» или отсутствующий файл медиа превращаются
+   в аккуратную серую плашку «Здесь будет …» — классы .ph (блок) и .ph-text (строка) стилизует
+   CSS каждой страницы под свою палитру. #}
+
+{# Есть ли в строке метка незаполненного контента. #}
+{% macro is_todo(value) %}{{ "1" if (value is none or value == "" or "TODO(content)" in value) else "" }}{% endmacro %}
+
+{# Текстовое значение или строчная заглушка «Здесь будет <label>». #}
+{% macro text(value, label) -%}
+{% if is_todo(value) %}<span class="ph-text">Здесь будет {{ label }}</span>{% else %}{{ value }}{% endif %}
+{%- endmacro %}
+
+{# Атрибуты медиа: отсутствующий файл → пустая строка (решает вызывающий через missing()). #}
+{% macro missing(attrs) %}{{ "1" if "data-missing" in attrs else "" }}{% endmacro %}
+
+{# Картинка или блочная заглушка того же места. cls — классы, label — «Здесь будет …». #}
+{% macro img(media, rel, alt, label, cls="", attrs="") -%}
+{% set a = media(rel, alt) %}
+{% if missing(a) %}<span class="ph ph--img {{ cls }}" role="img" aria-label="Здесь будет {{ label }}"><span class="ph__label">Здесь будет {{ label }}</span></span>
+{%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" loading="lazy" decoding="async"{{ attrs }}>{% endif %}
+{%- endmacro %}

@@ -31,6 +31,9 @@ from engine.models import (
     PAGE_MODELS,
     Character,
     CharactersFile,
+    ChatFile,
+    ChatScreen,
+    CallsScreen,
     CloudPage,
     DocFrontMatter,
     Document,
@@ -147,6 +150,7 @@ class Content:
     expertise: ExpertiseFile
     finale: Finale
     pages: dict[str, PageBase]
+    chats: dict[str, ChatFile] = field(default_factory=dict)  # content/chats/<id>.yaml — для печати (P07)
     docs: dict[str, DocFile] = field(default_factory=dict)  # путь .md → документ с front matter
     texts: dict[str, str] = field(default_factory=dict)  # путь .md → текст (тела страниц)
     raw: dict[str, Any] = field(default_factory=dict)  # «content/…yaml» → разобранный YAML
@@ -388,6 +392,7 @@ def load_content(root: Path | str = CONTENT_DIR) -> Content:
     expertise = ld.model("expertise.yaml", ExpertiseFile, ld.read_yaml("expertise.yaml"))
     finale = ld.model("finale.yaml", Finale, ld.read_yaml("finale.yaml"))
     pages = _load_pages(ld)
+    chats = _load_chats(ld)
 
     if characters is not None:
         _check_characters(ld, characters)
@@ -405,6 +410,7 @@ def load_content(root: Path | str = CONTENT_DIR) -> Content:
     _check_doc_ids(ld, docs)
     if pages is not None:
         _check_pages(ld, pages, characters, documents, texts)
+    _check_chats(ld, chats, characters, documents)
 
     for use in media_refs(characters or [], pages or {}, docs, name=ld.name):
         _check_media(ld, use)
@@ -425,6 +431,7 @@ def load_content(root: Path | str = CONTENT_DIR) -> Content:
         expertise=expertise,
         finale=finale,
         pages=pages,
+        chats=chats,
         docs=docs,
         texts=texts,
         raw=ld.raw,
@@ -803,6 +810,62 @@ def _check_doc_ids(ld: _Loading, docs: dict[str, DocFile]) -> None:
             ld.err(path, "front matter.id", f"дубликат id «{df.meta.id}» (уже в {ld.name(seen[df.meta.id])})")
         else:
             seen[df.meta.id] = path
+
+
+def _load_chats(ld: _Loading) -> dict[str, ChatFile]:
+    """``content/chats/<id>.yaml`` — необязательная папка (печать, P07)."""
+    chats: dict[str, ChatFile] = {}
+    cdir = ld.root / "chats"
+    if not cdir.is_dir():
+        return chats
+    for p in sorted(cdir.glob("*.yaml")):
+        rel = f"chats/{p.name}"
+        data = ld.read_yaml(rel)
+        if data is None:
+            continue
+        chat = ld.model(rel, ChatFile, data)
+        if chat is None:
+            continue
+        if chat.id != p.stem:
+            ld.err(rel, "id", f"id «{chat.id}» должен совпадать с именем файла «{p.stem}»")
+            continue
+        chats[chat.id] = chat
+    return chats
+
+
+def _check_chats(ld: _Loading, chats: dict[str, ChatFile], characters: list[Character] | None,
+                 documents: list[Document] | None) -> None:
+    char_ids = {c.id for c in characters} if characters is not None else None
+    doc_ids = {d.id for d in documents} if documents is not None else None
+    for cid, chat in chats.items():
+        rel = f"chats/{cid}.yaml"
+        if doc_ids is not None and cid not in doc_ids:
+            ld.err(rel, "id", f"документа «{cid}» нет в documents.yaml")
+
+        def person(loc: tuple, pid: str | None) -> None:
+            if pid is not None and char_ids is not None and pid not in char_ids:
+                ld.err(rel, loc, f"персонажа «{pid}» нет в characters.yaml")
+
+        for si, sc in enumerate(chat.screens):
+            sloc = ("screens", si)
+            if isinstance(sc, ChatScreen):
+                person((*sloc, "owner"), sc.owner)
+                person((*sloc, "with"), sc.with_)
+                if sc.with_ is None and not sc.title:
+                    ld.err(rel, sloc, "у переписки должно быть with (личный чат) или title (групповой)")
+                for mi, m in enumerate(sc.messages):
+                    person((*sloc, "messages", mi, "from"), m.from_)
+                    if m.from_ is None and not m.name:
+                        ld.err(rel, (*sloc, "messages", mi), "у сообщения должно быть from или name")
+                    if sc.with_ is not None and m.from_ is not None and m.from_ not in (sc.owner, sc.with_):
+                        ld.err(rel, (*sloc, "messages", mi, "from"),
+                               f"«{m.from_}» не участвует в личной переписке {sc.owner} — {sc.with_}")
+            elif isinstance(sc, CallsScreen):
+                person((*sloc, "owner"), sc.owner)
+                for ii, it in enumerate(sc.items):
+                    person((*sloc, "items", ii, "who"), it.who)
+                    if it.who is None and not it.name:
+                        ld.err(rel, (*sloc, "items", ii), "у вызова должно быть who или name")
 
 
 def _load_pages(ld: _Loading) -> dict[str, PageBase] | None:

@@ -1,18 +1,99 @@
-<section class="pg-news">
-  <p class="pg-news__brand">{{ page.brand }}</p>
-  <article class="pg-news__article">
-    <h1>{{ page.article.headline }}</h1>
-    <p><time>{{ page.article.datetime|dt }}</time></p>
-    {% if page.article.photo %}<img {{ media(page.article.photo, page.article.headline) }} alt="">{% endif %}
-    <div class="pg-news__body">{{ page.article.body_html }}</div>
-  </article>
-  <aside class="pg-news__sidebar">
-    {% for item in page.sidebar %}<p><time>{{ item.datetime|dt }}</time> {{ item.title }}</p>{% endfor %}
+{# news — новостной портал «Верхнеречье сегодня» (docs/04: «news»). Открытая страница, без скриптов.
+   Нельзя добавлять своих текстов о причине смерти: всё о событии — только из контента (forbidden
+   проверяет сборщик). Меню, «Войти», «Поделиться», форма комментария — неактивные декорации. #}
+{% import "pages/_ui.html" as ui %}
+{% set art = page.article %}
+<div class="nw">
+  <header class="nw-head">
+    <div class="nw-head__top">
+      <span class="nw-head__date">{{ art.datetime|dt("date") }}</span>
+      <button class="nw-link" type="button" disabled>Войти</button>
+    </div>
+    <div class="nw-head__brand">
+      <span class="nw-logo">{% set parts = page.brand.split(" ", 1) %}<span class="nw-logo__main">{{ parts[0] }}</span>{% if parts|length > 1 %} <span class="nw-logo__tag">{{ parts[1] }}</span>{% endif %}</span>
+    </div>
+    <nav class="nw-nav" aria-label="Рубрики">
+      <span class="nw-nav__item is-current">Главное</span>
+      <span class="nw-nav__item">Город</span>
+      <span class="nw-nav__item">Культура</span>
+      <span class="nw-nav__item">Спорт</span>
+      <span class="nw-nav__item">Афиша</span>
+      <span class="nw-nav__item">Погода</span>
+    </nav>
+  </header>
+
+  {% set ads = page.ads %}
+  <aside class="nw-ad nw-ad--top" aria-label="Реклама">
+    {% if ads %}
+    <div class="nw-banner nw-banner--0"><b class="nw-banner__title">{{ ads[0].title }}</b> <span class="nw-banner__text">{{ ads[0].text }}</span><span class="nw-banner__mark">Реклама</span></div>
+    {% else %}
+    <div class="ph ph--ad"><span class="ph__label">Здесь будет баннер местной фирмы</span></div>
+    {% endif %}
   </aside>
-  <section class="pg-news__comments">
-    {% for cm in page.comments %}<p><b>{{ cm.author }}</b> <time>{{ cm.datetime|dt }}</time> {{ cm.text }}</p>{% endfor %}
-  </section>
-  <aside class="pg-news__ads">
-    {% for ad in page.ads %}<div class="ad"><b>{{ ad.title }}</b> {{ ad.text }}</div>{% endfor %}
-  </aside>
-</section>
+
+  <div class="nw-layout">
+    <div class="nw-main">
+      <article class="nw-article">
+        <p class="nw-article__flags"><span class="nw-urgent">Срочно</span><span class="nw-rubric">Культура</span></p>
+        <h1 class="nw-article__h">{{ art.headline }}</h1>
+        <p class="nw-article__meta"><time datetime="{{ art.datetime }}">{{ art.datetime|dt }}</time></p>
+        {% if art.photo %}
+        <figure class="nw-article__photo">{{ ui.img(media, art.photo, art.headline, "фото к статье", "nw-photo") }}</figure>
+        {% endif %}
+        <div class="nw-article__body">{{ art.body_html }}</div>
+        <div class="nw-share" aria-hidden="true">
+          <span class="nw-share__label">Поделиться:</span>
+          <button class="nw-share__btn" type="button" disabled tabindex="-1">Ссылка</button>
+          <button class="nw-share__btn" type="button" disabled tabindex="-1">Почта</button>
+          <button class="nw-share__btn" type="button" disabled tabindex="-1">Печать</button>
+        </div>
+      </article>
+
+      <section class="nw-comments" aria-labelledby="nw-comments-h">
+        <h2 class="nw-section-h" id="nw-comments-h">Комментарии{% if page.comments %} <span class="nw-count">{{ page.comments|length }}</span>{% endif %}</h2>
+        {% if page.comments %}
+        <ul class="nw-comments__list" role="list">
+          {% for cm in page.comments %}
+          <li class="nw-comment">
+            <p class="nw-comment__head"><b>{{ cm.author }}</b> <time datetime="{{ cm.datetime }}">{{ cm.datetime|dt }}</time></p>
+            <p class="nw-comment__text">{{ cm.text }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="ph ph--block"><span class="ph__label">Здесь будут комментарии читателей</span></div>
+        {% endif %}
+        <div class="nw-comment-form" aria-hidden="true">
+          <span class="nw-comment-form__field">Чтобы оставить комментарий, войдите на портал</span>
+          <button class="nw-btn" type="button" disabled tabindex="-1">Отправить</button>
+        </div>
+      </section>
+    </div>
+
+    <aside class="nw-side" aria-labelledby="nw-side-h">
+      <h2 class="nw-section-h" id="nw-side-h">Новости города</h2>
+      {% if page.sidebar %}
+      <ul class="nw-side__list" role="list">
+        {% for item in page.sidebar %}
+        <li class="nw-side__item"><time datetime="{{ item.datetime }}">{{ item.datetime|dt }}</time><span class="nw-side__title">{{ item.title }}</span></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="ph ph--block"><span class="ph__label">Здесь будут новости города</span></div>
+      {% endif %}
+
+      {% if ads|length > 1 %}
+      {% for ad in ads[1:] %}
+      <div class="nw-banner nw-banner--{{ loop.index % 3 }} nw-banner--side"><b class="nw-banner__title">{{ ad.title }}</b> <span class="nw-banner__text">{{ ad.text }}</span><span class="nw-banner__mark">Реклама</span></div>
+      {% endfor %}
+      {% elif not ads %}
+      <div class="ph ph--ad ph--side"><span class="ph__label">Здесь будет баннер местной фирмы</span></div>
+      {% endif %}
+    </aside>
+  </div>
+
+  <footer class="nw-foot">
+    <span class="nw-foot__brand">{{ page.brand }}</span>
+    <span>Городской портал. 16+</span>
+  </footer>
+</div>

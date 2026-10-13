@@ -158,6 +158,7 @@
 }
 
 .blank__signs {
+  max-width: 30rem;
   display: grid;
   gap: var(--sp-4);
   margin-top: var(--sp-6);

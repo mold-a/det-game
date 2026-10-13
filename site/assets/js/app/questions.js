@@ -102,7 +102,9 @@ function personGrid(pool, characters, multi, name, labelledBy) {
   const withPhotos = pool.some((id) => characters[id]?.photo?.src);
   if (!withPhotos) {
     const options = pool.map((id) => ({ id, text: characters[id]?.full ?? id }));
-    return choiceList(options, multi, name, labelledBy);
+    const list = choiceList(options, multi, name, labelledBy);
+    list.el.classList.add("options--cols"); // длинный список ФИО — в две колонки на широком экране
+    return list;
   }
   const inputs = [];
   const grid = h(
@@ -151,8 +153,12 @@ export function displayValue(spec, value, ctx = {}) {
       return ids(value).map((id) => spec.options?.find((o) => o.id === id)?.text ?? id).join("; ");
     case "person":
       return chars[value]?.full ?? String(value);
-    case "persons":
-      return ids(value).map((id) => chars[id]?.full ?? id).join(", ");
+    case "persons": {
+      // Порядок пула (как в верном ответе развязки), а не порядок ID.
+      const pool = spec.pool ?? [];
+      const rank = (id) => (pool.includes(id) ? pool.indexOf(id) : pool.length);
+      return ids(value).sort((a, b) => rank(a) - rank(b)).map((id) => chars[id]?.full ?? id).join(", ");
+    }
     case "document": {
       const d = docs.find((x) => x.id === value);
       return d ? `${d.id} — ${d.title}` : String(value);

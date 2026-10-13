@@ -6,6 +6,18 @@
 
 /* ================================================================== шапка-папка */
 
+/* Липкая шапка не должна закрывать элемент, к которому прокрутили или перевели
+   фокус (WCAG 2.4.11): запас сверху = высота шапки. */
+html:has(.app-header) {
+  scroll-padding-top: 7rem;
+}
+
+@media (min-width: 900px) {
+  html:has(.app-header) {
+    scroll-padding-top: 5.5rem;
+  }
+}
+
 .app-header {
   position: sticky;
   top: 0;
@@ -257,10 +269,6 @@
     justify-content: center;
     align-items: start;
     gap: var(--sp-6);
-  }
-  .side {
-    position: sticky;
-    top: 84px; /* под липкой шапкой */
   }
 }
 
@@ -1309,6 +1317,16 @@ img.media-missing {
   width: min(100%, 52rem);
 }
 
+/* Название документа есть в самом бланке; заголовок окна — для дикторов. */
+.modal--doc .modal__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .doc-view__body {
   max-width: none;
 }
@@ -1550,4 +1568,12 @@ img.media-missing {
 .fates__item {
   padding: var(--sp-3) 0;
   border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 600px) {
+  .options--cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--sp-5);
+  }
 }

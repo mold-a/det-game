@@ -4,7 +4,8 @@
 <article class="blank blank--{{ form }}"{% if doc_id %} data-doc="{{ doc_id }}"{% endif %}>
   <header class="blank__head">
     <p class="blank__org">{% block kind %}{% endblock %}</p>
-    {% if doc_id %}<p class="blank__no">№&nbsp;{{ doc_id }}</p>{% endif %}
+    {# Номер — у документов реестра; у документов развязки (R-…, PLAN A5) номера нет. #}
+    {% if doc_id and not doc_id.startswith("R-") %}<p class="blank__no">№&nbsp;{{ doc_id }}</p>{% endif %}
     <h1 class="blank__title">{{ title }}</h1>
   </header>
   <div class="blank__body">

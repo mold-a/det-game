@@ -20,10 +20,6 @@ let game = null;
 let header = null;
 let els = {};
 
-if (ctx) {
-  ctx.store.onExternalChange(() => start());
-  await start();
-}
 
 async function verify(s) {
   try {
@@ -230,4 +226,10 @@ function renderArchive() {
     );
   }
   archive.appendChild(list);
+}
+
+// Запуск — в конце модуля: все объявления выше уже инициализированы.
+if (ctx) {
+  ctx.store.onExternalChange(() => start());
+  await start();
 }
