@@ -27,6 +27,7 @@ from engine.models import (
     ID_PATTERN,
     ID_TYPES,
     LIST_TYPES,
+    MEDIA_MIME,
     PAGE_MODELS,
     Character,
     CharactersFile,
@@ -404,6 +405,9 @@ def load_content(root: Path | str = CONTENT_DIR) -> Content:
     _check_doc_ids(ld, docs)
     if pages is not None:
         _check_pages(ld, pages, characters, documents, texts)
+
+    for use in media_refs(characters or [], pages or {}, docs, name=ld.name):
+        _check_media(ld, use)
 
     if characters is not None and world is not None:
         _check_templates(ld, characters, world, docs, texts)
@@ -883,6 +887,67 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
             ld.err(rel, "profile.person", f"персонажа «{profile.person}» нет в characters.yaml")
         if isinstance(page, NewsPage):
             body(rel, ("article", "body"), page.article.body)
+
+
+@dataclass(frozen=True)
+class MediaUse:
+    """Ссылка на файл из ``media/``: где упомянут (файл, путь до поля) и в каком контексте.
+
+    ``context``: ``portrait`` — портрет персонажа (всегда открытый, решение 5);
+    ``open`` — открытая страница; ``locked`` — закрытая страница или документ (шифруется).
+    """
+
+    file: str
+    loc: str
+    path: str
+    context: str
+
+
+def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: dict[str, DocFile],
+               *, name=lambda rel: f"content/{rel}") -> list[MediaUse]:
+    """Все ссылки на медиа в контенте (пути относительно ``media/``)."""
+    out: list[MediaUse] = []
+    for i, ch in enumerate(characters):
+        if ch.photo:
+            out.append(MediaUse(name("characters.yaml"), format_loc(("characters", i, "photo")), ch.photo,
+                                "portrait"))
+    for slug, page in pages.items():
+        f = name(f"pages/{slug}/page.yaml")
+        ctx = "open" if page.locked is False else "locked"
+        refs: list[tuple[tuple, str | None]] = []
+        for attr in ("audio", "video"):
+            refs.append(((attr,), getattr(page, attr, None)))
+        profile = getattr(page, "profile", None)
+        if profile is not None:
+            for attr in ("avatar", "cover"):
+                refs.append((("profile", attr), getattr(profile, attr, None)))
+        for pi, post in enumerate(getattr(page, "posts", None) or []):
+            refs.append((("posts", pi, "photo"), getattr(post, "photo", None)))
+        article = getattr(page, "article", None)
+        if article is not None:
+            refs.append((("article", "photo"), article.photo))
+        for loc, value in refs:
+            if value:
+                out.append(MediaUse(f, format_loc(loc), value, ctx))
+    for path, df in docs.items():
+        if df.meta is not None:
+            for mi, value in enumerate(df.meta.media):
+                out.append(MediaUse(name(path), format_loc(("front matter", "media", mi)), value, "locked"))
+    return out
+
+
+def _check_media(ld: _Loading, use: MediaUse) -> None:
+    """Путь медиа: относительный внутри media/, расширение из FORMATS §5. Отсутствие файла — не ошибка."""
+    v = use.path
+    parts = v.replace("\\", "/").split("/")
+    if v.startswith("/") or "\\" in v or ".." in parts or ":" in v:
+        ld.errors.append(ContentIssue(use.file, use.loc, f"путь медиа «{v}» должен быть относительным "
+                                                         "внутри media/ (через «/», без «..»)"))
+        return
+    ext = Path(v).suffix.lower()
+    if ext not in MEDIA_MIME:
+        ld.errors.append(ContentIssue(use.file, use.loc, f"расширение «{ext or '(нет)'}» у «{v}» не поддерживается; "
+                                                         f"допустимы: {', '.join(MEDIA_MIME)}"))
 
 
 def _check_templates(ld: _Loading, characters: list[Character], world: dict,
