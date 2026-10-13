@@ -36,6 +36,7 @@ from engine import salts as salts_mod
 from engine.content import TODO_MARK, Content, Todo, load_content, paper_todos
 from engine.media import MEDIA_DIR
 from engine.templating import make_context, render, render_tree
+from engine.util import format_loc
 
 PRINT_PAPER = ROOT / "print" / "paper"
 TEMPLATE = "print/paper/_base.html"
@@ -121,18 +122,22 @@ def wants_qr(content: Content, doc_id: str) -> bool:
     return d.page is not None and (flag if flag is not None else True)
 
 
-def paper_texts(content: Content, ctx: dict | None = None) -> list[tuple[str, str]]:
-    """Отрендеренные тексты бумаги ``[(источник, текст)]`` — иголки check (шинглы, как у закрытых
-    текстов). Каждое строковое поле front matter и тело — отдельно (шинглы не идут через поля)."""
+def paper_texts(content: Content, ctx: dict | None = None) -> list[tuple[str, str, int]]:
+    """Отрендеренные тексты бумаги ``[(источник, текст, конверт)]`` — иголки leak scan (шинглы, как у
+    закрытых текстов: бумага не публикуется). Тело и каждое строковое поле front matter — отдельно
+    (шинглы не идут через границы полей)."""
     from engine.util import iter_strings
 
     ctx = ctx or make_context(content)
-    out: list[tuple[str, str]] = []
-    for pf in content.paper.values():
+    out: list[tuple[str, str, int]] = []
+    docs = content.documents_by_id
+    for doc_id, pf in content.paper.items():
         src = f"content/{pf.path}"
-        out.append((src, render(pf.body, ctx, f"{src}: текст")))
-        for loc, s in iter_strings({k: v for k, v in pf.meta_raw.items() if k not in ("id", "form", "media")}):
-            out.append((src, render(s, ctx, src)))
+        stage = docs[doc_id].stage
+        out.append((src, render(pf.body, ctx, f"{src}: текст"), stage))
+        fields = {k: v for k, v in pf.meta_raw.items() if k not in ("id", "form", "media")}
+        for loc, s in iter_strings(fields, ("front matter",)):
+            out.append((src, render(s, ctx, f"{src}: {format_loc(loc)}"), stage))
     return out
 
 

@@ -31,7 +31,7 @@ def test_help_lists_all_commands():
 def test_expected_command_set():
     assert set(ALL_COMMANDS) == {
         "build", "check", "serve", "qr", "answers", "names", "vectors",
-        "rotate-salts", "chatshot", "import-cast", "release", "dump-answers",
+        "rotate-salts", "chatshot", "paper", "import-cast", "release", "dump-answers",
     }
 
 

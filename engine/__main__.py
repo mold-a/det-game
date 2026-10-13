@@ -26,6 +26,7 @@ PLANNED_STEP = {
     "qr": "P07",
     "answers": "P07",
     "chatshot": "P07",
+    "paper": "P07",
     "release": "P08",
     "import-cast": "P09",
 }
@@ -50,6 +51,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("qr", help="QR-коды для печати → print/qr/")
     sub.add_parser("answers", help="«Аварийный конверт» с ответами → print/answers.pdf")
     sub.add_parser("chatshot", help="«скриншоты» переписок для печати → print/chats/")
+    p = sub.add_parser("paper", help="бумажные документы конвертов из content/paper/ → print/paper/ (PDF)")
+    p.add_argument("--only", nargs="+", metavar="ID", default=None,
+                   help="только эти документы (без сборников конвертов)")
+    p.add_argument("--release", action="store_true",
+                   help="печать для игры: нет текста, TODO(content), нет медиа — ошибка")
     sub.add_parser("names", help="таблица падежных форм всех персонажей")
 
     p = sub.add_parser("import-cast", help="имена из таблицы персонажей → content/characters.yaml")
@@ -99,6 +105,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_qr()
     if args.command == "chatshot":
         return cmd_chatshot()
+    if args.command == "paper":
+        return cmd_paper(args.only, args.release)
     if args.command == "answers":
         return cmd_answers()
     if args.command == "release":
@@ -243,6 +251,31 @@ def cmd_chatshot() -> int:
         for p in paths:
             print(f"  {p}")
         print(f"Скриншоты переписок: {len(paths)} PNG 1080×2340")
+        return 0
+
+    return _guarded_print(run)
+
+
+def cmd_paper(only: list[str] | None, release: bool) -> int:
+    from engine.paper import PaperError
+    from engine.paper import run as paper_run
+
+    def run() -> int:
+        try:
+            rep = paper_run(only=only, release=release)
+        except PaperError as e:
+            print(str(e), file=sys.stderr)
+            return EXIT_CONTENT_ERROR
+        print(rep.table())
+        out = rep.rows[0].pdf.parent if rep.rows else None
+        print(f"Бумажные документы: {len(rep.rows)} PDF в {out}; превью — {out / 'preview' if out else '—'}")
+        for p in rep.envelopes:
+            print(f"  сборник: {p}")
+        stubs = sum(1 for r in rep.rows if r.form == "stub")
+        if stubs:
+            print(f"Нет текста у {stubs} документов — напечатаны заглушки; с --release это ошибка.")
+        for w in rep.warnings:
+            print(f"ВНИМАНИЕ: {w}", file=sys.stderr)
         return 0
 
     return _guarded_print(run)

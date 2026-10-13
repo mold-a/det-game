@@ -21,9 +21,8 @@ from engine.importcast import apply_edits, format_report, import_cast
 from engine.names import patronymic_gender
 
 CAST_HEADERS = ["№", "  роль (рабочее  имя) ", "Комментарий", "ФИО в документах", "ВОЗРАСТ в игре"]
-BG_HEADERS = ["Кто", "Подсказка", "Имя (заполни)"]
+BG_HEADERS = ["Кто", "Где упоминается", "Имя (заполни)", "Можно родственника?"]
 EXAMPLE_CAST = ["0", "Пример роли", "пример", "Иванов Иван Иванович", 40]
-EXAMPLE_BG = ["Пример фона", "", "Анна Петрова"]
 
 
 @pytest.fixture()
@@ -58,7 +57,7 @@ def identity_rows(root: Path) -> tuple[dict[str, list], dict[str, list]]:
                     name = f"{ch.last} {ch.first} {ch.middle}"
             if "TODO" in name:
                 name = "Алиса" if ch.father else "Пётр Сидоров" if ch.gender == "m" else "Анна Сидорова"
-            bg[ch.id] = [ch.working, "", name]
+            bg[ch.id] = [ch.working, "", name, "Да"]
         else:
             name = f"{ch.last} {ch.first} {ch.middle}".strip()
             cast[ch.id] = [str(len(cast) + 1), ch.working, "", name, ch.age]
@@ -68,7 +67,7 @@ def identity_rows(root: Path) -> tuple[dict[str, list], dict[str, list]]:
 def write_xlsx(path: Path, cast: dict[str, list] | list[list], bg: dict[str, list] | list[list], *,
                cast_title: str = "Персонажи", bg_title: str = "Фоновые имена",
                cast_headers: list[str] = CAST_HEADERS, bg_headers: list[str] = BG_HEADERS,
-               example_cast: list = EXAMPLE_CAST, example_bg: list = EXAMPLE_BG,
+               example_cast: list = EXAMPLE_CAST,
                extra_sheets: tuple[str, ...] = ()) -> Path:
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -79,10 +78,8 @@ def write_xlsx(path: Path, cast: dict[str, list] | list[list], bg: dict[str, lis
     for row in (cast.values() if isinstance(cast, dict) else cast):
         ws.append(row)
     if bg_title:
-        ws = wb.create_sheet(bg_title)
-        ws.append(["Фоновые имена"])
+        ws = wb.create_sheet(bg_title)  # заголовки в 1-й строке, данные со 2-й, без примера
         ws.append(bg_headers)
-        ws.append(example_bg)
         for row in (bg.values() if isinstance(bg, dict) else bg):
             ws.append(row)
     for title in extra_sheets:
@@ -143,6 +140,16 @@ def test_key_character_import(tmp_path, content):
                                         "middle": ("Викторович", "Петрович"), "age": (61, 70)}}
     assert '+    last: "Петров"' in rep.diff()
     assert (content / "characters.yaml").read_bytes() == before  # dry-run
+
+
+def test_background_sheet_layout_header_row_1(tmp_path, content):
+    # «Фоновые имена»: данные начинаются сразу со 2-й строки — первая строка данных не пропускается
+    cast, bg = identity_rows(content)
+    first = next(iter(bg))
+    bg[first][2] = "Зоя Ким"
+    rep = import_cast(write_xlsx(tmp_path / "t.xlsx", cast, bg), content_root=content)
+    assert rep.ok, problems(rep)
+    assert rep.changes[first]["first"][1] == "Зоя"
 
 
 def test_background_character_import(tmp_path, content):
@@ -286,12 +293,31 @@ def test_bad_age_and_duplicate_row(tmp_path, content):
     assert "встречается в таблице несколько раз" in text
 
 
+def test_empty_background_name(tmp_path, content):
+    # пусто + в content настоящее имя → остаётся (предупреждение); пусто + TODO(content) → проблема
+    cast, bg = identity_rows(content)
+    bg["rodionov_director"][2] = None
+    rep = import_cast(write_xlsx(tmp_path / "t.xlsx", cast, bg), content_root=content)
+    assert rep.ok, problems(rep)
+    assert any("имя не заполнено — остаётся «Родионов Геннадий Павлович»" in str(w) for w in rep.warnings)
+
+    raw = tmp_path / "raw"
+    shutil.copytree(CONTENT_DIR, raw)
+    cast, bg = identity_rows(raw)
+    bg["paramedic"][2] = None
+    rep = import_cast(write_xlsx(tmp_path / "t2.xlsx", cast, bg), content_root=raw)
+    assert "Фоновые имена!C" in problems(rep) and "не заполнено имя" in problems(rep)
+
+
 def test_unknown_row_is_warning(tmp_path, content):
     cast, bg = identity_rows(content)
     cast["x"] = ["50", "Неизвестная роль", "", "Петров Пётр Петрович", 30]
+    cast["total"] = ["", "Ролей заполнено:", "17 из 17", None, None]  # итоговая строка без имени — молча
     rep = import_cast(write_xlsx(tmp_path / "t.xlsx", cast, bg), content_root=content)
     assert rep.ok, problems(rep)
-    assert any("«Неизвестная роль» не сопоставлена" in str(w) for w in rep.warnings)
+    assert [str(w) for w in rep.warnings] == [
+        "t.xlsx: Персонажи!" + str(4 + len(cast) - 2)
+        + ": строка «Неизвестная роль» не сопоставлена ни с одним персонажем (working в characters.yaml)"]
 
 
 # ---------------------------------------------------------------- запись

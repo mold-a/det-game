@@ -189,7 +189,7 @@ tests/
   test_content_validation.py test_names.py test_salts.py test_build.py
   test_leakscan.py test_check.py                                                       P03
   test_print.py                                                                        P07
-  test_import_cast.py                                                                  P09
+  test_importcast.py                                                                   P09
   vectors/normalize.json (руками) vectors/crypto.json (engine vectors)                 P02
   js/smoke.test.mjs                                                                    P01
   js/normalize.test.mjs crypto.test.mjs make_vectors.mjs bench_pbkdf2.mjs              P02

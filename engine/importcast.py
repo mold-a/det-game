@@ -1,7 +1,8 @@
 """``python -m engine import-cast <xlsx>`` — настоящие имена из таблицы персонажей (P09 п.1).
 
 Таблица версии от 11.10.2026 (``SHEETS``): лист «Персонажи» — заголовки во 2-й строке,
-3-я — пример (пропускается), данные с 4-й; лист «Фоновые имена» — так же. Колонки ищутся
+3-я — пример (пропускается), данные с 4-й; лист «Фоновые имена» — заголовки в 1-й строке,
+данные со 2-й. Колонки ищутся
 по названию заголовка (``engine.normalize.base``: без учёта регистра, ё/е, пунктуации и
 лишних пробелов), строка ↔ персонаж — по ``working`` (то же сравнение).
 
@@ -52,17 +53,19 @@ class SheetSpec:
     kind: str  # cast — «Персонажи» (ФИО + возраст); background — «Фоновые имена»
     title: str
     header_row: int
-    example_row: int
-    first_row: int
+    first_row: int  # первая строка данных; строки между заголовком и ней — примеры
     key: str  # колонка с рабочим именем (= working)
     name: str  # колонка с именем
     age: str | None = None  # колонка с возрастом
 
 
 # Таблица версии от 11.10.2026.
-CAST_SHEET = SheetSpec("cast", "Персонажи", header_row=2, example_row=3, first_row=4,
+# «Персонажи»: строка 1 — шапка разделов, 2 — заголовки, 3 — пример, данные с 4-й.
+CAST_SHEET = SheetSpec("cast", "Персонажи", header_row=2, first_row=4,
                        key="Роль (рабочее имя)", name="ФИО в документах", age="Возраст в игре")
-BACKGROUND_SHEET = SheetSpec("background", "Фоновые имена", header_row=2, example_row=3, first_row=4,
+# «Фоновые имена»: заголовки в 1-й строке, данные со 2-й, примера нет
+# (как в sources/cast-2026-10-14.xlsx — выгрузке этой версии таблицы).
+BACKGROUND_SHEET = SheetSpec("background", "Фоновые имена", header_row=1, first_row=2,
                              key="Кто", name="Имя (заполни)")
 SHEETS: tuple[SheetSpec, ...] = (CAST_SHEET, BACKGROUND_SHEET)
 BACKGROUND_IMPORTANCE = "background"  # их строка ищется сначала на листе «Фоновые имена»
@@ -179,7 +182,7 @@ def _read_sheets(xlsx: Path, rep: ImportReport) -> dict[str, list[TableRow]]:
         rows: list[TableRow] = []
         kc, nc = cols[spec.key], cols[spec.name]
         ac = cols.get(spec.age) if spec.age else None
-        for r in range(spec.example_row, ws.max_row + 1):
+        for r in range(spec.header_row + 1, ws.max_row + 1):
             working = _cell_text(ws.cell(r, kc).value)
             value = ws.cell(r, nc).value
             age = ws.cell(r, ac).value if ac else None
@@ -224,7 +227,11 @@ def _parse_name(row: TableRow, ch: Character, xlsx: str, rep: ImportReport) -> P
     text = _cell_text(row.name)
     where = row.where(xlsx)
     if not text:
-        rep.problems.append(Issue(where, "не заполнено имя"))
+        current = f"{ch.last} {ch.first} {ch.middle or ''}".strip()
+        if row.sheet.kind == "background" and TODO_MARK not in current:
+            rep.warnings.append(Issue(where, f"имя не заполнено — остаётся «{current}»"))
+        else:
+            rep.problems.append(Issue(where, "не заполнено имя"))
         return None
     parts = text.split(" ")
     child = ch.father is not None
@@ -248,8 +255,16 @@ def _parse_name(row: TableRow, ch: Character, xlsx: str, rep: ImportReport) -> P
         expect = "«Имя Фамилия» или «Фамилия Имя Отчество»"
     else:
         expect = "«Фамилия Имя Отчество» (3 части)"
-    rep.problems.append(Issue(where, f"«{text}» не разбирается: {n} част{'ь' if n == 1 else 'и'}, ожидается {expect}"))
+    rep.problems.append(Issue(where, f"«{text}» не разбирается: {n} {_parts_word(n)}, ожидается {expect}"))
     return None
+
+
+def _parts_word(n: int) -> str:
+    if n % 10 == 1 and n % 100 != 11:
+        return "часть"
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return "части"
+    return "частей"
 
 
 def _parse_age(row: TableRow, xlsx: str, rep: ImportReport) -> int | None:
@@ -340,8 +355,8 @@ def _build(characters: list[Character], table: dict[str, list[TableRow]], xlsx: 
         for row in rows:
             if row.row >= row.sheet.first_row and id(row) not in used:
                 cast_false = [c for c in keys.get(base(row.working), []) if not by_id[c].cast]
-                if cast_false:
-                    continue  # строка вымышленного персонажа — не ищется и не считается лишней
+                if cast_false or not _cell_text(row.name):
+                    continue  # вымышленный персонаж (не ищется) или строка без имени (итоги и т. п.)
                 rep.warnings.append(Issue(f"{xlsx}: {row.sheet.title}!{row.row}",
                                           f"строка «{row.working}» не сопоставлена ни с одним персонажем "
                                           f"(working в {CHARACTERS_FILE})"))
@@ -813,7 +828,7 @@ def format_report(rep: ImportReport, write: bool) -> tuple[str, str]:
         if d:
             out.append("")
             if rep.problems:
-                out.append("Предварительный diff (без персонажей с проблемами):")
+                out.append("Предварительный diff (файл не записан; персонажи, чьи строки не разобраны, не включены):")
             out.append(d.rstrip("\n"))
     else:
         out.append("Изменений нет: characters.yaml уже совпадает с таблицей.")

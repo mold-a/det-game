@@ -245,6 +245,12 @@ def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path
             ns.add(pw, "password", "content/pages/cloud/page.yaml: password", raw=pw, stage=st)
     for source, text, stage in secret_texts(prep, dec):
         ns.add_text(text, "text", source, stage=stage)
+    # Бумага конвертов (content/paper/) не публикуется: её шинглы в dist/ — утечка; в открытом
+    # тексте pack-1 допустима только бумага конверта 1 (иголки этапа 1 там не ищутся).
+    from engine.paper import paper_texts
+
+    for source, text, stage in paper_texts(content, ctx):
+        ns.add_text(text, "paper", source, stage=stage)
     return ns
 
 
@@ -521,8 +527,10 @@ def check(
                 if nv is not None and nv in prep.expanded[u.path].variants:
                     problems.append(f"нейтральный пример «{ex}» совпадает с ответом {u.path}")
     short = ", ".join(sorted({v for v, _ in ns.short})) or "—"
+    n_paper = sum(1 for nd in ns.shingles.values() if nd.kind == "paper")
     rep.add("7. Leak scan", problems,
-            f"иголок: {len(ns.needles)} значений + {len(ns.shingles)} шинглов, примеров интерфейса: {len(examples)}; "
+            f"иголок: {len(ns.needles)} значений + {len(ns.shingles)} шинглов (из них бумаги content/paper: "
+            f"{n_paper}), примеров интерфейса: {len(examples)}; "
             f"не ищутся (короче 4 символов): «{short}»")
 
     # 8. Заглушки

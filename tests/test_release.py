@@ -45,6 +45,12 @@ def complete_copy(tmp_path: Path) -> tuple[Path, Path]:
         rel = m.text.split("нет файла ", 1)[1].split(" —", 1)[0].removeprefix("content/")
         (cdir / rel).parent.mkdir(parents=True, exist_ok=True)
         (cdir / rel).write_text(f"Текст страницы {next(counter)}.\n", encoding="utf-8")
+    for d in c.documents:  # тексты бумажных документов, которых нет (content/paper/<id>.md)
+        if d.kind == "paper" and d.id not in c.paper:
+            form = "chat" if d.id in c.chats else "protocol"
+            (cdir / "paper").mkdir(exist_ok=True)
+            (cdir / "paper" / f"{d.id}.md").write_text(
+                f'---\nid: "{d.id}"\nform: {form}\n---\nТекст бумажного документа {next(counter)}.\n', encoding="utf-8")
     media = tmp_path / "media"
     c = load_content(cdir)
     for use in media_refs(c.characters, c.pages, c.docs):
