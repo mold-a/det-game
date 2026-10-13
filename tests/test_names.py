@@ -126,3 +126,137 @@ def test_cli_names():
     assert res.returncode == 0, res.stderr.decode("utf-8", "replace")
     out = res.stdout.decode("utf-8")
     assert "Завьялова" in out and "Гнедич" in out and "TODO(content)" in out
+
+
+# ---------------------------------------------------------------- фамилия и отчество от отца
+
+from engine.names import DERIVED_MARK, patronymic_for, surname_for  # noqa: E402
+
+PATRONYMICS = [
+    # имя отца, мужское, женское
+    ("Иван", "Иванович", "Ивановна"),
+    ("Олег", "Олегович", "Олеговна"),
+    ("Константин", "Константинович", "Константиновна"),
+    ("Виктор", "Викторович", "Викторовна"),
+    ("Артём", "Артёмович", "Артёмовна"),
+    ("Даниил", "Даниилович", "Данииловна"),
+    ("Сергей", "Сергеевич", "Сергеевна"),
+    ("Андрей", "Андреевич", "Андреевна"),
+    ("Алексей", "Алексеевич", "Алексеевна"),
+    ("Матвей", "Матвеевич", "Матвеевна"),
+    ("Тимофей", "Тимофеевич", "Тимофеевна"),
+    ("Николай", "Николаевич", "Николаевна"),
+    ("Евгений", "Евгеньевич", "Евгеньевна"),
+    ("Аркадий", "Аркадьевич", "Аркадьевна"),
+    ("Анатолий", "Анатольевич", "Анатольевна"),
+    ("Юрий", "Юрьевич", "Юрьевна"),
+    ("Виталий", "Витальевич", "Витальевна"),
+    ("Геннадий", "Геннадьевич", "Геннадьевна"),
+    ("Валерий", "Валерьевич", "Валерьевна"),
+    ("Василий", "Васильевич", "Васильевна"),
+    ("Григорий", "Григорьевич", "Григорьевна"),
+    ("Арсений", "Арсеньевич", "Арсеньевна"),
+    ("Дмитрий", "Дмитриевич", "Дмитриевна"),
+    ("Георгий", "Георгиевич", "Георгиевна"),
+    ("Игорь", "Игоревич", "Игоревна"),
+    ("Илья", "Ильич", "Ильинична"),
+    ("Никита", "Никитич", "Никитична"),
+    ("Фома", "Фомич", "Фоминична"),
+    ("Кузьма", "Кузьмич", "Кузьминична"),
+    ("Лука", "Лукич", "Лукинична"),
+    ("Савва", "Саввич", "Саввична"),
+    ("Павел", "Павлович", "Павловна"),
+    ("Лев", "Львович", "Львовна"),
+    ("Пётр", "Петрович", "Петровна"),
+    ("Петр", "Петрович", "Петровна"),
+    ("Яков", "Яковлевич", "Яковлевна"),
+    ("Михаил", "Михайлович", "Михайловна"),
+]
+
+
+@pytest.mark.parametrize(("name", "m", "f"), PATRONYMICS)
+def test_patronymic_for(name, m, f):
+    assert patronymic_for(name, "m") == m
+    assert patronymic_for(name, "f") == f
+
+
+def test_patronymic_for_count():
+    assert len(PATRONYMICS) >= 30
+
+
+@pytest.mark.parametrize("name", ["Шота", "Миша", "Марко", "Ли", "Анна-Мария", "иван", "Ivan", "",
+                                  "TODO(content)", "Иван Петрович"])
+def test_patronymic_for_unknown_raises(name):
+    with pytest.raises(DeclensionError, match="укажите отчество вручную в forms"):
+        patronymic_for(name, "m")
+
+
+SURNAMES = [
+    # мужская, женская
+    ("Воронцов", "Воронцова"),
+    ("Беляев", "Беляева"),
+    ("Королёв", "Королёва"),
+    ("Пушкин", "Пушкина"),
+    ("Лёвин", "Лёвина"),
+    ("Солженицын", "Солженицына"),
+    ("Достоевский", "Достоевская"),
+    ("Вольский", "Вольская"),
+    ("Высоцкий", "Высоцкая"),
+    ("Римский-Корсаков", "Римская-Корсакова"),
+    ("ИВАНОВ", "ИВАНОВА"),
+]
+SURNAMES_FIXED = ["Гнедич", "Шевченко", "Черных", "Долгих", "Гоголь", "Дюма", "Цой", "Толстой", "Ов", "Мельник"]
+
+
+@pytest.mark.parametrize(("m", "f"), SURNAMES)
+def test_surname_for(m, f):
+    assert surname_for(m, "f") == f
+    assert surname_for(m, "m") == m
+    assert surname_for(f, "m", source_gender="f") == m
+    assert surname_for(f, "f", source_gender="f") == f
+
+
+@pytest.mark.parametrize("last", SURNAMES_FIXED)
+def test_surname_for_unchanged(last):
+    assert surname_for(last, "f") == last
+    assert surname_for(last, "m", source_gender="f") == last
+
+
+def test_surname_for_skoy_and_bad_gender():
+    assert surname_for("Трубецкой", "f") == "Трубецкая"
+    assert surname_for("Луговской", "f") == "Луговская"
+    assert surname_for("", "f") == ""
+    with pytest.raises(DeclensionError):
+        surname_for("Иванов", "x")
+    with pytest.raises(DeclensionError):
+        patronymic_for("Иван", "x")
+
+
+def test_names_table_marks_derived():
+    father = ch(id="dad", last="Воронцов", first="Иван", middle="Сергеевич", familiar="Ваня")
+    kid = ch(id="kid", last="Воронцова", first="Марина", middle="Ивановна", gender="f", father="dad")
+    rows = {(r["id"], r["part"]): r for r in names_table([father, kid])}
+    assert rows[("kid", "last")]["derived"] and rows[("kid", "middle")]["derived"]
+    assert not rows[("kid", "first")]["derived"] and not rows[("dad", "last")]["derived"]
+    text = format_names_table([father, kid])
+    assert f"last {DERIVED_MARK}" in text and f"middle {DERIVED_MARK}" in text
+    assert "familiar: Ваня" in text and f"{DERIVED_MARK} father: dad" in text
+
+
+def test_new_character_fields_schema():
+    c = ch()
+    assert c.father is None and c.familiar is None and c.cast is True
+    assert ch(cast=False).cast is False
+    with pytest.raises(Exception):
+        ch(familiar="  ")
+    with pytest.raises(Exception):
+        ch(father="Bad Id")
+    with pytest.raises(Exception):
+        ch(cast="нет")
+
+
+def test_template_familiar():
+    ctx = make_context(characters=[ch(id="dad", familiar="Ваня"), ch(id="kid")], world={})
+    assert render("{{ c.dad.familiar }}, привет", ctx) == "Ваня, привет"
+    with pytest.raises(RenderError, match="у персонажа «kid» нет familiar"):
+        render("{{ c.kid.familiar }}", ctx, "x.yaml: a")

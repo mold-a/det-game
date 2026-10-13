@@ -433,3 +433,82 @@ def test_missing_media_is_not_error():
     refs = media_refs(c.characters, c.pages, c.docs)
     assert {r.context for r in refs} == {"portrait", "open", "locked"}
     assert any(r.path == "lab/station_cam.jpg" and r.context == "locked" for r in refs)
+
+
+# ---------------------------------------------------------------- father: фамилия и отчество от отца
+
+
+def test_father_current_content_consistent():
+    c = load_content(CONTENT)
+    by_id = c.characters_by_id
+    kids = [ch for ch in c.characters if ch.father]
+    assert kids, "в characters.yaml нет персонажей с father"
+    for ch in kids:
+        assert by_id[ch.father].gender == "m"
+
+
+def test_father_wrong_patronymic_and_surname(root):
+    def fn(d):
+        i = find(d["characters"], "marina")
+        d["characters"][i]["middle"] = "Петровна"
+        d["characters"][i]["last"] = "Воронцов"
+    edit_yaml(root, "characters.yaml", fn)
+    errs = assert_error(root, "content/characters.yaml: characters[", "].middle:", "указано «Петровна»",
+                        "ожидается «Ивановна»", "forms.middle.nom")
+    assert any("].last:" in e and "ожидается «Воронцова»" in e for e in errs)
+
+
+def test_father_follows_renamed_father(root):
+    # отца переименовали — у дочерей отчество и фамилия устарели
+    def fn(d):
+        i = find(d["characters"], "voroncov")
+        d["characters"][i]["first"] = "Пётр"
+        d["characters"][i]["last"] = "Достоевский"
+    edit_yaml(root, "characters.yaml", fn)
+    errs = assert_error(root, "].middle:", "ожидается «Петровна»", "«voroncov»")
+    assert any("].last:" in e and "ожидается «Достоевская»" in e for e in errs)
+
+
+def test_father_manual_nom_form_wins(root):
+    def fn(d):
+        i = find(d["characters"], "voroncov")
+        d["characters"][i]["first"] = "Шота"
+        for kid in ("marina", "marina_sister"):
+            k = find(d["characters"], kid)
+            d["characters"][k]["middle"] = "Шотаевна"
+            d["characters"][k]["forms"] = {"middle": {"nom": "Шотаевна"}}
+    edit_yaml(root, "characters.yaml", fn)
+    load_content(root)
+
+
+def test_father_underivable_name(root):
+    edit_yaml(root, "characters.yaml",
+              lambda d: d["characters"][find(d["characters"], "voroncov")].update(first="Шота"))
+    assert_error(root, "].middle:", "не удалось вывести отчество от имени «Шота»", "укажите отчество вручную в forms")
+
+
+def test_father_todo_is_skipped(root):
+    edit_yaml(root, "characters.yaml",
+              lambda d: d["characters"][find(d["characters"], "voroncov")].update(first="TODO(content)",
+                                                                               last="TODO(content)"))
+    load_content(root)
+
+
+@pytest.mark.parametrize(("father", "msg"), [
+    ("nobody", "нет персонажа «nobody»"),
+    ("marina", "указан отцом самого себя"),
+    ("volskaya", "должен быть мужского пола"),
+])
+def test_father_bad_reference(root, father, msg):
+    edit_yaml(root, "characters.yaml",
+              lambda d: d["characters"][find(d["characters"], "marina")].update(father=father))
+    assert_error(root, "content/characters.yaml: characters[", "].father:", msg)
+
+
+def test_familiar_and_cast_schema(root):
+    def fn(d):
+        d["characters"][find(d["characters"], "voroncov")]["familiar"] = ""
+        d["characters"][find(d["characters"], "kovalev")]["cast"] = "нет"
+    edit_yaml(root, "characters.yaml", fn)
+    errs = assert_error(root, "].familiar:", "пустая строка")
+    assert any("].cast:" in e and "ожидается true или false" in e for e in errs)

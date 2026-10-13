@@ -132,11 +132,25 @@ class Character(Strict):
     photo: str | None = None
     in_pool: bool = False
     forms: dict[NamePartName, dict[Case, str]] | None = None
+    # Фамилия и отчество выводятся от отца (engine.names.surname_for / patronymic_for);
+    # сборка сверяет last/middle с выведенными, import-cast (P09) выводит их сам.
+    father: Id | None = None
+    # Дружеское/домашнее имя («Ваня»): {{ c.X.familiar }}, не склоняется.
+    familiar: str | None = None
+    # false — вымышленный персонаж: import-cast (P09) его не трогает.
+    cast: bool = True
 
     @field_validator("middle", mode="after")
     @classmethod
     def _middle_none_to_empty(cls, v: str | None) -> str:
         return "" if v is None else v
+
+    @field_validator("familiar", mode="after")
+    @classmethod
+    def _familiar_not_blank(cls, v: str | None) -> str | None:
+        if v is not None and not v.strip():
+            raise ValueError("пустая строка: заполните familiar или удалите поле")
+        return v
 
 
 class CharactersFile(Strict):

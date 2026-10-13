@@ -49,6 +49,7 @@ from engine.models import (
     StagesFile,
     UnitSpec,
 )
+from engine.names import DeclensionError, Person, patronymic_for, surname_for
 from engine.util import format_loc, iter_strings, read_text
 
 CONTENT_DIR = ROOT / "content"
@@ -470,6 +471,53 @@ def _check_characters(ld: _Loading, characters: list[Character]) -> None:
         if ch.in_pool and ch.importance in ("service", "background"):
             ld.warn(rel, ("characters", i, "in_pool"),
                     f"in_pool: true у персонажа с importance: {ch.importance}")
+    _check_fathers(ld, characters)
+
+
+def _check_fathers(ld: _Loading, characters: list[Character]) -> None:
+    """``father``: ссылка на существующего персонажа-мужчину; ``last``/``middle`` ребёнка —
+    выведенные от отца (ручная форма ``forms.<часть>.nom`` важнее правила)."""
+    rel = "characters.yaml"
+    by_id = {ch.id: ch for ch in characters}
+    for i, ch in enumerate(characters):
+        if ch.father is None:
+            continue
+        loc = ("characters", i, "father")
+        if ch.father == ch.id:
+            ld.err(rel, loc, f"персонаж «{ch.id}» указан отцом самого себя")
+            continue
+        father = by_id.get(ch.father)
+        if father is None:
+            ld.err(rel, loc, f"нет персонажа «{ch.father}» в characters.yaml")
+            continue
+        if father.gender != "m":
+            ld.err(rel, loc, f"отец «{father.id}» должен быть мужского пола (gender: m), "
+                             "иначе фамилию и отчество не вывести")
+            continue
+        fp = Person(father)
+        manual = ch.forms or {}
+        derive = {
+            "last": (fp.last(), lambda v: surname_for(v, ch.gender), "фамилия", "от фамилии"),
+            "middle": (fp.first(), lambda v: patronymic_for(v, ch.gender), "отчество", "от имени"),
+        }
+        for part, (source, rule, what, src_what) in derive.items():
+            if not source or TODO_MARK in source:
+                continue  # у отца заглушка — сверять не с чем
+            nom = (manual.get(part) or {}).get("nom")
+            if nom is not None:
+                expected, how = nom, f"ручная форма forms.{part}.nom"
+            else:
+                try:
+                    expected = rule(source)
+                except DeclensionError as e:
+                    ld.err(rel, ("characters", i, part), str(e))
+                    continue
+                how = f"выведено {src_what} отца «{father.id}» («{source}»)"
+            actual = getattr(ch, part)
+            if actual != expected:
+                ld.err(rel, ("characters", i, part),
+                       f"{what}: указано «{actual}», ожидается «{expected}» ({how}); "
+                       f"исправьте {part} или, если правило ошибается, задайте forms.{part}.nom")
 
 
 def _check_documents(ld: _Loading, documents: list[Document], stages: list[Stage] | None,

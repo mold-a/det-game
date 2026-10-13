@@ -94,7 +94,7 @@ def _copy(tmp_path: Path) -> Path:
 def test_chats_loaded(content):
     assert set(content.chats) == {"3-03", "4-06", "4-12"}
     kinds = [s.kind for s in content.chats["3-03"].screens]
-    assert kinds == ["notification", "calls", "chat"]
+    assert kinds == ["chat", "notification", "calls", "chat"]
 
 
 def test_chat_validation_errors(tmp_path):
@@ -128,7 +128,7 @@ def test_chat_template_typo(tmp_path):
     p.write_text(p.read_text(encoding="utf-8").replace("w.brands.cloud", "w.brands.clod"), encoding="utf-8")
     with pytest.raises(ContentError) as exc:
         load_content(root)
-    assert any("content/chats/3-03.yaml: screens[0].items[0].app" in str(e) for e in exc.value.errors)
+    assert any("content/chats/3-03.yaml: screens[1].items[0].app" in str(e) for e in exc.value.errors)
 
 
 # ---------------------------------------------------------------- аварийный конверт: данные
@@ -162,7 +162,7 @@ def test_chatshot_pngs(chromium, content, tmp_path):
 
     paths = render_chats(content, tmp_path)
     names = sorted(p.name for p in paths)
-    assert names == ["3-03-1.png", "3-03-2.png", "3-03-3.png", "4-06-1.png", "4-12-1.png"]
+    assert names == ["3-03-1.png", "3-03-2.png", "3-03-3.png", "3-03-4.png", "4-06-1.png", "4-12-1.png"]
     for p in paths:
         assert png_size(p) == (1080, 2340)
 

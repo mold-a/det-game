@@ -42,12 +42,23 @@ class RenderError(Exception):
 class _PersonView(Person):
     """Person с понятной ошибкой на опечатку в имени метода (``c.x.fulll()``)."""
 
+    @property
+    def familiar(self) -> str:
+        """Дружеское имя; не задано — понятная ошибка вместо «None» в тексте."""
+        value = self._ch.familiar
+        if value is None:
+            raise TemplateRefError(
+                f"у персонажа «{self.id}» нет familiar (дружеского имени): "
+                f"задайте characters.yaml → {self.id}.familiar"
+            )
+        return value
+
     def __getattr__(self, name: str) -> Any:
         if name.startswith("_"):
             raise AttributeError(name)
         raise TemplateRefError(
             f"у персонажа «{self.id}» нет атрибута «{name}» "
-            "(есть: full, short, io, first, last, middle, g, role, nick, age, id)"
+            "(есть: full, short, io, first, last, middle, g, role, nick, age, familiar, id)"
         )
 
 
