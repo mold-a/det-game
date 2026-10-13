@@ -16,7 +16,7 @@
 {% for href in css %}
 <link rel="stylesheet" href="{{ href }}">
 {% endfor %}
-<script src="/assets/js/boot.js"></script>
+<script src="/assets/js/boot.js"{% block boot_attrs %}{% endblock %}></script>
 {% if entry %}
 <script type="module" src="{{ entry }}"></script>
 {% endif %}

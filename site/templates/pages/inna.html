@@ -29,7 +29,7 @@
         {% if ui.missing(a) %}
         <span class="ph ph--img kd-tile__img"><span class="ph__label">Здесь будет фото</span></span>
         {% else %}
-        <img class="kd-tile__img" {{ a }} alt="" loading="lazy" decoding="async">
+        <img class="kd-tile__img" {{ a }} alt="" decoding="async">
         {% endif %}
         <span class="kd-tile__date"><time datetime="{{ post.datetime }}">{{ post.datetime|dt("date") }}</time></span>
       </button>

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{# Открытая страница не расшифровывает ничего — boot.js проверяет только file:// (data-require="none"). #}
+{% block boot_attrs %} data-require="none"{% endblock %}
 {% block body_attrs %} data-slug="{{ slug }}"{% endblock %}
 {% block body %}
 <main class="pg pg--{{ slug }}" data-brand="{{ brand }}">

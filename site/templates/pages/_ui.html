@@ -20,5 +20,5 @@
 {% macro img(media, rel, alt, label, cls="", attrs="") -%}
 {% set a = media(rel, alt) %}
 {% if missing(a) %}<span class="ph ph--img {{ cls }}" role="img" aria-label="Здесь будет {{ label }}"><span class="ph__label">Здесь будет {{ label }}</span></span>
-{%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" loading="lazy" decoding="async"{{ attrs }}>{% endif %}
+{%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" decoding="async"{{ attrs }}>{% endif %}
 {%- endmacro %}
