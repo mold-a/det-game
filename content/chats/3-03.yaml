@@ -1,7 +1,9 @@
 # Документ 3-03 «Снимки экрана с телефона Кирилла» — печать (python -m engine chatshot → print/chats/).
 # Версия техсценария (решение автора 14.10.2026), см. docs/STORY-CHANGES.md и docs/PAPER-REQUIREMENTS.md:
 #   - 4.11: Кирилл предупреждает Воронцова, что тот вводил пароль при людях; Воронцов отвечает «Сменил, параноик»;
-#   - 10.11, 19:40: три неудачные попытки входа в облако, восстановление по SMS отклонено (отключено Кириллом);
+#   - 10.11, 19:40: три неудачные попытки входа в облако с устройства w.devices.volkov_phone через сеть w.theater.staff_wifi
+#     (отсюда «кто-то из театра»); восстановление по SMS отклонено (Кирилл отключил его 20.10 как доверенный контакт);
+#   - модель устройства в материалах — ТОЛЬКО в 3-03, 4-01 (журнал входов) и 4-07 (свойства видео): связь с Волковым на этапе 4 (S-18);
 #   - 19:41: уведомление Кириллу; он дважды звонит Воронцову и пишет ему (сообщение Воронцов читает в антракте);
 #   - номер погибшего в звонках оканчивается на w.devices.victim_number_tail (сверка с 4-10).
 # Экраны: kind notification | chat | calls. Все строки — шаблоны (c, w). Время — как на экране телефона.
@@ -12,30 +14,30 @@ screens:
     with: voroncov
     date: "4 ноября"
     messages:
-      - { from: kirill, time: "TODO(content)", text: "Ты вводил пароль при людях на репетиции, смени.", status: read }
-      - { from: voroncov, time: "TODO(content)", text: "Сменил, параноик", status: read }
+      - { from: kirill, time: "22:47", text: "Ты вводил пароль при людях на репетиции, смени.", status: read }
+      - { from: voroncov, time: "23:58", text: "Сменил, параноик", status: read }
   - kind: notification
     time: "19:41"
     date: "{{ w.dates.premiere_weekday }}, 10 ноября"
     items:
       - app: "{{ w.brands.cloud }}"
         title: "Три неудачные попытки входа"
-        text: "TODO(content): текст уведомления — вход в аккаунт с нового устройства, неверный пароль (3 попытки)"
+        text: "Попытка входа в аккаунт с нового устройства: {{ w.devices.volkov_phone }}, сеть {{ w.theater.staff_wifi }}, {{ w.city }}. Неверный пароль (3 попытки)."
         time: "19:40"
       - app: "{{ w.brands.cloud }}"
         title: "Восстановление по SMS отклонено"
-        text: "TODO(content): текст уведомления — восстановление доступа по SMS отключено владельцем аккаунта"
+        text: "Восстановление доступа по SMS отключено. Вы получили это уведомление как доверенный контакт аккаунта."
         time: "19:40"
   - kind: calls
     owner: kirill
     time: "19:43"
     items:
       - who: voroncov
-        number: "TODO(content): +7 … {{ w.devices.victim_number_tail }}"
+        number: "{{ w.devices.victim_number }}"
         time: "19:41"
         direction: out
       - who: voroncov
-        number: "TODO(content): +7 … {{ w.devices.victim_number_tail }}"
+        number: "{{ w.devices.victim_number }}"
         time: "19:42"
         direction: out
   - kind: chat

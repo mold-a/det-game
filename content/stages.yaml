@@ -237,7 +237,7 @@ stages:
       - id: f2
         kind: final
         type: persons
-        prompt: "Кто ещё причастен к преступлению?"
+        prompt: "Кто ещё причастен к убийству {{ c.voroncov.last('gen') }}?"   # «к убийству», а не к аукционам (S-27)
         pool: default
         answer: { canon: [zavyalov] }
       - id: f3
@@ -284,6 +284,6 @@ stages:
       - id: fb2
         kind: bonus
         type: persons
-        prompt: "Кто знал, что табакерка, проданная {{ c.volskaya.last('dat') }}, — копия?"
+        prompt: "Кто знал, что табакерка — копия, уже тогда, когда её продавали {{ c.volskaya.last('dat') }}?"   # «уже тогда» исключает Вольскую и Кирилла (S-28)
         pool: [volkov, marina, voroncov, gnedich, kirill, zavyalov, volskaya, gromov]   # верные ответы не подряд и не в начале
         answer: { canon: [voroncov, zavyalov] }
