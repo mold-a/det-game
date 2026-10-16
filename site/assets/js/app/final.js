@@ -9,6 +9,7 @@ import { h, clear, announce } from "./dom.js";
 import { T, signed } from "./texts.js";
 import { createStamp } from "./stamp.js";
 import { renderScoreLog } from "./scorelog.js";
+import { makeLabelFor } from "./labels.js";
 import { renderQuestion, formatMessage, displayValue } from "./questions.js";
 import { renderDocument } from "./docview.js";
 import { renderHeader } from "./header.js";
@@ -42,7 +43,13 @@ async function verify(s) {
 
 const lastStage = () => ctx.pub.stages;
 
+/** Текущий вопрос финала и его незаконченный ввод — переживают перерисовку по storage. */
+let current = null;
+let finalDraft = null;
+
 async function start() {
+  const kept = current?.view.el.isConnected ? current.view.getInputs?.() : null;
+  if (kept !== null && kept !== undefined) finalDraft = { path: current.path, value: kept };
   const res = await loadProgress(ctx);
   if (!res.ok) {
     if (res.code === "none") {
@@ -56,7 +63,7 @@ async function start() {
   header = renderHeader(ctx, game.state, { onChange: () => start(), verify, rulesCfg: rulesCfg(ctx.pub) });
   const shell = renderShell(ctx, header.el);
   main = shell.main;
-  shell.side.appendChild(renderScoreLog(game.state, { labelFor: (p) => p }));
+  shell.side.appendChild(renderScoreLog(game.state, { labelFor: makeLabelFor(game.packs) }));
   await route();
 }
 
@@ -128,6 +135,7 @@ function renderQuestionStep(qs, note = null) {
   const v = renderQuestion(q, {
     number: T.final.progress(i + 1, qs.length),
     showStatus: false,
+    draft: finalDraft?.path === q.path ? finalDraft.value : undefined,
     characters: pack.characters,
     documents: game.docs,
     submitLabel: T.final.submit,
@@ -143,6 +151,7 @@ function renderQuestionStep(qs, note = null) {
       await route();
     },
   });
+  current = { path: q.path, view: v };
   sheet(T.final.title, note ? h("p", { class: "q__msg final-fixed", role: "status" }, note) : null, v.el);
   if (i > 0 && !note) main.querySelector(".final-sheet .stage-head")?.after(h("p", { class: "q__msg final-fixed", role: "status" }, T.final.fixed));
   main.querySelector("input, select, .order button, .option input")?.focus();
@@ -162,7 +171,7 @@ async function finish(qs) {
   const ordered = {};
   for (const q of qs) ordered[q.path] = results[q.path];
   commit((s) => S.finalFinish(s, ordered, ctx.pub.points));
-  document.querySelector(".side .scorelog")?.replaceWith(renderScoreLog(game.state, { labelFor: (p) => p }));
+  document.querySelector(".side .scorelog")?.replaceWith(renderScoreLog(game.state, { labelFor: makeLabelFor(game.packs) }));
   await renderResults({ animate: true });
 }
 

@@ -26,6 +26,7 @@ import {
   ackEnvelope,
   pendingEnvelope,
   mergeStates,
+  canonicalJson,
   exportFileName,
   createStore,
 } from "../../site/assets/js/core/state.js";
@@ -90,7 +91,7 @@ describe("§4 попытки и штрафы", () => {
     let s = fresh();
     s = recordWrong(s, "s1.q2", "h1", PUB.penalties.wrongAttempt);
     assert.equal(score(s), -5);
-    assert.deepEqual(s.log, [{ d: -5, r: "wrong:s1.q2" }]);
+    assert.deepEqual(s.log, [{ d: -5, r: "wrong:s1.q2:h1" }], "причина уникальна для ответа: 8 символов хеша");
     assert.equal(wrongCount(s, "s1.q2"), 1);
     s = recordWrong(s, "s1.q2", "h2", PUB.penalties.wrongAttempt);
     assert.equal(score(s), -10);
@@ -412,7 +413,7 @@ describe("слияние вкладок (FORMATS §7.2)", () => {
       hints: { q: 2 },
       docs: ["2-01"],
       lab: { done: { f1: "2-01" }, rejected: ["f2"], log: [{ t: "2026-11-12T10:00:01.000Z", fp: "f1", ok: true }] },
-      log: [{ t: "2026-11-12T10:00:01.000Z", d: -5, r: "wrong:q" }],
+      log: [{ t: "2026-11-12T10:00:01.000Z", d: -5, r: "wrong:q:aaaaaaaa" }],
     };
     const b = {
       ...clone(base),
@@ -424,7 +425,7 @@ describe("слияние вкладок (FORMATS §7.2)", () => {
       docs: ["3-05"],
       lab: { done: { f2: "3-05" }, rejected: [], log: [{ t: "2026-11-12T10:00:02.000Z", fp: "f2", ok: true }] },
       log: [
-        { t: "2026-11-12T10:00:01.000Z", d: -5, r: "wrong:q" },
+        { t: "2026-11-12T10:00:02.500Z", d: -5, r: "wrong:q:aaaaaaaa" },
         { t: "2026-11-12T10:00:03.000Z", d: -10, r: "hint:r:1" },
       ],
     };
@@ -438,7 +439,8 @@ describe("слияние вкладок (FORMATS §7.2)", () => {
     assert.deepEqual(m.lab.done, { f1: "2-01", f2: "3-05" });
     assert.deepEqual(m.lab.rejected, [], "f2 перенесён в done");
     assert.equal(m.lab.log.length, 2);
-    assert.deepEqual(m.log.map((e) => e.r), ["wrong:q", "hint:r:1"], "общая запись не дублируется");
+    assert.deepEqual(m.log.map((e) => e.r), ["wrong:q:aaaaaaaa", "hint:r:1"], "одно событие в двух вкладках — одна запись");
+    assert.equal(m.log[0].t, "2026-11-12T10:00:01.000Z", "из дубликатов остаётся самая ранняя");
     assert.equal(score(m), -15);
   });
 });
@@ -555,7 +557,7 @@ describe("§10 хранилище, экспорт, импорт, совмест�
     const merged = tab1.update((s) => s);
     assert.deepEqual(
       merged.log.map((e) => e.r),
-      ["wrong:s1.q1", "lab:fp"],
+      ["wrong:s1.q1:a", "lab:fp"],
     );
     assert.equal(score(tab2.get()), -10);
   });
@@ -629,5 +631,126 @@ describe("§10 хранилище, экспорт, импорт, совмест�
   test("имя файла экспорта: detgame-<gameId>-<YYYYMMDD-HHMM>.json", () => {
     const d = new Date(2026, 10, 12, 9, 5);
     assert.equal(exportFileName("zakulisami", d), "detgame-zakulisami-20261112-0905.json");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Гонки вкладок: у каждой вкладки своя копия localStorage, изменения доходят до
+// соседа асинхронно (как между процессами браузера) — здесь по flush().
+class TabStorage {
+  constructor(hub, name) {
+    this.hub = hub;
+    this.name = name;
+    this.map = new Map();
+    this.events = new EventTarget();
+  }
+  getItem(k) {
+    return this.map.has(k) ? this.map.get(k) : null;
+  }
+  setItem(k, v) {
+    this.map.set(k, String(v));
+    if (!k.endsWith(":probe")) this.hub.pending.push({ from: this, k, v: String(v) });
+  }
+  removeItem(k) {
+    this.map.delete(k);
+  }
+}
+class Hub {
+  constructor() {
+    this.pending = [];
+    this.tabs = [];
+  }
+  tab(name) {
+    const t = new TabStorage(this, name);
+    this.tabs.push(t);
+    return t;
+  }
+  /** Доставить все записи остальным вкладкам (+ событие storage), пока очередь не опустеет. */
+  flush(limit = 20) {
+    for (let i = 0; i < limit && this.pending.length; i++) {
+      const batch = this.pending.splice(0);
+      for (const { from, k, v } of batch) {
+        for (const t of this.tabs) {
+          if (t === from) continue;
+          t.map.set(k, v);
+          t.events.dispatchEvent(Object.assign(new Event("storage"), { key: k }));
+        }
+      }
+    }
+    assert.equal(this.pending.length, 0, "вкладки не должны перекидываться записями бесконечно");
+  }
+}
+
+describe("гонки двух вкладок (FORMATS §7.2, docs/01 §4)", () => {
+  function twoTabs() {
+    const hub = new Hub();
+    const now = clock();
+    const sa = hub.tab("A");
+    const sb = hub.tab("B");
+    const a = createStore({ storage: sa, gameId: "g", now, events: sa.events });
+    const b = createStore({ storage: sb, gameId: "g", now, events: sb.events });
+    a.onExternalChange(() => {});
+    b.onExternalChange(() => {});
+    a.update(() => fresh());
+    hub.flush();
+    return { hub, a, b, sa, sb };
+  }
+  const reopen = (st) => createStore({ storage: st, gameId: "g", now: clock(), events: null });
+
+  test("одновременно РАЗНЫЕ неверные ответы: оба штрафа сохраняются и после перезагрузки обеих", () => {
+    const { hub, a, b, sa, sb } = twoTabs();
+    a.update((s) => recordWrong(s, "s1.q2", "aaaaaaaa11", -5)); // B ещё не знает о записи A
+    b.update((s) => recordWrong(s, "s1.q2", "bbbbbbbb22", -5));
+    hub.flush();
+    assert.equal(score(a.get()), -10);
+    assert.equal(score(b.get()), -10);
+    assert.equal(score(reopen(sa).get()), -10);
+    assert.equal(score(reopen(sb).get()), -10);
+    assert.equal(wrongCount(reopen(sa).get(), "s1.q2"), 2);
+  });
+
+  test("одновременно ОДИНАКОВЫЙ неверный ответ в двух вкладках = один штраф", () => {
+    const { hub, a, b, sa, sb } = twoTabs();
+    a.update((s) => recordWrong(s, "s1.q2", "cccccccc33", -5));
+    b.update((s) => recordWrong(s, "s1.q2", "cccccccc33", -5));
+    hub.flush();
+    for (const st of [a.get(), b.get(), reopen(sa).get(), reopen(sb).get()]) {
+      assert.equal(score(st), -5);
+      assert.equal(st.log.length, 1);
+    }
+  });
+
+  test("подсказка одного уровня, купленная в двух вкладках, списывается один раз", () => {
+    const { hub, a, b, sa } = twoTabs();
+    a.update((s) => buyHint(s, "s1.q1", 1, 10));
+    b.update((s) => buyHint(s, "s1.q1", 1, 10));
+    hub.flush();
+    assert.equal(score(reopen(sa).get()), -10);
+    assert.equal(hintLevel(a.get(), "s1.q1"), 1);
+    assert.equal(score(b.get()), -10);
+  });
+
+  test("бонус: неверно в одной вкладке, верно в другой — счёт и статус согласованы", () => {
+    const { hub, a, b, sa } = twoTabs();
+    a.update((s) => bonusAnswer(s, "s1.b1", { correct: false, given: "x", points: 15 }));
+    b.update((s) => bonusAnswer(s, "s1.b1", { correct: true, canon: "y", points: 15 }));
+    hub.flush();
+    const st = reopen(sa).get();
+    assert.equal(unitStatus(st, "s1.b1"), "solved");
+    assert.equal(score(st), 15);
+    assert.equal(canonicalJson(a.get()), canonicalJson(b.get()), "вкладки сошлись");
+  });
+
+  test("без новых данных слияние ничего не пишет (нет пинг-понга)", () => {
+    const { hub, a } = twoTabs();
+    a.update((s) => recordWrong(s, "q", "dddddddd44", -5));
+    hub.flush();
+    assert.equal(hub.pending.length, 0);
+  });
+
+  test("старый формат wrong:<qpath> без хеша: разные события не схлопываются", () => {
+    const s = fresh();
+    const old = { ...s, log: [{ t: "1", d: -5, r: "wrong:q" }, { t: "2", d: -5, r: "wrong:q" }] };
+    assert.equal(score(mergeStates(old, old)), -10);
   });
 });

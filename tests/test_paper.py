@@ -387,3 +387,16 @@ def test_release_command_fails_on_missing_paper(tmp_path):
     with pytest.raises(ReleaseError) as exc:
         release(dist=tmp_path / "dist", salts_path=tmp_path / "salts.json", out_dir=tmp_path / "print")
     assert "нет текста бумажного документа content/paper/2-05.md" in str(exc.value)
+
+
+def test_no_pypdf_clear_error(content, salts, tmp_path, monkeypatch):
+    """Нет pypdf — понятная ошибка с подсказкой до запуска браузера, ничего не напечатано."""
+    import sys
+
+    from engine.printing import PrintError
+
+    monkeypatch.setitem(sys.modules, "pypdf", None)  # import pypdf → ImportError
+    with pytest.raises(PrintError) as exc:
+        render_paper(content, tmp_path / "out", salts=salts, preview=False)
+    assert "pypdf" in str(exc.value) and 'pip install -e ".[dev]"' in str(exc.value)
+    assert not list((tmp_path / "out").glob("*.pdf"))

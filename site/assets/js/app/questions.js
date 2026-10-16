@@ -37,6 +37,7 @@ export function createInput(spec, ctx = {}) {
     return {
       el: input,
       getValue: () => input.value,
+      setValue: (v) => (input.value = v ?? ""),
       setDisabled: (b) => (input.disabled = b),
       setInvalid: (b) => input.setAttribute("aria-invalid", b ? "true" : "false"),
       focus: () => input.focus(),
@@ -63,6 +64,9 @@ export function createInput(spec, ctx = {}) {
     return {
       el: select,
       getValue: () => select.value,
+      setValue: (v) => {
+        if ([...select.options].some((o) => o.value === v)) select.value = v;
+      },
       setDisabled: (b) => (select.disabled = b),
       setInvalid: (b) => select.setAttribute("aria-invalid", b ? "true" : "false"),
       focus: () => select.focus(),
@@ -75,6 +79,12 @@ export function createInput(spec, ctx = {}) {
   }
 
   throw new Error(`Неизвестный тип ввода: ${spec.type}`);
+}
+
+/** Отметить варианты по значению (строка — один, массив — несколько). */
+function setChecked(inputs, v) {
+  const want = new Set(Array.isArray(v) ? v : v ? [v] : []);
+  for (const i of inputs) i.checked = want.has(i.value);
 }
 
 function choiceList(options, multi, name, labelledBy) {
@@ -91,6 +101,7 @@ function choiceList(options, multi, name, labelledBy) {
   return {
     el: list,
     getValue: () => (multi ? inputs.filter((i) => i.checked).map((i) => i.value) : inputs.find((i) => i.checked)?.value ?? ""),
+    setValue: (v) => setChecked(inputs, v),
     setDisabled: (b) => inputs.forEach((i) => (i.disabled = b)),
     setInvalid: (b) => list.setAttribute("aria-invalid", b ? "true" : "false"),
     focus: () => inputs[0]?.focus(),
@@ -129,6 +140,7 @@ function personGrid(pool, characters, multi, name, labelledBy) {
   return {
     el: grid,
     getValue: () => (multi ? inputs.filter((i) => i.checked).map((i) => i.value) : inputs.find((i) => i.checked)?.value ?? ""),
+    setValue: (v) => setChecked(inputs, v),
     setDisabled: (b) => inputs.forEach((i) => (i.disabled = b)),
     setInvalid: (b) => grid.setAttribute("aria-invalid", b ? "true" : "false"),
     focus: () => inputs[0]?.focus(),
@@ -263,6 +275,15 @@ export function renderQuestion(q, ctx) {
     const w = createInput(q, { ...ctx, labelledBy: promptId });
     widgets[q.id] = w;
     body.appendChild(w.el);
+  }
+
+  // Черновик (незаконченный ввод до перерисовки или после неверного ответа).
+  if (ctx.draft !== undefined && ctx.draft !== null) {
+    if (q.type === "form") {
+      for (const [id, w] of Object.entries(widgets)) if (ctx.draft[id] !== undefined) w.setValue?.(ctx.draft[id]);
+    } else {
+      widgets[q.id].setValue?.(ctx.draft);
+    }
   }
 
   const msg = h("p", { class: "q__msg", role: "status", "aria-live": "polite" });

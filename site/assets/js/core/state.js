@@ -12,8 +12,9 @@
 // Время `t` в записях журнала (log, lab.log) ставит store.update() по внедрённым
 // часам `now`, поэтому сами редьюсеры от времени не зависят.
 //
-// Причины в журнале log[].r (FORMATS F16), log содержит только d ≠ 0:
-//   wrong:<qpath>           новый неверный ответ на обязательный вопрос
+// Причины в журнале log[].r (FORMATS F16, §7.2), log содержит только d ≠ 0.
+// Причина уникальна для события — по ней сливаются вкладки (одно событие = одна запись):
+//   wrong:<qpath>:<hash8>   новый неверный ответ на обязательный вопрос (8 hex wrongHash)
 //   hint:<qpath>:<level>    покупка подсказки (бесплатная автоподсказка не пишется)
 //   bonus:<qpath>           верный бонус (этапы 1–3 сразу, этап 4 — в finalFinish)
 //   final:<qpath>           верный финальный ответ (только в finalFinish)
@@ -179,6 +180,9 @@ export const pendingEnvelope = (s) => (s.stage > s.envelopeAck ? s.stage : null)
 
 // ---------------------------------------------------------------- вопросы
 
+/** Причина журнала для неверного ответа: уникальна для пары (вопрос, ответ). */
+export const wrongReason = (qpath, hash) => `wrong:${qpath}:${String(hash).slice(0, 8)}`;
+
 /**
  * Неверная попытка обязательного вопроса. Тот же хеш (FORMATS §7.1) повторно
  * не штрафуется (docs/01 §4) — возвращается то же состояние.
@@ -188,7 +192,7 @@ export function recordWrong(s, qpath, hash, penalty) {
   if (isClosed(s, qpath) || wasTried(s, qpath, hash)) return s;
   const n = clone(s);
   (n.wrong[qpath] ??= []).push(hash);
-  addLog(n, d, `wrong:${qpath}`);
+  addLog(n, d, wrongReason(qpath, hash));
   return n;
 }
 
@@ -379,6 +383,23 @@ const byTime = (x, y) => (x.t ?? "") < (y.t ?? "") ? -1 : (x.t ?? "") > (y.t ?? 
 const union = (a, b) => unionBy(a, b, (x) => x);
 
 /**
+ * Ключ события журнала: сама причина `r` (она уникальна для события, F16/§7.2).
+ * Старый формат `wrong:<qpath>` без хеша повторялся законно — для него ключ (r, t).
+ */
+const logKey = (e) => (/^wrong:[^:]+$/.test(e.r) ? `${e.r}|${e.t}` : e.r);
+
+/** Объединение журналов по событию; из дубликатов остаётся самая ранняя запись. */
+function mergeLog(a, b) {
+  const byKey = new Map();
+  for (const e of [...a, ...b]) {
+    const k = logKey(e);
+    const prev = byKey.get(k);
+    if (!prev || byTime(e, prev) < 0) byKey.set(k, e);
+  }
+  return [...byKey.values()].sort(byTime);
+}
+
+/**
  * Слить локальную копию с внешней (из хранилища): журналы — объединение,
  * множества — объединение, словари — по ключам с «продвинутым» значением,
  * этап, конверт и индекс финала — максимум. Внешняя версия — основа.
@@ -399,14 +420,21 @@ export function mergeStates(local, external) {
     if (!(fp in m.lab.done) || (m.lab.done[fp] === null && doc !== null)) m.lab.done[fp] = doc;
   }
   m.lab.rejected = union(m.lab.rejected, l.lab.rejected).filter((fp) => !(fp in m.lab.done));
-  m.lab.log = unionBy(m.lab.log, l.lab.log, (e) => `${e.t}|${e.fp}`).sort(byTime);
+  m.lab.log = unionBy(m.lab.log, l.lab.log, (e) => `${e.fp}|${e.ok}`).sort(byTime);
   m.docs = union(m.docs, l.docs);
   m.final.started = m.final.started || l.final.started;
   for (const [p, v] of Object.entries(l.final.answers)) if (!(p in m.final.answers)) m.final.answers[p] = clone(v);
   m.final.index = Math.max(m.final.index, l.final.index, Object.keys(m.final.answers).length);
   m.final.correct = m.final.correct ?? clone(l.final.correct);
-  m.log = unionBy(m.log, l.log, (e) => `${e.t}|${e.r}`).sort(byTime);
+  m.log = mergeLog(m.log, l.log);
   return m;
+}
+
+/** Каноническая строка состояния (ключи по алфавиту) — чтобы понять, изменило ли слияние что-то. */
+export function canonicalJson(v) {
+  if (Array.isArray(v)) return `[${v.map(canonicalJson).join(",")}]`;
+  if (isObj(v)) return `{${Object.keys(v).sort().map((k) => `${JSON.stringify(k)}:${canonicalJson(v[k])}`).join(",")}}`;
+  return JSON.stringify(v);
 }
 
 // ---------------------------------------------------------------- хранилище
@@ -503,9 +531,22 @@ export function createStore({ storage = null, gameId, now = Date.now, events } =
   memory = readStorage();
   const listeners = new Set();
 
+  /**
+   * Событие storage из другой вкладки: слить внешнюю версию с локальной. Если в
+   * локальной было то, чего нет во внешней (запись другой вкладки её затёрла), —
+   * записать слитую обратно. Пишем только при реальном отличии канонической формы,
+   * поэтому вкладки не перекидываются записями бесконечно.
+   */
   function onStorage(e) {
     if (e && e.key !== key && e.key !== null) return;
-    memory = current();
+    const ext = readStorage();
+    if (persistent && ext && memory && sameGame(memory, ext)) {
+      const merged = mergeStates(memory, ext);
+      if (canonicalJson(merged) !== canonicalJson(mergeStates(ext, ext))) write(merged);
+      else memory = ext;
+    } else {
+      memory = persistent ? ext : memory;
+    }
     const snapshot = clone(memory);
     for (const cb of listeners) cb(snapshot);
   }

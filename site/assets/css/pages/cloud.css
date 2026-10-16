@@ -682,3 +682,10 @@ th[aria-sort="descending"] .tc-sort {
     padding: 20px 24px;
   }
 }
+
+/* Плитка папки сжимается в своей колонке сетки; длинные названия переносятся (QA). */
+.tc-folders__list > *,
+.tc-folder {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

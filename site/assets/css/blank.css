@@ -212,3 +212,10 @@
 .blank__media audio {
   width: 100%;
 }
+
+/* Длинные слова и адреса в документах переносятся, а не раздвигают бланк. */
+.doc-text,
+.blank,
+.blank__fields dd {
+  overflow-wrap: anywhere;
+}

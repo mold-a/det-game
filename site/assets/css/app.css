@@ -1581,3 +1581,53 @@ img.media-missing {
     column-gap: var(--sp-5);
   }
 }
+
+/* ================================================================== длинные слова и цели нажатия */
+
+/* Длинные слова, URL и имена без пробелов переносятся, а не раздвигают страницу на 360 px. */
+.option > span,
+.order__text,
+.person__name,
+.q__prompt,
+.q__help,
+.q__msg,
+.q__answer dd,
+.hints__item,
+.docs__title,
+.lab-archive__what,
+.lab-result__title,
+.review th,
+.review td,
+.scorelog__reason,
+.app-header__team,
+.app-header__system,
+.modal__title,
+.modal__body,
+.notice,
+.intro__title,
+.fates__item {
+  overflow-wrap: anywhere;
+}
+
+.option > span,
+.order__text,
+.field,
+.fields-inline > .field,
+.q__actions > * {
+  min-width: 0;
+}
+
+/* Цели нажатия ≥ 44 × 44 (docs/05 §3): ссылка «Дело №…» в шапке и ссылка пропуска. */
+.app-header__case-no {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+.skip-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  min-width: var(--tap);
+  padding: 0 var(--sp-4);
+}

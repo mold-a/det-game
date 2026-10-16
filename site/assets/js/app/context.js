@@ -7,8 +7,7 @@ import { T } from "./texts.js";
 import { openModal } from "./modal.js";
 import { restartFlow, loadFromFileFlow } from "./menu.js";
 import { createStore, isCompatible } from "../core/state.js";
-import { loadPublic, openPacks, receivedDocuments, startKey, GameDataError } from "../core/game.js";
-import { b64uEncode } from "../core/crypto.js";
+import { loadPublic, openPacks, receivedDocuments, GameDataError } from "../core/game.js";
 import { restoreLabResults, labDocTitles } from "../core/lab.js";
 
 /** localStorage или null (доступ к свойству тоже может бросить). */
@@ -115,15 +114,10 @@ export async function loadProgress(ctx, state = ctx.store.get()) {
     packs = await openPacks(state);
   } catch (e) {
     if (e instanceof GameDataError && e.code === "network") return { ok: false, code: "network" };
-    // Сохранённый ключ не открывает пакет. Если и K1 не тот, что выводится из
-    // public.json, — сайт пересобран с другими солями: прогресс несовместим (docs/02 §4).
-    // Иначе — «Пакет не расшифровался».
-    try {
-      const k1 = b64uEncode(await startKey(ctx.pub));
-      if (k1 !== state.keys[1]) return { ok: false, code: "incompatible" };
-    } catch {
-      /* нет данных для сравнения */
-    }
+    // Сохранённый ключ не открывает пакет: сайт пересобран с другими ответами или
+    // солями (при тех же солях меняются ключи этапов 2+). Это несовместимый
+    // прогресс (docs/01 §10, docs/02 §4): «Загрузить из файла» или «Начать заново».
+    if (e instanceof GameDataError && e.code === "decrypt") return { ok: false, code: "incompatible" };
     return { ok: false, code: "pack" };
   }
   const labCtx = { stage: state.stage, keys: state.keys, packs };

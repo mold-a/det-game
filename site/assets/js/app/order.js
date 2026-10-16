@@ -100,6 +100,14 @@ export function createOrder(items, { labelledBy = null, disabled = false } = {})
   return {
     el: list,
     getValue: () => Array.from(list.children).map((li) => li.dataset.id),
+    /** Восстановить расстановку (черновик): известные ID — в заданном порядке, остальные — в конце. */
+    setValue(ids) {
+      if (!Array.isArray(ids)) return;
+      const byId = new Map(Array.from(list.children).map((li) => [li.dataset.id, li]));
+      for (const id of ids) if (byId.has(id)) list.appendChild(byId.get(id));
+      for (const [id, li] of byId) if (!ids.includes(id)) list.appendChild(li);
+      refresh();
+    },
     setDisabled(b) {
       isDisabled = b;
       refresh();

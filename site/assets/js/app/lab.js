@@ -5,6 +5,7 @@
 import { h, clear, announce } from "./dom.js";
 import { T } from "./texts.js";
 import { renderScoreLog } from "./scorelog.js";
+import { makeLabelFor } from "./labels.js";
 import { renderDocsPanel } from "./docs-panel.js";
 import { renderDocument } from "./docview.js";
 import { createInput } from "./questions.js";
@@ -30,7 +31,22 @@ async function verify(s) {
   }
 }
 
+/** Незаконченный запрос в форме — переживает перерисовку по событию storage. */
+let labDraft = null;
+
+function readLabForm() {
+  const sels = document.querySelectorAll(".lab-form__grid select");
+  if (sels.length < 3) return null;
+  return {
+    object: sels[0].value,
+    type: sels[1].value,
+    basis: sels[2].value,
+    params: Array.from(document.querySelectorAll(".lab-params input")).map((i) => i.value),
+  };
+}
+
 async function start() {
+  labDraft = readLabForm() ?? labDraft;
   const res = await loadProgress(ctx);
   if (!res.ok) {
     if (res.code === "none") {
@@ -89,6 +105,14 @@ function render() {
     msg,
     h("div", { class: "q__actions" }, submit),
   );
+
+  if (labDraft) {
+    objectSel.select.value = labDraft.object;
+    objectSel.select.dispatchEvent(new Event("change"));
+    typeSel.select.value = labDraft.type;
+    basisSel.select.value = labDraft.basis;
+    paramWidgets.forEach(({ w }, i) => w.setValue?.(labDraft.params[i] ?? ""));
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -187,7 +211,7 @@ function updateSide() {
   clear(side);
   side.append(
     renderDocsPanel({ docs: game.docs, labEntries: game.labEntries, showLab: false }),
-    renderScoreLog(game.state, { labelFor: (p) => p }),
+    renderScoreLog(game.state, { labelFor: makeLabelFor(game.packs) }),
   );
   header.update(game.state);
   renderArchive();

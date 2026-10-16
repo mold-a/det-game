@@ -36,7 +36,8 @@ test("подтверждение подсказки и примеры форма
 
 test("причины журнала: wrong, hint, bonus, final, lab", () => {
   const label = (p) => `вопрос ${p}`;
-  assert.equal(describeLogEntry({ r: "wrong:s1.q2" }, label), "Неверный ответ: вопрос s1.q2");
+  assert.equal(describeLogEntry({ r: "wrong:s1.q2:0a1b2c3d" }, label), "Неверный ответ: вопрос s1.q2");
+  assert.equal(describeLogEntry({ r: "wrong:s1.q2" }, label), "Неверный ответ: вопрос s1.q2", "старый формат");
   assert.equal(describeLogEntry({ r: "hint:s1.q2:3" }, label), "Подсказка 3 уровня: вопрос s1.q2");
   assert.equal(describeLogEntry({ r: "bonus:s4.fb" }, label), "Бонус: вопрос s4.fb");
   assert.equal(describeLogEntry({ r: "final:s4.f1" }, label), "Финал: вопрос s4.f1");

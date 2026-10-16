@@ -516,3 +516,10 @@ body.page--gromov {
     overflow: hidden;
   }
 }
+
+/* Длинные слова и адреса в постах переносятся, а не раздвигают ленту на 360 px (QA). */
+.kr-post,
+.kr-post__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
