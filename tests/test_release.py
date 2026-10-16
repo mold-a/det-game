@@ -15,6 +15,7 @@ from engine import ROOT
 from engine.build import prepare
 from engine.check import leak_needles
 from engine.content import collect_todos, load_content, media_refs
+from engine.hardnames import hardcoded_names
 from engine.leakscan import scan
 from engine.release import ReleaseError, release
 
@@ -51,6 +52,12 @@ def complete_copy(tmp_path: Path) -> tuple[Path, Path]:
             (cdir / "paper").mkdir(exist_ok=True)
             (cdir / "paper" / f"{d.id}.md").write_text(
                 f'---\nid: "{d.id}"\nform: {form}\n---\nТекст бумажного документа {next(counter)}.\n', encoding="utf-8")
+    c = load_content(cdir)
+    for hit in hardcoded_names(cdir, c.characters, c.world):  # имена буквами → шаблоны (иначе check --release)
+        p = cdir.parent / hit.file
+        lines = p.read_text(encoding="utf-8").split("\n")
+        lines[hit.line - 1] = lines[hit.line - 1].replace(hit.found, hit.replacement, 1)
+        p.write_text("\n".join(lines), encoding="utf-8")
     media = tmp_path / "media"
     c = load_content(cdir)
     for use in media_refs(c.characters, c.pages, c.docs):
@@ -58,6 +65,7 @@ def complete_copy(tmp_path: Path) -> tuple[Path, Path]:
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_bytes(f"media:{use.path}".encode("utf-8"))
     assert collect_todos(c) == []
+    assert hardcoded_names(cdir, c.characters, c.world) == []
     return cdir, media
 
 

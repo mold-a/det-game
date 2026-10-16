@@ -1,14 +1,15 @@
 # Документ 4-12 «Переписка Вольской с Воронцовым» — печать (python -m engine chatshot).
-# Требования — docs/PAPER-REQUIREMENTS.md (В4): Вольская спрашивает о подлинности табакерки,
-# Воронцов уходит от ответа («не сейчас», «давай после премьеры»). Вместе с реестром облака — ответ на s4.fb2.
+# SCENARIO 4-12 (S-45): 20.10.2026 Вольская уже знает, что табакерка — копия (письмо эксперта 4-11 от 15.10 лежит в том же конверте),
+# поэтому она не спрашивает «подлинная ли?», а требует разговора. Воронцов с ней на «вы» (STORY-BIBLE §7, 3-11) и откладывает
+# разговор. Запрещено (SCENARIO): намёк на его отъезд. Вместе с реестром облака (4-01, «Внесено» 16.11.2024) — ответ на s4.fb2.
+# Тексты двух реплик — из SCENARIO; время и возможные промежуточные реплики — TODO(content), решает сценарист.
 id: "4-12"
 screens:
   - kind: chat
     owner: volskaya
     with: voroncov
-    date: "TODO(content): дата переписки"
+    date: "20 октября"
     messages:
-      - { from: volskaya, time: "TODO(content)", text: "TODO(content): Вольская спрашивает, подлинная ли табакерка", status: read }
-      - { from: voroncov, time: "TODO(content)", text: "TODO(content): уходит от ответа — «не сейчас»" }
-      - { from: volskaya, time: "TODO(content)", text: "TODO(content): настаивает", status: read }
-      - { from: voroncov, time: "TODO(content)", text: "TODO(content): «давай после премьеры»" }
+      - { from: volskaya, time: "TODO(content)", text: "{{ c.voroncov.io() }}, нам нужно поговорить о табакерке. Срочно.", status: read }
+      # TODO(content): при желании — ещё одна реплика Вольской (сдержанно, на «вы», без слов «копия» и «экспертиза»: она ещё надеется на объяснение)
+      - { from: voroncov, time: "TODO(content)", text: "Поговорим после премьеры." }

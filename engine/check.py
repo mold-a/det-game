@@ -1,4 +1,4 @@
-"""Самопроверка собранного ``dist/`` — docs/06 §3, пункты 1–9.
+"""Самопроверка собранного ``dist/`` — docs/06 §3, пункты 1–10.
 
 Проверяется **записанный** ``dist/``: правильные ответы берутся из контента, ключи
 выводятся по файлам ``dist/data/*.json`` так же, как это делает браузер.
@@ -18,6 +18,7 @@ from engine import salts as salts_mod
 from engine.answers import iso_to_dmy, shift_time, wrong_inputs
 from engine.build import BuildError, Prepared, prepare, release_problems
 from engine.content import Content, collect_todos, units
+from engine.hardnames import hardcoded_names
 from engine.leakscan import (
     NeedleSet,
     boilerplate_shingles,
@@ -56,6 +57,8 @@ class CheckReport:
     stats: list[tuple[str, str]] = field(default_factory=list)
     todos: list = field(default_factory=list)
     short_needles: list[tuple[str, str]] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    name_hits: list = field(default_factory=list)
 
     @property
     def ok(self) -> bool:
@@ -74,6 +77,10 @@ class CheckReport:
             lines.append("")
             sw = max(len(k) for k, _ in self.stats)
             lines += [f"{k.ljust(sw)}  {v}" for k, v in self.stats]
+        if self.warnings:
+            lines.append("")
+            lines.append(f"Предупреждения ({len(self.warnings)}):")
+            lines += [f"  {w}" for w in self.warnings[:200]]
         if self.problems:
             lines.append("")
             lines.append(f"Ошибки ({len(self.problems)}):")
@@ -596,6 +603,17 @@ def check(
         ("Самый большой файл", f"{biggest.relative_to(dist).as_posix()} ({biggest.stat().st_size / 1024:.1f} КБ)"),
     ]
     rep.add("9. Отчёт", [], f"dist/: {size / 1024:.1f} КБ")
+
+    # 10. Имена персонажей буквами, а не шаблоном (защита import-cast, P09): без --release — предупреждение
+    hits = hardcoded_names(content.root, content.characters, content.world)
+    rep.name_hits = hits
+    found = [f"[10. Имена буквами] {h}" for h in hits]
+    if release:
+        rep.add("10. Имена буквами", [str(h) for h in hits], f"в текстах content/: {len(hits)}")
+    else:
+        rep.warnings += found
+        rep.add("10. Имена буквами", [], f"в текстах content/: {len(hits)}"
+                + ("; без --release — предупреждение" if hits else ""))
     if log:
         log(rep.table())
     return rep

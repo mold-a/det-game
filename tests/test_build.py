@@ -59,7 +59,9 @@ def test_check_passes_on_current_content(built):
     _, dist, salts, _ = built
     rep = check(dist=dist, salts_path=salts)
     assert rep.ok, rep.table()
-    assert [r.name[:2] for r in rep.rows] == [f"{i}." for i in range(1, 10)]
+    assert [r.name.split(".")[0] for r in rep.rows] == [str(i) for i in range(1, 11)]
+    # имена буквами в тексте без --release — предупреждение, не ошибка
+    assert len(rep.warnings) == len(rep.name_hits)
     assert "Размер dist/" in rep.table()
 
 
