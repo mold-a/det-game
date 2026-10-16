@@ -2,7 +2,7 @@
    заголовок, «№ … от …» (meta.number, date), тема meta.subtitle («О …»), текст с красной строки,
    подпись; meta.incoming — синий штамп входящей регистрации (строка или список строк). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="paper__head">
   <div class="memo__top">

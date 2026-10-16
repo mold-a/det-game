@@ -1,6 +1,7 @@
 {# План здания: шапка театра; чертёжная рамка со схемой, указатель «С», легенда и штамп чертежа.
    Схема — изображения media (во всю ширину) или, если их нет, рисунок по meta.rooms:
-   meta: grid — размер поля схемы в условных единицах {w: 100, h: 70};
+   meta: grid — размер поля схемы в условных единицах {w: 100, h: 70, pad: 8} (pad — поле вокруг
+                для подписей улиц и т. п., координаты могут быть от −pad до w+pad);
          rooms — помещения [{n, name, x, y, w, h, mark: true (штриховка), label: false (не писать
                  название внутри)}]; номер n попадает в легенду;
          doors — проёмы [{x, y, len, dir: h|v}]; labels — подписи [{x, y, text, size, rotate}];
@@ -9,7 +10,7 @@
          scale — масштаб («1:200»), sheet — лист («1»), floor — этаж/уровень, north: false — без «С».
    Текст документа — под легендой (примечания). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set rooms = doc.meta.get('rooms') or [] %}
 {% set grid = doc.meta.get('grid') or {} %}
@@ -23,7 +24,8 @@
   {% if doc.media %}
   {% for x in doc.media %}{% if x.exists %}<img src="{{ x.src }}" alt="">{% else %}<div class="paper__missing">нет файла media/{{ x.path }}</div>{% endif %}{% endfor %}
   {% elif rooms %}
-  <svg class="plan__svg" viewBox="-2 -2 {{ gw + 4 }} {{ gh + 4 }}" font-family="PT Sans, sans-serif" aria-hidden="true">
+  {% set pad = grid.get('pad', 8) %}
+  <svg class="plan__svg" viewBox="{{ -pad }} {{ -pad }} {{ gw + 2 * pad }} {{ gh + 2 * pad }}" font-family="PT Sans, sans-serif" aria-hidden="true">
     <defs>
       <pattern id="hatch-{{ doc.id }}" width="1.6" height="1.6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
         <line x1="0" y1="0" x2="0" y2="1.6" stroke="#222" stroke-width=".35"/>
@@ -70,12 +72,12 @@
   {% else %}
   <div class="paper__missing" style="min-height: 150mm">место для схемы: media или meta.rooms</div>
   {% endif %}
-  {% if doc.meta.get('north', true) is not false %}
-  <svg class="plan__north" viewBox="0 0 20 28" aria-hidden="true"><path d="M10 2 L16 20 L10 16 L4 20 Z" fill="#111"/><path d="M10 2 L4 20 L10 16 Z" fill="#fff" stroke="#111" stroke-width=".8"/><text x="10" y="27" text-anchor="middle" font-family="PT Sans, sans-serif" font-size="7" font-weight="700">С</text></svg>
-  {% endif %}
 </div>
 <div class="plan__bottom">
   <div class="plan__legend">
+    {% if doc.meta.get('north', true) is not false %}
+  <svg class="plan__north" viewBox="0 0 20 28" aria-hidden="true"><path d="M10 2 L16 20 L10 16 L4 20 Z" fill="#111"/><path d="M10 2 L4 20 L10 16 Z" fill="#fff" stroke="#111" stroke-width=".8"/><text x="10" y="27" text-anchor="middle" font-family="PT Sans, sans-serif" font-size="7" font-weight="700">С</text></svg>
+  {% endif %}
     {% set numbered = rooms|selectattr('n')|list if rooms else [] %}
     {% if numbered %}
     <div class="plan__legend-title">{{ doc.meta.get('legend') or "Экспликация помещений" }}</div>

@@ -1,13 +1,14 @@
 {# Фототаблица: шапка следственного отдела, № дела, место и дата; снимки media в сетке
-   (meta.columns: 1–3, по умолчанию 2; meta.aspect — пропорции кадра, «4 / 3» по умолчанию,
+   (meta.columns: 1–3, по умолчанию 2, при 5 и более снимках — 3; meta.aspect — пропорции кадра, «4 / 3» по умолчанию,
    для камер — «16 / 9»), подписи «Фото N. …» из meta.captions; текст — под снимками;
    подписи и печать отдела «Для пакетов» (meta.seal: false — без печати). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% macro photos() %}
 {% if doc.media %}
 {% set caps = doc.meta.get('captions') or [] %}
-<div class="photos" style="--cols: {{ doc.meta.get('columns') or 2 }}; --aspect: {{ doc.meta.get('aspect') or '4 / 3' }}">
+{% set cols = doc.meta.get('columns') or (3 if doc.media|length > 4 else 2) %}
+<div class="photos photos--{{ cols }}" style="--cols: {{ cols }}; --aspect: {{ doc.meta.get('aspect') or '4 / 3' }}">
   {% for x in doc.media %}
   <figure class="photo">
     <div class="photo__frame">{% if x.exists %}<img src="{{ x.src }}" alt="">{% else %}<div class="paper__missing">нет файла media/{{ x.path }}</div>{% endif %}</div>

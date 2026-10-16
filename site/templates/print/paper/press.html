@@ -3,7 +3,7 @@
    (meta.address), двойная линия; ниже — «дата № …», плашка meta.tag («Информация для СМИ»),
    заголовок, текст, подпись и печать (meta.seal). Никаких гербов: только текст и линии. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">

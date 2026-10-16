@@ -4,7 +4,7 @@
    линия сверху), договор — разделом «## …» (с нового листа — <div class="page-break"></div>),
    подписи и печать организации (meta.seal), пометка «М. П.». #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">

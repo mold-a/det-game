@@ -6,7 +6,7 @@
          fields — поля карты: словарь {«Пациент»: «…», «Возраст»: «56 лет», …} (адрес — place);
          diagnosis — диагноз (рамка); result — результат выезда. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% macro cells(v) -%}
 {% set s = (v or '')|string|trim %}
 {% if s|length == 5 and s[2] == ':' %}<span class="cells">{% for ch in s %}{% if ch == ':' %}<b>:</b>{% else %}<i>{{ ch }}</i>{% endif %}{% endfor %}</span>

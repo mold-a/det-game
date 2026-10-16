@@ -3,14 +3,7 @@
    дела, бордовые украшения программки). Поля листа не меньше 12 мм. Без внешних ресурсов. */
 
 @page { size: A4; margin: 16mm 16mm 18mm 22mm; }
-/* Листы протоколов и осмотров: «Лист N» и подпись внизу каждого листа (счёт — сквозной по PDF). */
-@page sheeted {
-  @bottom-left { content: "Подпись ____________________"; font-family: "PT Sans", sans-serif; font-size: 8pt; color: #555; }
-  @bottom-right { content: "Лист " counter(page); font-family: "PT Sans", sans-serif; font-size: 9pt; color: #222; }
-}
-@page numbered {
-  @bottom-right { content: "Страница " counter(page); font-family: "PT Sans", sans-serif; font-size: 8pt; color: #555; }
-}
+/* Метка дела и колонтитулы бланков — @page doc-<id> из _macros.html (page_rule). */
 
 :root {
   --ink: #141414;
@@ -41,11 +34,14 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .page-break { break-before: page; height: 0; }
 
 /* ------------------------------------------------------------ общий каркас */
-.paper { position: relative; }
+/* SVG и img только inline-block: блочный <svg>/<img> внутри элемента с именованной страницей (page: doc-<id>)
+   Chromium разрывает на новый лист. */
+.paper svg { display: inline-block; }
+.paper { position: relative; display: flow-root; }
 .paper + .paper { break-before: page; }
 .paper__qr { position: absolute; top: 0; right: 0; width: 30mm; margin: 0; text-align: center; z-index: 2;
   font-family: var(--font-sans); font-size: 7pt; line-height: 1.2; color: #333; background: #fff; }
-.paper__qr svg { display: block; width: 26mm; height: 26mm; margin: 0 auto 1mm; }
+.paper__qr svg { display: inline-block; vertical-align: top; width: 26mm; height: 26mm; margin: 0 auto 1mm; }
 .paper--qr .paper__head { padding-right: 34mm; min-height: 32mm; }
 .paper__head { margin-bottom: 5mm; }
 .paper__org { font-family: var(--font-sans); font-size: 9.5pt; font-weight: 700; text-transform: uppercase;
@@ -63,17 +59,13 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper__body > :first-child { margin-top: 0; }
 .paper__media { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5mm; margin: 4mm 0; }
 .paper__figure { margin: 0; break-inside: avoid; }
-.paper__figure img { display: block; width: 100%; border: 0.2mm solid #999; }
+.paper__figure img { display: inline-block; vertical-align: top; width: 100%; border: 0.2mm solid #999; }
 .paper__figure figcaption { font-size: 9pt; text-align: center; margin-top: 1mm; }
 .paper__missing { display: flex; align-items: center; justify-content: center; min-height: 50mm;
   border: 0.4mm dashed #888; font-family: var(--font-sans); font-size: 9pt; color: #666; text-align: center; padding: 3mm; }
 
-/* Метка материалов дела: вертикально на поле подшивки, слева. */
-.paper__docmark { position: absolute; left: -15mm; top: 0; transform-origin: 0 0; transform: rotate(-90deg) translateX(-100%);
-  display: flex; align-items: stretch; font-family: var(--font-sans); font-size: 7.5pt; line-height: 1;
-  color: var(--mark); border: 0.35mm solid var(--mark); border-radius: 0.8mm; white-space: nowrap; }
-.paper__docmark span { padding: 1mm 1.6mm; }
-.paper__docmark-id { font-weight: 700; font-size: 9pt; border-left: 0.35mm solid var(--mark); letter-spacing: .03em; }
+/* Метка материалов дела: в печати — верхнее поле листа (@page), на экране — так же над текстом. */
+.paper__docmark { display: none; }
 
 /* Подписи */
 .paper__signatures { position: relative; margin-top: 8mm; break-inside: avoid; }
@@ -82,9 +74,10 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper__sign .hint { position: absolute; left: 0; right: 0; top: 100%; text-align: center; font-family: var(--font-sans);
   font-size: 6.5pt; color: #777; padding-top: .3mm; }
 .paper__sign .name { text-align: right; }
-.paper__seal { position: absolute; left: 34%; top: -6mm; width: 38mm; pointer-events: none; }
+.paper__seal { position: absolute; right: 50mm; top: -10mm; width: 38mm; pointer-events: none; }
+.paper__signatures:has(.paper__seal) { min-height: 30mm; }
 .paper__seal--solo { position: relative; left: auto; top: auto; margin-left: auto; margin-right: 20mm; }
-.seal { display: block; width: 38mm; height: 38mm; color: var(--seal); opacity: .86; transform: rotate(-11deg); }
+.seal { display: inline-block; vertical-align: top; width: 38mm; height: 38mm; color: var(--seal); opacity: .86; transform: rotate(-11deg); }
 
 /* Прямоугольный штамп */
 .rstamp { display: inline-block; border: 0.45mm solid var(--seal); color: var(--seal); border-radius: 1mm;
@@ -119,7 +112,6 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .indent .paper__body p { text-indent: 12.5mm; }
 
 /* ------------------------------------------------------------ протокол, осмотр, объяснение */
-.paper--protocol, .paper--inspection, .paper--forensic { page: sheeted; }
 .proto__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .08em; text-align: center; margin: 5mm 0 1mm; }
 .proto__subtitle { text-align: center; font-size: 10.5pt; margin: 0 0 3mm; }
 .proto__line { display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; margin-top: 4mm; }
@@ -156,8 +148,10 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
   margin-left: -0.25mm; font-style: normal; font-family: var(--font-sans); font-weight: 700; font-size: 11pt; }
 .cells b { display: inline-flex; align-items: center; padding: 0 0.8mm; font-family: var(--font-sans); }
 .cells--text i { width: auto; min-width: 14mm; padding: 0 1.5mm; font-weight: 400; font-size: 9pt; }
-.amb__times { display: grid; grid-template-columns: repeat(4, 1fr); border: 0.3mm solid #222; margin: 2mm 0 3mm; }
+.amb__times { display: grid; grid-template-columns: repeat(4, 1fr); border: 0.3mm solid #222; margin: 2mm 0 3mm; overflow: hidden; }
+.amb__times > .amb__time { margin-bottom: -0.2mm; }
 .amb__time { padding: 1.5mm 2mm 2mm; border-right: 0.2mm solid #888; border-bottom: 0.2mm solid #888; break-inside: avoid; }
+.amb__time:nth-child(4n) { border-right: 0; }
 .amb__time-label { font-family: var(--font-sans); font-size: 7.5pt; color: #333; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 1.2mm; min-height: 6mm; line-height: 1.15; }
 .amb__grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8mm; margin-bottom: 2mm; }
 .amb__grid .fld__label { width: 30mm; }
@@ -182,10 +176,10 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--forensic .paper__body h2::before { content: counter(sec, upper-roman) ". "; }
 
 /* ------------------------------------------------------------ план здания */
-.plan__frame { position: relative; border: 0.5mm solid var(--ink); padding: 3mm; margin: 2mm 0 0; }
-.plan__frame img { display: block; width: 100%; }
-.plan__svg { display: block; width: 100%; height: auto; }
-.plan__north { position: absolute; top: 4mm; right: 4mm; width: 11mm; height: 15mm; }
+.plan__frame { position: relative; border: 0.5mm solid var(--ink); padding: 1mm; margin: 2mm 0 0; }
+.plan__frame img { display: inline-block; vertical-align: top; width: 100%; }
+.plan__svg { display: inline-block; vertical-align: top; width: 100%; height: auto; }
+.plan__north { float: right; width: 9mm; height: 12.6mm; margin: 0 0 1mm 3mm; }
 .plan__bottom { display: grid; grid-template-columns: 1fr 86mm; border: 0.5mm solid var(--ink); border-top: 0; break-inside: avoid; }
 .plan__legend { padding: 2mm 3mm; font-size: 9.5pt; border-right: 0.5mm solid var(--ink); }
 .plan__legend-title { font-family: var(--font-sans); font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1.5mm; }
@@ -204,9 +198,9 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--plan .paper__title { margin-top: 3mm; }
 
 /* ------------------------------------------------------------ программка */
-.paper--program { min-height: 262mm; }
+.paper--program { min-height: 262mm; display: block; }
 .prog { position: relative; min-height: 262mm; padding: 13mm 14mm 12mm; text-align: center; font-family: var(--font-serif);
-  border: 0.9mm solid var(--accent); outline: 0.25mm solid var(--accent); outline-offset: -2.6mm; display: flex; flex-direction: column; }
+  border: 0.9mm solid var(--accent); outline: 0.25mm solid var(--accent); outline-offset: -2.6mm; break-inside: avoid; }
 .prog__corner { position: absolute; width: 15mm; height: 15mm; color: var(--accent); }
 .prog__corner--tl { top: 3.4mm; left: 3.4mm; }
 .prog__corner--tr { top: 3.4mm; right: 3.4mm; transform: scaleX(-1); }
@@ -214,15 +208,15 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .prog__corner--br { bottom: 3.4mm; right: 3.4mm; transform: scale(-1, -1); }
 .prog__theater { font-family: var(--font-sans); font-size: 9pt; letter-spacing: .22em; text-transform: uppercase; line-height: 1.5; }
 .prog__season { font-size: 9.5pt; font-style: italic; color: #444; margin-top: 1mm; }
-.prog__mask { display: block; width: 46mm; height: auto; margin: 8mm auto 2mm; color: var(--accent); }
+.prog__mask { display: inline-block; vertical-align: top; width: 46mm; height: auto; margin: 8mm auto 2mm; color: var(--accent); }
 .prog__author { font-size: 13pt; letter-spacing: .18em; text-transform: uppercase; margin: 4mm 0 0; text-align: center; }
 .prog__title { font-family: var(--font-serif); font-weight: 400; font-size: 46pt; letter-spacing: .06em; line-height: 1.05;
   color: var(--accent); margin: 1mm 0 1mm; }
 .prog__subtitle { font-size: 12pt; font-style: italic; margin: 0; text-align: center; }
-.prog__rule { display: block; width: 70mm; height: 5mm; margin: 4mm auto; color: var(--accent); }
+.prog__rule { display: inline-block; vertical-align: top; width: 70mm; height: 5mm; margin: 4mm auto; color: var(--accent); }
 .prog__when { font-family: var(--font-sans); font-size: 10pt; letter-spacing: .08em; text-transform: uppercase; line-height: 1.5; }
 .prog__when b { font-size: 12pt; letter-spacing: .1em; }
-.prog .paper__body { margin: 7mm 0 0; text-align: left; columns: 2; column-gap: 12mm; column-rule: 0.2mm solid #c9b3b6; font-size: 10.5pt; flex: 1; }
+.prog .paper__body { margin: 7mm 0 0; text-align: left; columns: 2; column-gap: 12mm; column-rule: 0.2mm solid #c9b3b6; font-size: 10.5pt; }
 .prog .paper__body h2 { column-span: none; font-family: var(--font-sans); font-weight: 700; font-size: 8.5pt; letter-spacing: .18em; text-transform: uppercase;
   text-align: center; color: var(--accent); margin: 0 0 2.5mm; break-after: avoid; }
 .prog .paper__body * + h2 { margin-top: 5mm; }
@@ -234,7 +228,8 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .prog td:first-child { flex: 1 1 auto; display: flex; align-items: baseline; font-style: italic; min-width: 0; }
 .prog td:first-child::after { content: ""; flex: 1 0 4mm; border-bottom: 0.3mm dotted #777; margin: 0 1.5mm; transform: translateY(-1mm); }
 .prog td:last-child { flex: 0 1 auto; text-align: right; max-width: 60%; }
-.prog__foot { font-family: var(--font-sans); font-size: 8pt; letter-spacing: .1em; text-transform: uppercase; color: #555; margin-top: 4mm; }
+.prog__foot { position: absolute; left: 20mm; right: 20mm; bottom: 9mm; font-family: var(--font-sans); font-size: 8pt; letter-spacing: .1em; text-transform: uppercase; color: #555; }
+.prog:has(.prog__foot) { padding-bottom: 20mm; }
 
 /* ------------------------------------------------------------ опись, реестр, смета, журнал: таблицы */
 .paper--inventory table, .paper--registry table, .paper--estimate table { font-family: var(--font-sans); font-size: 9.5pt; }
@@ -248,8 +243,9 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--phototable .paper__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .08em; }
 .photos { display: grid; grid-template-columns: repeat(var(--cols, 2), 1fr); gap: 6mm 6mm; margin: 4mm 0 2mm; }
 .photo { margin: 0; break-inside: avoid; }
+.photos--1 { max-width: 140mm; margin-left: auto; margin-right: auto; }
 .photo__frame { position: relative; aspect-ratio: var(--aspect, 4 / 3); border: 0.3mm solid #333; background: #ddd; overflow: hidden; }
-.photo__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: inline-block; }
 .photo__frame .paper__missing { position: absolute; inset: 0; min-height: 0; border: 0; }
 .photo figcaption { font-size: 9.5pt; line-height: 1.3; margin-top: 1.5mm; text-align: left; }
 .photo figcaption b { font-family: var(--font-sans); font-size: 9pt; }
@@ -263,7 +259,7 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .journal__sheet { font-family: var(--font-sans); font-size: 9pt; text-align: right; white-space: nowrap; }
 .journal__sheet b { display: inline-block; min-width: 12mm; border-bottom: 0.25mm solid var(--ink); text-align: center; font-size: 11pt; }
 .journal__meta { display: flex; gap: 8mm; font-family: var(--font-sans); font-size: 8.5pt; color: #333; margin: 1.5mm 0 3mm; }
-.journal__page { position: relative; flex: 1; display: flex; flex-direction: column; border-left: 0.35mm solid #c0392b33; padding-left: 0; }
+.journal__page { position: relative; flex: 1; display: flex; flex-direction: column; }
 .paper--journal .paper__body { flex: none; }
 .paper--journal table { font-family: var(--font-sans); font-size: 9.5pt; margin: 0; }
 .paper--journal th { background: #e9eef4; border: 0.25mm solid var(--rule); font-size: 8pt; text-transform: uppercase; letter-spacing: .03em; vertical-align: bottom; }
@@ -321,6 +317,9 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .ticket__route { font-size: 15pt; font-weight: 700; margin: 3mm 0 2.5mm; letter-spacing: .01em; }
 .ticket__grid { display: grid; grid-template-columns: repeat(4, auto); gap: 0; border: 0.3mm solid #222; background: #fff; }
 .tcell { padding: 1.2mm 2mm 1.5mm; border-right: 0.25mm solid #777; border-bottom: 0.25mm solid #777; }
+.ticket__grid .tcell:nth-child(4n) { border-right: 0; }
+.ticket__grid { overflow: hidden; }
+.ticket__grid .tcell { margin-bottom: -0.25mm; }
 .tcell__l { display: block; font-size: 6.8pt; text-transform: uppercase; letter-spacing: .06em; color: #444; }
 .tcell__v { display: block; font-size: 11pt; font-weight: 700; font-variant-numeric: tabular-nums; }
 .tcell--big .tcell__v { font-size: 15pt; }
@@ -352,7 +351,6 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .mp { font-family: var(--font-sans); font-size: 8pt; color: #555; }
 
 /* ------------------------------------------------------------ выписка из реестра */
-.paper--registry { page: numbered; }
 .reg__top { display: flex; justify-content: space-between; gap: 6mm; font-family: var(--font-sans); font-size: 8.5pt; color: #333;
   border-bottom: 0.25mm solid #333; padding-bottom: 1.5mm; }
 .reg__org { font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink); }
@@ -373,7 +371,7 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 
 /* ------------------------------------------------------------ аптека и рецепт */
 .paper--pharmacy .paper__title { margin-top: 7mm; font-size: 13pt; }
-.rx-wrap { margin-top: 8mm; padding-top: 4mm; border-top: 0.3mm dashed #777; break-inside: avoid; }
+.rx-wrap { margin-top: 6mm; padding-top: 4mm; border-top: 0.3mm dashed #777; break-inside: avoid; }
 .rx-wrap__label { font-family: var(--font-sans); font-size: 8pt; text-transform: uppercase; letter-spacing: .1em; color: #444; margin-bottom: 3mm; }
 .rx-row { display: flex; gap: 8mm; align-items: flex-start; }
 .rx { position: relative; width: 104mm; flex: none; border: 0.3mm solid #222; padding: 3mm 4mm 4mm; font-size: 9.5pt; background: #fcfcfa; }
@@ -398,7 +396,7 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
   border: 0.25mm solid #b9c3cf; box-shadow: 0.8mm 1.2mm 0 #e3e3e3;
   background:
     linear-gradient(to right, transparent 0 15mm, #d9706a 15mm 15.3mm, transparent 15.3mm),
-    repeating-linear-gradient(to bottom, #fff 0 7.75mm, #b9cbe0 7.75mm 8mm); background-position: 0 6mm; }
+    repeating-linear-gradient(to bottom, #fff 0 6.55mm, #b9cbe0 6.55mm 6.8mm, #fff 6.8mm 8mm); }
 .note::before { content: ""; position: absolute; left: 0; right: 0; top: -1.2mm; height: 3mm;
   background: radial-gradient(circle at 1.5mm 0, #fff 1.2mm, transparent 1.3mm) 0 0 / 6mm 3mm repeat-x; }
 .note__inner { padding: 8mm 9mm 9mm 19mm; font-family: var(--font-serif); font-style: italic; font-size: 13.5pt; line-height: 8mm; color: #1d2c66; }
@@ -415,7 +413,7 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper__chats { display: grid; grid-template-columns: repeat(2, 76mm); justify-content: center; gap: 8mm; margin: 2mm 0 4mm; }
 .paper__chats figure { margin: 0; break-inside: avoid; }
 .paper__chats .phone { border: 0.6mm solid #222; border-radius: 5mm; padding: 2.2mm; background: #fff; }
-.paper__chats img { display: block; width: 100%; border-radius: 2.5mm; }
+.paper__chats img { display: inline-block; vertical-align: top; width: 100%; border-radius: 2.5mm; }
 .paper__chats figcaption { font-family: var(--font-sans); font-size: 8.5pt; text-align: center; color: #333; margin-top: 1.5mm; }
 .paper--chat .paper__title { text-transform: uppercase; letter-spacing: .06em; font-size: 12.5pt; }
 
@@ -432,7 +430,8 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
   body { width: 210mm; }
   .paper { background: #fff; width: 210mm; min-height: 297mm; padding: 16mm 16mm 18mm 22mm; margin-bottom: 6mm; }
   .paper__qr { top: 16mm; right: 16mm; }
-  .paper__docmark { left: 7mm; top: 16mm; }
+  .paper__docmark { display: block; position: absolute; left: 22mm; top: 8mm; font-family: var(--font-sans); font-size: 7.5pt;
+    font-weight: 700; letter-spacing: .03em; color: var(--mark); line-height: 1; }
   .paper--stub { border-width: 0; outline: 0.6mm dashed #888; outline-offset: -16mm; }
   .paper--journal { min-height: 297mm; }
   .paper--program { min-height: 297mm; }

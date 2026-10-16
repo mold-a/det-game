@@ -28,12 +28,34 @@
 <div class="paper__case">Уголовное дело № {{ w.police.case_no }}</div>
 {%- endmacro %}
 
-{# Метка материалов дела: номер документа в игре (как в списке «Документы дела» на сайте).
+{# Метка материалов дела (номер документа в игре, как в списке «Документы дела» на сайте).
+   В печати — верхнее поле каждого листа (page_rule), здесь — её копия для превью на экране.
    meta.docmark: false — не печатать. #}
 {% macro docmark(doc, w) -%}
 {% if doc.meta.get('docmark', true) is not false %}
-<div class="paper__docmark" aria-hidden="true"><span class="paper__docmark-case">Дело № {{ w.police.case_no }}</span><span class="paper__docmark-id">{{ doc.id }}</span></div>
+<div class="paper__docmark" aria-hidden="true">Дело № {{ w.police.case_no }} · документ {{ doc.id }}</div>
 {% endif %}
+{%- endmacro %}
+
+{# Своя именованная страница документа (@page doc-<id>): метка дела в верхнем поле каждого листа
+   (meta.docmark: false — без неё) и колонтитул бланка: sheeted — «Подпись …» и «Лист N»
+   (протоколы, осмотры, заключения), numbered — «Страница N» (выписки). Счёт страниц Chromium —
+   сквозной по PDF: в envelope-N.pdf это нумерация листов конверта. #}
+{% macro page_rule(doc, w, footer=None) -%}
+<style>
+@page doc-{{ doc.id }} {
+{% if doc.meta.get('docmark', true) is not false %}
+  @top-left { content: "Дело № {{ w.police.case_no }} · документ {{ doc.id }}"; font-family: "PT Sans", sans-serif; font-size: 7.5pt;
+    font-weight: 700; letter-spacing: .03em; color: #5b3fa3; vertical-align: bottom; padding-bottom: 5mm; }
+{% endif %}
+{% if footer == "sheeted" %}
+  @bottom-left { content: "Подпись ____________________"; font-family: "PT Sans", sans-serif; font-size: 8pt; color: #555; }
+  @bottom-right { content: "Лист " counter(page); font-family: "PT Sans", sans-serif; font-size: 9pt; color: #222; }
+{% elif footer == "numbered" %}
+  @bottom-right { content: "Страница " counter(page); font-family: "PT Sans", sans-serif; font-size: 8pt; color: #555; }
+{% endif %}
+}
+</style>
 {%- endmacro %}
 
 {% macro requisites(doc) -%}
@@ -77,15 +99,17 @@
 {%- endif -%}
 {%- endmacro %}
 
-{# Печать-кружок вымышленной организации: текст по кругу (вписывается в окружность), в центре —
-   meta.seal (строка) или умолчание бланка. meta.seal: false — без печати. Цвет — синие чернила. #}
+{# Печать-кружок вымышленной организации: текст по кругу (вписывается в окружность; к короткому
+   названию добавляется «г. <город>»), в центре — meta.seal (строка) или умолчание бланка.
+   meta.seal: false — без печати; meta.seal_ring — свой текст по кругу. Цвет — синие чернила. #}
 {% macro seal(doc, ring, center="", cls="") -%}
 {% set opt = doc.meta.get('seal', true) %}
 {% if opt is not false and ring %}
 {% set c = opt if opt is string else center %}
-{% set ring_text = (ring ~ ' ★ ')|upper %}
+{% set ring_full = doc.meta.get('seal_ring') or (ring ~ (' ★ г. ' ~ w.city if ring|length < 34 and w is defined and w.city not in ring else '')) %}
+{% set ring_text = (ring_full ~ ' ★ ')|upper %}
 {% set n = ring_text|length %}
-{% set fs = [5.4, 260 / n]|min %}
+{% set fs = [6.2, 250 / n]|min %}
 <svg class="seal {{ cls }}" viewBox="0 0 100 100" aria-hidden="true">
   <defs><path id="seal-{{ doc.id }}-{{ cls|replace(' ', '-') }}" d="M50,50 m-38,0 a38,38 0 1,1 76,0 a38,38 0 1,1 -76,0"/></defs>
   <circle cx="50" cy="50" r="47" fill="none" stroke="currentColor" stroke-width="2.2"/>

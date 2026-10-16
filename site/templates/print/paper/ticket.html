@@ -9,7 +9,7 @@
    meta.stub — клетки корешка (словарь; по умолчанию — первые 4 клетки meta.cells).
    Текст документа (если есть) — под билетом, как пометка на листе дела. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set cells = doc.meta.get('cells') or {} %}
 {% set stub = doc.meta.get('stub') or cells %}

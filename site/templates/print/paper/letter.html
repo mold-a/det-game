@@ -3,7 +3,7 @@
    («О …»), текст с красной строки, подпись; без № дела. Заголовок печатается, только если он задан
    в front matter (title), — у писем обычно нет заголовка. Печать — по meta.seal (текст в центре или true). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">

@@ -3,7 +3,7 @@
    «## …» с римской нумерацией, подпись эксперта и печать бюро (meta.seal: текст в центре или false);
    «Лист N» внизу листа. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="paper__head">
   <div class="forensic__head">

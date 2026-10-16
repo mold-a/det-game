@@ -2,7 +2,7 @@
    крупный заголовок разрядкой, текст, подпись и печать организации (meta.seal: текст в центре
    или false). QR-код страницы (если есть) — в правом верхнем углу. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="paper__head">
   <div class="letterrow">

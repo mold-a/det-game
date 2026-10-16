@@ -2,7 +2,7 @@
    content/chats/<id>.yaml (doc.chats) по два в ряд в рамке телефона (два снимка — один лист),
    подписи «Снимок N» (или meta.captions), затем текст (если есть) и подписи. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block before_body %}
 {% if doc.chats %}
 {% set caps = doc.meta.get('captions') or [] %}

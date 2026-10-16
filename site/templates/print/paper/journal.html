@@ -3,7 +3,7 @@
    meta.period («Начат: … Окончен: …», строка или список); записи — таблицей в тексте (Markdown);
    под таблицей линовка продолжается до низа листа. Подписи — если есть. #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="journal__head">
   <div class="journal__top">

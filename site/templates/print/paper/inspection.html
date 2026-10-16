@@ -3,7 +3,7 @@
    meta: start, end — «22:05»; by — кто составил; object — что осмотрено; participants — участвующие
    лица (строка или список); conditions — условия осмотра (освещение, погода). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set start = doc.meta.get('start') or m.iso_time(doc.date)|trim %}
 {% set end = doc.meta.get('end') %}

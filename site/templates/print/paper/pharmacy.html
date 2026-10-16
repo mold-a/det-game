@@ -5,7 +5,7 @@
      date, patient, age, doctor, rp — назначение (строка или список строк), note — пометка аптеки}.
    meta.certified — текст штампа заверения (по умолчанию «Копия верна»). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% set rx = doc.meta.get('recipe') %}
 <header class="paper__head">

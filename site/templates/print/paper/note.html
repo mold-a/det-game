@@ -4,7 +4,7 @@
    QR-код страницы (если есть) — в углу листа A4, вне листка. meta.caption — подпись под листком
    на листе дела (например, «Обнаружена в …»). #}
 {% extends "print/paper/_doc.html" %}
-{% import "print/paper/_macros.html" as m %}
+{% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <div class="note">
   <div class="note__inner">
