@@ -7,8 +7,9 @@ front matter и тело — шаблоны контента (``c``, ``w``), т�
 Выход (``print/paper/``, в ``.gitignore``):
 
 - ``<id>.pdf`` — каждый документ, A4;
-- ``envelope-<N>.pdf`` — все бумажные документы конверта N по порядку ``documents.yaml``, каждый
-  с новой страницы (один HTML → один PDF); без ``--only``;
+- ``envelope-<N>.pdf`` — все бумажные документы конверта N по порядку ``documents.yaml`` (заглушки
+  тоже): склейка готовых ``<id>.pdf`` через ``pypdf``, поэтому у каждого документа своя нумерация
+  «Лист 1…» (один общий HTML дал бы сквозной счётчик страниц Chromium); без ``--only``;
 - ``preview/<id>.png`` — первая страница для просмотра.
 
 QR-код страницы (та же ссылка, что у ``python -m engine qr``; у облака — без ключа) печатается в
@@ -22,7 +23,6 @@ QR-код страницы (та же ссылка, что у ``python -m engine
 
 from __future__ import annotations
 
-import re
 import tempfile
 from dataclasses import dataclass, field
 from functools import lru_cache
@@ -43,7 +43,6 @@ TEMPLATE = "print/paper/_base.html"
 # Превью: CSS-пиксели листа A4 при 96 dpi и масштаб снимка.
 PREVIEW_W, PREVIEW_H, PREVIEW_SCALE = 794, 1123, 1.5
 QR_SVG_SCALE = 10
-_PDF_PAGE = re.compile(rb"/Type\s*/Page(?![a-zA-Z])")
 STATUS_OK = "готов"
 
 
@@ -219,9 +218,38 @@ def release_problems(content: Content, ids: list[str], docs: dict[str, dict], qr
     return problems
 
 
+def _pypdf():
+    """Модуль ``pypdf`` (число страниц и склейка сборников) или ``PrintError`` с подсказкой."""
+    from engine.printing import PrintError
+
+    try:
+        import pypdf
+    except ImportError as e:
+        raise PrintError(f"нет Python-пакета pypdf ({e}): он считает страницы и склеивает сборники "
+                         "конвертов; установите зависимости: pip install -e \".[dev]\"") from None
+    return pypdf
+
+
 def pdf_pages(path: Path) -> int:
-    """Число страниц PDF Chromium (объекты ``/Type /Page``)."""
-    return len(_PDF_PAGE.findall(Path(path).read_bytes()))
+    """Число страниц PDF (по дереву страниц, через ``pypdf``)."""
+    return len(_pypdf().PdfReader(Path(path)).pages)
+
+
+def merge_pdfs(parts: list[Path], out: Path, *, title: str | None = None) -> Path:
+    """Склеить PDF по порядку в ``out`` (через временный файл рядом — без полузаписанного сборника).
+    Нумерация «Лист N» каждого документа сохраняется: она уже нарисована на его страницах."""
+    pypdf = _pypdf()
+    out = Path(out)
+    writer = pypdf.PdfWriter()
+    for p in parts:
+        writer.append(Path(p))
+    if title is not None:
+        writer.add_metadata({"/Title": title})
+    tmp = out.with_name(f".{out.name}.tmp")
+    with tmp.open("wb") as fh:
+        writer.write(fh)
+    tmp.replace(out)
+    return out
 
 
 # ---------------------------------------------------------------- печать
@@ -239,6 +267,7 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
         if unknown:
             raise PaperError([f"--only {i}: бумажного документа с таким id нет в documents.yaml" for i in unknown])
     ids = [i for i in all_ids if not only or i in only]
+    _pypdf()  # нет pypdf — понятная ошибка до запуска браузера
     rep = PaperReport()
     ctx = make_context(content)
 
@@ -297,10 +326,11 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
                 if row.pages_hint is not None and row.pages != row.pages_hint:
                     row.notes.append(f"страниц {row.pages}, ожидалось {row.pages_hint} (pages_hint)")
                 rep.rows.append(row)
-            if not only:
-                for n in sorted({docs[i]["stage"] for i in ids}):
-                    items = [docs[i] for i in ids if docs[i]["stage"] == n]
-                    rep.envelopes.append(html_to_pdf(b, html(items, f"Конверт {n}"), out / f"envelope-{n}.pdf"))
+        if not only:
+            # Сборник = склейка отдельных PDF (своя нумерация листов у каждого документа).
+            for n in sorted({r.stage for r in rep.rows}):
+                parts = [r.pdf for r in rep.rows if r.stage == n]
+                rep.envelopes.append(merge_pdfs(parts, out / f"envelope-{n}.pdf", title=f"Конверт {n}"))
     return rep
 
 

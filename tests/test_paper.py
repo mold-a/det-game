@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 
@@ -287,14 +288,43 @@ def test_render_only_examples(chromium, content, salts, tmp_path):
     assert not list(tmp_path.glob(".chats-*"))
 
 
-def test_render_envelopes_and_stubs(chromium, content, salts, tmp_path):
-    rep = render_paper(content, tmp_path, salts=salts, preview=False)
-    ids = paper_ids(content)
+def _page_texts(path: Path) -> list[str]:
+    from pypdf import PdfReader
+
+    # extract_text расставляет пробелы между словами по-своему — сжимаем пробельные символы
+    return [" ".join((pg.extract_text() or "").split()) for pg in PdfReader(path).pages]
+
+
+def _has_sheet(text: str, n: int) -> bool:
+    return re.search(rf"Лист {n}(?!\d)", text) is not None
+
+
+def test_render_envelopes_and_stubs(chromium, root, salts, tmp_path):
+    """Сборник конверта = склейка отдельных PDF по порядку documents.yaml (заглушки тоже): страниц —
+    сумма, у каждого документа своя нумерация «Лист 1…» (протокол 2-04 после двухлистового 2-02)."""
+    write_paper(root, "2-02", 'id: "2-02"\nform: protocol', body='Первый лист.\n\n<div class="page-break"></div>\n\nВторой лист.\n')
+    write_paper(root, "2-04", 'id: "2-04"\nform: protocol', body="Единственный лист.\n")
+    c = load_content(root)
+    out = tmp_path / "out"
+    rep = render_paper(c, out, salts=salts, preview=False)
+    ids = paper_ids(c)
     assert [r.id for r in rep.rows] == ids
     assert [p.name for p in rep.envelopes] == [f"envelope-{n}.pdf" for n in (1, 2, 3, 4)]
     for n, env in enumerate(rep.envelopes, 1):
-        expected = sum(r.pages for r in rep.rows if r.stage == n)
-        assert pdf_pages(env) == expected, env
+        rows = [r for r in rep.rows if r.stage == n]
+        assert pdf_pages(env) == sum(r.pages for r in rows), env
+        # страницы сборника — это страницы отдельных PDF подряд, в порядке documents.yaml
+        assert _page_texts(env) == [t for r in rows for t in _page_texts(r.pdf)], env
+    by_id = {r.id: r for r in rep.rows}
+    assert by_id["2-02"].pages == 2 and by_id["2-04"].pages == 1
+    env2 = _page_texts(out / "envelope-2.pdf")
+    offset = sum(r.pages for r in rep.rows if r.stage == 2 and ids.index(r.id) < ids.index("2-04"))
+    assert offset >= 3  # 2-02 (2 листа) и заглушка 2-03 — до 2-04
+    first_204 = env2[offset]
+    assert "Единственный лист" in first_204 and _has_sheet(first_204, 1), first_204
+    assert not _has_sheet(first_204, offset + 1)  # не сквозная нумерация по конверту
+    assert [r.id for r in rep.rows if r.stage == 2][0] == "2-02"
+    assert _has_sheet(env2[0], 1) and _has_sheet(env2[1], 2) and "Второй лист" in env2[1], env2[:2]
     stub = next(r for r in rep.rows if r.id == "2-05")
     assert stub.form == "stub" and stub.pages == 1 and "заглушка" in stub.status
     assert "2-05" in rep.table() and "бланк" in rep.table()

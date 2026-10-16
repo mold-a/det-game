@@ -257,7 +257,7 @@ def cmd_chatshot() -> int:
 
 
 def cmd_paper(only: list[str] | None, release: bool) -> int:
-    from engine.paper import PaperError
+    from engine.paper import PaperError, pdf_pages
     from engine.paper import run as paper_run
 
     def run() -> int:
@@ -270,7 +270,7 @@ def cmd_paper(only: list[str] | None, release: bool) -> int:
         out = rep.rows[0].pdf.parent if rep.rows else None
         print(f"Бумажные документы: {len(rep.rows)} PDF в {out}; превью — {out / 'preview' if out else '—'}")
         for p in rep.envelopes:
-            print(f"  сборник: {p}")
+            print(f"  сборник: {p} (страниц: {pdf_pages(p)})")
         stubs = sum(1 for r in rep.rows if r.form == "stub")
         if stubs:
             print(f"Нет текста у {stubs} документов — напечатаны заглушки; с --release это ошибка.")
