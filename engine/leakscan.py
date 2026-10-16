@@ -10,7 +10,9 @@
   писем и текстов пакетов этапов 2…N, экспертиз, развязки и закрытых страниц (отрендеренных,
   как их видит игрок), а также бумажных документов ``content/paper/`` (они не публикуются вовсе). Не считаются иголками шинглы только из служебных слов и шинглы
   «обвязки» (статический текст шаблонов ``site/templates``, строки интерфейса ``texts.js``,
-  то, что оболочка закрытой страницы показывает по замыслу: бренд, логин облака).
+  то, что оболочка закрытой страницы показывает по замыслу: бренд, логин облака). Бумага вправе
+  цитировать открытые материалы: её шинглы, которые есть в публичном выводе сборки (открытые
+  страницы, страницы приложения, ``public.json``), тоже не иголки (``add_text(..., also_exclude=)``).
 
 У каждой иголки есть этап (0 — общая). Открытый текст pack-1 (его ключ публичный) сканируется
 иголками всех этапов, кроме 1.
@@ -123,10 +125,11 @@ class NeedleSet:
         self._seen.add(key)
         self.needles.append(Needle(b, r, kind, source, stage))
 
-    def add_text(self, text: str, kind: str, source: str, *, stage: int = 0) -> None:
-        """Шинглы всего текста (без служебных и «обвязки»)."""
+    def add_text(self, text: str, kind: str, source: str, *, stage: int = 0,
+                 also_exclude: set[str] | frozenset[str] = frozenset()) -> None:
+        """Шинглы всего текста (без служебных, «обвязки» и ``also_exclude`` — публичных для этого вида)."""
         for sh in text_shingles(text):
-            if sh in self.exclude or is_stop_shingle(sh) or sh in self.shingles:
+            if sh in self.exclude or sh in also_exclude or is_stop_shingle(sh) or sh in self.shingles:
                 continue
             self.shingles[sh] = Needle(sh, None, kind, source, stage)
 
@@ -185,6 +188,11 @@ def unescape(text: str) -> str:
     return html.unescape(_U_ESC.sub(lambda m: chr(int(m.group(1), 16)), text))
 
 
+def markup_text(raw: str) -> str:
+    """Разметка для поиска: и с тегами (атрибуты), и без (видимый текст подряд)."""
+    return raw + "\n" + _TAG.sub(" ", raw)
+
+
 def file_text(path: Path) -> str | None:
     """Текст файла для поиска или ``None`` (двоичный). JSON — только строки (без n/c/солей)."""
     if path.suffix.lower() in BINARY_EXT:
@@ -199,8 +207,8 @@ def file_text(path: Path) -> str | None:
         except json.JSONDecodeError:
             pass
     raw = unescape(raw)
-    if path.suffix.lower() in MARKUP_EXT:  # и с тегами (атрибуты), и без (видимый текст подряд)
-        raw = raw + "\n" + _TAG.sub(" ", raw)
+    if path.suffix.lower() in MARKUP_EXT:
+        raw = markup_text(raw)
     return raw
 
 

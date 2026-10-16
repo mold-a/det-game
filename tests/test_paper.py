@@ -400,3 +400,36 @@ def test_no_pypdf_clear_error(content, salts, tmp_path, monkeypatch):
         render_paper(content, tmp_path / "out", salts=salts, preview=False)
     assert "pypdf" in str(exc.value) and 'pip install -e ".[dev]"' in str(exc.value)
     assert not list((tmp_path / "out").glob("*.pdf"))
+
+
+def test_paper_may_quote_open_page(root, tmp_path):
+    """Бумага цитирует строку открытой страницы (как отрендерил build) — не утечка; уникальная фраза
+    той же бумаги, подложенная в dist/, — утечка."""
+    from engine.build import prepare
+    from engine.check import page_text
+    from engine.leakscan import is_stop_shingle, text_shingles
+
+    salts = tmp_path / "salts.json"
+    dist = tmp_path / "dist"
+    media = tmp_path / "media"
+    build(content_dir=root, dist=dist, salts_path=salts, media_dir=media)
+    ns0 = leak_needles(prepare(root, salts, create_salts=False), media_dir=media)
+    page = page_text((dist / "p" / "gromov" / "index.html").read_text(encoding="utf-8"))
+    quotes = sorted(sh for sh in text_shingles(page) - ns0.exclude if not is_stop_shingle(sh))
+    assert quotes, "на открытой странице gromov нет текста сверх «обвязки»"
+    quote = quotes[0]  # шингл только из открытой отрендеренной страницы (не из public_texts контента)
+    unique = "Поезд отправился с третьего пути без опоздания"
+    write_paper(root, "3-07", 'id: "3-07"\nform: ticket', body=f"{quote}.\n\n{unique}.\n")
+    build(content_dir=root, dist=dist, salts_path=salts, media_dir=media)
+    ns = leak_needles(prepare(root, salts, create_salts=False), media_dir=media)
+    assert quote not in ns.shingles
+    assert any(nd.kind == "paper" and nd.source == "content/paper/3-07.md" for nd in ns.shingles.values())
+    rep = check(content_dir=root, dist=dist, salts_path=salts, media_dir=media)
+    assert rep.ok, rep.problems
+    (dist / "quote.html").write_text(f"<p>{quote}</p>", encoding="utf-8")
+    assert check(content_dir=root, dist=dist, salts_path=salts, media_dir=media).ok
+    (dist / "leak-paper.html").write_text(f"<p>{unique}</p>", encoding="utf-8")
+    rep = check(content_dir=root, dist=dist, salts_path=salts, media_dir=media)
+    assert not rep.ok
+    probs = [p for p in rep.problems if p.startswith("[7.")]
+    assert probs and all("leak-paper.html" in p and "content/paper/3-07.md" in p for p in probs), probs

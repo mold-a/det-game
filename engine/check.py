@@ -18,8 +18,17 @@ from engine import salts as salts_mod
 from engine.answers import iso_to_dmy, shift_time, wrong_inputs
 from engine.build import BuildError, Prepared, prepare, release_problems
 from engine.content import Content, collect_todos, units
-from engine.leakscan import NeedleSet, boilerplate_shingles, json_text, scan, scan_text
-from engine.media import MediaPlan, media_hash
+from engine.leakscan import (
+    NeedleSet,
+    boilerplate_shingles,
+    json_text,
+    markup_text,
+    scan,
+    scan_text,
+    text_shingles,
+    unescape,
+)
+from engine.media import MEDIA_DIR, MediaPlan, media_hash
 from engine.normalize import base, normalize
 from engine.pages import access_of, cloud_password_norm, locked_page_texts
 from engine.templating import render
@@ -204,7 +213,31 @@ def public_texts(content: Content, ctx: dict) -> list[str]:
     return out
 
 
-def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path = SITE) -> NeedleSet:
+def published_texts(prep: Prepared, *, site_dir: Path = SITE, media_dir: Path = MEDIA_DIR) -> list[str]:
+    """Публичный вывод сборки, отрендеренный заново из контента так же, как это делает ``build``:
+    открытые страницы целиком (``p/<slug>/index.html``), страницы системы расследования и
+    ``public.json``. Берётся не из ``dist/``: утечка в записанный файл не должна делать себя «публичной»."""
+    from engine.build import APP_ENTRIES, app_html, site_base_ctx
+    from engine.packs import build_public
+    from engine.pages import build_page
+    from engine.templating import make_site_env
+
+    content = prep.content
+    site_env = make_site_env(Path(site_dir) / "templates")
+    plan = MediaPlan(content, Path(media_dir))
+    pub = build_public(content, prep.salts)
+    base_ctx = site_base_ctx(content, pub)
+    out = [json_text(pub)]
+    for page in content.pages.values():
+        if access_of(page) == "open":
+            html = build_page(content, page, prep.ctx, prep.salts, plan, site_env, base_ctx).index_html
+            out.append(markup_text(unescape(html)))
+    out += [markup_text(unescape(app_html(site_env, base_ctx, rel))) for rel in APP_ENTRIES]
+    return out
+
+
+def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path = SITE,
+                 media_dir: Path = MEDIA_DIR) -> NeedleSet:
     """Иголки leak scan (значения и шинглы), см. engine/leakscan.py."""
     content, ctx = prep.content, prep.ctx
     ns = NeedleSet()
@@ -246,11 +279,15 @@ def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path
     for source, text, stage in secret_texts(prep, dec):
         ns.add_text(text, "text", source, stage=stage)
     # Бумага конвертов (content/paper/) не публикуется: её шинглы в dist/ — утечка; в открытом
-    # тексте pack-1 допустима только бумага конверта 1 (иголки этапа 1 там не ищутся).
+    # тексте pack-1 допустима только бумага конверта 1 (иголки этапа 1 там не ищутся). Бумага вправе
+    # цитировать открытое (страницы call, gromov, news; интерфейс; public.json): такие шинглы — не иголки.
     from engine.paper import paper_texts
 
+    published: set[str] = set()
+    for t in published_texts(prep, site_dir=site_dir, media_dir=media_dir):
+        published |= text_shingles(t)
     for source, text, stage in paper_texts(content, ctx):
-        ns.add_text(text, "paper", source, stage=stage)
+        ns.add_text(text, "paper", source, stage=stage, also_exclude=published)
     return ns
 
 
@@ -499,7 +536,7 @@ def check(
 
     # 7. Leak scan + pack-1 + медиа + нейтральные примеры
     plan = MediaPlan(content, media_dir)
-    ns = leak_needles(prep, dec, site_dir=site_dir)
+    ns = leak_needles(prep, dec, site_dir=site_dir, media_dir=media_dir)
     rep.short_needles = ns.short
     problems = [str(f) for f in scan(dist, ns)]
     first = content.stages[0].n

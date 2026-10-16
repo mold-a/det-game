@@ -86,6 +86,18 @@ class Prepared:
     params: dict
 
 
+def site_base_ctx(content: Content, pub: dict) -> dict:
+    """Общий контекст шаблонов сайта (base.html)."""
+    return {"pub": pub, "chrome": chrome_of(content), "robots": ROBOTS}
+
+
+def app_html(site_env: Any, base_ctx: dict, out_rel: str) -> str:
+    """HTML страницы системы расследования (``APP_ENTRIES``)."""
+    tpl, entry = APP_ENTRIES[out_rel]
+    return site_env.get_template(tpl).render(**base_ctx, title=base_ctx["pub"]["title"], entry=entry, css=[],
+                                             body_class="app")
+
+
 def prepare(content_dir: Path, salts_path: Path, *, create_salts: bool = True) -> Prepared:
     """``create_salts=False`` (check, dump): файл солей только читается; его нет — ``BuildError``."""
     content = load_content(content_dir)
@@ -217,8 +229,7 @@ def build(
     lab_by_stage = lab_entries(content, keys, payloads, prep.params, warnings)
 
     pub = build_public(content, salts)
-    chrome = chrome_of(content)
-    base_ctx = {"pub": pub, "chrome": chrome, "robots": ROBOTS}
+    base_ctx = site_base_ctx(content, pub)
 
     tmp = dist.with_name(dist.name + ".__tmp__")
     if tmp.exists():
@@ -242,9 +253,8 @@ def build(
             if out.access == "key":
                 page_keys[slug] = b64u_encode(salts.page_key(slug))
 
-        for out_rel, (tpl, entry) in APP_ENTRIES.items():
-            ctx_html = dict(base_ctx, title=pub["title"], entry=entry, css=[], body_class="app")
-            write_text(tmp / out_rel, site_env.get_template(tpl).render(**ctx_html))
+        for out_rel in APP_ENTRIES:
+            write_text(tmp / out_rel, app_html(site_env, base_ctx, out_rel))
 
         assets = site_dir / "assets"
         if assets.is_dir():
