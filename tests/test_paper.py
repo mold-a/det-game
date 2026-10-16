@@ -37,9 +37,51 @@ FORMS = {"protocol", "report", "ambulance", "forensic", "plan", "program", "inve
          "note", "press"}
 
 
+# Бумага в content/paper/ пишется сценаристами и меняется; тесты движка работают на копии контента,
+# где в content/paper/ лежат только эти примеры (остальные документы — заглушки).
+EXAMPLE_PAPERS = {
+    "1-02": """---
+id: "1-02"
+form: report
+signed:
+  - { role: "{{ c.kovalev.role }}", name: "{{ c.kovalev.short() }}" }
+---
+TODO(content): текст рапорта (пример для тестов)
+""",
+    "1-07": """---
+id: "1-07"
+form: program
+title: "{{ w.play.title }}"
+date: "{{ w.dates.premiere }}"
+meta:
+  author: "{{ w.play.author }}"
+---
+| Роль | Исполнитель |
+|---|---|
+| {{ w.play.role_main }} | {{ c.voroncov.short() }} |
+| — | {{ c.stas.short() }} |
+
+Режиссёр-постановщик — {{ c.zavyalov.short() }}. Первое действие: {{ w.play.schedule.act1 }}.
+
+TODO(content): пример незаполненного места
+""",
+}
+
+
 @pytest.fixture(scope="module")
-def content():
-    return load_content(CONTENT)
+def examples(tmp_path_factory) -> Path:
+    dst = tmp_path_factory.mktemp("examples") / "content"
+    shutil.copytree(CONTENT, dst)
+    shutil.rmtree(dst / "paper")
+    (dst / "paper").mkdir()
+    for doc_id, text in EXAMPLE_PAPERS.items():
+        (dst / "paper" / f"{doc_id}.md").write_text(text, encoding="utf-8")
+    return dst
+
+
+@pytest.fixture(scope="module")
+def content(examples):
+    return load_content(examples)
 
 
 @pytest.fixture(scope="module")
@@ -48,9 +90,9 @@ def salts(content, tmp_path_factory):
 
 
 @pytest.fixture
-def root(tmp_path: Path) -> Path:
+def root(examples, tmp_path: Path) -> Path:
     dst = tmp_path / "content"
-    shutil.copytree(CONTENT, dst)
+    shutil.copytree(examples, dst)
     return dst
 
 
@@ -85,6 +127,15 @@ def assert_error(root: Path, *parts: str) -> None:
 
 
 # ---------------------------------------------------------------- загрузка и заглушки
+
+
+def test_real_paper_renders():
+    """Настоящая бумага content/paper/ загружается и даёт данные бланков (без проверок сюжета)."""
+    c = load_content(CONTENT)
+    ctx = make_context(c)
+    for doc_id in paper_ids(c):
+        d = doc_data(c, doc_id, ctx)
+        assert d["stub"] == (doc_id not in c.paper) and "{{" not in d["body_html"], doc_id
 
 
 def test_all_forms_have_templates():
@@ -380,12 +431,13 @@ def test_pack1_may_quote_envelope1_paper_only(root, tmp_path):
     assert scan_text(texts["content/paper/1-07.md"], ns, "x")  # в файле dist/ — утечка и для конверта 1
 
 
-def test_release_command_fails_on_missing_paper(tmp_path):
+def test_release_command_fails_on_missing_paper(root, tmp_path):
     """``python -m engine release``: бумажный документ без текста — ошибка (как TODO(content))."""
     from engine.release import ReleaseError, release
 
     with pytest.raises(ReleaseError) as exc:
-        release(dist=tmp_path / "dist", salts_path=tmp_path / "salts.json", out_dir=tmp_path / "print")
+        release(content_dir=root, media_dir=tmp_path / "media", dist=tmp_path / "dist",
+                salts_path=tmp_path / "salts.json", out_dir=tmp_path / "print")
     assert "нет текста бумажного документа content/paper/2-05.md" in str(exc.value)
 
 
