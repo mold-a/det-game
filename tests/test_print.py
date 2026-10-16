@@ -162,7 +162,10 @@ def test_chatshot_pngs(chromium, content, tmp_path):
 
     paths = render_chats(content, tmp_path)
     names = sorted(p.name for p in paths)
-    assert names == ["3-03-1.png", "3-03-2.png", "3-03-3.png", "3-03-4.png", "4-06-1.png", "4-12-1.png"]
+    expected = sorted(
+        f"{cid}-{i}.png" for cid, chat in content.chats.items() for i in range(1, len(chat.screens) + 1)
+    )
+    assert names == expected and {"3-03-1.png", "4-06-1.png", "4-12-1.png"} <= set(names)
     for p in paths:
         assert png_size(p) == (1080, 2340)
 
