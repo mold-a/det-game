@@ -119,7 +119,7 @@ def test_chat_sender_not_in_private_chat(tmp_path):
                  encoding="utf-8")
     with pytest.raises(ContentError) as exc:
         load_content(root)
-    assert any("screens[0].messages[2].from" in str(e) and "не участвует" in str(e) for e in exc.value.errors)
+    assert any("screens[0].messages[4].from" in str(e) and "не участвует" in str(e) for e in exc.value.errors)
 
 
 def test_chat_template_typo(tmp_path):
