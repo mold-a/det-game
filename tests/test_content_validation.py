@@ -136,7 +136,7 @@ def test_collect_todos():
     # привычка Кирилла и рабочий чат 4-06 заполнены 20.10.2026
     assert any(t.file == "content/stages.yaml" and t.loc == "stages[0].intro" and t.kind == "value" for t in todos)
     assert any(t.file == "content/pages/inna/page.yaml" and t.loc == "profile.bio" for t in todos)
-    assert any(t.file == "content/settings.yaml" and "домен" in t.text for t in todos)
+    assert not any(t.file == "content/settings.yaml" and "домен" in t.text for t in todos)  # домен задан 20.10
     for t in todos:
         assert t.file.startswith("content/") and t.loc
 
@@ -384,12 +384,12 @@ def test_content_error_message_format(root):
 @pytest.mark.parametrize("domain", ["https://example.ru/", "https://example.ru/game", "http://example.ru",
                                     "example.ru", "https://example.ru?x=1"])
 def test_domain_root_only(root, domain):
-    edit_text(root, "settings.yaml", 'domain: "https://example.ru"', f'domain: "{domain}"')
+    edit_text(root, "settings.yaml", 'domain: "https://mydetgame.ru"', f'domain: "{domain}"')
     assert_error(root, "content/settings.yaml: domain:", f"domain {domain!r}")
 
 
 def test_domain_with_port_ok(root):
-    edit_text(root, "settings.yaml", 'domain: "https://example.ru"', 'domain: "https://example.ru:8443"')
+    edit_text(root, "settings.yaml", 'domain: "https://mydetgame.ru"', 'domain: "https://example.ru:8443"')
     assert load_content(root).settings.domain == "https://example.ru:8443"
 
 

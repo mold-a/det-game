@@ -76,7 +76,7 @@ def test_release_fails_on_current_content(tmp_path):
     assert e.stage == "build --release"
     text = str(e)
     assert "TODO(content)" in text and "нет медиафайла" in text
-    assert "домен-заглушка" in text  # пароль облака задан в content с 14.10.2026
+    assert "домен-заглушка" not in text  # пароль облака задан 14.10, домен — 20.10.2026
     assert not (tmp_path / "print").exists() and not (tmp_path / "dist").exists()
 
 

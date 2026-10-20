@@ -75,7 +75,7 @@ def test_qr_files_and_selfcheck(content, salts, tmp_path):
         w, h = png_size(c.png)
         assert w == h and 1100 <= w <= 1200
         assert c.svg.read_text(encoding="utf-8").lstrip().startswith("<svg")
-    assert any("example.ru" in w for w in rep.warnings)
+    assert not any("example.ru" in w for w in rep.warnings)  # домен задан (mydetgame.ru)
     if decoder() is None:
         assert any("самопроверка QR пропущена" in w for w in rep.warnings)
         pytest.skip("нет extra qrcheck (zxing-cpp, pillow): декодирование не проверено")

@@ -43,6 +43,13 @@ def test_dist_layout(built):
     blocks = {b.splitlines()[0]: b for b in headers.split("\n\n") if b.strip() and not b.startswith("#")}
     assert "no-cache" in blocks["/data/*"] and "immutable" in blocks["/m/*"] and "immutable" in blocks["/assets/fonts/*"]
     assert "Cache-Control" not in blocks["/*"] and "noindex" in blocks["/*"]
+    # Apache (REG.RU): корневой .htaccess — no-cache и noindex, в папках неизменяемых файлов — immutable
+    root_ht = (dist / ".htaccess").read_text(encoding="utf-8")
+    assert 'Cache-Control "no-cache"' in root_ht and "noindex, nofollow" in root_ht and "Options -Indexes" in root_ht
+    assert "AddType font/woff2 .woff2" in root_ht and "AddType application/json .json" in root_ht
+    for d in ("assets/fonts", "m"):
+        if (dist / d).is_dir():
+            assert "immutable" in (dist / d / ".htaccess").read_text(encoding="utf-8"), d
     for p in dist.rglob("*.html"):
         assert '<meta name="robots" content="noindex, nofollow">' in p.read_text(encoding="utf-8"), p
     pub = json.loads((dist / "data/public.json").read_text(encoding="utf-8"))
@@ -237,7 +244,8 @@ def test_release_fails_with_todos(built, tmp_path):
     text = str(exc.value)
     assert "TODO(content)" in text and "комментарий" in text
     # пароль облака задан в content (14.10.2026) — проверка «пароль облака не задан» здесь больше не срабатывает
-    assert "нет медиафайла" in text and "домен-заглушка" in text
+    # домен задан в content (20.10.2026: mydetgame.ru) — «домен-заглушка» здесь больше не срабатывает
+    assert "нет медиафайла" in text and "домен-заглушка" not in text
     assert not (tmp_path / "dist").exists()
     rep = check(dist=dist, salts_path=salts, release=True)
     assert not next(r for r in rep.rows if r.name.startswith("8.")).ok

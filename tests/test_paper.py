@@ -306,7 +306,7 @@ def test_release_fails_on_missing_paper(content, salts, tmp_path):
     text = str(exc.value)
     assert "2-05: нет текста бумажного документа content/paper/2-05.md" in text
     assert "TODO(content): content/paper/1-02.md: строка 7" in text
-    assert "домен-заглушка" in text
+    assert "домен-заглушка" not in text  # домен задан 20.10.2026
     assert not list((tmp_path / "out").glob("*.pdf"))
 
 

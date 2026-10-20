@@ -1,7 +1,7 @@
 # Параметры игры. Все числа здесь — код их не дублирует.
 game_id: zakulisami
 title: "За кулисами правды"
-domain: "https://example.ru"   # TODO(content): свой домен — нужен для QR-кодов
+domain: "https://mydetgame.ru"   # куплен автором 20.10.2026 (REG.RU); QR зависят только от домена, не от хостинга
 default_year: 2026
 
 crypto:

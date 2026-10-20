@@ -47,6 +47,40 @@ def headers_file() -> str:
     for p in IMMUTABLE_PATHS:
         lines += [p, "  Cache-Control: public, max-age=31536000, immutable", ""]
     return "\n".join(lines)
+# Те же правила для Apache (виртуальные хостинги вроде REG.RU) — файлы `.htaccess`, docs/DEPLOY.md §2.4.
+# Корневой задаёт no-cache всем, а в папках с неизменяемыми файлами свой `.htaccess` заменяет заголовок.
+HTACCESS_ROOT = """# Создано python -m engine build — для Apache (REG.RU и другие виртуальные хостинги). docs/DEPLOY.md §2.4.
+Options -Indexes
+DirectoryIndex index.html
+AddDefaultCharset utf-8
+
+<IfModule mod_mime.c>
+  AddType application/json .json
+  AddType text/javascript .js
+  AddType text/css .css
+  AddType font/woff2 .woff2
+  AddType image/webp .webp
+  AddType image/svg+xml .svg
+  AddType audio/mpeg .mp3
+  AddType video/mp4 .mp4
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow"
+  Header always set X-Content-Type-Options "nosniff"
+  Header set Cache-Control "no-cache"
+</IfModule>
+
+# Перенаправление http → https включайте в панели хостинга: на виртуальном хостинге запросы часто
+# проходят через прокси, и правило в .htaccess может зациклиться. QR-коды и так ведут на https.
+"""
+HTACCESS_IMMUTABLE = """# Создано python -m engine build: файлы здесь не меняются (у медиа хеш в имени).
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>
+"""
+IMMUTABLE_DIRS = ("assets/fonts", "m")
+
 APP_ENTRIES = {
     "index.html": ("index.html", "/assets/js/app/main.js"),
     "lab/index.html": ("lab.html", "/assets/js/app/lab.js"),
@@ -263,6 +297,10 @@ def build(
         write_text(tmp / "robots.txt", ROBOTS_TXT)
         write_text(tmp / "_headers", headers_file())
         plan.emit(tmp)
+        write_text(tmp / ".htaccess", HTACCESS_ROOT)
+        for d in IMMUTABLE_DIRS:
+            if (tmp / d).is_dir():
+                write_text(tmp / d / ".htaccess", HTACCESS_IMMUTABLE)
     except BaseException:
         shutil.rmtree(tmp, ignore_errors=True)
         raise

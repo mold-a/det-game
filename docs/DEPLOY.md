@@ -127,6 +127,28 @@ python -m engine release
    - Домен второго уровня: только если DNS домена перенесён в Cloudflare.
 5. **HTTPS** выпускается автоматически.
 
+### 2.4. REG.RU — виртуальный хостинг (Apache)
+
+Домен игры `mydetgame.ru` куплен на REG.RU; там же есть хостинг (у автора — бесплатный месяц). Подходит: файлы статические, сервер Apache, настройки — в файлах `.htaccess`, которые `python -m engine build` кладёт в `dist/` сам:
+- `dist/.htaccess` — `no-cache` и `noindex` для всего, типы файлов (`.json`, `.woff2`, `.mp4`, `.mp3`), без списка файлов в папках;
+- `dist/assets/fonts/.htaccess` и `dist/m/.htaccess` — `immutable` для неизменяемых файлов.
+
+Шаги (названия пунктов зависят от панели тарифа — ispmanager или cPanel; см. справку REG.RU):
+1. **Привязать домен к хостингу.** Если домен куплен на REG.RU, DNS обычно настраивается сам при привязке. Подождать, пока `https://mydetgame.ru` откроет заглушку хостинга (от минут до суток).
+2. **Включить бесплатный SSL** (Let's Encrypt) для `mydetgame.ru` в панели хостинга и включить там перенаправление http → https, если оно есть. Без HTTPS шифрование в браузере не работает. Правило перенаправления в `.htaccess` специально не добавлено: на виртуальном хостинге запросы часто идут через прокси, и такое правило может зациклиться.
+3. **Собрать сайт:** `python -m engine release` — получится архив `print/dist-<buildId>.zip` с содержимым `dist/`.
+4. **Загрузить в корневую папку сайта** (в файловом менеджере панели — папка домена, часто `www/mydetgame.ru/` или `public_html/`): удалить файлы заглушки хостинга, загрузить архив и распаковать **так, чтобы `index.html` лежал прямо в корневой папке**. Или по FTP (FTPS) — тогда включите в клиенте показ скрытых файлов: `.htaccess` начинаются с точки.
+5. **Проверить** (§6), в том числе заголовки:
+   ```
+   curl -sI https://mydetgame.ru/data/public.json | grep -i -E "content-type|cache-control|x-robots"
+   curl -sI https://mydetgame.ru/assets/fonts/pt-sans-cyrillic-400-normal.woff2 | grep -i cache-control
+   ```
+   Должно быть `application/json`, `no-cache`, `noindex, nofollow` и `immutable` у шрифта. Если заголовков нет — на тарифе выключен `mod_headers`: игра работает, но после обновления телефоны могут держать старые файлы (лечится обновлением страницы); напишите в поддержку.
+
+**Важно про бесплатный месяц.** Проверьте дату окончания в личном кабинете и сравните с датой игры. Если месяц кончится раньше — продлите тариф или перед игрой переложите `dist/` на другой хостинг (например, §2.1) и направьте на него домен. **QR-коды зависят только от домена, не от хостинга** — перепечатывать ничего не придётся.
+
+Справка REG.RU: [как разместить сайт в ispmanager](https://help.reg.ru/support/hosting/razmeshcheniye-sayta-otobrazheniye-v-brauzere/kak-razmestit-sayt-v-ispmanager), [корневая папка сайта](https://help.reg.ru/support/hosting/razmeshcheniye-sayta-otobrazheniye-v-brauzere/kornevaya-papka-sayta), [подключение по FTP](https://help.reg.ru/support/hosting/dostupy-i-podklyucheniye-panel-upravleniya-ftp-ssh/kak-podklyuchitsya-k-serveru-po-ftp-i-nachat-rabotu), [проблемы с .htaccess](https://help.reg.ru/support/hosting/fayly-web-config-i-htaccess/problemy-s-htaccess).
+
 ## 3. Привязка домена: общее
 
 - Какие записи нужны — см. вариант выше. Удалите старые записи `A`/`CNAME` с тем же именем, если они есть.
