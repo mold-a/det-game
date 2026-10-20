@@ -395,28 +395,25 @@ def test_domain_with_port_ok(root):
 
 def test_cloud_chat_message_from_alias(root):
     """Ключ «from» в YAML читается через алиас поля from_ и проверяется по participants."""
-    edit_text(root, "pages/cloud/page.yaml", "    messages: []",
-              '    messages:\n'
-              '      - { from: zavyalov, datetime: "2026-09-01T10:00", text: "Привет" }\n'
-              '      - { from: voroncov, datetime: "2026-09-01T10:05", text: "Ответ" }')
     c = load_content(root)
     chat = next(f for f in c.pages["cloud"].folders if f.kind == "chat")
-    assert [m.from_ for m in chat.messages] == ["zavyalov", "voroncov"]
+    senders = [m.from_ for m in chat.messages]
+    assert senders[0] == "voroncov" and set(senders) == {"voroncov", "zavyalov"}
 
 
 def test_cloud_chat_message_errors(root):
-    edit_text(root, "pages/cloud/page.yaml", "    messages: []",
+    edit_text(root, "pages/cloud/page.yaml", "    messages:\n",
               '    messages:\n'
               '      - { from: gromov, datetime: "2026-09-01T10:00", text: "Чужой" }\n'
-              '      - { from_: zavyalov, datetime: "2026-09-01T10:00", text: "Имя поля Python" }')
+              '      - { from_: zavyalov, datetime: "2026-09-01T10:00", text: "Имя поля Python" }\n')
     errs = assert_error(root, "content/pages/cloud/page.yaml: folders[1].messages[1].from:",
                         "обязательное поле отсутствует")
     assert any("folders[1].messages[1].from_" in e and "лишнее поле" in e for e in errs)
 
 
 def test_cloud_chat_message_sender_not_participant(root):
-    edit_text(root, "pages/cloud/page.yaml", "    messages: []",
-              '    messages:\n      - { from: gromov, datetime: "2026-09-01T10:00", text: "Чужой" }')
+    edit_text(root, "pages/cloud/page.yaml", "    messages:\n",
+              '    messages:\n      - { from: gromov, datetime: "2026-09-01T10:00", text: "Чужой" }\n')
     assert_error(root, "folders[1].messages[0].from", "«gromov» не входит в participants")
 
 
