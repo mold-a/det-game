@@ -195,7 +195,7 @@ def test_familiar_problem_when_first_name_changes(tmp_path, content):
     before = (content / "characters.yaml").read_bytes()
     rep = import_cast(path, content_root=content, write=True)
     assert not rep.ok
-    assert "уточните дружеское имя для voroncov (сейчас «Ваня»)" in problems(rep)
+    assert "уточните дружеское имя для voroncov (сейчас «Тёма»)" in problems(rep)
     assert (content / "characters.yaml").read_bytes() == before
     assert not rep.written
 

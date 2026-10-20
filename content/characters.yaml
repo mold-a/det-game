@@ -17,7 +17,7 @@ characters:
     middle: "Сергеевич"
     gender: m
     age: 56
-    familiar: "Ваня"        # дружеское имя: так его зовут близкие (Кирилл в переписке 3-03)
+    familiar: "Тёма"        # дружеское имя (решение автора 20.10): так его зовут Кирилл (3-03) и Марина («дядя Тёма»). При import-cast: --familiar voroncov=Тёма
     photo: "portraits/voroncov.jpg"
     in_pool: false          # погибший — не вариант в вопросах «кто…»
   - id: zavyalov
