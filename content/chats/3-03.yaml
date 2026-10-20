@@ -16,9 +16,13 @@ screens:
     with: voroncov
     date: "4 ноября"
     messages:
+      # Манера (скрины автора 20.10, docs/VOICES.md): Кирилл — с заглавной, мысль на несколько сообщений, «....», 😢 😂;
+      # Воронцов — со строчной, одна «)», 😁, без точки в конце.
+      - { from: kirill, time: "22:46", text: "Слушай....", status: read }
       - { from: kirill, time: "22:47", text: "Ты вводил пароль при людях на репетиции, смени.", status: read }
-      - { from: voroncov, time: "23:58", text: "Сменил, параноик))", status: read }
-      - { from: voroncov, time: "23:58", text: "😁", status: read }
+      - { from: voroncov, time: "23:58", text: "сменил, параноик)" }
+      - { from: voroncov, time: "23:58", text: "😁" }
+      - { from: kirill, time: "23:59", text: "Есть такое)", status: read }
   - kind: notification
     time: "19:41"
     date: "{{ w.dates.premiere_weekday }}, 10 ноября"
@@ -49,3 +53,5 @@ screens:
     date: "10 ноября"
     messages:
       - { from: kirill, time: "19:43", text: "{{ c.voroncov.familiar }}, кто-то из театра лезет в облако. Позвони!", status: read }
+      - { from: kirill, time: "19:44", text: "Срочно!!!!", status: read }
+      - { from: kirill, time: "19:56", text: "Набери как прочитаешь....", status: read }

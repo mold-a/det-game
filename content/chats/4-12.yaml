@@ -14,4 +14,4 @@ screens:
       - { from: volskaya, time: "11:02", text: "{{ c.voroncov.io() }}, нам нужно поговорить о табакерке. Срочно.", status: read }
       - { from: volskaya, time: "11:04", text: "Я жду вашего звонка. Не заставляйте меня искать вас в театре.", status: read }
       - { from: voroncov, time: "19:46", text: "{{ c.volskaya.io() }}, добрый вечер)" }
-      - { from: voroncov, time: "19:46", text: "Поговорим после премьеры" }
+      - { from: voroncov, time: "19:46", text: "поговорим после премьеры" }
