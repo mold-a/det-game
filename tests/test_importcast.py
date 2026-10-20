@@ -169,7 +169,7 @@ def test_background_character_import(tmp_path, content):
 
 def test_father_daughters_derived_from_new_father(tmp_path, content):
     path = table(tmp_path, content,
-                 cast_patch={"voroncov": ("Орлов Пётр Николаевич",), "marina": ("Ксения", 25)},
+                 cast_patch={"kirill": ("Орлов Пётр Николаевич",), "marina": ("Ксения", 25)},
                  bg_patch={"marina_sister": "Алиса"})
     rep = import_cast(path, content_root=content, familiar={"voroncov": "Петя"}, write=True)
     assert rep.ok, problems(rep)
@@ -183,11 +183,11 @@ def test_father_daughters_derived_from_new_father(tmp_path, content):
 
 
 def test_father_child_full_fio_mismatch_is_problem(tmp_path, content):
-    path = table(tmp_path, content, cast_patch={"marina": ("Воронцова Марина Петровна",)})
+    path = table(tmp_path, content, cast_patch={"marina": ("Сомова Марина Петровна",)})
     rep = import_cast(path, content_root=content)
     assert not rep.ok
     assert "отчество в таблице «Петровна»" in problems(rep)
-    assert "«Ивановна»" in problems(rep)
+    assert "«Кирилловна»" in problems(rep)
 
 
 def test_familiar_problem_when_first_name_changes(tmp_path, content):

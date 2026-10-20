@@ -133,8 +133,9 @@ def test_collect_todos():
     kinds = {t.kind for t in todos}
     assert {"value", "comment", "text", "missing-file"} <= kinds
     # имена фоновых и пароль облака заполнены 14.10.2026 — проверяем другие заглушки-значения
-    assert any(t.file == "content/chats/4-06.yaml" and t.kind == "value" for t in todos)
-    assert any(t.file == "content/world.yaml" and t.loc.endswith("kirill_habit") for t in todos)
+    # привычка Кирилла и рабочий чат 4-06 заполнены 20.10.2026
+    assert any(t.file == "content/stages.yaml" and t.loc == "stages[0].intro" and t.kind == "value" for t in todos)
+    assert any(t.file == "content/pages/inna/page.yaml" and t.loc == "profile.bio" for t in todos)
     assert any(t.file == "content/settings.yaml" and "домен" in t.text for t in todos)
     for t in todos:
         assert t.file.startswith("content/") and t.loc
@@ -452,27 +453,27 @@ def test_father_wrong_patronymic_and_surname(root):
     def fn(d):
         i = find(d["characters"], "marina")
         d["characters"][i]["middle"] = "Петровна"
-        d["characters"][i]["last"] = "Воронцов"
+        d["characters"][i]["last"] = "Сомов"
     edit_yaml(root, "characters.yaml", fn)
     errs = assert_error(root, "content/characters.yaml: characters[", "].middle:", "указано «Петровна»",
-                        "ожидается «Ивановна»", "forms.middle.nom")
-    assert any("].last:" in e and "ожидается «Воронцова»" in e for e in errs)
+                        "ожидается «Кирилловна»", "forms.middle.nom")
+    assert any("].last:" in e and "ожидается «Сомова»" in e for e in errs)
 
 
 def test_father_follows_renamed_father(root):
     # отца переименовали — у дочерей отчество и фамилия устарели
     def fn(d):
-        i = find(d["characters"], "voroncov")
+        i = find(d["characters"], "kirill")
         d["characters"][i]["first"] = "Пётр"
         d["characters"][i]["last"] = "Достоевский"
     edit_yaml(root, "characters.yaml", fn)
-    errs = assert_error(root, "].middle:", "ожидается «Петровна»", "«voroncov»")
+    errs = assert_error(root, "].middle:", "ожидается «Петровна»", "«kirill»")
     assert any("].last:" in e and "ожидается «Достоевская»" in e for e in errs)
 
 
 def test_father_manual_nom_form_wins(root):
     def fn(d):
-        i = find(d["characters"], "voroncov")
+        i = find(d["characters"], "kirill")
         d["characters"][i]["first"] = "Шота"
         for kid in ("marina", "marina_sister"):
             k = find(d["characters"], kid)
@@ -484,13 +485,13 @@ def test_father_manual_nom_form_wins(root):
 
 def test_father_underivable_name(root):
     edit_yaml(root, "characters.yaml",
-              lambda d: d["characters"][find(d["characters"], "voroncov")].update(first="Шота"))
+              lambda d: d["characters"][find(d["characters"], "kirill")].update(first="Шота"))
     assert_error(root, "].middle:", "не удалось вывести отчество от имени «Шота»", "укажите отчество вручную в forms")
 
 
 def test_father_todo_is_skipped(root):
     edit_yaml(root, "characters.yaml",
-              lambda d: d["characters"][find(d["characters"], "voroncov")].update(first="TODO(content)",
+              lambda d: d["characters"][find(d["characters"], "kirill")].update(first="TODO(content)",
                                                                                last="TODO(content)"))
     load_content(root)
 

@@ -312,7 +312,7 @@ def test_release_fails_on_missing_paper(content, salts, tmp_path):
 
 def test_release_rendered_todo_and_missing_media(root, salts, tmp_path):
     write_paper(root, "1-10", 'id: "1-10"\nform: phototable\nmedia: ["lab/none.jpg"]',
-                body="Привычка: {{ w.clues.kirill_habit }}\n")
+                body="Подстановка: {{ 'TODO' ~ '(content)' }}\n")
     c = load_content(root)
     with pytest.raises(PaperError) as exc:
         render_paper(c, tmp_path / "out", salts=salts, only=["1-10"], release=True, media_dir=tmp_path / "media")

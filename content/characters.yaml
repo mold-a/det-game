@@ -43,13 +43,14 @@ characters:
     photo: "portraits/volkov.jpg"
     in_pool: true
   - id: marina
-    working: "Марина Воронцова"           # строка из таблицы персонажей — для import-cast
-    role: "Дочь погибшего"
+    working: "Марина Тарасова"           # строка из таблицы персонажей — для import-cast
+    role: "Крестница погибшего, дочь Кирилла"
     importance: key
-    father: voroncov          # фамилия и отчество — всегда от отца (сборка проверяет, import-cast выводит сам)
-    last: "Воронцова"
+    # Решение автора 20.10.2026: Марина — дочь Кирилла и крестница Воронцова (своих детей у него нет).
+    father: kirill            # фамилия и отчество — всегда от отца (сборка проверяет, import-cast выводит сам)
+    last: "Сомова"
     first: "Марина"
-    middle: "Ивановна"
+    middle: "Кирилловна"
     gender: f
     age: 24
     photo: "portraits/marina.jpg"
@@ -208,7 +209,7 @@ characters:
   - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "Карпова", first: "Ирина", middle: "Львовна", gender: f, in_pool: false }
   - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "Бурцев", first: "Николай", middle: "Сергеевич", gender: m, in_pool: false }
   - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "Гайнуллин", first: "Руслан", middle: "Тимурович", gender: m, in_pool: false }
-  - { id: marina_sister, working: "Сестра Марины", role: "Дочь погибшего, сестра Марины; живёт в другом городе", importance: background, father: voroncov, last: "Воронцова", first: "Вера", middle: "Ивановна", gender: f, in_pool: false }
+  - { id: marina_sister, working: "Сестра Марины", role: "Дочь Кирилла, сестра Марины; живёт в другом городе", importance: background, father: kirill, last: "Сомова", first: "Вера", middle: "Кирилловна", gender: f, in_pool: false }
   - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "Сафронов", first: "Артур", middle: "Вадимович", gender: m, in_pool: false }
   - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "Мухин", first: "Пётр", middle: "Семёнович", gender: m, in_pool: false }
   - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь {{ c.gromov.last('gen') }}", importance: background, last: "Кравец", first: "Яна", middle: "Олеговна", gender: f, in_pool: false }

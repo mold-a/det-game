@@ -17,7 +17,8 @@ screens:
     date: "4 ноября"
     messages:
       - { from: kirill, time: "22:47", text: "Ты вводил пароль при людях на репетиции, смени.", status: read }
-      - { from: voroncov, time: "23:58", text: "Сменил, параноик", status: read }
+      - { from: voroncov, time: "23:58", text: "Сменил, параноик))", status: read }
+      - { from: voroncov, time: "23:58", text: "😁", status: read }
   - kind: notification
     time: "19:41"
     date: "{{ w.dates.premiere_weekday }}, 10 ноября"
