@@ -120,8 +120,11 @@ def test_render_all_content_strings():
     assert render("{{ c.zavyalov.short() }}, {{ w.theater.short }}", ctx) == "Завьялов Ю. В., ВОДТ"
 
 
-def test_missing_body_is_todo_not_error():
-    c = load_content(CONTENT)
+def test_missing_body_is_todo_not_error(root):
+    # тексты заполнены 20.10.2026 — удаляем их в копии content
+    (root / "pages" / "news" / "article.md").unlink()
+    (root / "pages" / "cloud" / "if_you_read_this.md").unlink()
+    c = load_content(root)
     missing = {(t.file, t.loc) for t in c.missing}
     assert ("content/pages/news/page.yaml", "article.body") in missing
     assert ("content/pages/cloud/page.yaml", "folders[2].body") in missing
@@ -131,10 +134,10 @@ def test_collect_todos():
     c = load_content(CONTENT)
     todos = collect_todos(c)
     kinds = {t.kind for t in todos}
-    assert {"value", "comment", "text", "missing-file"} <= kinds
+    assert {"value", "comment"} <= kinds  # «text» и «missing-file» — в test_missing_body_is_todo_not_error
     # имена фоновых и пароль облака заполнены 14.10.2026 — проверяем другие заглушки-значения
     # привычка Кирилла и рабочий чат 4-06 заполнены 20.10.2026
-    assert any(t.file == "content/stages.yaml" and t.loc == "stages[0].intro" and t.kind == "value" for t in todos)
+    assert any(t.file == "content/pages/video/page.yaml" and t.loc == "file.size" and t.kind == "value" for t in todos)
     assert any(t.file == "content/pages/inna/page.yaml" and t.loc == "profile.bio" for t in todos)
     assert not any(t.file == "content/settings.yaml" and "домен" in t.text for t in todos)  # домен задан 20.10
     for t in todos:
