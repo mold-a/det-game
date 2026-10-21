@@ -12,8 +12,8 @@ characters:
     working: "Иван Воронцов"           # строка из таблицы персонажей — для import-cast
     role: "Народный артист, исполнитель роли Арбенина"
     importance: key
-    last: "Воронцов"
-    first: "Иван"
+    last: "Молдованов"
+    first: "Артём"
     middle: "Сергеевич"
     gender: m
     age: 56
@@ -48,9 +48,9 @@ characters:
     importance: key
     # Решение автора 20.10.2026: Марина — дочь Кирилла и крестница Воронцова (своих детей у него нет).
     father: kirill            # фамилия и отчество — всегда от отца (сборка проверяет, import-cast выводит сам)
-    last: "Сомова"
-    first: "Марина"
-    middle: "Кирилловна"
+    last: "Горенкова"
+    first: "Алина"
+    middle: "Александровна"
     gender: f
     age: 24
     photo: "portraits/marina.jpg"
@@ -60,9 +60,9 @@ characters:
     role: "Друг погибшего, программист"
     importance: key
     # Характер: балагур, душа компании; когда страшно — шутит ещё больше (решение автора 14.10.2026).
-    last: "Сомов"
-    first: "Кирилл"
-    middle: "Евгеньевич"
+    last: "Горенков"
+    first: "Александр"
+    middle: "Сергеевич"
     gender: m
     age: 56
     photo: "portraits/kirill.jpg"
@@ -74,8 +74,8 @@ characters:
     role: "Актёр, исполнитель роли Звездича"
     importance: secondary
     last: "Лёвин"
-    first: "Станислав"
-    middle: "Игоревич"
+    first: "Сергей"
+    middle: "Николаевич"
     gender: m
     age: 44
     photo: "portraits/stas.jpg"
@@ -85,8 +85,8 @@ characters:
     role: "Помощник режиссёра"
     importance: secondary
     last: "Резникова"
-    first: "Светлана"
-    middle: "Павловна"
+    first: "Наталья"
+    middle: "Сергеевна"
     gender: f
     age: 47
     photo: "portraits/reznikova.jpg"
@@ -107,8 +107,8 @@ characters:
     role: "Художник по свету"
     importance: secondary
     last: "Кузнецов"
-    first: "Виктор"
-    middle: "Ильич"
+    first: "Антон"
+    middle: "Александрович"
     nick: "Мастер"
     gender: m
     age: 50
@@ -153,8 +153,8 @@ characters:
     role: "Меценат, попечитель театра"
     importance: key                   # повышена до ключевой (решение автора 2026-10-13)
     last: "Вольская"
-    first: "Софья"
-    middle: "Аркадьевна"
+    first: "Светлана"
+    middle: "Николаевна"
     gender: f
     age: 54
     photo: "portraits/volskaya.jpg"
@@ -165,8 +165,8 @@ characters:
     importance: key                   # повышен до ключевого (решение автора 2026-10-13)
     # Роль играет девушка: рабочие ФИО женские, настоящие подставятся в P09. ID gromov не менять.
     last: "Громова"
-    first: "Маргарита"
-    middle: "Анатольевна"
+    first: "Юлия"
+    middle: "Сергеевна"
     gender: f
     age: 45                   # под портрет (21.10; было 57)
     photo: "portraits/gromov.jpg"
@@ -209,7 +209,7 @@ characters:
   - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "Карпова", first: "Ирина", middle: "Львовна", gender: f, in_pool: false }
   - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "Бурцев", first: "Николай", middle: "Сергеевич", gender: m, in_pool: false }
   - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "Гайнуллин", first: "Руслан", middle: "Тимурович", gender: m, in_pool: false }
-  - { id: marina_sister, working: "Сестра Марины", role: "Дочь Кирилла, сестра Марины; живёт в другом городе", importance: background, father: kirill, last: "Сомова", first: "Вера", middle: "Кирилловна", gender: f, in_pool: false }
+  - { id: marina_sister, working: "Сестра Марины", role: "Дочь Кирилла, сестра Марины; живёт в другом городе", importance: background, father: kirill, last: "Горенкова", first: "Вера", middle: "Александровна", gender: f, in_pool: false }
   - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "Сафронов", first: "Артур", middle: "Вадимович", gender: m, in_pool: false }
   - { id: caretaker, working: "Завхоз театра", role: "Заведующий хозяйством театра", importance: background, last: "Мухин", first: "Пётр", middle: "Семёнович", gender: m, in_pool: false }
   - { id: gromov_press, working: "Пресс-секретарь Громова", role: "Пресс-секретарь {{ c.gromov.last('gen') }}", importance: background, last: "Кравец", first: "Яна", middle: "Олеговна", gender: f, in_pool: false }
