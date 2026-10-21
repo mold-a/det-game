@@ -9,7 +9,8 @@
 ## Оглавление
 
 1. [Порядок работы](#порядок-работы)
-2. [Портреты — промпты](#портреты--промпты-обновлено-2110) (R01 правка Воронцова, P01-P14)
+2. [Универсальный запрос для портрета](#универсальный-запрос-для-портрета) (шаблон, как прикладывать, как править)
+3. [Портреты: 14 готовых запросов](#портреты-14-готовых-запросов) (R01 правка Воронцова, P01-P14)
 4. [Сцены и улики](#сцены-и-улики) (S01-S07: новость, совещание, обложка, брошь, вокзал, таблетница)
 5. [Бумажные фото](#бумажные-фото) (S08-S18: гримёрка 1-10, камера 2-03, кабинет 2-06)
 6. [Видео Волкова](#видео-волкова) (S19 кадр-основа, K01 шаги Kling)
@@ -19,7 +20,7 @@
 
 ## Порядок работы
 
-1. **Подготовка.** Образцы лиц — по 1–2 фото на человека. Для портретов — промпты из раздела ниже, без образца стиля.
+1. **Подготовка.** Образцы лиц — по 1–2 фото на человека. Для портретов — полные промпты ниже: сначала фото человека, последним — `voroncov.jpg` как образец стиля.
 2. **R01 - правка `voroncov.jpg`** (чёрная оправа -> прозрачная). Сделайте первой: правленый портрет нужен как образец в новости, на вокзале и как стиль для остальных.
 3. **P02-P14 - портреты.** Каждый портрет - в **новом чате** (иначе генератор тянет лицо из предыдущего). Утвердили - сохранили - можно переходить к следующему.
 4. **Сцены.** Сначала хрупкие улики (S07 таблетница, S04-S05 брошь, S06 вокзал), потом остальное. Люди в сценах - по **утверждённым портретам** (они уже нужного возраста), сырой образец - только если остался слот.
@@ -31,81 +32,544 @@
 
 ---
 
-## Портреты — промпты (обновлено 21.10)
+## Портреты: как пользоваться (21.10)
 
-Только одежда, очки и украшения — **никакого реквизита** (наушников, сантиметров, фартуков, значков, формы): портрет как на документ, профессию по нему угадывать не нужно.
+Полные промпты — ниже (по просьбе автора: с ними генерация лучше). В них **нет реквизита** (наушников, сантиметров, фартуков, значков, формы) — только одежда, очки, украшения; возраст задан диапазоном и запретом «не старше».
+- Вышло старше: в том же чате — `Same image, but make the person look 10 years younger. Keep the face and everything else.`
+- Вышло младше: `Same image, but make the person look 5 years older.`
+- Готовы: voroncov (ждёт R01 — прозрачная оправа), kirill, marina, volkov.
 
-1. **Прикладывайте только 1–2 фото человека.** Образец стиля не прикладывать — фон и кадр заданы словами.
-2. Возраст задан диапазоном с признаками и запретом «не старше».
-3. Вышло старше: в том же чате — `Same image, but make the person look 10 years younger. Keep the face and everything else.` (можно повторить).
-4. Вышло младше: `Same image, but make the person look 5 years older.`
-5. Не похоже: `Same image, but make the face match the reference photo exactly; change nothing else.`
-6. Каждый портрет — в **новом чате**; человек по центру с запасом снизу (угол со знаком сервиса уйдёт при обрезке).
+## Универсальный запрос для портрета
 
-Шаблон: `Photorealistic passport-style portrait of the person in the attached photo, {пол}. Keep the face exactly recognisable. Age: {N}, {признаки}. Do NOT make them look older than {N}. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. {выражение; одежда}. No props, no text, no logos, no beauty filter. Vertical 4:5.`
+Один шаблон для всех 14 ролей. Ниже (раздел «Портреты») он уже заполнен для каждого персонажа; здесь - как он устроен и что менять, если нужна 15-я роль или перегенерация.
 
-**R01. Правка готового `portraits/voroncov.jpg`: чёрная оправа → прозрачная** (приложить только текущий портрет)
+### Как прикладывать файлы (порядок важен)
+
+| Слот | Что | Пояснение |
+|---|---|---|
+| 1 | фото человека №1 | анфас, дневной свет, без тёмных очков и фильтров |
+| 2 | фото человека №2 (необязательно) | другое выражение или освещение; если фото одно - слот пропустите |
+| последний | `portraits/voroncov.jpg` (после правки R01) — **прикладывать всегда последним** | образец стиля: белый фон, рамка, свет. В запросе прямо сказано не брать с него лицо, возраст и седину |
+
+В запросе стиль всегда называется «LAST attached image», остальное - «OTHER attached images», поэтому запрос одинаково работает при 1 или 2 фото человека. Вставьте текст запроса **после** загрузки файлов, в новом чате, с включённым созданием изображений.
+
+### Шаблон (для справки: `<<...>>` - то, что уже подставлено в готовых запросах)
+
+```text
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly <<AGE>> years old (<<AGE HINT>>) - age them up or down from the reference as needed. Do NOT make the person look older than <<AGE>>. Change only the apparent age, never the identity.
+
+SUBJECT: <<SUBJECT>>.
+EXPRESSION: <<EXPR>>
+CLOTHES AND DETAILS: <<CLOTHES>>
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
+```
+Откуда берутся значения: возраст - `age` из `content/characters.yaml`; пол - `gender` оттуда же (**dmitriy и gromov - женщины**); одежда и выражение - `docs/MEDIA-SHOTLIST.md` §1, `docs/VOICES.md` и таблица `MEDIA-PLAN-A` §1.1/§4.2. Возраст формулируется одной и той же фразой для всех: «Make the person look exactly N years old - age them up or down from the reference as needed». Возраст Инны и Олега в жизни неизвестен, поэтому направление (старше или моложе образца) генератор выбирает сам.
+
+### Если портрет не получился: одна фраза-правка в том же чате
+
+Не переписывайте запрос с нуля - напишите правку в том же чате (она экономит лимит и держит удачные части):
+
+- **Не похоже на человека (главная правка):**
+  ```text
+  Same image, but make the face match the reference photos exactly (same eyes, nose, mouth, face shape and hairline); keep the white background, framing, light, age and clothes unchanged.
+  ```
+- Возраст: `Same image, but make the person look exactly N years old; keep the identity, background, framing and clothes unchanged.`
+- Фон не белый или есть тень: `Same image, but make the background pure white (#FFFFFF), seamless, with no shadow or gradient; change nothing else.`
+- Кадр другой, чем у образца: `Same image, but reframe exactly like the style reference: frontal, head and shoulders down to mid-chest, face centred; change nothing else.`
+- Улыбка шире нужной или кожа «пластиковая»: `Same image, but make the expression exactly as described, and keep natural skin texture with no smoothing.`
+
+Типичные ошибки: «синдром одного лица» (разные люди похожи друг на друга), слишком гладкая кожа, при сильном старении лицо уходит к «другому человеку», чёрная оправа вместо прозрачной у Воронцова, лишний реквизит (наушники, значки, форма).
+
+---
+
+## Портреты: 14 готовых запросов
+
+Для каждого: путь сохранения, формат, что приложить, запрос и чек-лист. Формат везде: **JPEG, вертикаль 4:5, не меньше 800 px по короткой стороне**, полный размер (кнопка скачивания, не скриншот). Если Gemini выдал не 4:5 - не страшно, обрежу я или вы.
+
+### R01. Правка готового `portraits/voroncov.jpg`: заменить чёрную оправу на прозрачную
+
+- **Сохранить как:** `detgame-media/portraits/voroncov.jpg` (старую версию - в `_attempts/voroncov_black_frame.jpg`).
+- **Формат:** тот же, что у исходного файла (сейчас квадрат 800 x 800); обрезку и пропорции не менять.
+- **Приложить:** 1 - `portraits/voroncov.jpg` (текущий). Больше ничего.
+
 ```text
 Edit this photo. Change ONLY the glasses: replace the thick black frames with thin glasses that have a TRANSPARENT frame (the frame is clear, see-through plastic, almost invisible, with a thin outline), keep the lenses clear and without glare so both eyes stay fully visible and undistorted. Keep EVERYTHING else exactly identical: the face and its age, the thick dark eyebrows, the grey hair, the grey beard, the expression, the dark T-shirt, the thin neck chain, the pure white background, the lighting, the framing and the crop. Do not retouch the skin, do not change the aspect ratio. No text, no watermark, no logos, no shadows on the background.
 ```
+Проверь перед сохранением:
 
-**P01. `portraits/voroncov.jpg` — Воронцов (автор), 56**
+- [ ] оправа тонкая и прозрачная, не чёрная и не коричневая (она читается как контур вокруг стёкол)
+- [ ] глаза за стёклами на месте, без бликов, брови густые и тёмные
+- [ ] всё остальное как было: борода, волосы, футболка, цепочка, белый фон
+- [ ] нет артефактов правки (ореол вокруг очков, «поплывшее» лицо); если есть - правка: `Same image, but keep the face exactly as in the input photo; only the glasses frame is transparent.`
+
+Если после 3 правок лицо ушло - запустите полный запрос P01 ниже (с образцами автора).
+
+### P01. `portraits/voroncov.jpg` - Воронцов (автор)
+
+- **Сохранить как:** `detgame-media/portraits/voroncov.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 56 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото автора (в очках, если есть), затем voroncov.jpg. Внимание: voroncov.jpg - и образец стиля, и сам результат; если нужна только правка очков - используйте запрос R01 ниже, а не этот. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 56, mid-fifties: some grey at the temples and in the beard, moderate lines. Do NOT make them look older than 56. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A charismatic, slightly tired look, faint half-smile; thin glasses with a TRANSPARENT (clear) frame; thick dark eyebrows; dark crew-neck T-shirt. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 56 years old (mid-fifties: some grey at the temples and in the beard, moderate lines) - age them up or down from the reference as needed. Do NOT make the person look older than 56. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Charismatic but slightly tired look, mouth closed with a barely visible half-smile (not a broad smile). Thick, dark, bushy eyebrows - keep them thick and dark.
+CLOTHES AND DETAILS: Thin glasses with a TRANSPARENT frame (the frame itself is clear, see-through plastic - not black, not tortoiseshell, not metal), clear lenses without glare so the eyes stay fully visible. Dark charcoal crew-neck T-shirt (as in the existing portrait). Greying hair and beard as in the existing portrait and the reference photos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P02. `portraits/zavyalov.jpg` — Завьялов (дедушка), 61**
+
+Проверь перед сохранением:
+
+- [ ] очки в тонкой ПРОЗРАЧНОЙ оправе (не чёрной), глаза за стёклами видны без бликов
+- [ ] густые тёмные брови
+- [ ] на вид около 56 лет, лицо узнаваемо как автор
+- [ ] фон чисто белый, рамка и свет как у текущего voroncov.jpg
+
+### P02. `portraits/zavyalov.jpg` - Завьялов, худрук (дедушка)
+
+- **Сохранить как:** `detgame-media/portraits/zavyalov.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 61 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Завьялова-дедушки, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 61, early sixties, a bit YOUNGER than in the photo: fewer wrinkles. Do NOT make them look older than 61. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An authoritative, serious look, no smile; dark suit, white shirt, dark tie. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 61 years old (early sixties, a bit YOUNGER than in the reference: fewer wrinkles) - age them up or down from the reference as needed. Do NOT make the person look older than 61. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Authoritative, commanding, serious look; mouth closed, no smile.
+CLOTHES AND DETAILS: Dark formal suit, white shirt, dark tie.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P03. `portraits/volkov.jpg` — Волков (Слава), 31**
+
+Проверь перед сохранением:
+
+- [ ] взгляд в камеру поверх оправы, очки на кончике носа
+- [ ] властное выражение, рот закрыт
+- [ ] костюм, рубашка, галстук; на вид около 61 года
+- [ ] лицо узнаваемо; фон белый
+
+### P03. `portraits/volkov.jpg` - Волков, дублёр (Слава)
+
+- **Сохранить как:** `detgame-media/portraits/volkov.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 31 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Славы, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 31, early thirties: fresh face, NO wrinkles, NO grey hair. Do NOT make them look older than 31. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A charming friendly smile; plain dark blue-grey sweater. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 31 years old (early thirties: fresh face, NO wrinkles, NO grey hair) - age them up or down from the reference as needed. Do NOT make the person look older than 31. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Charming, friendly, gentle open smile (lips slightly parted at most), warm friendly eyes.
+CLOTHES AND DETAILS: Casual knit crew-neck sweater in a muted dark blue-grey, plain, no pattern, no logo.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P04. `portraits/marina.jpg` — Марина (Алина), 24**
+
+Проверь перед сохранением:
+
+- [ ] обаятельная улыбка, не широкая
+- [ ] свитер без логотипов и рисунка
+- [ ] на вид около 31 года, лицо узнаваемо
+- [ ] фон белый, взгляд в камеру
+
+### P04. `portraits/marina.jpg` - Марина, крестница Воронцова и дочь Кирилла (Алина)
+
+- **Сохранить как:** `detgame-media/portraits/marina.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 24 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Алины, затем voroncov.jpg. Решено автором 21.10: возраст в игре 24, согласие родителей получено. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a young woman. Keep the face exactly recognisable. Age: 24, mid-twenties: smooth youthful skin, NO wrinkles, NO grey hair. Do NOT make them look older than 24. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A calm, reserved look, no smile; plain top. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 24 years old (mid-twenties: smooth youthful skin, NO wrinkles, NO grey hair) - age them up or down from the reference as needed. Do NOT make the person look older than 24. Change only the apparent age, never the identity.
+
+SUBJECT: a young woman, an adult.
+EXPRESSION: Closed, guarded expression: lips closed, NO smile at all, direct steady gaze into the camera.
+CLOTHES AND DETAILS: Simple plain casual crew-neck top in a muted beige or grey, no print, no logo. Hair styled as in the reference photos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P05. `portraits/kirill.jpg` — Кирилл (дядя Саша), 56**
+
+Проверь перед сохранением:
+
+- [ ] выглядит взрослой женщиной около 24 лет
+- [ ] без улыбки, закрытый взгляд
+- [ ] причёска как на образцах; лицо узнаваемо
+- [ ] фон белый, никаких украшений
+
+### P05. `portraits/kirill.jpg` - Кирилл, программист (дядя Саша)
+
+- **Сохранить как:** `detgame-media/portraits/kirill.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 56 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Кирилла, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 56, mid-fifties: some grey, light lines at the eyes. Do NOT make them look older than 56. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. Cheerful eyes, a hint of a smile; checked shirt. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 56 years old (mid-fifties: some grey, light lines at the eyes) - age them up or down from the reference as needed. Do NOT make the person look older than 56. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Cheerful, laughing eyes with crow's feet and a hint of a smirk; lips closed or only barely smiling.
+CLOTHES AND DETAILS: Checked flannel shirt (muted red and navy), open collar, no logo.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P06. `portraits/stas.jpg` — Лёвин (Стас), 44**
+
+Проверь перед сохранением:
+
+- [ ] весёлые глаза, лёгкая ухмылка, рот почти закрыт
+- [ ] клетчатая рубашка без логотипов
+- [ ] на вид около 56 лет, лицо узнаваемо
+- [ ] фон белый, голова прямо
+
+### P06. `portraits/stas.jpg` - Лёвин, актёр (Стас)
+
+- **Сохранить как:** `detgame-media/portraits/stas.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 44 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Стаса, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 44, mid-forties: a few faint lines at the eyes, almost NO grey. Do NOT make them look older than 44. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An expressive, slightly ironic look; dark turtleneck or plain dark sweater. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 44 years old (mid-forties: a few faint lines at the eyes, almost NO grey) - age them up or down from the reference as needed. Do NOT make the person look older than 44. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Artistic, expressive face: one eyebrow very slightly raised, a thoughtful ironic look; mouth closed, at most a faint smile.
+CLOTHES AND DETAILS: Dark turtleneck sweater, plain, black or deep charcoal.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P07. `portraits/reznikova.jpg` — Резникова (мама), 47**
+
+Проверь перед сохранением:
+
+- [ ] лёгкий подъём одной брови, артистичная мимика
+- [ ] тёмная водолазка
+- [ ] на вид около 44 лет, лицо узнаваемо
+- [ ] голова не наклонена, фон белый
+
+### P07. `portraits/reznikova.jpg` - Резникова, помреж (мама)
+
+- **Сохранить как:** `detgame-media/portraits/reznikova.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 47 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Резниковой (мамы), затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 47, late forties, well-kept: light lines at the eyes, no grey hair. Do NOT make them look older than 47. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A composed, attentive look, faint smile; simple dark top. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 47 years old (late forties, well-kept: light lines at the eyes, no grey hair) - age them up or down from the reference as needed. Do NOT make the person look older than 47. Change only the apparent age, never the identity.
+
+SUBJECT: a woman.
+EXPRESSION: Composed, organised, attentive look; lips closed, no smile or a very faint one.
+CLOTHES AND DETAILS: Hair tied back neatly. Simple dark blouse or cardigan.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P08. `portraits/gnedich.jpg` — Гнедич (бабушка), 63**
+
+Проверь перед сохранением:
+
+- [ ] волосы собраны, собранное внимательное выражение
+- [ ] на вид около 47 лет, лицо узнаваемо
+- [ ] фон белый, взгляд в камеру
+
+### P08. `portraits/gnedich.jpg` - Гнедич, костюмер (бабушка)
+
+- **Сохранить как:** `detgame-media/portraits/gnedich.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 63 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Гнедич (бабушки), затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 63, early sixties, a bit YOUNGER than in the photo. Do NOT make them look older than 63. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A strict look, no smile; dark blouse or cardigan. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 63 years old (early sixties, a bit YOUNGER than in the reference) - age them up or down from the reference as needed. Do NOT make the person look older than 63. Change only the apparent age, never the identity.
+
+SUBJECT: a woman.
+EXPRESSION: Strict, no-nonsense expression; lips closed, no smile.
+CLOTHES AND DETAILS: Dark blouse with a plain cardigan.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P09. `portraits/viktor.jpg` — Виктор (двоюродный брат), 50**
+
+Проверь перед сохранением:
+
+- [ ] строгое выражение
+- [ ] на вид около 63 лет, лицо узнаваемо
+
+### P09. `portraits/viktor.jpg` - Виктор «Мастер», свет (двоюродный брат)
+
+- **Сохранить как:** `detgame-media/portraits/viktor.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 50 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Виктора, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 50, about fifty: a little grey at the temples, light lines — moderate, not old. Do NOT make them look older than 50. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A calm, reserved look, no smile; plain black T-shirt. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 50 years old (about fifty: a little grey at the temples, light lines — moderate, not old) - age them up or down from the reference as needed. Do NOT make the person look older than 50. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Taciturn, calm, reserved look; mouth closed, no smile.
+CLOTHES AND DETAILS: Plain black crew-neck T-shirt, no print, no logo. Short hair, hairstyle and facial hair as in the reference photos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P10. `portraits/oleg.jpg` — Олег, 64**
+
+Проверь перед сохранением:
+
+- [ ] немногословное спокойное выражение
+- [ ] чёрная футболка без принтов
+- [ ] на вид около 50 лет, лицо узнаваемо (не двойник автора!)
+- [ ] фон белый, голова прямо
+
+### P10. `portraits/oleg.jpg` - Охранник Олег
+
+- **Сохранить как:** `detgame-media/portraits/oleg.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 64 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Олега, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 64, early-to-mid sixties. Do NOT make them look older than 64. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A good-natured face, small closed-mouth smile; plain dark jacket. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 64 years old (early-to-mid sixties) - age them up or down from the reference as needed. Do NOT make the person look older than 64. Change only the apparent age, never the identity.
+
+SUBJECT: a man.
+EXPRESSION: Good-natured, kind, gentle face with a very small closed-mouth smile.
+CLOTHES AND DETAILS: Plain dark navy jacket with a collar over a light shirt, no patches, no badges, no logos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P11. `portraits/inna.jpg` — Инна, 29**
+
+Проверь перед сохранением:
+
+- [ ] добродушное выражение
+- [ ] на вид около 64 лет, лицо узнаваемо
+- [ ] фон белый, взгляд в камеру
+
+### P11. `portraits/inna.jpg` - Инна, буфетчица (мама мужа сестры)
+
+- **Сохранить как:** `detgame-media/portraits/inna.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 29 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Инны, затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 29, late twenties: smooth skin, NO wrinkles, NO grey hair. Do NOT make them look older than 29. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A lively look, small smile, bright red lipstick; light blouse. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 29 years old (late twenties: smooth skin, NO wrinkles, NO grey hair) - age them up or down from the reference as needed. Do NOT make the person look older than 29. Change only the apparent age, never the identity.
+
+SUBJECT: a woman.
+EXPRESSION: Lively, slightly fussy look: eyebrows slightly raised, attentive eyes, a small closed-mouth smile. Bright red lipstick - clearly visible and neat.
+CLOTHES AND DETAILS: Light cream blouse. Hair as in the reference photos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P12. `portraits/dmitriy.jpg` — Водитель (роль «Дмитрий»), 40**
+
+Проверь перед сохранением:
+
+- [ ] яркая красная помада
+- [ ] на вид около 29 лет, лицо узнаваемо
+- [ ] фон белый, улыбка не широкая
+
+### P12. `portraits/dmitriy.jpg` - Водитель Дарья (роль «Дмитрий»)
+
+- **Сохранить как:** `detgame-media/portraits/dmitriy.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 40 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Дарьи (жены брата тёти), затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 40, around forty: very few faint lines, no grey hair. Do NOT make them look older than 40. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A calm, reliable look; plain dark jacket. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 40 years old (around forty: very few faint lines, no grey hair) - age them up or down from the reference as needed. Do NOT make the person look older than 40. Change only the apparent age, never the identity.
+
+SUBJECT: a woman (the character is a female driver).
+EXPRESSION: Plain, reliable, calm look; lips closed, no smile or a very faint one.
+CLOTHES AND DETAILS: Practical dark zip-up jacket over a plain T-shirt, no logos. Hair as in the reference photos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P13. `portraits/volskaya.jpg` — Вольская (тётя Света), 54**
+
+Проверь перед сохранением:
+
+- [ ] это женщина
+- [ ] простая куртка без логотипов
+- [ ] на вид около 40 лет, лицо узнаваемо
+- [ ] фон белый, взгляд в камеру
+
+### P13. `portraits/volskaya.jpg` - Вольская, меценат (тётя Света)
+
+- **Сохранить как:** `detgame-media/portraits/volskaya.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 54 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Вольской (тёти Светы), затем voroncov.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 54, mid-fifties, well-groomed: light lines, hair may be coloured. Do NOT make them look older than 54. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An elegant, self-assured look, faint polite smile; pearl necklace, ivory blouse, dark jacket. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 54 years old (mid-fifties, well-groomed: light lines, hair may be coloured) - age them up or down from the reference as needed. Do NOT make the person look older than 54. Change only the apparent age, never the identity.
+
+SUBJECT: a woman.
+EXPRESSION: Society-lady look: poised, elegant, self-assured; lips closed with a faint polite smile.
+CLOTHES AND DETAILS: A single-strand pearl necklace, neat styled hair, a tasteful ivory blouse under a dark tailored jacket.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-**P14. `portraits/gromov.jpg` — Громова (Юля), 57**
+
+Проверь перед сохранением:
+
+- [ ] жемчужное ожерелье, аккуратная причёска
+- [ ] светская, собранная, улыбка еле заметна
+- [ ] на вид около 54 лет, лицо узнаваемо
+- [ ] фон белый, взгляд в камеру
+
+### P14. `portraits/gromov.jpg` - Громова, чиновник (сестра Юля)
+
+- **Сохранить как:** `detgame-media/portraits/gromov.jpg`
+- **Формат:** JPEG, 4:5 вертикаль, белый фон; возраст в игре - 57 (`content/characters.yaml`)
+- **Приложить:** 1-2 фото Громовой (сестры), затем voroncov.jpg. Портрет потом используется как образец в gromov/meeting.jpg. Порядок: сначала фото человека, **последним - `portraits/voroncov.jpg` (образец стиля)**.
+
 ```text
-Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 57, mid-to-late fifties, well-groomed: light lines, neat coloured hair. Do NOT make them look older than 57. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An official, slightly stern look, no smile; grey blazer, white blouse. No props, no text, no logos, no beauty filter. Vertical 4:5.
+Create a photorealistic ID-style portrait photograph of a real person.
+
+ATTACHED IMAGES: The LAST attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, beard, glasses, clothes or neck chain, and do NOT take the AGE, grey hair or wrinkles from it. All the OTHER attached images are photos of the real person: use them as the strict identity reference.
+
+IDENTITY: Keep the exact identity of the person in the reference photos: same face shape, eyes, eyebrows, nose, mouth, ears, jawline, skin tone and hairline, and the same hairstyle and facial hair as in the reference photos (apart from natural changes caused by age). The result must be instantly recognisable as this same real person, not a lookalike and not a generic face.
+
+AGE: Make the person look exactly 57 years old (mid-to-late fifties, well-groomed: light lines, neat coloured hair) - age them up or down from the reference as needed. Do NOT make the person look older than 57. Change only the apparent age, never the identity.
+
+SUBJECT: a woman (the character is a female official).
+EXPRESSION: Official, composed, slightly stern look; lips closed, no smile.
+CLOTHES AND DETAILS: Formal grey blazer over a white blouse. Hair as in the reference photos.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural age-appropriate skin texture (no extra wrinkles), natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no props or accessories of any profession (no headphones, headsets, measuring tapes, aprons, badges, pins, uniforms), no text, no watermark, no logos, no props in hands, no tilted head, no smile wider than described, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no hat, no sunglasses, no necklaces, pendants, crosses or other symbolic jewellery (unless described above), no illustration or cartoon look.
 ```
-Сохранять: `detgame-media/portraits/<имя>.jpg`. Готовые уже есть: voroncov (ждёт R01), kirill, marina, volkov.
+
+Проверь перед сохранением:
+
+- [ ] это женщина; на вид около 57 лет (старше образца), лицо узнаваемо
+- [ ] официальное сдержанное выражение
+- [ ] фон белый, голова прямо
 
 ---
 
@@ -343,7 +807,6 @@ Edit the previous image. Keep the camera angle, porch, door, yard, lamp, black-a
 
 Проверь перед сохранением:
 
-- [ ] дверь приоткрыта, мужчина в форменной куртке (без нашивок) выходит на крыльцо, в руке сигарета
 - [ ] машина, водитель, крыльцо, ракурс те же, что в кадре 1
 - [ ] лицо Олега в зерне допустимо неузнаваемо, но возраст около 64 лет, телосложение похоже
 
