@@ -273,6 +273,25 @@ def _front_matter(text: str) -> tuple[str, int] | None:
     return "\n".join(lines[1:body - 2]), 1
 
 
+def familiar_collisions(characters: Iterable[Character]) -> list[str]:
+    """Дружеское имя одного персонажа похоже на имя другого (S-62): «Тёма» при Волкове-«Артёме» —
+    ложная улика. Грубая проверка по основе из трёх букв (ё = е)."""
+    chars = list(characters)
+    out: list[str] = []
+    for ch in chars:
+        if not _usable(ch.familiar):
+            continue
+        stem = ch.familiar.lower().replace("ё", "е")[:3]
+        for other in chars:
+            if other.id == ch.id or not _usable(other.first):
+                continue
+            if stem in other.first.lower().replace("ё", "е"):
+                out.append(f"content/characters.yaml: {ch.id}.familiar «{ch.familiar}» похоже на имя "
+                           f"{other.id} «{other.first}» — игроки примут его за {other.id}; смените дружеское "
+                           f"имя или имя персонажа (import-cast --familiar)")
+    return out
+
+
 def hardcoded_names(content_dir: Path, characters: Iterable[Character], world: Any) -> list[NameHit]:
     """Все имена персонажей с ``cast: true``, вписанные в тексты ``content/`` буквами."""
     root = Path(content_dir)

@@ -34,6 +34,9 @@ def complete_copy(tmp_path: Path) -> tuple[Path, Path]:
     settings = cdir / "settings.yaml"
     settings.write_text(settings.read_text(encoding="utf-8").replace("https://example.ru", "https://zakulisami.test"),
                         encoding="utf-8")
+    # S-62: при рабочих именах «Тёма» похоже на Артёма Волкова — в копии берём нейтральное дружеское имя
+    chars = cdir / "characters.yaml"
+    chars.write_text(chars.read_text(encoding="utf-8").replace('familiar: "Тёма"', 'familiar: "Ваня"'), encoding="utf-8")
     counter = itertools.count(1)
     for p in sorted(cdir.rglob("*")):
         if p.suffix in (".yaml", ".md"):

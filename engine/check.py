@@ -18,7 +18,7 @@ from engine import salts as salts_mod
 from engine.answers import iso_to_dmy, shift_time, wrong_inputs
 from engine.build import BuildError, Prepared, prepare, release_problems
 from engine.content import Content, collect_todos, units
-from engine.hardnames import hardcoded_names
+from engine.hardnames import familiar_collisions, hardcoded_names
 from engine.leakscan import (
     NeedleSet,
     boilerplate_shingles,
@@ -607,13 +607,14 @@ def check(
     # 10. Имена персонажей буквами, а не шаблоном (защита import-cast, P09): без --release — предупреждение
     hits = hardcoded_names(content.root, content.characters, content.world)
     rep.name_hits = hits
-    found = [f"[10. Имена буквами] {h}" for h in hits]
+    clash = familiar_collisions(content.characters)  # S-62: дружеское имя похоже на имя другого персонажа
+    found = [f"[10. Имена буквами] {h}" for h in [*map(str, hits), *clash]]
+    detail = f"в текстах content/: {len(hits)}" + (f"; дружеское имя похоже на чужое: {len(clash)}" if clash else "")
     if release:
-        rep.add("10. Имена буквами", [str(h) for h in hits], f"в текстах content/: {len(hits)}")
+        rep.add("10. Имена буквами", [*map(str, hits), *clash], detail)
     else:
         rep.warnings += found
-        rep.add("10. Имена буквами", [], f"в текстах content/: {len(hits)}"
-                + ("; без --release — предупреждение" if hits else ""))
+        rep.add("10. Имена буквами", [], detail + ("; без --release — предупреждение" if hits or clash else ""))
     if log:
         log(rep.table())
     return rep

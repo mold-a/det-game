@@ -10,7 +10,7 @@ import pytest
 from engine import ROOT
 from engine.build import build
 from engine.check import check
-from engine.hardnames import COMMON_WORD_NAMES, hardcoded_names
+from engine.hardnames import COMMON_WORD_NAMES, familiar_collisions, hardcoded_names
 from engine.models import Character
 
 CONTENT = ROOT / "content"
@@ -194,3 +194,15 @@ def test_every_case_form_found(tmp_path, cid):
     hits = scan(tmp_path, {"finale.yaml": f"t: |\n" + "".join(f"  {ln}\n" for ln in text.splitlines())})
     assert [h.line for h in hits] == list(range(2, 2 + len(CASES)))
     assert all(h.replacement.startswith(f"{{{{ c.{cid}.full(") for h in hits)
+
+
+def test_familiar_collision_with_other_first_name():
+    # S-62: «Тёма» у погибшего при дублёре-«Артёме» — ложная улика
+    cast = [ch("voroncov", "Воронцов", "Иван", "Сергеевич", familiar="Тёма"),
+            ch("volkov", "Волков", "Артём", "Андреевич")]
+    clash = familiar_collisions(cast)
+    assert len(clash) == 1 and "voroncov.familiar «Тёма»" in clash[0] and "volkov «Артём»" in clash[0]
+    # своё имя не в счёт; «Ваня» ни на кого из CAST не похоже
+    assert familiar_collisions([ch("voroncov", "Молдованов", "Артём", "Сергеевич", familiar="Тёма"),
+                                ch("volkov", "Блинов", "Вячеслав", "Иванович")]) == []
+    assert familiar_collisions(CAST) == []
