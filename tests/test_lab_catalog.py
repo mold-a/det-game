@@ -59,13 +59,22 @@ def test_current_content_has_no_lab_errors():
 
 
 def test_pillbox_in_inventory_from_stage_1_with_stage_3_bases():
+    """Таблетница — в описи 1-09 (from_stage 1). Правило 2.1.4: результат этапа N > from_stage
+    опирается только на документы этапа N. Заключение (с документом) — на основаниях этапа 3;
+    ранние запросы (атмосферные записи этапов 1–2) отвечают нейтрально и без документа."""
     c = load_content(CONTENT)
     pill = next(o for o in c.expertise.objects if o.id == "pillbox")
     assert pill.from_stage == 1
     docs = c.documents_by_id
-    for r in c.expertise.results:
-        if r.object == "pillbox":
-            assert r.stage == 3 and all(docs[b].stage == 3 for b in r.bases)
+    results = [r for r in c.expertise.results if r.object == "pillbox"]
+    assert results
+    for r in results:
+        if r.stage > pill.from_stage:
+            assert all(docs[b].stage == r.stage for b in r.bases), r.id
+    conclusions = [r for r in results if r.doc]
+    assert conclusions and all(r.stage == 3 and all(docs[b].stage == 3 for b in r.bases) for r in conclusions)
+    early = [r for r in results if r.stage < 3]
+    assert early and all(not r.doc and r.text for r in early), "ранние записи — короткий атмосферный текст"
 
 
 def test_every_title_is_recognised_on_every_available_stage():
@@ -106,9 +115,12 @@ def test_catalog_has_aliases_ref_description_and_objects_sit_in_their_from_stage
     cat1 = lab_catalog(c, ctx, first, [])
     pill = next(o for o in cat1["objects"] if o["id"] == "pillbox")
     assert pill["aliases"] == ["таблетниц", "пилюл"], "алиасы нормализованы"
-    assert pill["ref"] == "1-09, поз. 17.3" and pill["title"] == "Таблетница погибшего"
+    assert pill["ref"] == "1-09, поз. 17.3" and pill["title"] == next(
+        o.title for o in c.expertise.objects if o.id == "pillbox")
     assert cat1["types"][0]["description"] == "Описание " + c.world["brands"]["lab"]
-    assert all(t["description"] is None for t in cat1["types"][1:])
+    # остальные виды — свои описания из контента (шаблоны раскрыты) или None, если описания нет
+    assert all(t["description"] is None or "{{" not in t["description"] for t in cat1["types"][1:])
+    assert [t["id"] for t in cat1["types"]] == [t.id for t in c.expertise.types]
     for st in c.stages:
         cat = lab_catalog(c, ctx, st.n, [])
         assert {o["id"] for o in cat["objects"]} == {o.id for o in c.expertise.objects if o.from_stage == st.n}
@@ -235,21 +247,21 @@ def test_basis_rule_violation_stops_build_and_check_setup(root, tmp_path):
 
 def test_shared_short_stem_is_warning_not_error(root):
     def fn(d):
-        d["objects"][find(d["objects"], "water")]["aliases"] = ["сумка"]
-        d["objects"][find(d["objects"], "costume")]["aliases"] = ["сумка"]
+        d["objects"][find(d["objects"], "water")]["aliases"] = ["фиал"]
+        d["objects"][find(d["objects"], "costume")]["aliases"] = ["фиал"]
 
     edit_yaml(root, "expertise.yaml", fn)
     errors, warnings = problems_of(root)
     assert any("уже есть" in str(e) for e in errors), "одинаковые алиасы — ошибка"
 
     def fn2(d):
-        d["objects"][find(d["objects"], "water")]["aliases"] = ["сумк"]
-        d["objects"][find(d["objects"], "costume")]["aliases"] = ["сумк шар"]
+        d["objects"][find(d["objects"], "water")]["aliases"] = ["фиал"]
+        d["objects"][find(d["objects"], "costume")]["aliases"] = ["фиал шар"]
 
     edit_yaml(root, "expertise.yaml", fn2)
     errors, warnings = problems_of(root)
     assert errors == [], text_of(errors)
-    assert any("общая основа «сумк»" in str(w) and "water" in str(w) and "costume" in str(w) for w in warnings)
+    assert any("общая основа «фиал»" in str(w) and "water" in str(w) and "costume" in str(w) for w in warnings)
 
 
 # ---------------------------------------------------------------- схема
@@ -290,11 +302,19 @@ def test_lab_yaml_template_typo(root):
     assert "content/lab.yaml: name" in str(exc.value)
 
 
-def test_lab_yaml_todos_are_collected():
+def test_lab_yaml_todos_are_collected(root):
+    """lab.yaml заполнен сценаристом: в боевом контенте TODO нет; поставленная в копии заглушка
+    собирается как value-TODO с путём до поля."""
     from engine.content import collect_todos
 
-    todos = [t for t in collect_todos(load_content(CONTENT)) if t.file == "content/lab.yaml"]
-    assert todos and all(t.kind == "value" for t in todos)
+    assert [t for t in collect_todos(load_content(CONTENT)) if t.file == "content/lab.yaml"] == []
+
+    def fn(d):
+        d["tagline"] = "TODO(content): слоган"
+
+    edit_yaml(root, "lab.yaml", fn)
+    todos = [t for t in collect_todos(load_content(root)) if t.file.endswith("lab.yaml")]
+    assert [t.loc for t in todos] == ["tagline"] and all(t.kind == "value" for t in todos)
 
 
 # ---------------------------------------------------------------- dump-answers и «Аварийный конверт»

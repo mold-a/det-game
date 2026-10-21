@@ -348,7 +348,9 @@ test.describe("рабочие элементы: «Круг»", () => {
     await expect(page.locator(".kr-person:visible")).toHaveCount(0);
     await expect(page.locator('[data-role="empty"]')).toBeVisible();
     await q.fill("");
-    await page.locator(".kr-person__link").first().click();
+    await expect(page.locator(".kr-person:visible").nth(1)).toBeVisible(); // пустой запрос — видны все профили
+    await q.fill("громова");
+    await page.locator(".kr-person:visible .kr-person__link").click();
     await expect(page).toHaveURL(/\/p\/gromov\/$/);
     await expectNoHorizontalScroll(page);
   });

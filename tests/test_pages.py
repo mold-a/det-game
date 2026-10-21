@@ -241,7 +241,10 @@ def test_new_locked_page_key_is_appended_old_keys_untouched(fx, tmp_path):
     lock = tmp_path / "salts.lock.json"
     shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
     before = json.loads(lock.read_text(encoding="utf-8"))
-    assert "auction" not in before["pages"]
+    # auction уже дописан в боевой lock-файл; проверяем сам механизм: убираем ключ и даём сборке дописать его
+    before["pages"].pop("auction", None)
+    lock.write_text(json.dumps(before, indent=2, sort_keys=True), encoding="utf-8")
+    assert "auction" not in json.loads(lock.read_text(encoding="utf-8"))["pages"]
     salts_mod.ensure_for_content(load_content(fx), lock)
     after = json.loads(lock.read_text(encoding="utf-8"))
     assert "auction" in after["pages"] and len(salts_mod.read(lock).page_key("auction")) == 32

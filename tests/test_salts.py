@@ -111,7 +111,10 @@ def test_for_current_content(tmp_path):
     s = ensure_for_content(c, path)
     assert len(s.data["units"]) == 25
     assert set(s.data["stages"]) == {"1", "2", "3", "4"}
-    assert set(s.data["pages"]) == {"inna", "pharma", "video"}  # locked: true; cloud — по паролю
+    # ключи — у закрытых страниц (locked: true); cloud — по паролю
+    locked = {slug for slug, pg in c.pages.items() if pg.locked is True}
+    assert locked >= {"inna", "pharma", "video"} and "cloud" not in locked
+    assert set(s.data["pages"]) == locked
     assert len(b64u_decode(s.data["pages"]["video"])) == 32
     assert ensure_for_content(c, path).data == s.data
 

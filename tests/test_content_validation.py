@@ -11,7 +11,7 @@ import yaml
 
 from engine import ROOT
 from engine.content import ContentError, collect_todos, load_content, units
-from engine.templating import make_context, render, render_tree
+from engine.templating import make_context, make_link, render, render_tree
 
 CONTENT = ROOT / "content"
 
@@ -105,6 +105,7 @@ def test_render_all_content_strings():
     """Все строки контента рендерятся без ошибок StrictUndefined."""
     c = load_content(CONTENT)
     ctx = make_context(c)
+    ctx["link"] = make_link(set(c.pages))  # link('slug'): существование страницы; ключей закрытых здесь нет
     n = 0
     for fname, data in c.raw.items():
         if fname.endswith("world.yaml"):
@@ -230,9 +231,13 @@ def test_template_typo_character(root):
 
 
 def test_template_typo_world_and_syntax(root):
-    edit_text(root, "expertise.yaml", "{{ w.theater.dressing_room_victim }}", "{{ w.theater.dresing_room }}")
+    # первый предмет описи, в названии которого есть ссылка на мир (ищем в данных, а не по номеру)
+    objs = yaml.safe_load((root / "expertise.yaml").read_text(encoding="utf-8"))["objects"]
+    idx, ref = next((i, o["title"]) for i, o in enumerate(objs) if "{{ w." in o["title"])
+    key = ref[ref.index("{{ w.") + 5:ref.index(" }}", ref.index("{{ w."))]
+    edit_text(root, "expertise.yaml", "{{ w." + key + " }}", "{{ w.typo_" + key.replace(".", "_") + " }}")
     edit_text(root, "finale.yaml", "{{ c.marina.g('Уехал', 'Уехала') }}", "{{ c.marina.g('Уехал', 'Уехала' }}")
-    errs = assert_error(root, "content/expertise.yaml: objects[3].title", "нет ключа «w.theater.dresing_room»")
+    errs = assert_error(root, f"content/expertise.yaml: objects[{idx}].title", "нет ключа «w.typo_")
     assert any("content/finale.yaml: fates[2].text" in e and "синтаксис" in e for e in errs)
 
 

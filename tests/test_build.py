@@ -59,7 +59,8 @@ def test_dist_layout(built):
     assert set(pack) == {"v", "alg", "aad", "n", "c"} and pack["aad"] == "pack/2"
     shell = (dist / "p/inna/index.html").read_text(encoding="utf-8")
     assert 'data-slug="inna"' in shell and 'data-access="key"' in shell
-    assert set(rep.page_keys) == {"inna", "pharma", "video"}
+    locked = {s for s, p in load_content().pages.items() if p.locked is True}
+    assert set(rep.page_keys) == locked >= {"inna", "pharma", "video"}
 
 
 def test_check_passes_on_current_content(built):
@@ -69,8 +70,11 @@ def test_check_passes_on_current_content(built):
     assert [r.name.split(".")[0] for r in rep.rows] == [str(i) for i in range(1, 11)]
     # имена буквами в тексте без --release — предупреждение, не ошибка
     # предупреждения — только «Имена буквами» (тексты и похожие дружеские имена, S-62)
-    assert all(w.startswith("[10. Имена буквами]") for w in rep.warnings)
-    assert len(rep.warnings) >= len(rep.name_hits)
+    # и предупреждения описи лаборатории об общих коротких основах алиасов (REDESIGN §3: не ошибка)
+    stem = [w for w in rep.warnings if "общая основа" in w]
+    assert all(w.startswith("[10. Имена буквами]") or "общая основа" in w for w in rep.warnings)
+    assert all(w.startswith("content/expertise.yaml:") for w in stem)
+    assert len(rep.warnings) - len(stem) >= len(rep.name_hits)
     assert "Размер dist/" in rep.table()
 
 
