@@ -938,6 +938,58 @@ Same office as in the attached reference image (same walls, light and furniture)
 
 ---
 
+
+### Фотосеть Инны: 9 атмосферных фото (S20–S28)
+
+Один чат, без людей и лиц (кроме руки в S24). Квадрат 1:1, телефонное фото «для соцсети»: тёплые тона, лёгкий шум, не студийное. Сохранять: `detgame-media/inna/01.jpg` … `09.jpg`.
+
+**S20. `inna/01.jpg`** — капучино с сердечком на пенке в бумажном стаканчике на стойке буфета театра, утро
+```text
+A casual smartphone photo for a social media feed: капучино с сердечком на пенке в бумажном стаканчике на стойке буфета театра, утро (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S21. `inna/02.jpg`** — полосатая серая кошка спит на клетчатом пледе на диване, домашний вечерний свет
+```text
+A casual smartphone photo for a social media feed: полосатая серая кошка спит на клетчатом пледе на диване, домашний вечерний свет (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S22. `inna/03.jpg`** — противень домашних пирожков на кухонном столе, кухонное полотенце, дневной свет
+```text
+A casual smartphone photo for a social media feed: противень домашних пирожков на кухонном столе, кухонное полотенце, дневной свет (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S23. `inna/04.jpg`** — аллея парка с жёлтыми листьями, скамейка, пасмурный день, без людей
+```text
+A casual smartphone photo for a social media feed: аллея парка с жёлтыми листьями, скамейка, пасмурный день, без людей (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S24. `inna/05.jpg`** — женская рука с тёмно-вишнёвым маникюром держит чашку чая, без колец
+```text
+A casual smartphone photo for a social media feed: женская рука с тёмно-вишнёвым маникюром держит чашку чая, без колец (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S25. `inna/06.jpg`** — ящики с красными яблоками на городском рынке, без вывесок и ценников
+```text
+A casual smartphone photo for a social media feed: ящики с красными яблоками на городском рынке, без вывесок и ценников (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S26. `inna/07.jpg`** — окно кухни с новыми светлыми шторами в мелкий цветочек, подоконник с цветком в горшке
+```text
+A casual smartphone photo for a social media feed: окно кухни с новыми светлыми шторами в мелкий цветочек, подоконник с цветком в горшке (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S27. `inna/08.jpg`** — та же полосатая серая кошка сидит в картонной коробке на полу
+```text
+A casual smartphone photo for a social media feed: та же полосатая серая кошка сидит в картонной коробке на полу (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+**S28. `inna/09.jpg`** — витрина театрального буфета с пирожными и бутербродами, чистые чашки, без надписей
+```text
+A casual smartphone photo for a social media feed: витрина театрального буфета с пирожными и бутербродами, чистые чашки, без надписей (описание по-русски выше — переведите или вставьте как есть). Square 1:1, warm natural colours, slight phone-camera noise, not a studio shot. No people's faces, no text, no logos, no brand names, no readable signs, no watermarks.
+```
+
+---
+
 ## Видео Волкова
 
 Ограничения из `content/pages/video/page.yaml` и 1-08: Слава **в сценическом костюме** читает монолог **в помещении, похожем на репетиционный зал**; около 1 мин; **днём, окно с дневным светом в кадре** (алиби - вечер); файл создан 08.11.2026 14:12:03; в карточке заявлено 1920 x 1080. Путь: **кадр-основа (S19, Gemini) + аудио монолога (делаю я, XTTS) -> Kling -> MP4 -> моя доводка**.
