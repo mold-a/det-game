@@ -2101,8 +2101,8 @@ html:has(.app-header) {
 
 .folder__stamp {
   position: absolute;
-  top: var(--sp-4);
-  right: var(--sp-4);
+  top: var(--sp-3);
+  right: var(--sp-3);
 }
 
 .folder__stamp .stamp {

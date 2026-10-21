@@ -15,12 +15,13 @@ test("после неверного ответа расстановка order и
   expect(await ids()).toBe(arranged);
 });
 
-test("журнал баллов на /lab/ и /final/ подписан так же, как на главном («вопрос 1.2», а не s1.q2)", async ({ page }) => {
+// На сайте лаборатории журнала нет (docs/04 «/lab/»: счёт — в полосе заказчика).
+test("журнал баллов на /final/ подписан так же, как на главном («вопрос 1.2», а не s1.q2)", async ({ page }) => {
   await startGame(page);
   await article(page, "s1.q2").locator('button[type="submit"]').click();
   await expect(article(page, "s1.q2").locator(".q__msg")).toContainText("не подтверждается", { timeout: 30_000 });
   const main = (await scoreLog(page)).map((r) => r.reason);
-  for (const u of ["/lab/", "/final/"]) {
+  for (const u of ["/final/"]) {
     await page.goto(u);
     expect((await scoreLog(page)).map((r) => r.reason), u).toEqual(main);
   }

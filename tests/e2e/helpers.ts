@@ -138,7 +138,9 @@ export async function labRequest(page: Page, e: LabEntry, basis?: string, text?:
   await page.locator("#lab-basis").selectOption(b);
   const inputs = page.locator(".lab-params input");
   const params = Object.values(e.params);
-  const shown = await inputs.count(); // параметры есть, только если объект распознан
+  // Параметры появляются после распознавания вживую (пауза ввода) — и только у распознанного объекта.
+  if (params.length) await expect(inputs).toHaveCount(params.length, { timeout: 2_000 }).catch(() => {});
+  const shown = await inputs.count();
   for (let i = 0; i < Math.min(shown, params.length); i++) await inputs.nth(i).fill(params[i].input);
   const msg = page.locator(".lab-form .lab-msg");
   await msg.evaluate((el) => (el.textContent = ""));

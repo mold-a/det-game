@@ -332,7 +332,7 @@ function renderOrderSection(catalog) {
     } else if (status === "none") {
       match.append(T.lab.live.none);
     }
-    match.hidden = status === "empty";
+    match.classList.toggle("is-empty", status === "empty");
     const want = obj?.params?.length ? obj.id : "";
     if (want === paramsFor) return;
     const keep = paramWidgets.map(({ w }) => w.getValue());
@@ -371,9 +371,11 @@ function renderOrderSection(catalog) {
     clearTimeout(liveTimer);
     liveTimer = setTimeout(() => recognize(), LIVE_DELAY_MS);
   });
+  // Уход фокуса — с той же паузой: подпись не должна сдвинуть кнопку под курсором,
+  // пока идёт щелчок по «Направить заявку» (отправка распознаёт текст сама).
   objectInput.addEventListener("blur", () => {
     clearTimeout(liveTimer);
-    recognize({ final: true });
+    liveTimer = setTimeout(() => recognize({ final: true }), LIVE_DELAY_MS);
   });
 
   const step = (n, label, forId, extra = null) =>
@@ -824,12 +826,8 @@ function renderContacts() {
     section.append(h("div", { class: "pz-card pz-card--notice" }, pending()));
     return section;
   }
-  const value = (k) => {
-    const v = str(c[k]);
-    if (k === "phone") return h("a", { href: `tel:${v.replace(/[^\d+]/g, "")}` }, v);
-    if (k === "email") return h("a", { href: `mailto:${v}` }, v);
-    return v;
-  };
+  // Телефон и почта — текстом, без tel:/mailto:: вымышленный номер может совпасть с настоящим.
+  const value = (k) => str(c[k]);
   section.append(
     h(
       "div",

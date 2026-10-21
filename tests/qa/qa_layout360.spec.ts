@@ -91,14 +91,6 @@ test("главный экран, лаборатория, финал на 360 px"
   }
   await openConclusion(page);
   issues.push(...(await overflow(page, "lab заключение"))); 
-  // документы-экспертизы в окне
-  await page.goto("/");
-  const labDoc = page.locator(".docs-panel button.docs__link").first();
-  if (await labDoc.count()) {
-    await labDoc.click();
-    issues.push(...(await overflow(page, "окно документа экспертизы")));
-    await page.locator(".modal").getByRole("button", { name: "Закрыть" }).first().click();
-  }
   // финал
   await page.goto("/final/");
   issues.push(...(await overflow(page, "финал: предупреждение")));

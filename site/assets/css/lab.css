@@ -539,6 +539,11 @@ body[data-site="prizma"] .pz-select option {
   overflow-wrap: anywhere;
 }
 
+/* Пустая подпись держит место: строка под полем не прыгает. */
+.pz-match.is-empty {
+  visibility: hidden;
+}
+
 .pz-match--ok {
   color: var(--pz-ok);
   background: var(--pz-ok-soft);
@@ -1311,12 +1316,6 @@ body[data-site="prizma"] .pz-chip:hover {
   margin: 0;
   font-size: var(--fs-3);
   overflow-wrap: anywhere;
-}
-
-body[data-site="prizma"] .pz-contacts__list a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap);
 }
 
 /* Условная схема проезда: кварталы, река, знак центра. */
