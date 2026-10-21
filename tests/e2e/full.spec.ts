@@ -36,14 +36,10 @@ test("полная игра: этапы, лаборатория, финал, и�
   expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
   expect(await labRequest(page, first, first.wrongBasis)).toMatch(/^Такая заявка уже выполнялась/);
   expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
-  // Предмет, который появляется только на последнем этапе, пока «не в описи»: без штрафа.
-  const late = [...A.lab].reverse().find((x) => x.stage === A.stages[A.stages.length - 1].n)!;
-  await page.locator("#lab-object").fill(objectText(late));
-  await page.locator("#lab-object").blur();
-  if ((await page.locator("#lab-object-match").getAttribute("data-status")) === "none") {
-    expect(await labRequest(page, late, first.bases[0])).toMatch(/^Такого предмета нет в описи/);
-    expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
-  }
+  // Предмет, который появляется в материалах позже (objectFromStage > 1), пока «не в описи»: без штрафа.
+  const late = A.lab.find((x) => ((x as any).objectFromStage ?? x.stage) > 1)!;
+  expect(await labRequest(page, late, first.bases[0])).toMatch(/^Такого предмета нет в описи/);
+  expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
 
   for (const stage of A.stages.slice(0, -1)) {
     await labStage(page, stage.n, done);
