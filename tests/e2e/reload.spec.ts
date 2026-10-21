@@ -33,7 +33,11 @@ test("перезагрузка посреди этапа 3", async ({ page }) =>
   await expect(article(page, wrongQ.path).locator(".q__meta")).toHaveText("Неверных попыток: 1");
   await expect(article(page, wrongQ.path).locator(".hints__item")).toHaveCount(1);
   await expect(page.locator("details.passed")).toHaveCount(2);
-  for (const d of A.lab.filter((l) => l.stage <= 3 && l.doc)) await expect(page.locator(".docs-panel")).toContainText(d.doc!);
+  // Заключения после перезагрузки — в «Мои заявки» на сайте лаборатории.
+  await page.goto("/lab/#orders");
+  await expect(page.locator(".orders__item.is-done")).toHaveCount(A.lab.filter((l) => l.stage <= 3).length);
+  await page.goto("/");
+  await expect(page.locator("#stage-title")).toHaveText("Этап 3");
 
   // Повтор того же неверного ответа после перезагрузки — без штрафа.
   await fillQuestion(page, wrongQ, wrongQ.type === "form" ? Object.fromEntries(wrongQ.fields!.map((f) => [f.id, f.wrong[0]])) : wrongQ.wrong[0]);

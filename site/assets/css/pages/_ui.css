@@ -201,3 +201,50 @@ html.svc-lock {
     transform: translateY(8px);
   }
 }
+
+/* --- оболочка закрытой страницы новых типов (до расшифровки): бренд и «Ссылка повреждена» в палитре страницы */
+
+body.page--social.shell,
+body.page--site.shell {
+  min-height: 100vh;
+}
+
+.page--social.shell .shell__head,
+.page--site.shell .shell__head {
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--svc-line);
+  background: var(--svc-bg);
+}
+
+.page--social.shell .brandmark__sign,
+.page--site.shell .brandmark__sign {
+  display: none;
+}
+
+.page--social.shell .brandmark__name,
+.page--site.shell .brandmark__name {
+  color: var(--svc-accent);
+  font-family: var(--svc-font);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.page--social.shell .shell__body,
+.page--site.shell .shell__body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  color: var(--svc-ink);
+  font-family: var(--svc-font);
+}
+
+.page--social.shell .shell__broken,
+.page--social.shell .shell__failed,
+.page--site.shell .shell__broken,
+.page--site.shell .shell__failed {
+  padding: 14px 16px;
+  border: 1px solid var(--svc-line);
+  border-left: 4px solid var(--svc-accent);
+  border-radius: var(--svc-radius, 4px);
+  background: var(--svc-bg);
+}

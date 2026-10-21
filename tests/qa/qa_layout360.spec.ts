@@ -3,7 +3,7 @@
 // Работает и на обычной сборке, и на mod (длинные ФИО, длинный вариант, длинные слова).
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { loadAnswers, startGame, playToStage, article, fillQuestion, submit, envelopeOpened, labAll, solve } from "../e2e/helpers";
+import { loadAnswers, startGame, playToStage, article, fillQuestion, submit, envelopeOpened, labAll, solve, objectText, openConclusion } from "../e2e/helpers";
 import { readState, writeState, collectErrors } from "./qa_util";
 
 const A = loadAnswers();
@@ -81,12 +81,16 @@ test("главный экран, лаборатория, финал на 360 px"
   issues.push(...(await overflow(page, "пройденные этапы раскрыты")));
   await page.goto("/lab/");
   const E = A.lab.find((x) => x.object === "station_cam")!;
-  await page.locator(".lab-form__grid select").nth(0).selectOption(E.object);
+  await page.locator("#lab-object").fill(objectText(E));
+  await expect(page.locator(".lab-params input")).toHaveCount(Object.keys(E.params).length);
   issues.push(...(await overflow(page, "lab параметры")));
   await labAll(page, A, 4, done);
-  await page.goto("/lab/");
-  await page.locator(".lab-archive__item.is-done button").first().click();
-  issues.push(...(await overflow(page, "lab результат + архив")));
+  for (const tab of ["orders", "services", "about", "contacts"]) {
+    await page.goto(`/lab/#${tab}`);
+    issues.push(...(await overflow(page, `lab ${tab}`)));
+  }
+  await openConclusion(page);
+  issues.push(...(await overflow(page, "lab заключение"))); 
   // документы-экспертизы в окне
   await page.goto("/");
   const labDoc = page.locator(".docs-panel button.docs__link").first();

@@ -11,7 +11,10 @@ import {
   labRequest,
   restoreLabResults,
   labDocTitles,
+  prepareLabRequest,
+  labOrders,
 } from "../../site/assets/js/core/lab.js";
+import { resolveObject } from "../../site/assets/js/core/labmatch.js";
 import { randomBytes, b64uEncode } from "../../site/assets/js/core/crypto.js";
 import * as S from "../../site/assets/js/core/state.js";
 import { makePub, makePack, makeLabEntries } from "./fixtures.mjs";
@@ -161,5 +164,84 @@ describe("запросы", () => {
     const restored = await restoreLabResults(log, ctx(3));
     assert.deepEqual(Object.keys(restored), ["a"]);
     assert.deepEqual(labDocTitles(restored), { "2-01": "Заключение эксперта-химика" });
+  });
+});
+
+describe("заявка: текст объекта → запрос (prepareLabRequest)", () => {
+  const objects = [
+    { id: "water", title: "Бутылка воды из гримёрки № 4", aliases: ["бутыл", "вод"], params: [] },
+    { id: "keys", title: "Связка ключей", aliases: ["ключ"], params: [] },
+    { id: "coat", title: "Пальто погибшего", aliases: ["пальт"], params: [] },
+    { id: "cup", title: "Чашка с водой", aliases: ["чашк", "вод"], params: [] },
+    OBJ.cam && { ...OBJ.cam, aliases: ["камер вокзал"] },
+  ];
+  const base = { type: "chem", basis: "1-09", objects, resolve: resolveObject, defaultYear: pub.defaultYear };
+
+  test("пустое поле и предмет не из описи — без запроса", () => {
+    assert.deepEqual(prepareLabRequest({ ...base, text: "  " }), { status: "empty" });
+    assert.deepEqual(prepareLabRequest({ ...base, text: "кофейная гуща" }), { status: "none" });
+  });
+
+  test("неоднозначно — кандидаты в порядке каталога", () => {
+    const r = prepareLabRequest({ ...base, text: "вода" });
+    assert.equal(r.status, "ambiguous");
+    assert.deepEqual(r.objects.map((o) => o.id), ["water", "cup"]);
+  });
+
+  test("распознан по названию и по алиасу; ранний токен важнее («ключи из кармана пальто»)", () => {
+    assert.equal(prepareLabRequest({ ...base, text: "Бутылка воды из гримёрки № 4" }).req.object, "water");
+    assert.equal(prepareLabRequest({ ...base, text: "ключи из кармана пальто" }).req.object, "keys");
+  });
+
+  test("не выбраны вид или основание — подсказка, объект уже известен", () => {
+    const r = prepareLabRequest({ ...base, text: "ключи", type: "", basis: "" });
+    assert.equal(r.status, "incomplete");
+    assert.equal(r.object.id, "keys");
+    assert.deepEqual(r.missing, ["type", "basis"]);
+    assert.deepEqual(prepareLabRequest({ ...base, text: "ключи", basis: "" }).missing, ["basis"]);
+  });
+
+  test("параметры объекта: формат проверяется, нормализуются в порядке объекта", () => {
+    const text = "камеры вокзала";
+    const bad = prepareLabRequest({ ...base, text, params: ["31.02", "14:35", "2"] });
+    assert.equal(bad.status, "format");
+    assert.deepEqual(bad.invalid, ["date"]);
+    assert.equal(bad.paramType, "date");
+    assert.equal(bad.empty, false);
+    assert.equal(prepareLabRequest({ ...base, text, params: ["", "", ""] }).empty, true);
+    const ok = prepareLabRequest({ ...base, text, type: "video", basis: "3-07", params: ["30.10", "14.35", "касса 2"] });
+    assert.deepEqual(ok.req, { object: "station_cam", type: "video", basis: "3-07", params: ["2026-10-30", "14:35", "2"] });
+  });
+
+  test("отпечаток заявки — по id объекта, не по тексту", async () => {
+    const a = prepareLabRequest({ ...base, text: "бутылку воды" }).req;
+    const b = prepareLabRequest({ ...base, text: "Бутылка воды из гримёрки № 4" }).req;
+    assert.equal(await labFingerprint(a), await labFingerprint(b));
+  });
+});
+
+describe("«Мои заявки» (labOrders)", () => {
+  test("новые сверху, номер — по порядку подачи, названия из каталога, итог и заключение", () => {
+    const catalog = {
+      types: [{ id: "chem", title: "Химическое исследование" }],
+      objects: [{ id: "water", title: "Бутылка воды", ref: "1-09, поз. 3" }],
+    };
+    const log = [
+      { fp: "a", t: "2026-10-21T10:00:00.000Z", object: "water", type: "chem", basis: "1-01", params: [], stage: 1, ok: false, doc: null },
+      { fp: "b", t: "2026-10-21T10:05:00.000Z", object: "water", type: "chem", basis: "1-09", params: [], stage: 1, ok: true, doc: null },
+      { fp: "c", t: "2026-10-21T10:06:00.000Z", object: "gone", type: "x", basis: "1-09", ok: true, doc: "2-01" },
+    ];
+    const entry = { doc: null, title: "Бутылка воды: химическое исследование", html: "<p>…</p>" };
+    const rows = labOrders(log, catalog, { b: { stage: 1, entry } });
+    assert.deepEqual(rows.map((r) => r.no), [3, 2, 1]);
+    assert.equal(rows[1].objectTitle, "Бутылка воды");
+    assert.equal(rows[1].ref, "1-09, поз. 3");
+    assert.equal(rows[1].typeTitle, "Химическое исследование");
+    assert.equal(rows[1].entry, entry);
+    assert.equal(rows[2].ok, false);
+    assert.equal(rows[2].entry, null);
+    assert.equal(rows[0].objectTitle, "gone", "объекта нет в каталоге — id");
+    assert.equal(rows[0].entry, null, "заключение не восстановлено");
+    assert.deepEqual(labOrders(undefined, catalog), []);
   });
 });

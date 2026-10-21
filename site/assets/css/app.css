@@ -111,6 +111,29 @@ html:has(.app-header) {
   color: var(--cover-muted);
 }
 
+/* Телефон: шапка в две строки — название системы есть на обложке и в письме. */
+@media (max-width: 599px) {
+  .app-header__system {
+    display: none;
+  }
+  .app-header__case-no {
+    font-size: var(--fs-2);
+    padding: 0 var(--sp-2);
+  }
+}
+
+/* Узкий телефон: подпись «Счёт» — только для дикторов, число остаётся крупным. */
+@media (max-width: 419px) {
+  .app-header .score__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 /* Команда — вписана от руки на корешке. */
 .app-header__team {
   grid-area: team;
@@ -171,8 +194,8 @@ html:has(.app-header) {
 
 .stages__item {
   position: relative;
-  width: 38px;
-  height: 34px;
+  width: 42px;
+  height: 36px;
   display: grid;
   place-items: center;
 }
@@ -202,8 +225,8 @@ html:has(.app-header) {
 }
 
 .env {
-  width: 34px;
-  height: 29px;
+  width: 38px;
+  height: 32px;
   overflow: visible;
 }
 
@@ -604,6 +627,21 @@ html:has(.app-header) {
   color: var(--seal);
 }
 
+/* Узкий экран: состояние показывает стрелка (и details для дикторов). */
+@media (max-width: 479px) {
+  .letter__toggle-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .letter > summary::after {
+    margin-left: auto;
+  }
+}
+
 /* Скрепка на верхнем крае листа. */
 .letter__clip {
   position: absolute;
@@ -754,7 +792,7 @@ html:has(.app-header) {
   .q--margin {
     padding-left: calc(4rem + var(--sp-4));
   }
-  .q + .q {
+  .sheet--form .q + .q {
     border-top: 0;
     background-image: linear-gradient(90deg, transparent 4rem, var(--rule) 4rem);
     background-size: 100% 1px;
@@ -1805,7 +1843,7 @@ html:has(.app-header) {
 .modal--envelope {
   --flap: clamp(92px, 26vw, 128px);
   width: min(100%, 34rem);
-  padding-top: calc(var(--flap) + var(--sp-5));
+  padding-top: calc(var(--flap) + 52px);
   color: var(--cover-ink);
   background-color: var(--cover);
   background-image: var(--tex-fiber);
@@ -1960,9 +1998,12 @@ html:has(.app-header) {
   }
 }
 
+.intro--cover {
+  isolation: isolate;
+}
+
 .folder {
   position: relative;
-  isolation: isolate;
   display: grid;
   justify-items: center;
   gap: var(--sp-4);
@@ -1997,7 +2038,7 @@ html:has(.app-header) {
 
 @media (min-width: 600px) {
   .folder {
-    padding: var(--sp-7) var(--sp-7) var(--sp-6) calc(var(--sp-7) + 14px);
+    padding: calc(var(--sp-7) + var(--sp-6)) var(--sp-7) var(--sp-6) calc(var(--sp-7) + 14px);
   }
 }
 
@@ -2384,7 +2425,8 @@ img.media-missing {
   width: 40%;
 }
 
-.review td + td {
+/* Ответ команды — вписан от руки; верный ответ — печатным. */
+.review tbody td:first-of-type {
   font-family: var(--font-doc);
   font-style: italic;
   color: var(--pen);
@@ -2438,9 +2480,40 @@ img.media-missing {
   }
 }
 
-/* Развязка — документы на листах, торжественнее. */
+/* Развязка — документы на отдельных листах, торжественнее. */
 .ending > .doc-view {
-  padding: var(--sp-4) 0;
+  padding: var(--sp-5) var(--sp-4);
+  background-color: var(--leaf);
+  background-image: var(--tex-grain);
+  border: 1px solid color-mix(in srgb, var(--rule) 70%, transparent);
+  box-shadow: var(--shadow-leaf);
+}
+
+@media (min-width: 600px) {
+  .ending > .doc-view {
+    padding: var(--sp-6) var(--sp-6);
+  }
+}
+
+.final-summary__caption {
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--sp-1) var(--sp-4);
+  font-size: var(--fs-1);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.final-summary__team {
+  font-family: var(--font-doc);
+  font-style: italic;
+  font-weight: 400;
+  font-size: var(--fs-2);
+  color: var(--pen);
 }
 
 .ending .doc-view .blank,

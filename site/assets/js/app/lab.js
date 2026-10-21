@@ -12,10 +12,10 @@
 // и из types[].description каталога. Нет данных — раздел показывает короткую
 // служебную строку, без пустых мест.
 
-import { h, clear, announce, formatDateTime, insertTrustedHtml } from "./dom.js";
+import { h, clear, append, announce, formatDateTime, insertTrustedHtml } from "./dom.js";
 import { T, signed } from "./texts.js";
-import { renderDocument, openDocument } from "./docview.js";
-import { alertDialog } from "./modal.js";
+import { renderDocument } from "./docview.js";
+import { alertDialog, openModal } from "./modal.js";
 import { createInput } from "./questions.js";
 import { prismMark } from "./prism.js";
 import { initPage, loadProgress, renderLoadError } from "./context.js";
@@ -25,6 +25,9 @@ import { labCatalog, labFingerprint, labRequest, labDocTitles, prepareLabRequest
 import { resolveObject } from "../core/labmatch.js";
 
 const TABS = ["order", "orders", "services", "about", "contacts"];
+/** Распознавание вживую: пауза после ввода и порог длины для «Нет в описи» (без фокуса — сразу). */
+const LIVE_DELAY_MS = 250;
+const LIVE_NONE_MIN = 3;
 
 const ctx = await initPage();
 const site = readLabSite();
@@ -295,19 +298,41 @@ function renderOrderSection(catalog) {
   let paramWidgets = [];
   let paramsFor = "";
 
-  /** Распознать текст на лету: подпись «В описи: …» и параметры объекта. */
-  function recognize() {
-    const r = resolveObject(objectInput.value, catalog.objects);
+  /**
+   * Распознавание вживую (без штрафа и без записи — те же исходы, что при отправке):
+   * «Предмет: …» — распознан; «Уточните: А или Б» — неоднозначно (кнопки подставляют
+   * название); «Нет в описи изъятого» — только после ухода фокуса или от LIVE_NONE_MIN
+   * символов, чтобы подпись не мигала на первых буквах. Параметры появляются у
+   * распознанного объекта с параметрами.
+   */
+  function recognize({ final = false } = {}) {
+    const text = objectInput.value.trim();
+    const r = text ? resolveObject(objectInput.value, catalog.objects) : { status: "empty" };
     const obj = r.status === "ok" ? catalog.objects.find((o) => o.id === r.id) : null;
     clear(match);
-    if (obj) {
-      match.append(
-        h("span", { class: "pz-match__label" }, `${T.lab.recognized}: `),
+    let status = r.status;
+    if (status === "none" && !final && [...text].length < LIVE_NONE_MIN) status = "empty";
+    match.dataset.status = status;
+    match.className = `pz-match pz-match--${status}`;
+    if (status === "ok") {
+      append(match, [
+        h("span", { class: "pz-match__label" }, `${T.lab.live.ok}: `),
         h("span", { class: "pz-match__title" }, obj.title),
-        obj.ref ? h("span", { class: "pz-match__ref" }, ` · ${obj.ref}`) : null,
-      );
+        obj.ref ? h("span", { class: "pz-match__ref" }, ` (${obj.ref})`) : null,
+      ]);
+    } else if (status === "ambiguous") {
+      const cands = r.ids.map((id) => catalog.objects.find((o) => o.id === id)).filter(Boolean);
+      append(match, [
+        h("span", { class: "pz-match__label" }, `${T.lab.live.ambiguous}: `),
+        cands.map((o, i) => [
+          i ? h("span", { class: "pz-match__or" }, i === cands.length - 1 ? ` ${T.lab.live.or} ` : ", ") : null,
+          pickButton(o, "pz-match__pick"),
+        ]),
+      ]);
+    } else if (status === "none") {
+      match.append(T.lab.live.none);
     }
-    match.hidden = !obj;
+    match.hidden = status === "empty";
     const want = obj?.params?.length ? obj.id : "";
     if (want === paramsFor) return;
     const keep = paramWidgets.map(({ w }) => w.getValue());
@@ -326,9 +351,29 @@ function renderOrderSection(catalog) {
     paramWidgets.forEach(({ w }, i) => keep[i] !== undefined && w.setValue?.(keep[i]));
     paramsBox.appendChild(h("fieldset", { class: "pz-fieldset" }, h("legend", { class: "pz-label" }, T.lab.params), row));
   }
+
+  /** Кнопка-кандидат: подставляет название предмета из описи. */
+  function pickButton(o, className) {
+    const b = h("button", { type: "button", class: className, "aria-label": T.lab.pick(o.title) }, o.title);
+    b.addEventListener("click", () => {
+      clearTimeout(liveTimer);
+      objectInput.value = o.title;
+      recognize({ final: true });
+      say("");
+      (typeSel.value ? basisSel : typeSel).focus();
+    });
+    return b;
+  }
+
+  let liveTimer = 0;
   objectInput.addEventListener("input", () => {
     objectInput.removeAttribute("aria-invalid");
-    recognize();
+    clearTimeout(liveTimer);
+    liveTimer = setTimeout(() => recognize(), LIVE_DELAY_MS);
+  });
+  objectInput.addEventListener("blur", () => {
+    clearTimeout(liveTimer);
+    recognize({ final: true });
   });
 
   const step = (n, label, forId, extra = null) =>
@@ -375,6 +420,8 @@ function renderOrderSection(catalog) {
     e.preventDefault();
     if (submit.disabled) return;
     say("");
+    clearTimeout(liveTimer);
+    recognize({ final: true });
     paramWidgets.forEach(({ w }) => w.setInvalid(false));
     const prep = prepareLabRequest({
       text: objectInput.value,
@@ -395,20 +442,8 @@ function renderOrderSection(catalog) {
         clear(result);
         return say(T.lab.none, "error");
       case "ambiguous": {
-        const picks = h(
-          "div",
-          { class: "pz-picks" },
-          prep.objects.map((o) => {
-            const b = h("button", { type: "button", class: "pz-chip", "aria-label": T.lab.pick(o.title) }, o.title);
-            b.addEventListener("click", () => {
-              objectInput.value = o.title;
-              recognize();
-              say("");
-              (typeSel.value ? basisSel : typeSel).focus();
-            });
-            return b;
-          }),
-        );
+        recognize({ final: true });
+        const picks = h("div", { class: "pz-picks" }, prep.objects.map((o) => pickButton(o, "pz-chip")));
         return say(T.lab.ambiguous(prep.objects.map((o) => o.title)), "format", picks);
       }
       case "incomplete": {
@@ -491,19 +526,48 @@ function resultHead(object, ok) {
 function showConclusion(container, entry, object) {
   clear(container);
   container.className = "lab-result pz-result pz-result--done";
-  container.append(resultHead(object, true), h("div", { class: "pz-doc" }, renderDocument(entry)), ordersLink());
+  container.append(resultHead(object, true), conclusionView(entry), ordersLink());
   container.scrollIntoView({ block: "start", behavior: "smooth" });
 }
 
 function showNothing(container, object, repeat) {
   clear(container);
   container.className = "lab-result pz-result pz-result--nothing";
-  container.append(
+  append(container, [
     resultHead(object, false),
     h("p", { class: "pz-result__text" }, T.lab.nothing),
     repeat ? null : h("p", { class: "pz-result__charge" }, T.lab.charged(ctx.pub.penalties.labNoBasis)),
     ordersLink(),
+  ]);
+}
+
+/**
+ * Заключение на сайте центра. Документ-бланк из сборки (form) показывается как есть;
+ * короткий результат без бланка (doc: null) — на фирменном листе центра.
+ */
+function conclusionView(entry) {
+  if (entry.form) return h("div", { class: "pz-doc" }, renderDocument(entry));
+  return h(
+    "div",
+    { class: "pz-doc pz-doc--letter" },
+    h(
+      "div",
+      { class: "pz-letterhead" },
+      prismMark({ className: "prism-mark pz-letterhead__mark" }),
+      h("div", null, h("p", { class: "pz-letterhead__name" }, siteFullName()), h("p", { class: "pz-letterhead__sub" }, T.lab.conclusion)),
+    ),
+    h("p", { class: "pz-letterhead__title" }, entry.title),
+    renderDocument(entry),
   );
+}
+
+function openConclusion(entry) {
+  return openModal({
+    title: entry.title,
+    body: conclusionView(entry),
+    className: "modal--doc",
+    actions: [{ id: "ok", label: T.close, primary: true }],
+  });
 }
 
 function ordersLink() {
@@ -527,7 +591,7 @@ function orderRows() {
 }
 
 function openOrder(row) {
-  if (row.entry) return openDocument(row.entry);
+  if (row.entry) return openConclusion(row.entry);
   return alertDialog({ title: T.lab.statusDone, text: T.docs.notRestored });
 }
 
@@ -546,7 +610,7 @@ function renderOrders(section) {
   for (const r of rows) {
     const open = r.ok ? h("button", { type: "button", class: "pz-btn pz-btn--small" }, T.lab.open) : null;
     open?.addEventListener("click", () => openOrder(r));
-    const params = r.params.length ? r.params.join(", ") : null;
+    const params = r.params.length ? paramsText(r) : null;
     list.appendChild(
       h(
         "li",
@@ -581,6 +645,19 @@ function renderOrders(section) {
     );
   }
   section.append(list);
+}
+
+/** Параметры заявки по-человечески: «<подпись> <значение> · …», дата — ДД.ММ.ГГГГ. */
+function paramsText(r) {
+  const defs = els.catalog.objects.find((o) => o.id === r.object)?.params ?? [];
+  return r.params
+    .map((v, i) => {
+      const d = defs[i];
+      const m = d?.type === "date" ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v)) : null;
+      const shown = m ? `${m[3]}.${m[2]}.${m[1]}` : String(v);
+      return d?.label ? `${d.label} ${shown}` : shown;
+    })
+    .join(" · ");
 }
 
 function basisTitle(id) {

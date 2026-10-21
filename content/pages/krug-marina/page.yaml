@@ -1,0 +1,53 @@
+# Черновик сценариста (REDESIGN-2026-10 §4.3, схема §6.1). Страница Марины в «Круге». Этап 1, открытая.
+# Постов мало, почти всё — «кружки» (видеосообщения) с автоматической расшифровкой: «🎥 кружок · 0:24» и текст
+# в кавычках. Если frontend-dev добавит поле для кружка — перенести; пока это просто текст поста.
+# Манера — docs/VOICES.md: всё со строчной, без точек, «агааа», «прям», «короче», «мб», 🤗 😹 😛😛😛 😊 «:(».
+# Запреты: ни болезни, ни лекарств, ни отъезда крёстного (этап 4), ни облака. Пост 10.11 — только то, что уже
+# есть в 1-08: крёстный сам просил не приходить на премьеру, вечер дома (алиби подтверждает не она — сестра).
+slug: krug-marina
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: marina
+  position: "Преподаватель английского"
+  city: "{{ w.city }}"
+  avatar: "portraits/marina.jpg"
+  cover: null
+  about: "english teacher · кружки > текст 🤗"
+  friends:
+    - { person: kirill, page: krug-kirill }
+    - { person: voroncov, page: krug-voroncov }
+    - { person: marina_sister }
+posts:
+  - datetime: "2026-11-11T22:03"
+    text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }}\nне могу\nдаже кружок не получается записать :("
+    photo: null
+    likes: 143
+    comments:
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.marina.first() }}, я рядом...." }
+      - { author: "{{ c.marina_sister.first() }} {{ c.marina_sister.last() }}", text: "🤗🤗🤗 Звоню." }
+  - datetime: "2026-11-10T17:12"
+    text: "🎥 кружок · 0:24\n«так, всем приветик! {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} сегодня играет премьеру!! я не иду, мне сказали приходить, когда {{ c.voroncov.g('он', 'она') }} разыграется 😹 так что держу кулачки дома, прям вот так 🤞»"
+    photo: null
+    likes: 57
+    comments:
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Держим вместе!!!!!" }
+  - datetime: "2026-10-31T18:26"
+    text: "🎥 кружок · 0:41\n«короче, у меня в группе хэллоуин, и одна девочка пришла в костюме… меня. с журналом и в очках. я прям не знаю, гордиться или бояться 😹»"
+    photo: null
+    likes: 88
+    comments:
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Гордиться!!!!! И бояться 😂" }
+  - datetime: "2026-10-18T12:30"
+    text: "🎥 кружок · 0:17\n«{{ c.kirill.g('папа', 'мама') }} вчера {{ c.kirill.g('был', 'была') }} на встрече одноклассников и {{ c.kirill.g('вернулся', 'вернулась') }} с новой версией истории про драмкружок 😹😹 {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} всё отрицает»"
+    photo: null
+    likes: 46
+    link: { page: krug-kirill, text: "{{ c.kirill.first() }} {{ c.kirill.last() }}" }
+    comments: []
+  - datetime: "2026-09-29T21:10"
+    text: "🎥 кружок · 0:09\n«{{ c.marina_sister.first() }} говорит, в москве уже холодно. у нас тоже. всё, мы квиты 😛😛😛»"
+    photo: null
+    likes: 39
+    comments: []

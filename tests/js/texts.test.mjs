@@ -29,7 +29,13 @@ test("подтверждение подсказки и примеры форма
   assert.equal(T.question.hintConfirm(2, 20), "Подсказка 2 уровня: −20 баллов. Открыть?");
   assert.equal(T.result.wrong, "Ответ не подтверждается материалами дела.");
   assert.equal(T.result.repeat, "Этот ответ уже проверяли.");
-  assert.equal(T.lab.noBasis, "Недостаточно оснований для назначения экспертизы.");
+  // Лаборатория — docs/01 §7 (переработка 21.10.2026).
+  assert.equal(T.lab.none, "Такого предмета нет в описи изъятого. Его нельзя передать в лабораторию.");
+  assert.equal(T.lab.nothing, "Экспертиза ничего не выявила.");
+  assert.match(T.lab.repeat, /^Такая заявка уже выполнялась/);
+  assert.equal(T.lab.ambiguous(["А", "Б"]), "Уточните, какой предмет вы передаёте: «А» или «Б».");
+  assert.equal(T.lab.ambiguous(["А", "Б", "В"]), "Уточните, какой предмет вы передаёте: «А», «Б» или «В».");
+  assert.match(T.lab.terms(-5), /−5 баллов/);
   assert.equal(T.placeholder.time, "08:15");
   assert.equal(T.placeholder.date, "05.03");
 });
@@ -41,5 +47,5 @@ test("причины журнала: wrong, hint, bonus, final, lab", () => {
   assert.equal(describeLogEntry({ r: "hint:s1.q2:3" }, label), "Подсказка 3 уровня: вопрос s1.q2");
   assert.equal(describeLogEntry({ r: "bonus:s4.fb" }, label), "Бонус: вопрос s4.fb");
   assert.equal(describeLogEntry({ r: "final:s4.f1" }, label), "Финал: вопрос s4.f1");
-  assert.equal(describeLogEntry({ r: "lab:abc" }, label), "Экспертиза без оснований");
+  assert.equal(describeLogEntry({ r: "lab:abc" }, label), "Экспертиза ничего не выявила");
 });

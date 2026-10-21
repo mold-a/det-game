@@ -196,6 +196,12 @@ async function renderResults({ animate = false } = {}) {
       "div",
       { class: "q final-summary" },
       h(
+        "p",
+        { class: "final-summary__caption" },
+        h("span", null, T.final.summaryCaption(ctx.chrome.caseNo)),
+        game.state.team ? h("span", { class: "final-summary__team" }, T.header.team(game.state.team)) : null,
+      ),
+      h(
         "dl",
         { class: "final-score" },
         h("dt", null, T.final.score),

@@ -276,6 +276,15 @@ body[data-site="prizma"] .pz-nav__link[aria-current="page"] {
 }
 
 /* Телефон: разделы — сетка из двух-трёх колонок под знаком, без горизонтальной прокрутки. */
+@media (min-width: 600px) {
+  .pz-strip__inner,
+  .pz-header__inner,
+  .pz-footer__inner {
+    padding-left: var(--sp-5);
+    padding-right: var(--sp-5);
+  }
+}
+
 @media (max-width: 899px) {
   .pz-header {
     position: static;
@@ -515,30 +524,77 @@ body[data-site="prizma"] .pz-select option {
   color: var(--pz-muted);
 }
 
-/* «В описи: …» — распознанный предмет. */
+/* Распознавание вживую под полем объекта: распознан / уточните / нет в описи. */
 .pz-match {
   justify-self: start;
   display: inline-flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--sp-1);
+  align-items: center;
+  gap: 2px var(--sp-1);
   max-width: 100%;
+  min-height: 2rem;
   padding: var(--sp-1) var(--sp-3);
   font-size: var(--fs-1);
-  color: var(--pz-ok);
-  background: var(--pz-ok-soft);
-  border-radius: 999px;
+  border-radius: 16px;
   overflow-wrap: anywhere;
 }
 
-.pz-match::before {
+.pz-match--ok {
+  color: var(--pz-ok);
+  background: var(--pz-ok-soft);
+}
+
+.pz-match--ok::before {
   content: "✓";
+  font-weight: 700;
+  margin-right: var(--sp-1);
+}
+
+.pz-match--ambiguous {
+  color: var(--pz-ink);
+  background: var(--pz-warn-soft);
+  border-radius: var(--pz-radius-s);
+}
+
+.pz-match--none {
+  color: var(--pz-muted);
+  background: color-mix(in srgb, var(--pz-muted) 12%, transparent);
+}
+
+.pz-match--none::before {
+  content: "×";
   font-weight: 700;
   margin-right: var(--sp-1);
 }
 
 .pz-match__title {
   font-weight: 700;
+}
+
+.pz-match__ref {
+  color: var(--pz-muted);
+}
+
+.pz-match--ok .pz-match__ref {
+  color: inherit;
+}
+
+body[data-site="prizma"] .pz-match__pick {
+  min-height: var(--tap);
+  padding: 0 var(--sp-2);
+  font: inherit;
+  font-weight: 700;
+  color: var(--pz-accent);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lab-params:empty {
+  display: none;
 }
 
 .pz-fieldset {
@@ -774,6 +830,48 @@ body[data-site="prizma"] .pz-chip:hover {
   .pz-doc {
     padding: var(--sp-6);
   }
+}
+
+/* Фирменный лист центра для короткого заключения. */
+.pz-letterhead {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  margin-bottom: var(--sp-4);
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, #e5484d, #f08c2e, #e9c13b, #3ba776, #2f8fd8, #7a5ce0) 1;
+}
+
+.pz-letterhead__mark {
+  flex: none;
+  width: 44px;
+  height: 33px;
+  color: #0b6672;
+}
+
+.pz-letterhead__name {
+  font-weight: 700;
+  color: #14212b;
+}
+
+.pz-letterhead__sub {
+  font-size: var(--fs-1);
+  color: #52606d;
+}
+
+.pz-letterhead__title {
+  margin-bottom: var(--sp-3);
+  font-family: var(--font-doc);
+  font-size: var(--fs-3);
+  font-weight: 700;
+  color: #14212b;
+}
+
+.pz-doc--letter .doc-view__body {
+  font-family: var(--font-doc);
+  font-size: 1.0625rem;
+  line-height: 1.6;
 }
 
 .pz-doc .doc-view .blank {

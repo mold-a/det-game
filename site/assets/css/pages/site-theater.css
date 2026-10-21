@@ -6,7 +6,7 @@
  * Золото на светлом — #8A6516 (5,1:1 на пергаменте), на бархате — #E3C173 (7,2:1).
  */
 
-body.page--site:has(.st--theater) {
+body.skin-theater {
   --st-bg: #e9dfca;
   --st-page: #f6eedd;
   --st-card: #fbf6ea;
@@ -37,7 +37,7 @@ body.page--site:has(.st--theater) {
 }
 
 @media (prefers-color-scheme: dark) {
-  body.page--site:has(.st--theater) {
+  body.skin-theater {
     --st-bg: #120b0c;
     --st-page: #1c1315;
     --st-card: #261a1d;

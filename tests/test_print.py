@@ -55,7 +55,7 @@ def chromium():
 
 def test_qr_urls(content, salts):
     cards = {c.slug: c for c in plan_cards(content, salts)}
-    assert set(cards) == set(content.pages)
+    assert set(cards) == {s for s, p in content.pages.items() if p.doc}  # QR — только страницам с документом
     dom = content.settings.domain
     for slug, c in cards.items():
         access = c.access

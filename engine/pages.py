@@ -89,6 +89,8 @@ def body_classes(page: PageBase, extra: str = "") -> str:
     names = ["page", f"page--{page.type}", f"page--{page.slug}"]
     if page.type in SOCIAL_TYPES:
         names.append("page--social")
+    if page.type == "site":
+        names.append(f"skin-{page.skin}")  # скин нужен и оболочке закрытой страницы, до расшифровки
     out = " ".join(dict.fromkeys(names))
     return f"{out} {extra}".strip()
 
@@ -409,7 +411,8 @@ def rendered_link_problems(content: Content, salts: Any, fragments: dict[str, st
                 problems.append(f"{slug}: ссылка на несуществующую страницу «{target}»")
                 continue
             want = f"#k={b64u_encode(salts.page_key(target))}" if tp.locked is True else ""
-            if frag != want:
+            # якорь без ключа (``#search``) у открытой страницы допустим; ключ — только точь-в-точь как в QR
+            if (want and frag != want) or (not want and frag.startswith("#k=")):
                 problems.append(f"{slug}: адрес ссылки на «{target}» не совпадает с адресом из QR "
                                 f"({'нужен ключ' if want else 'ключ не нужен'})")
             sa, sb = page_stage(page, docs), page_stage(tp, docs)

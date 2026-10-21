@@ -137,8 +137,10 @@ body.page--site {
   padding: 24px 16px 32px;
 }
 
-.st-section:focus-visible {
-  outline-offset: 6px;
+/* Раздел получает фокус программно (переход по меню, адрес #id) — рамку вокруг всего раздела не рисуем. */
+.page--site .st-section:focus,
+.page--site .st-section:focus-visible {
+  outline: none;
 }
 
 .st-section__h {

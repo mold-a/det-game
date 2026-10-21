@@ -1,9 +1,9 @@
 // P05: полное прохождение без ошибок — лаборатория (все результаты, повтор без
-// штрафа, запрос без оснований), этапы 1 → 4, финал (ответы без оценки, счёт не
+// штрафа, пустая экспертиза, предмет не из описи), этапы 1 → 4, финал (ответы без оценки, счёт не
 // меняется до конца), итоги с рангом и разбором, развязка.
-// Итог: expected.perfectRunScore минус один штраф за запрос без оснований.
+// Итог: expected.perfectRunScore минус один штраф за пустую экспертизу.
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, solve, fillQuestion, submit, article, envelopeOpened, labRequest, headerScore } from "./helpers";
+import { loadAnswers, startGame, solve, fillQuestion, submit, article, envelopeOpened, labRequest, headerScore, objectText } from "./helpers";
 
 const A = loadAnswers();
 const S = A.settings;
@@ -15,8 +15,11 @@ async function labStage(page: Page, n: number, done: Set<string>) {
   await expect(page.locator(".lab-form")).toBeVisible();
   for (const e of A.lab.filter((x) => x.stage <= n && !done.has(x.result))) {
     const msg = await labRequest(page, e);
-    expect(msg, e.result).toMatch(/Экспертиза выполнена/);
-    if (e.doc) await expect(page.locator(".docs")).toContainText(e.doc);
+    expect(msg, e.result).toMatch(/^Заключение готово/);
+    if (e.doc) {
+      expect(msg).toContain(e.doc);
+      await expect(page.locator("#lab-basis option", { hasText: e.doc })).toHaveCount(1);
+    }
     done.add(e.result);
   }
   await page.goto("/");
@@ -26,17 +29,21 @@ test("полная игра: этапы, лаборатория, финал, и�
   await startGame(page);
   const done = new Set<string>();
 
-  // Лаборатория на этапе 1: запрос без оснований → штраф; повтор — без штрафа.
+  // Лаборатория на этапе 1: пустая экспертиза → штраф; повтор — без штрафа.
   await page.goto("/lab/");
   const first = A.lab.find((x) => x.stage === 1)!;
-  expect(await labRequest(page, first, first.wrongBasis)).toMatch(/^Недостаточно оснований/);
+  expect(await labRequest(page, first, first.wrongBasis)).toMatch(/^Экспертиза ничего не выявила/);
   expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
-  expect(await labRequest(page, first, first.wrongBasis)).toMatch(/уже рассматривали/);
+  expect(await labRequest(page, first, first.wrongBasis)).toMatch(/^Такая заявка уже выполнялась/);
   expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
-  // Экспертиза следующего этапа ещё недоступна: объекта нет в списке.
-  const later = A.lab.find((x) => x.stage > 1)!;
-  const objects = await page.locator(".lab-form__grid select").first().locator("option").evaluateAll((els) => els.map((o) => (o as HTMLOptionElement).value));
-  if (!A.lab.some((x) => x.stage === 1 && x.object === later.object)) expect(objects).not.toContain(later.object);
+  // Предмет, который появляется только на последнем этапе, пока «не в описи»: без штрафа.
+  const late = [...A.lab].reverse().find((x) => x.stage === A.stages[A.stages.length - 1].n)!;
+  await page.locator("#lab-object").fill(objectText(late));
+  await page.locator("#lab-object").blur();
+  if ((await page.locator("#lab-object-match").getAttribute("data-status")) === "none") {
+    expect(await labRequest(page, late, first.bases[0])).toMatch(/^Такого предмета нет в описи/);
+    expect(await headerScore(page)).toBe(S.penalties.labNoBasis);
+  }
 
   for (const stage of A.stages.slice(0, -1)) {
     await labStage(page, stage.n, done);

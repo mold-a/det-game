@@ -29,11 +29,11 @@ posts:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.marina.first() }}, я рядом...." }
       - { author: "{{ c.marina_sister.first() }} {{ c.marina_sister.last() }}", text: "🤗🤗🤗 Звоню." }
   - datetime: "2026-11-10T17:12"
-    text: "🎥 кружок · 0:24\n«так, всем приветик! у {{ c.voroncov.g('дяди', 'тёти') }} {{ c.voroncov.familiar|lower }} сегодня премьера!! я не иду, мне сказали приходить, когда {{ c.voroncov.g('он', 'она') }} разыграется 😹 так что держу кулачки дома, прям вот так 🤞»"
+    text: "🎥 кружок · 0:24\n«так, всем приветик! {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} сегодня играет премьеру!! я не иду, мне сказали приходить, когда {{ c.voroncov.g('он', 'она') }} разыграется 😹 так что держу кулачки дома, прям вот так 🤞»"
     photo: null
     likes: 57
     comments:
-      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "держи крепче)" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Держим вместе!!!!!" }
   - datetime: "2026-10-31T18:26"
     text: "🎥 кружок · 0:41\n«короче, у меня в группе хэллоуин, и одна девочка пришла в костюме… меня. с журналом и в очках. я прям не знаю, гордиться или бояться 😹»"
     photo: null
@@ -41,7 +41,7 @@ posts:
     comments:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Гордиться!!!!! И бояться 😂" }
   - datetime: "2026-10-18T12:30"
-    text: "🎥 кружок · 0:17\n«{{ c.kirill.g('папа', 'мама') }} вчера был на встрече одноклассников и вернулся с новой версией истории про драмкружок 😹😹 {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} всё отрицает»"
+    text: "🎥 кружок · 0:17\n«{{ c.kirill.g('папа', 'мама') }} вчера {{ c.kirill.g('был', 'была') }} на встрече одноклассников и {{ c.kirill.g('вернулся', 'вернулась') }} с новой версией истории про драмкружок 😹😹 {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} всё отрицает»"
     photo: null
     likes: 46
     link: { page: krug-kirill, text: "{{ c.kirill.first() }} {{ c.kirill.last() }}" }

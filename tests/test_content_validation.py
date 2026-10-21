@@ -74,7 +74,9 @@ def test_current_content_loads():
     c = load_content(CONTENT)
     assert c.settings.game_id
     assert {s.n for s in c.stages} == {1, 2, 3, 4}
-    assert set(c.pages) == {"call", "cloud", "gromov", "inna", "news", "pharma", "video"}
+    # базовые страницы + «Круг» (главная и заглушка); страницы сценариста (REDESIGN §4.3) добавляются сверх
+    assert {"call", "cloud", "gromov", "inna", "news", "pharma", "video", "krug", "krug-private"} <= set(c.pages)
+    assert c.pages["gromov"].type == "social" and c.pages["call"].type == "call"
     # middle: None/отсутствует → ""
     assert all(isinstance(ch.middle, str) for ch in c.characters)
     assert c.warnings == []
@@ -115,7 +117,8 @@ def test_render_all_content_strings():
         assert "{{" not in render(doc.body, ctx, path)
     for path, text in c.texts.items():
         render(text, ctx, path)
-    assert n == 7 + len(c.pages) + len(c.chats)  # файлы YAML без world.yaml (с lab.yaml) + страницы + переписки
+    brands = 1 if (CONTENT / "pages" / "_brands.yaml").is_file() else 0  # тексты подвала сервисов
+    assert n == 7 + len(c.pages) + len(c.chats) + brands  # файлы YAML без world.yaml (с lab.yaml) + страницы + переписки
     # пример: шаблон с персонажем и миром
     assert render("{{ c.zavyalov.short() }}, {{ w.theater.short }}", ctx) == "Завьялов Ю. В., ВОДТ"
 

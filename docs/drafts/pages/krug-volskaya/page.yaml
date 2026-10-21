@@ -1,0 +1,59 @@
+# Черновик сценариста (REDESIGN-2026-10 §4.3, схема §6.1). Страница Вольской в «Круге». Этап 1, открытая.
+# Публичные посты — светские, полными предложениями, с обращением по имени-отчеству (STORY-BIBLE §7);
+# с подругами теплее — её манера по скринам (VOICES): «Ну…», «)», «???», эмодзи тройками, «Красавчики 👍».
+# Запреты §4.4: ни табакерки, ни коллекций, ни серебра, ни торгов и «вечеров» (благотворительность — только
+# концерт и выставка). Громовой нет (её соседство в ложе — только в 1-08). Пост 08.11 и комментарий у Воронцова
+# повторяют уже известное из 1-08: ложа № 2, хотела поговорить и не успела.
+slug: krug-volskaya
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: volskaya
+  position: "Меценат, попечитель {{ w.theater.short }}"
+  city: "{{ w.city }}"
+  avatar: "portraits/volskaya.jpg"
+  cover: null
+  about: "Театр, музеи, детская студия. Люблю, когда в зале аншлаг."
+  friends:
+    - { person: voroncov, page: krug-voroncov }
+    - { person: volskaya_friend }
+    - { name: "Лилия Штерн" }
+posts:
+  - datetime: "2026-11-11T13:48"
+    text: "Ушёл {{ c.voroncov.io() }} {{ c.voroncov.last() }}. Блестящий артист и человек редкого обаяния — для меня он всегда был лицом нашего театра. Мы так и не успели поговорить. Светлая память."
+    photo: null
+    likes: 176
+    link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
+    comments:
+      - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "{{ c.volskaya.first() }}, держись ❤️" }
+      - { author: "Тамара Ведерникова", text: "Светлая память. Такие артисты не повторяются." }
+  - datetime: "2026-11-08T12:20"
+    text: "Послезавтра — премьера «{{ w.play.title }}». Ложа № 2, как всегда. Жду Арбенина в исполнении {{ c.voroncov.io('gen') }} {{ c.voroncov.last('gen') }} 🎉🎉🎉"
+    photo: null
+    likes: 64
+    link: { page: theater, text: "Афиша театра" }
+    comments:
+      - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "Место мне {{ c.volskaya.g('оставил', 'оставила') }}???" }
+      - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "Ну конечно, {{ c.volskaya_friend.first() }})" }
+  - datetime: "2026-10-24T20:40"
+    text: "Благотворительный концерт учеников детской студии театра. Дети пели так, что плакали даже папы. Сборы пойдут на костюмы к «Аленькому цветочку». Спасибо всем, кто пришёл ❤️ ❤️ ❤️"
+    photo: null
+    likes: 121
+    link: { page: theater, text: "{{ w.theater.short }}: афиша" }
+    comments:
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Костюмы сошьём. Но пусть сначала дорастут до размеров, а не наоборот." }
+      - { author: "Лилия Штерн", text: "Красавчики 👍 Мой внук третий слева!" }
+  - datetime: "2026-10-10T15:15"
+    text: "Открылась выставка «{{ w.city }} в акварели» в художественном музее. Сорок видов нашего города — от Набережной до Театральной площади. Рекомендую всем, кто любит {{ w.city }} не только из окна машины."
+    photo: null
+    likes: 58
+    comments:
+      - { author: "Глеб Сазонов", text: "А Садовая там есть? С ямой?" }
+      - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "Ну… художник её пощадил)" }
+  - datetime: "2026-09-19T19:20"
+    text: "Театр открыл сезон. Труппа — красавчики 👍 Ждём премьеру «{{ w.play.title }}» в ноябре."
+    photo: null
+    likes: 83
+    comments: []

@@ -1,7 +1,7 @@
 // QA: доступность — клавиатура (order ↑/↓, persons), подписи полей (дерево доступности
 // Chromium), aria-live для результатов, контраст текста в светлой и тёмной теме (docs/05 §1, §3).
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, article } from "../e2e/helpers";
+import { loadAnswers, startGame, playToStage, article, openConclusion } from "../e2e/helpers";
 
 const A = loadAnswers();
 test.setTimeout(300_000);
@@ -154,7 +154,7 @@ test("persons и форма: выбор с клавиатуры, все поля
   console.log("focus ring persons:", ring);
   expect(await unnamedControls(page)).toEqual([]);
   await page.goto("/lab/");
-  await page.locator(".lab-form__grid select").nth(0).selectOption({ index: 1 });
+  await page.locator("#lab-type").selectOption({ index: 1 });
   expect(await unnamedControls(page)).toEqual([]);
 });
 
@@ -180,8 +180,8 @@ for (const scheme of ["light", "dark"] as const) {
     await page.locator(".scorelog summary").click();
     report.push(...(await lowContrast(page)).map((x) => `/: ${x}`));
     await page.goto("/lab/");
-    await page.locator(".lab-form__grid select").nth(0).selectOption({ index: 1 });
-    await page.getByRole("button", { name: "Направить запрос" }).click();
+    await page.locator("#lab-type").selectOption({ index: 1 });
+    await page.getByRole("button", { name: "Направить заявку" }).click();
     report.push(...(await lowContrast(page)).map((x) => `/lab/: ${x}`));
     await page.goto("/final/");
     report.push(...(await lowContrast(page)).map((x) => `/final/: ${x}`));
@@ -206,8 +206,7 @@ test("контраст AA в тёмной теме: модалки, лабора
   await page.getByRole("button", { name: "Начать заново" }).click();
   report.push(...(await lowContrast(page)).map((x) => `модалка: ${x}`));
   await page.locator(".modal").getByRole("button", { name: "Отмена" }).click();
-  await page.goto("/lab/");
-  await page.locator(".lab-archive__item.is-done button").first().click();
+  await openConclusion(page);
   report.push(...(await lowContrast(page)).map((x) => `/lab/ результат: ${x}`));
   await page.goto("/final/");
   report.push(...(await lowContrast(page)).map((x) => `/final/ предупреждение: ${x}`));

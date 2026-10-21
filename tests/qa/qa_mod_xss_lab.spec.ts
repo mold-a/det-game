@@ -5,7 +5,7 @@
 // Запускать из каталога mod (там свой tests/.answers.json) против его сервера.
 import { test, expect, type Page } from "@playwright/test";
 import {
-  loadAnswers, startGame, article, headerScore, fillQuestion, submit, envelopeOpened, labRequest, labAll, solve,
+  loadAnswers, startGame, article, headerScore, fillQuestion, submit, envelopeOpened, labRequest, labAll, solve, objectText,
 } from "../e2e/helpers";
 
 const A = loadAnswers();
@@ -22,7 +22,9 @@ function watchXss(page: Page) {
 }
 
 async function lab(page: Page, object: string, type: string, basis: string) {
-  const e = { result: "", object, types: [type], stage: 0, bases: [basis], params: {}, doc: null, title: "", wrongBasis: "" };
+  // Объект вводится текстом (docs/01 §7): название из записи экспертизы этого объекта.
+  const known = A.lab.find((x) => x.object === object);
+  const e = { result: "", object, types: [type], stage: 0, bases: [basis], params: {}, doc: null, title: known ? objectText(known) : object, wrongBasis: "" };
   return labRequest(page, e as any, basis);
 }
 
@@ -54,16 +56,17 @@ test("XSS в контенте и имени команды + лаборатор�
 
   // Лаборатория, этап 1
   await page.goto("/lab/");
-  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/^Недостаточно оснований/);
+  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/^Экспертиза ничего не выявила/);
   expect(await headerScore(page)).toBe(scoreAfterHint - PEN);
   // повтор — без штрафа
-  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/уже рассматривали/);
+  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/^Такая заявка уже выполнялась/);
   expect(await headerScore(page)).toBe(scoreAfterHint - PEN);
-  expect(await lab(page, "water", "chem", "1-09")).toMatch(/Экспертиза выполнена/);
+  expect(await lab(page, "water", "chem", "1-09")).toMatch(/^Заключение готово/);
   await expect(page.locator(".lab-result")).toContainText("Питьевая вода");
   await expect(page.locator(".lab-result")).not.toContainText("QA-WATER-STAGE3");
-  // объект этапа 2 ещё недоступен
-  expect(await page.locator(".lab-form__grid select").nth(0).locator('option[value="inhaler"]').count()).toBe(0);
+  // объект этапа 2 ещё «не в описи»
+  expect(await lab(page, "inhaler", "chem", "1-01")).toMatch(/^Такого предмета нет в описи/);
+  expect(await headerScore(page)).toBe(scoreAfterHint - PEN);
 
   await page.goto("/");
   await finishStage(page, 1);
@@ -72,23 +75,26 @@ test("XSS в контенте и имени команды + лаборатор�
 
   await page.goto("/lab/");
   const before2 = await headerScore(page);
-  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/Экспертиза выполнена/);
+  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/^Заключение готово/);
   await expect(page.locator(".lab-result")).toContainText("QA-COSTUME-STAGE2");
   expect(await headerScore(page)).toBe(before2);
-  // архив: запрос теперь «выполнен», отклонённая запись осталась в истории
-  await expect(page.locator(".lab-archive__item.is-done")).toHaveCount(2);
+  // «Мои заявки»: заявка теперь с заключением, пустая осталась в истории
+  await page.goto("/lab/#orders");
+  await expect(page.locator(".orders__item.is-done")).toHaveCount(2);
+  await expect(page.locator(".orders__item.is-nothing")).toHaveCount(1);
 
   await page.goto("/");
   await finishStage(page, 2);
   await page.goto("/lab/");
   const before3 = await headerScore(page);
-  expect(await lab(page, "water", "chem", "1-09")).toMatch(/Экспертиза выполнена/);
+  expect(await lab(page, "water", "chem", "1-09")).toMatch(/^Такая заявка уже выполнялась/);
   await expect(page.locator(".lab-result")).toContainText("QA-WATER-STAGE3");
   expect(await headerScore(page)).toBe(before3);
-  // архив: «Открыть результат» по старой записи показывает актуальный (поздний) результат
-  await page.reload();
-  await page.locator(".lab-archive__item.is-done").last().getByRole("button", { name: "Открыть результат" }).click();
-  await expect(page.locator(".lab-result")).toContainText("QA-WATER-STAGE3");
+  // «Мои заявки»: заключение по старой записи — актуальное (позднее)
+  await page.goto("/lab/#orders");
+  await page.locator(".orders__item.is-done").last().getByRole("button", { name: "Открыть заключение" }).click();
+  await expect(page.locator(".modal")).toContainText("QA-WATER-STAGE3");
+  await page.keyboard.press("Escape");
 
   const done = new Set<string>(["water-chem", "qa-water-s3", "qa-costume-s2"]);
   await labAll(page, A, 3, done);

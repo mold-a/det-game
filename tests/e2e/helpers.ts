@@ -138,7 +138,8 @@ export async function labRequest(page: Page, e: LabEntry, basis?: string, text?:
   await page.locator("#lab-basis").selectOption(b);
   const inputs = page.locator(".lab-params input");
   const params = Object.values(e.params);
-  for (let i = 0; i < params.length; i++) await inputs.nth(i).fill(params[i].input);
+  const shown = await inputs.count(); // параметры есть, только если объект распознан
+  for (let i = 0; i < Math.min(shown, params.length); i++) await inputs.nth(i).fill(params[i].input);
   const msg = page.locator(".lab-form .lab-msg");
   await msg.evaluate((el) => (el.textContent = ""));
   await page.getByRole("button", { name: "Направить заявку" }).click();
@@ -175,6 +176,14 @@ export async function labAll(page: Page, A: Answers, n: number, done: Set<string
   }
   await page.goto("/");
   await expect(page.locator("#stage-title")).toBeVisible();
+}
+
+/** «Мои заявки» на сайте лаборатории: открыть заключение (по умолчанию — самой новой выполненной заявки). */
+export async function openConclusion(page: Page, hasText?: string) {
+  await page.goto("/lab/#orders");
+  const item = page.locator(".orders__item.is-done", hasText ? { hasText } : {}).first();
+  await item.getByRole("button", { name: "Открыть заключение" }).click();
+  await expect(page.locator(".modal")).toBeVisible();
 }
 
 /** Записи журнала баллов: [{ reason, delta }]. */

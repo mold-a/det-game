@@ -2,7 +2,7 @@
 // 1280 px (и тёмная тема) и проверка отсутствия горизонтальной прокрутки.
 // Скриншоты — в test-results/ (вложения отчёта). Вымышленные страницы — pages.spec (P06).
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, labAll, fillQuestion, submit, article } from "./helpers";
+import { loadAnswers, startGame, playToStage, labAll, fillQuestion, submit, article, openConclusion } from "./helpers";
 
 const A = loadAnswers();
 test.setTimeout(240_000);
@@ -63,13 +63,16 @@ for (const w of WIDTHS) {
     const done = await playToStage(page, A, last.n);
     await check(page, "08-stage-last");
     await labAll(page, A, last.n, done);
-    await page.goto("/lab/");
-    await page.locator(".lab-archive__item.is-done .btn").first().click();
-    await check(page, "09-lab-result");
-    await page.goto("/");
-    await page.locator(".docs-panel button.docs__link").first().click();
+    await page.goto("/lab/#orders");
+    await check(page, "09-lab-orders");
+    for (const tab of ["services", "about", "contacts"]) {
+      await page.goto(`/lab/#${tab}`);
+      await check(page, `09-lab-${tab}`);
+    }
+    await openConclusion(page);
     await check(page, "10-doc-modal");
     await page.keyboard.press("Escape");
+    await page.goto("/");
     await page.locator("details.passed").first().locator("summary").click();
     await check(page, "11-passed-open");
 

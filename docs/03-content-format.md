@@ -267,7 +267,98 @@ fates:
 
 ## 8. `pages/`
 
-Одна папка на страницу: `pages/<slug>/page.yaml` (метаданные и структурированный контент: посты, записи, файлы облака) и при необходимости `*.md` для длинных текстов. Схема каждой страницы — в `docs/04-pages.md`. Поле `locked`: `false` — открытая страница; `true` — только по QR с ключом во фрагменте ссылки; `password` — по паролю из поля `password` (облако). Поле `doc` связывает страницу с документом из реестра. Поле `qr_label` — подпись под QR-кодом на печатной карточке (что видят игроки, без спойлеров). Поле `forbidden` (на верхнем уровне `page.yaml`) — слова, которых не должно быть в тексте страницы (сборщик проверяет).
+Одна папка на страницу: `pages/<slug>/page.yaml` (метаданные и структурированный контент: посты, записи, файлы облака) и при необходимости `*.md` для длинных текстов. Поведение страниц — `docs/04-pages.md`.
+
+Общие поля `page.yaml`:
+
+| Поле | |
+|---|---|
+| `slug` | = имя папки |
+| `type` | необязателен; по умолчанию = `slug`. Выбирает схему, шаблон `site/templates/pages/<type>.html` и стили `assets/css/pages/<type>.css`. Страница с чужим slug (`news-fire`, `krug-volskaya`) обязана указать `type` |
+| `doc` | документ из реестра. Необязателен: страница, на которую попадают только по ссылкам, задаёт `stage` |
+| `stage` | этап страницы; обязателен без `doc`, с `doc` должен совпадать с этапом документа |
+| `locked` | `false` — открытая; `true` — только по ссылке с ключом во фрагменте (QR или ссылка с другой страницы); `password` — по паролю из поля `password` (облако) |
+| `qr_label` | подпись под QR-кодом (что видят игроки, без спойлеров). Только у страниц с `doc`; QR печатается только для них |
+| `forbidden` | слова, которых не должно быть в тексте страницы (сборщик проверяет) |
+
+Типы и их поля (`brand` — из `world.yaml`, обычно `"{{ w.brands.… }}"`):
+
+```yaml
+# type: social — профиль в «Круге»; gromov тоже social
+brand: "{{ w.brands.social }}"
+profile:
+  person: volskaya            # ID персонажа… 
+  # name: "Тамара Ведерникова"  # …или имя нефигуранта: ровно одно из двух
+  position: "…"               # необязательно (как city, avatar, cover, about)
+  city: "{{ w.city }}"
+  avatar: "portraits/volskaya.jpg"
+  cover: null
+  about: "…"                  # вкладка «Сведения»
+  friends:                    # необязательно: вкладка «Сведения» → «Друзья»
+    - { person: voroncov, page: krug-voroncov }
+    - { name: "Глеб Сазонов" }          # без page → krug-private
+posts:
+  - datetime: "2026-11-09T21:10"
+    geo: null
+    text: "…Markdown в одну строку: [афиша]({{ link('theater') }})"
+    photo: null
+    likes: 12
+    link: { page: theater, text: "Афиша театра" }   # необязательно: карточка-ссылка под постом
+    comments:
+      - { author: "{{ c.kirill.short() }}", page: krug-kirill, text: "…" }   # page необязателен → krug-private
+
+# type: social_home — главная «Круга» (slug krug)
+brand: "{{ w.brands.social }}"
+popular:                      # необязательно
+  - { page: krug-voroncov, text: "…" }
+
+# type: social_stub — закрытый профиль (slug krug-private)
+brand: "{{ w.brands.social }}"
+text: "Пользователь ограничил доступ к своей странице."
+
+# type: site — сайт организации
+brand: "{{ w.theater.short }}"
+skin: theater                 # theater | fund | auction
+tagline: "…"                  # необязательно
+sections:                     # меню строится из sections; первая — главная; id → адрес #id
+  - id: afisha
+    title: "Афиша"
+    blocks:
+      - { kind: text, md: "…Markdown, можно {{ link('krug-voroncov') }}…" }
+      - kind: cards
+        title: "…"            # необязательный заголовок блока
+        items:
+          - { title: "…", subtitle: "…", text: "…", photo: null, page: krug-volskaya, link_text: "Страница в «Круге»" }
+      - { kind: table, title: "…", columns: ["Дата", "Спектакль"], rows: [["10.11", "…"]] }
+      - { kind: notice, text: "…" }       # плашка (траур, «вход по приглашению»)
+footer: "…"                   # необязательно
+
+# type: news — статья портала (slug news или news-…)
+brand: "{{ w.brands.news }}"
+article: { datetime: "…", headline: "…", photo: null, body: "pages/news/article.md", rubric: "Город", urgent: false }
+sidebar:
+  - { datetime: "…", title: "…", page: news-fire }   # page необязателен: нет — окно «Полный текст недоступен»
+comments: [{ author: "…", datetime: "…", text: "…" }]
+ads: [{ title: "…", text: "…" }]
+```
+
+Остальные типы (`call`, `inna`, `pharma`, `cloud`, `video`) не менялись: схема — в `engine/models.py`, поведение — `docs/04-pages.md`.
+
+**Ссылки.** В структурных полях — `page: <slug>`; в Markdown и строках — `{{ link('slug') }}`. Для открытой страницы это `/p/<slug>/`, для закрытой по ключу — `/p/<slug>/#k=<ключ>` (формат QR). Сборка проверяет: страница-цель есть; `stage` цели ≤ `stage` источника (этап — у документа `doc` или поле `stage`); из открытой страницы — только на страницы этапа 1. Ошибка — сборка и `check` падают. Предупреждение: страница без `doc` и без входящих ссылок. Автор комментария или друг без `page` ведёт на `krug-private`; логотип «Круга» — на `krug`: обе страницы обязательны, если есть хоть один профиль «Круга».
+
+**Ключи.** Для новых закрытых страниц ключ дописывается в `engine/salts.lock.json` при сборке; существующие ключи не меняются.
+
+**Тексты подвала сервисов** — `pages/_brands.yaml` (необязателен), общий файл на бренд:
+
+```yaml
+services:
+  social:            # ключ бренда из world.yaml → brands: social, photo, news, pharma, cloud
+    about: "…"       # «О сервисе»; абзацы — через пустую строку
+    rules: "…"       # «Правила»
+    help: "…"        # «Помощь»
+```
+
+Тип страницы → сервис: `social*` → `social`, `inna` → `photo`, `news*` → `news`, `pharma`, `cloud`. У `call`, `video` и `site` подвала сервиса нет (у `site` — разделы и строка `footer`). Тон служебный, без сюжета, имён и дат.
 
 ## 8а. `paper/` — бумажные документы конвертов
 

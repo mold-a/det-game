@@ -4,7 +4,7 @@
  * таблицы — ведомостями с тонкими линиями. Контраст: синий #1D4E7A на белом 8,6:1.
  */
 
-body.page--site:has(.st--fund) {
+body.skin-fund {
   --st-bg: #eceff2;
   --st-page: #ffffff;
   --st-card: #ffffff;
@@ -30,7 +30,7 @@ body.page--site:has(.st--fund) {
 }
 
 @media (prefers-color-scheme: dark) {
-  body.page--site:has(.st--fund) {
+  body.skin-fund {
     --st-bg: #0f151b;
     --st-page: #161e26;
     --st-card: #1a232d;

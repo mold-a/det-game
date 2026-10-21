@@ -2,7 +2,7 @@
 // (запись localStorage доходит до другой вкладки асинхронно), поэтому каждый сценарий
 // повторяется до RUNS раз; тест падает на первом воспроизведении.
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
-import { loadAnswers, startGame, headerScore, article } from "../e2e/helpers";
+import { loadAnswers, startGame, headerScore, article, objectText } from "../e2e/helpers";
 import { readState, sumLog } from "./qa_util";
 
 const A = loadAnswers();
@@ -95,12 +95,12 @@ test("ввод в «/» не теряется, когда другая вкла�
   await a.locator(".q__body .field").nth(0).locator("input").fill("21:00");
   const lab = await context.newPage();
   await lab.goto("/lab/");
-  const sels = lab.locator(".lab-form__grid select");
-  await sels.nth(0).selectOption("water");
-  await sels.nth(1).selectOption("chem");
-  await sels.nth(2).selectOption("1-01");
-  await lab.getByRole("button", { name: "Направить запрос" }).click();
-  await expect(lab.locator(".lab-form .q__msg")).not.toHaveText("", { timeout: 15_000 });
+  const water = A.lab.find((x) => x.object === "water")!;
+  await lab.locator("#lab-object").fill(objectText(water));
+  await lab.locator("#lab-type").selectOption("chem");
+  await lab.locator("#lab-basis").selectOption("1-01");
+  await lab.getByRole("button", { name: "Направить заявку" }).click();
+  await expect(lab.locator(".lab-form .lab-msg")).not.toHaveText("", { timeout: 15_000 });
   await page.waitForTimeout(1500);
   await expect(a.locator(".q__body .field").nth(0).locator("input")).toHaveValue("21:00");
 });
