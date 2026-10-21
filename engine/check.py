@@ -189,16 +189,15 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
     return out
 
 
-def public_texts(content: Content, ctx: dict) -> list[str]:
-    """Тексты, открытые по замыслу: их шинглы — не утечка, даже если повторяются в закрытых текстах.
+def shell_texts(content: Content, ctx: dict) -> list[str]:
+    """Оболочка, видимая по замыслу на любой странице: шинглы этих текстов никогда не иголки.
 
-    Бренды, шапка, логин облака (оболочка закрытой страницы, PLAN E7), заглушки сборщика,
-    тексты этапа 1 кроме подсказок (pack-1 открывается публичным ключом) и строки открытых страниц.
+    Название игры, бренды мира, шапка и номер дела системы расследования, заглушки сборщика,
+    бренд и аккаунт каждой страницы (оболочка закрытой страницы показывает их до расшифровки, PLAN E7).
     """
     from engine.documents import STUB_HTML
     from engine.media import _PLACEHOLDER_ALT
     from engine.pages import STUB_BODY_HTML
-    from engine.util import iter_strings
 
     w = content.world
     out = [content.settings.title, w["brands"]["system"], w["police"]["department"], w["police"]["case_no"],
@@ -208,6 +207,22 @@ def public_texts(content: Content, ctx: dict) -> list[str]:
     for page in content.pages.values():
         for attr in ("brand", "account"):
             out.append(r(getattr(page, attr, None)))
+    return out
+
+
+def open_texts(content: Content, ctx: dict) -> list[str]:
+    """Тексты, лежащие в ``dist/`` открыто: строки открытых страниц (``locked: false``), тексты этапа 1
+    кроме подсказок (pack-1 открывается публичным ключом), каталог pack-1, сайт лаборатории.
+
+    Это НЕ «открытое по замыслу»: их шинглы не отбеливают секреты (docs/02 §Leak scan). Если закрытый
+    текст законно повторяет открытую фразу, а открытая страница — не копия секрета, фраза идёт в
+    ``settings.leak_public_ok`` (``public_ok_shingles``). Функция нужна для отчёта о пересечениях и тестов.
+    """
+    from engine.util import iter_strings
+
+    r = lambda t: render(t, ctx) if t else ""  # noqa: E731
+    out: list[str] = []
+    for page in content.pages.values():
         if page.locked is False:
             out += [r(x) for _, x in iter_strings(page.model_dump(by_alias=True))]
     first = content.stages[0]
@@ -253,7 +268,7 @@ def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path
     """Иголки leak scan (значения и шинглы), см. engine/leakscan.py."""
     content, ctx = prep.content, prep.ctx
     ns = NeedleSet()
-    ns.exclude = boilerplate_shingles(site_dir, public_texts(content, ctx))
+    ns.exclude = boilerplate_shingles(site_dir, shell_texts(content, ctx))
     for u in units(content):
         if u.type not in ("text", "time", "date", "number") or not u.leak_scan:
             continue
