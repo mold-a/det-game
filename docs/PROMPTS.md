@@ -756,21 +756,41 @@ Same dressing room as in the attached reference image (same mirror, bulbs, table
 - [ ] сумка (17) на втором плане не в фокусе, из неё торчит чёрная таблетница
 - [ ] комната та же, что в кадре 1; номерков и надписей нет
 
-### S10. `paper/1-10-rack.jpg` - кадр 3, вешалка-стойка у двери
+### S10. `paper/1-10-rack.jpg` - кадр 3, вешалка-стойка (справа от входа, у дивана)
 
 - **Сохранить как:** `detgame-media/paper/1-10-rack.jpg`
 - **Формат:** JPEG, горизонталь 4:3
-- **Приложить:** 1 - `paper/1-10-general.jpg`. Тот же чат.
+- **Приложить:** 1 - готовый `paper/1-10-general.jpg` (общий план). Лучше **новый чат** — в старом генератор тянется повторить общий план.
+- Почему старый запрос не работал: «by the door» — на общем плане вешалка не у двери, а у **правой стены**, между ведром с розами и диваном (так и в протоколе 1-09: «справа от входа — вешалка-стойка и диван»).
 
 ```text
-Same dressing room as in the attached reference image (same walls and lighting). New view: the clothes rack by the door, filling the frame. On it, on hangers: a black wool men's coat, a grey wool scarf, and a stage costume for the first act (black tailcoat, waistcoat and white shirt). A pair of black casual men's shoes stands on the floor under the rack. Part of the wall behind. No people. Horizontal 4:3. No numbers, no ruler, no markers. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. Keep the bottom-right corner free of important details. Highest available resolution.
+The attached photo is the general view of a theatre dressing room. Create a NEW photograph of the SAME room, taken by a police forensic photographer as a close-up of ONE object: the chrome clothes rack that stands against the RIGHT-hand wall in the attached photo (between the red roses in the white bucket and the beige sofa).
+
+CAMERA: The photographer stands in the middle of the room and points the camera straight at the right-hand wall, so we see the clothes rack from the front, square-on, at chest height, with a slight downward tilt so the floor under the rack is visible. The rack fills about 80% of the frame.
+
+THE RACK (copy it exactly from the attached photo): a simple chrome clothes rail on two legs with small wheels. Hanging on it, from left to right, on wooden hangers:
+1) a long black wool men's overcoat;
+2) a long grey knitted wool scarf with fringe, hanging over the rail;
+3) a 19th-century stage costume: a black tailcoat with long tails, a dark grey waistcoat and a white shirt with a wing collar, on one hanger.
+On the floor directly under the rack: ONE pair of black leather men's casual shoes, side by side.
+
+SURROUNDINGS (same as in the attached photo, only at the edges of the frame): the same plain cream-coloured wall, the same beige speckled carpet, the same cold overhead ceiling light; at the left edge a few red roses in the white plastic bucket; at the right edge the arm of the beige sofa with the checked plaid. Nothing else.
+
+LOOK: the same colours, light and photo quality as the attached photo — a plain, documentary, slightly flat forensic photo, sharp, with natural texture of the wool. Photorealistic photograph, not an illustration, not 3D.
+
+AVOID: no people, no mirror in this shot, no extra clothes on the rack, no more than one pair of shoes, no numbers, no markers, no ruler, no text, no labels, no captions, no timestamps, no watermarks, no logos, no brand names. Keep the bottom-right corner free of important details. Horizontal 4:3, highest available resolution.
 ```
+
+Если вешалка получается не той или комната другая — правка в том же чате:
+`Same image, but make the rack, the clothes and the room look exactly like in the attached general photo. Keep the close-up framing.`
+
+Если 3 попытки не вышли — пришлите как есть: вырежу вешалку из общего плана сам (качество будет ниже, но для печати в фототаблице хватит).
 
 Проверь перед сохранением:
 
-- [ ] пальто (1), шарф (2), костюм сценический (4), туфли внизу (5)
-- [ ] комната и свет те же, что в кадрах 1-2
-- [ ] людей и надписей нет
+- [ ] пальто (1), шарф (2), костюм — фрак, жилет, белая сорочка (4), **одна** пара туфель под вешалкой (5)
+- [ ] вешалка та же хромированная, что на общем плане; стена, ковёр и свет те же
+- [ ] людей, зеркала и надписей нет
 
 ### Камера у служебного входа 2-03: шесть кадров (S11-S16), один чат
 
