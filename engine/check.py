@@ -19,7 +19,7 @@ from engine.answers import iso_to_dmy, shift_time, wrong_inputs
 from engine.build import BuildError, Prepared, prepare, release_problems
 from engine.content import Content, collect_todos, units
 from engine.hardnames import familiar_collisions, hardcoded_names
-from engine.lab import lab_objects, lab_problems, lab_site
+from engine.lab import lab_objects, lab_problems
 from engine.labmatch import resolve_object
 from engine.leakscan import (
     NeedleSet,
@@ -193,11 +193,13 @@ def shell_texts(content: Content, ctx: dict) -> list[str]:
     """Оболочка, видимая по замыслу на любой странице: шинглы этих текстов никогда не иголки.
 
     Название игры, бренды мира, шапка и номер дела системы расследования, заглушки сборщика,
-    бренд и аккаунт каждой страницы (оболочка закрытой страницы показывает их до расшифровки, PLAN E7).
+    бренд и аккаунт каждой страницы (оболочка закрытой страницы показывает их до расшифровки, PLAN E7),
+    тексты подвала сервисов (``pages/_brands.yaml``, одинаковы на всех страницах сервиса).
     """
     from engine.documents import STUB_HTML
     from engine.media import _PLACEHOLDER_ALT
     from engine.pages import STUB_BODY_HTML
+    from engine.util import iter_strings
 
     w = content.world
     out = [content.settings.title, w["brands"]["system"], w["police"]["department"], w["police"]["case_no"],
@@ -207,43 +209,39 @@ def shell_texts(content: Content, ctx: dict) -> list[str]:
     for page in content.pages.values():
         for attr in ("brand", "account"):
             out.append(r(getattr(page, attr, None)))
+    out += [r(x) for _, x in iter_strings(content.services)]
     return out
 
 
-def open_texts(content: Content, ctx: dict) -> list[str]:
-    """Тексты, лежащие в ``dist/`` открыто: строки открытых страниц (``locked: false``), тексты этапа 1
-    кроме подсказок (pack-1 открывается публичным ключом), каталог pack-1, сайт лаборатории.
+def public_vocabulary(content: Content, ctx: dict) -> list[str]:
+    """Открытые *наименования* (не проза): их шинглы тоже не иголки, их можно повторять в закрытых текстах.
 
-    Это НЕ «открытое по замыслу»: их шинглы не отбеливают секреты (docs/02 §Leak scan). Если закрытый
-    текст законно повторяет открытую фразу, а открытая страница — не копия секрета, фраза идёт в
-    ``settings.leak_public_ok`` (``public_ok_shingles``). Функция нужна для отчёта о пересечениях и тестов.
+    Названия объектов каталога pack-1 (ключ pack-1 публичный; закрытые тексты вправе называть вещь так же,
+    как в описи), их алиасы и ссылки на опись, названия документов этапа 1, названия и описания видов экспертиз.
+    Проза открытых страниц и открытого текста pack-1 сюда НЕ входит и секретные шинглы не отбеливает
+    (docs/02 §Leak scan); законные повторы прозы перечисляются в ``settings.leak_public_ok``.
     """
-    from engine.util import iter_strings
-
     r = lambda t: render(t, ctx) if t else ""  # noqa: E731
-    out: list[str] = []
-    for page in content.pages.values():
-        if page.locked is False:
-            out += [r(x) for _, x in iter_strings(page.model_dump(by_alias=True))]
     first = content.stages[0]
-    out += [r(first.intro), r(first.on_complete)]
-    for q in first.questions:
-        for spec in [q, *(q.fields or [])]:
-            out += [r(getattr(spec, "prompt", None)), r(getattr(spec, "label", None)), r(spec.help)]
-            out += [r(o.text) for o in spec.options or []] + [r(i.text) for i in spec.items or []]
-    out += [r(d.title) for d in content.documents if d.stage == first.n]
+    out = [r(d.title) for d in content.documents if d.stage == first.n]
     out += [r(t.title) for t in content.expertise.types] + [r(t.description) for t in content.expertise.types]
-    for o in content.expertise.objects:  # каталог pack-1 открыт: названия, алиасы и ссылки на опись
+    for o in content.expertise.objects:
         if o.from_stage == first.n:
             out += [r(o.title), r(o.ref), *(r(a) for a in o.aliases)]
-    out += [t for _, t in iter_strings(lab_site(content, ctx))]  # сайт лаборатории — открытая страница
     return out
 
 
-def published_texts(prep: Prepared, *, site_dir: Path = SITE, media_dir: Path = MEDIA_DIR) -> list[str]:
+def public_ok_texts(content: Content, ctx: dict) -> list[str]:
+    """Явный список законных повторов — ``settings.leak_public_ok`` (отрендерен как текст)."""
+    return [render(t, ctx) for t in content.settings.leak_public_ok]
+
+
+def published_texts(prep: Prepared, *, site_dir: Path = SITE, media_dir: Path = MEDIA_DIR,
+                    pages: bool = True) -> list[str]:
     """Публичный вывод сборки, отрендеренный заново из контента так же, как это делает ``build``:
-    открытые страницы целиком (``p/<slug>/index.html``), страницы системы расследования и
-    ``public.json``. Берётся не из ``dist/``: утечка в записанный файл не должна делать себя «публичной»."""
+    открытые страницы целиком (``p/<slug>/index.html``; с ``pages=False`` — без них), страницы системы
+    расследования и ``public.json``. Берётся не из ``dist/``: утечка в записанный файл не должна делать
+    себя «публичной»."""
     from engine.build import APP_ENTRIES, app_html, site_base_ctx
     from engine.packs import build_public
     from engine.pages import build_page
@@ -256,7 +254,7 @@ def published_texts(prep: Prepared, *, site_dir: Path = SITE, media_dir: Path = 
     base_ctx = site_base_ctx(content, pub)
     out = [json_text(pub)]
     for page in content.pages.values():
-        if access_of(page) == "open":
+        if pages and access_of(page) == "open":
             html = build_page(content, page, prep.ctx, prep.salts, plan, site_env, base_ctx).index_html
             out.append(markup_text(unescape(html)))
     out += [markup_text(unescape(app_html(site_env, base_ctx, rel))) for rel in APP_ENTRIES]
@@ -268,7 +266,8 @@ def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path
     """Иголки leak scan (значения и шинглы), см. engine/leakscan.py."""
     content, ctx = prep.content, prep.ctx
     ns = NeedleSet()
-    ns.exclude = boilerplate_shingles(site_dir, shell_texts(content, ctx))
+    ns.exclude = boilerplate_shingles(
+        site_dir, [*shell_texts(content, ctx), *public_vocabulary(content, ctx), *public_ok_texts(content, ctx)])
     for u in units(content):
         if u.type not in ("text", "time", "date", "number") or not u.leak_scan:
             continue
@@ -307,14 +306,19 @@ def leak_needles(prep: Prepared, dec: Decrypted | None = None, *, site_dir: Path
         ns.add_text(text, "text", source, stage=stage)
     # Бумага конвертов (content/paper/) не публикуется: её шинглы в dist/ — утечка; в открытом
     # тексте pack-1 допустима только бумага конверта 1 (иголки этапа 1 там не ищутся). Бумага вправе
-    # цитировать открытое (страницы call, gromov, news; интерфейс; public.json): такие шинглы — не иголки.
+    # цитировать страницы приложения и public.json (всегда) и открытые страницы (только бумага конверта 1:
+    # это печатные копии открытого мира этапа 1). Бумага конвертов 2…N открытыми страницами не отбеливается:
+    # фраза из неё на открытой странице — утечка; законные повторы (адреса, названия) — settings.leak_public_ok.
     from engine.paper import paper_texts
 
-    published: set[str] = set()
+    shared: set[str] = set()
+    for t in published_texts(prep, site_dir=site_dir, media_dir=media_dir, pages=False):
+        shared |= text_shingles(t)
+    with_pages: set[str] = set(shared)
     for t in published_texts(prep, site_dir=site_dir, media_dir=media_dir):
-        published |= text_shingles(t)
+        with_pages |= text_shingles(t)
     for source, text, stage in paper_texts(content, ctx):
-        ns.add_text(text, "paper", source, stage=stage, also_exclude=published)
+        ns.add_text(text, "paper", source, stage=stage, also_exclude=with_pages if stage == first else shared)
     return ns
 
 

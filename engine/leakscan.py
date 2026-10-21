@@ -53,6 +53,9 @@ STOPWORDS = frozenset("""
 после при про с со так также там те то того той только тот ту тут у уже чем что чтобы эта эти это этот я
 ещё еще ведь вам себя себе свой своя свои своё свое том тем то-то нам нас ну ох ах чтоб
 """.split())
+# Подписи интерфейса вымышленных сервисов (подвал «О сервисе · Правила · Помощь»): общие для всех страниц сервиса,
+# их шинглы — не текст. Только служебные подписи; тексты, которые за ними раскрываются, сюда не входят.
+UI_LABEL_WORDS = frozenset("сервисе правила помощь".split())
 
 
 @dataclass(frozen=True)
@@ -97,7 +100,7 @@ PLACEHOLDER = "здесь будет"
 
 
 def is_stop_shingle(sh: str) -> bool:
-    return all(t in STOPWORDS for t in sh.split(" ")) or PLACEHOLDER in sh
+    return all(t in STOPWORDS or t in UI_LABEL_WORDS for t in sh.split(" ")) or PLACEHOLDER in sh
 
 
 @dataclass

@@ -99,6 +99,8 @@ class Settings(Strict):
     hints: HintsSettings
     ranks: Annotated[list[Rank], Field(min_length=1)]
     leak_watchlist: list[str] = []
+    # Фразы, которые законно стоят и в открытом тексте, и в закрытом (leak scan не считает их шинглы иголками)
+    leak_public_ok: list[str] = []
 
     @field_validator("domain", mode="after")
     @classmethod
