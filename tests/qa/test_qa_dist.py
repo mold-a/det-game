@@ -607,6 +607,8 @@ def test_stage_2_4_document_titles_not_in_open_files(env):
 
 def test_media_file_names_are_hashes(env):
     for p in (env["dist"] / "m").glob("*") if (env["dist"] / "m").is_dir() else []:
+        if p.name == ".htaccess":  # настройки Apache (DEPLOY §2.4), не медиа
+            continue
         assert re.fullmatch(r"[0-9a-f]{32}\.(bin|jpg|jpeg|png|webp|svg|mp3|m4a|mp4)", p.name), p.name
 
 
