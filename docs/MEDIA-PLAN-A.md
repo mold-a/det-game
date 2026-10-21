@@ -16,7 +16,7 @@
 
 ### 1.1. Портреты — 14 файлов
 
-Поле `photo` в `content/characters.yaml`; `avatar` на страницах `gromov` и `inna`. Генератор: Gemini. Формат: JPEG, квадрат 1:1, ≥ 600 × 600 px (я сожму до ≤ 300 КБ). Лицо по центру, светло-серый фон, «как на документ», одинаковый свет у всех 14.
+Поле `photo` в `content/characters.yaml`; `avatar` на страницах `gromov` и `inna`. Генератор: Gemini. Формат: JPEG, квадрат 1:1, ≥ 600 × 600 px (я сожму до ≤ 300 КБ). Лицо по центру, **чисто белый фон** (стандарт автора по образцу `voroncov.jpg` от 21.10), взгляд в камеру, «как на документ», одинаковый свет у всех 14. Готовый `portraits/voroncov.jpg` — образец стиля для остальных.
 
 | № | Путь | Персонаж (кто в жизни) | Возраст в игре (в жизни) | Что обязательно видно |
 |---|---|---|---|---|
@@ -212,13 +212,13 @@
 
 Шаблон `{P}` (одинаковый для всех, чтобы свет и фон совпали):
 
-> `Use the attached photo(s) as the identity reference for a real person. Create a photorealistic ID-style portrait of the SAME person: keep the face shape, eyes, nose, mouth, eyebrows and skin tone clearly recognisable. {AGE} {LOOK} Frontal view, head and shoulders, face centred, plain light-grey seamless background, soft even daylight from the front, identical neutral lighting as for a series of document photos. Square 1:1. +NEG`
+> `Use the attached photo(s) as the identity reference for a real person. Create a photorealistic ID-style portrait of the SAME person: keep the face shape, eyes, nose, mouth, eyebrows and skin tone clearly recognisable. {AGE} {LOOK} Frontal view, head and shoulders, face centred, plain pure white seamless background, soft even daylight from the front, identical neutral lighting as for a series of document photos. Square 1:1. +NEG`
 
 Подставьте `{AGE}` и `{LOOK}`:
 
 | Файл | `{AGE}` | `{LOOK}` |
 |---|---|---|
-| `voroncov.jpg` | `Age the person by about 35 years so he looks about 56: grey at the temples, fine lines around the eyes and mouth, a fuller face, but the same identity.` | `Charismatic but slightly tired look, subtle half-smile. Keep thin clear-frame glasses and thick dark eyebrows. Dark jacket over a shirt.` |
+| `voroncov.jpg` | `Age the person by about 35 years so he looks about 56: grey at the temples, fine lines around the eyes and mouth, a fuller face, but the same identity.` | `Charismatic but slightly tired look, subtle half-smile. Keep thin CLEAR (transparent) frame glasses — not black frames — and thick dark eyebrows. Dark jacket over a shirt.` |
 | `zavyalov.jpg` | `The person should look about 61 years old, slightly younger than in the reference: fewer deep wrinkles, hair a little less grey.` | `Authoritative, a commanding gaze looking over the top of his glasses (glasses at the end of the nose). Dark suit, tie.` |
 | `volkov.jpg` | `The person should look about 31 years old.` | `Charming open smile, friendly eyes. Casual knit sweater.` |
 | `marina.jpg` | `The person should look about 24 years old, an adult young woman.` | `Closed, guarded expression, no smile, direct gaze. Simple casual top, hair as in the reference.` |
@@ -233,7 +233,7 @@
 | `volskaya.jpg` | `Age the person by about 8 years so she looks about 54.` | `Society-lady look, poised and elegant. A pearl necklace, neat styled hair, tasteful blouse or jacket.` |
 | `gromov.jpg` | `Age the person by about 29 years so she looks about 57: grey streaks, lines at eyes and mouth, a firm jaw, but the same identity.` | `Official, composed, slightly stern. A formal blazer with a small plain lapel pin with no symbols, no emblem. A woman.` |
 
-**Чек-лист каждого портрета:** лицо узнаваемо; возраст похож на игровой; светло-серый фон и мягкий свет как у остальных; нет текста и логотипов; для № 10 — куртка без нашивок; для № 1 — очки и густые брови.
+**Чек-лист каждого портрета:** лицо узнаваемо; возраст похож на игровой; белый фон и мягкий свет как у `voroncov.jpg`; нет текста и логотипов; для № 10 — куртка без нашивок; для № 1 — очки и густые брови.
 
 **Где ошибается:** «синдром одного лица» (разные люди становятся похожими друг на друга), слишком гладкая кожа, при сильном старении — дрейф к «другому человеку». Правка: «Keep the exact face of the reference; only change apparent age».
 
