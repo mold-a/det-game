@@ -16,7 +16,7 @@
 
 ### 1.1. Портреты — 14 файлов
 
-Поле `photo` в `content/characters.yaml`; `avatar` на страницах `gromov` и `inna`. Генератор: Gemini. Формат: JPEG, квадрат 1:1, ≥ 600 × 600 px (я сожму до ≤ 300 КБ). Лицо по центру, **чисто белый фон** (стандарт автора по образцу `voroncov.jpg` от 21.10), взгляд в камеру, «как на документ», одинаковый свет у всех 14. Готовый `portraits/voroncov.jpg` — образец стиля для остальных.
+Поле `photo` в `content/characters.yaml`; `avatar` на страницах `gromov` и `inna`. Генератор: Gemini. Формат: JPEG, вертикаль 4:5 (до квадрата обрезаю я), ≥ 800 px по короткой стороне (я сожму до ≤ 300 КБ). Лицо по центру, **чисто белый фон** (стандарт автора по образцу `voroncov.jpg` от 21.10), взгляд в камеру, «как на документ», одинаковый свет у всех 14. Готовый `portraits/voroncov.jpg` — образец стиля для остальных.
 
 | № | Путь | Персонаж (кто в жизни) | Возраст в игре (в жизни) | Что обязательно видно |
 |---|---|---|---|---|
@@ -103,7 +103,7 @@
 
 ### 2.1. Согласие
 
-Лица и голоса родственников клонируются и «играют» в сюжете (`MEDIA-AI-OPTIONS` §7). Спрашивайте мягко, не раскрывая сюжета: «Можно сделать тебе смешной портрет и озвучку для семейной игры?». Особенно это касается Славы и дяди (голос) и Алины (см. вопрос 1 в §9).
+Лица и голоса родственников клонируются и «играют» в сюжете (`MEDIA-AI-OPTIONS` §7). Спрашивайте мягко, не раскрывая сюжета: «Можно сделать тебе смешной портрет и озвучку для семейной игры?». Особенно это касается Славы и дяди (голос). Алина: согласие родителей получено (21.10).
 
 ### 2.2. Фото-образцы лиц
 
@@ -277,7 +277,7 @@
 
 Загрузите утверждённые портреты **Воронцова и Волкова** (2 файла).
 
-> `Use image 1 as the identity reference for the man at the ticket window (about 56 years old) and image 2 as the identity reference for the second man standing by the column (about 31 years old). Create a still frame from a ceiling-mounted CCTV camera, looking down at an angle of about 40 degrees from a high corner, inside the ticket hall of a provincial railway station in daytime. Pure black-and-white, grainy low-resolution surveillance image, slight wide-angle barrel distortion, slight motion blur. Along one wall there are three ticket windows with big plain digits 1, 2, 3 above them from left to right. The first man stands at the middle window, number 2, leaning toward it, wearing a long dark overcoat and glasses, no hat, paying. A thick square concrete column stands about 5-7 metres to the right of him; the second man stands next to the column in a short dark jacket, no hat, hands in pockets, his head turned toward the first man and looking at him. Two or three other passengers far in the background, small, not looking. Benches, tiled floor, no brand names, no text except the three digits. 3:2. +NEG`
+> `Use image 1 as the identity reference for the man at the ticket window (about 56 years old) and image 2 as the identity reference for the second man standing by the column (about 31 years old). Create a still frame from a ceiling-mounted CCTV camera, looking down at an angle of about 40 degrees from a high corner, inside the ticket hall of a provincial railway station in daytime. Pure black-and-white, grainy low-resolution surveillance image, slight wide-angle barrel distortion, slight motion blur. Along one wall there are three ticket windows with big plain digits 1, 2, 3 above them from left to right. The first man stands at the middle window, number 2, leaning toward it, wearing a long dark overcoat and glasses, no hat, paying. A thick square concrete column stands opposite the ticket windows, about 6 metres from him; the second man stands next to the column in a short dark jacket, no hat, hands in pockets, his head turned toward the first man and looking at him. Two or three other passengers far in the background, small, not looking. Benches, tiled floor, no brand names, no text except the three digits. 3:2. +NEG`
 
 Чек-лист: **окно № 2** (цифра видна) и Воронцов у него — **длинное тёмное пальто, очки, без шапки**; Волков — **короткая тёмная куртка, без шапки** (так в тексте экспертизы 4-08, около 6 м); колонна; **Волков в 5–7 м от Воронцова и смотрит в его сторону**; ч/б; вид сверху; лица различимы хотя бы в профиль. Таймкод и подпись «КАССА-2» накладываю я; **не просите их у генератора**. Где ошибается: расстояние между героями (слишком близко или в одном «кружке»), цифры на окнах, «глянцевость» вместо зерна.
 
