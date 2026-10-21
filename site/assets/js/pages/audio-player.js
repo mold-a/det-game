@@ -7,8 +7,7 @@
 // из обработчика нажатия; playsinline; preload="metadata". Длительность до загрузки
 // метаданных — из data-duration (контент), потом — из файла.
 //
-// Работает и как entry открытой страницы (сам находит плееры в document), и как модуль
-// закрытой страницы через shell.js: init(root).
+// Подключается из open.js (открытая страница, init(document)) и из shell.js (закрытая, init(root)).
 
 const SKIP_SECONDS = 10;
 const SEEK_STEPS = 1000; // max у ползунка перемотки
@@ -177,9 +176,4 @@ function setupPlayer(box) {
 /** Подключить все плееры внутри root. */
 export function init(root = document) {
   root.querySelectorAll('[data-player="audio"]').forEach(setupPlayer);
-}
-
-// Как entry открытой страницы — запуск сразу (модуль выполняется после разбора HTML).
-if (typeof document !== "undefined" && document.body?.dataset?.slug === "call" && !document.body.dataset.access) {
-  init(document);
 }

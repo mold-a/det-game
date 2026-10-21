@@ -150,3 +150,11 @@ export function downloadText(filename, text, mime = "application/json") {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** Дата и время из ISO-строки — «ДД.ММ.ГГГГ, ЧЧ:ММ» по часам браузера. */
+export function formatDateTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}, ${p(d.getHours())}:${p(d.getMinutes())}`;
+}

@@ -1,0 +1,6 @@
+slug: krug-private
+type: social_stub
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+text: "Пользователь ограничил доступ к своей странице."

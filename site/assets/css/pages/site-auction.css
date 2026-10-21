@@ -1,0 +1,211 @@
+/*
+ * pages/site-auction.css — скин закрытого клуба «по приглашению»: тёмный, золото, засечки, тонкие линии.
+ * Всегда тёмный (color-scheme: dark): светлой версии нет. Золото #C9A55C на #15120D — 8,2:1.
+ * Шапка по центру: логотип, золотая двойная линия, меню с ромбиками; разделы — с заглавной виньеткой;
+ * карточки лотов — чёрные, в двойной золотой рамке; «вход по приглашению» — рамка-приглашение.
+ */
+
+body.page--site:has(.st--auction) {
+  --st-bg: #0b0907;
+  --st-page: #15120d;
+  --st-card: #1b1711;
+  --st-ink: #ece1c9;
+  --st-muted: #aa9e86;
+  --st-line: #3d3425;
+  --st-accent: #c9a55c;
+  --st-accent-ink: #15120d;
+  --st-link: #dcbb74;
+  --st-h: #e6c880;
+  --st-head-bg: #0f0c08;
+  --st-head-ink: #ece1c9;
+  --st-head-muted: #aa9e86;
+  --st-mark: #c9a55c;
+  --st-font-head: var(--font-serif);
+  --st-font-logo: var(--font-serif);
+  --st-font-text: var(--font-serif);
+  --st-logo-size: 22px;
+  --st-radius: 0;
+  --st-notice-bg: #100d09;
+  --st-notice-ink: #ece1c9;
+  --st-notice-bar: #c9a55c;
+  --st-notice-line: #c9a55c;
+  --st-foot-bg: #0f0c08;
+  color-scheme: dark;
+}
+
+.st--auction .st-head {
+  position: relative;
+  padding-bottom: 0;
+  text-align: center;
+  border-bottom: 1px solid #c9a55c;
+  box-shadow: 0 4px 0 -1px #0f0c08, 0 5px 0 -1px #6e5a30;
+}
+
+.st--auction .st-head__top {
+  justify-content: center;
+  flex-wrap: wrap;
+  padding-top: 8px;
+}
+
+@media (min-width: 640px) {
+  .st--auction .st-head__top .st-btn {
+    position: absolute;
+    top: 12px;
+    right: 32px;
+  }
+}
+
+.st--auction .st-logo {
+  flex-direction: column;
+  gap: 2px;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.st--auction .st-logo__mark {
+  width: 30px;
+  height: 30px;
+}
+
+.st--auction .st-tagline {
+  margin: 0 auto 8px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  letter-spacing: 0.06em;
+}
+
+.st--auction .st-nav__list {
+  justify-content: center;
+}
+
+.st--auction .st-nav__link {
+  font-family: var(--font-serif);
+  font-variant: small-caps;
+  font-size: 17px;
+  letter-spacing: 0.06em;
+}
+
+.st--auction .st-nav__list li + li .st-nav__link::before {
+  content: "◆";
+  margin-right: 14px;
+  margin-left: -8px;
+  color: #6e5a30;
+  font-size: 8px;
+}
+
+.st--auction .st-section__h {
+  position: relative;
+  padding-bottom: 18px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-align: center;
+}
+
+.st--auction .st-section__h::after {
+  content: "◆";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 140px;
+  transform: translateX(-50%);
+  background: linear-gradient(#c9a55c, #c9a55c) left center / 52px 1px no-repeat,
+    linear-gradient(#c9a55c, #c9a55c) right center / 52px 1px no-repeat;
+  color: #c9a55c;
+  font-size: 9px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.st--auction .st-block__h {
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+}
+
+.st--auction .st-text {
+  margin-inline: auto;
+}
+
+.st--auction .st-card {
+  border: 1px solid #c9a55c;
+  outline: 1px solid #6e5a30;
+  outline-offset: -5px;
+  background: #100d09;
+}
+
+.st--auction .st-card__body {
+  padding: 20px 22px 22px;
+  text-align: center;
+  align-items: center;
+}
+
+.st--auction .st-card__h {
+  font-weight: 400;
+  font-style: italic;
+  font-size: 21px;
+}
+
+.st--auction .st-card__sub {
+  color: #c9a55c;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.st--auction .st-card__link {
+  align-self: center;
+}
+
+.st--auction .st-notice {
+  margin: 18px auto;
+  max-width: 34rem;
+  padding: 18px 20px;
+  border: 1px solid #c9a55c;
+  outline: 1px solid #6e5a30;
+  outline-offset: -6px;
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.st--auction .st-notice::before {
+  content: "◆";
+  display: block;
+  margin-bottom: 6px;
+  color: #c9a55c;
+  font-size: 10px;
+  font-style: normal;
+}
+
+.st--auction .st-table {
+  font-family: var(--font-serif);
+}
+
+.st--auction .st-table tr {
+  border-color: #6e5a30;
+}
+
+@media (min-width: 640px) {
+  .st--auction .st-table th {
+    border-bottom: 1px solid #c9a55c;
+    color: #c9a55c;
+    font-variant: small-caps;
+    font-size: 16px;
+    letter-spacing: 0.06em;
+  }
+
+  .st--auction .st-table td {
+    border-bottom-color: #3d3425;
+  }
+}
+
+.st--auction .st-foot {
+  border-top: 1px solid #c9a55c;
+  text-align: center;
+}
+
+.st--auction .st-foot__nav {
+  justify-content: center;
+}

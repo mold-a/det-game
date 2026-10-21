@@ -36,7 +36,7 @@ from engine.normalize import base
 from engine.util import iter_strings, read_text
 
 # Что сканируется: файлы и маски относительно content/ (docs/06 §3 п.10).
-SCAN_FILES: tuple[str, ...] = ("stages.yaml", "documents.yaml", "expertise.yaml", "finale.yaml")
+SCAN_FILES: tuple[str, ...] = ("stages.yaml", "documents.yaml", "expertise.yaml", "lab.yaml", "finale.yaml")
 SCAN_GLOBS: tuple[tuple[str, str], ...] = (
     ("documents", "*.md"),
     ("pages", "**/*.yaml"),

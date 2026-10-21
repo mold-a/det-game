@@ -207,6 +207,7 @@ export function renderAnswer(q, value, ctx = {}, { title = T.question.yourAnswer
  * renderQuestion(q, ctx) → { el, setBusy(b), showMessage(text, kind), markInvalid(ids), getInputs() }
  *   ctx: {
  *     number,           — «Вопрос 2.1» (строка номера);
+ *     marginNo,         — «2.1» на полях бланка (главный экран), необязательно;
  *     unit,             — запись прогресса units[q.path] или undefined;
  *     wrongCount,       — число неверных попыток;
  *     hintsEl,          — блок подсказок (hints.js) или null;
@@ -233,7 +234,9 @@ export function renderQuestion(q, ctx) {
 
   const article = h(
     "article",
-    { class: ["q", solved && "q--solved", closed && "q--closed"], id: `q-${q.path}`, "aria-labelledby": promptId, dataset: { path: q.path } },
+    { class: ["q", solved && "q--solved", closed && "q--closed", ctx.marginNo && "q--margin"], id: `q-${q.path}`, "aria-labelledby": promptId, dataset: { path: q.path } },
+    // Номер графы на полях бланка (широкий экран); для дикторов номер — в строке q__head.
+    ctx.marginNo ? h("span", { class: "q__margin", "aria-hidden": "true" }, ctx.marginNo) : null,
     head,
     h("h4", { class: "q__prompt", id: promptId }, q.prompt),
     q.help ? h("p", { class: "q__help" }, q.help) : null,

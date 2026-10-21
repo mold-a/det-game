@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {# Система расследования: данные оформления (F19) — в data-* для app/context.js; интерфейс строит JS. #}
-{% block body_attrs %} data-system="{{ chrome.system }}" data-department="{{ chrome.department }}" data-case-no="{{ chrome.caseNo }}"{% endblock %}
+{% block body_attrs %} data-system="{{ chrome.system }}" data-department="{{ chrome.department }}" data-case-no="{{ chrome.caseNo }}" data-lab-name="{{ (lab_site.get('name') or '') if (lab_site is defined and lab_site) else '' }}"{% endblock %}
 {% block body %}
 <main id="app" class="app">
   <div class="intro">

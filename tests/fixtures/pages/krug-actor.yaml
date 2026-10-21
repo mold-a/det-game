@@ -1,0 +1,21 @@
+slug: krug-actor
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  name: "Актёр Тестовый"
+  position: "артист театра"
+  city: "{{ w.city }}"
+  about: "Тестовый профиль нефигуранта."
+  friends:
+    - { person: gromov, page: gromov }
+    - { name: "Друг Без Страницы" }
+posts:
+  - datetime: "2026-10-01T10:00"
+    text: "Тестовая запись со ссылкой: [афиша]({{ link('theater') }})."
+    likes: 3
+    link: { page: theater, text: "Афиша театра" }
+    comments:
+      - { author: "Гость Тестовый", text: "Комментарий без страницы." }
+      - { author: "Другой Актёр", page: gromov, text: "Комментарий со страницей." }

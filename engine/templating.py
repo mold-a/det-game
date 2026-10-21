@@ -128,13 +128,57 @@ def _compile(text: str):
     return _ENV.from_string(text)
 
 
+def page_href(slug: str, key_b64: str | None = None) -> str:
+    """Адрес страницы на сайте: ``/p/<slug>/``, у закрытой по ключу — ``#k=<ключ>`` во фрагменте.
+
+    Тот же формат, что у QR-кода (engine/qr.py, ``qr_url``), только без домена: ссылка между
+    страницами относительная. Оболочка закрытой страницы (shell.js) забирает ключ из ``#k=``.
+    """
+    url = f"/p/{slug}/"
+    return f"{url}#k={key_b64}" if key_b64 else url
+
+
+def make_link(pages: Any, salts: Any = None, sink: list[str] | None = None):
+    """``link('slug')`` для шаблонов контента.
+
+    ``pages`` — ``{slug: page}`` (у ``page.locked is True`` берётся ключ из ``salts``) либо набор slug
+    (только проверка существования, без ключей: валидация контента при загрузке). Несуществующая
+    страница — ``TemplateRefError``. ``sink`` собирает slug-и вызовов (проверки достижимости).
+    Закрытая по ключу страница при ``salts=None`` — ошибка: ключ в адрес подставить не из чего.
+    """
+    from engine.util import b64u_encode
+
+    def link(slug: str) -> str:
+        if slug not in pages:
+            raise TemplateRefError(f"link('{slug}'): нет страницы «{slug}» в content/pages/")
+        if sink is not None:
+            sink.append(slug)
+        locked = getattr(pages[slug], "locked", False) if isinstance(pages, dict) else False
+        if locked is True:
+            if salts is None:
+                raise TemplateRefError(f"link('{slug}'): страница закрыта ключом, а ключей в этом контексте нет")
+            return page_href(slug, b64u_encode(salts.page_key(slug)))
+        return page_href(slug)
+
+    return link
+
+
 def make_context(content: Any = None, *, characters: Iterable[Character] | None = None,
-                 world: dict | None = None) -> dict[str, Any]:
-    """Контекст шаблонов ``{"c": …, "w": …}`` из объекта Content или из частей."""
+                 world: dict | None = None, salts: Any = None, link: Any = None) -> dict[str, Any]:
+    """Контекст шаблонов ``{"c": …, "w": …, "link": …}`` из объекта Content или из частей.
+
+    ``link`` — готовая функция (проверки при загрузке контента); иначе строится по ``content.pages`` и
+    ``salts`` (``None`` — ссылки на закрытые по ключу страницы недоступны).
+    """
     if content is not None:
         characters = content.characters
         world = content.world
-    return {"c": CharactersNS(characters or []), "w": WorldNS(world or {})}
+        if link is None:
+            link = make_link(content.pages or {}, salts)
+    ctx = {"c": CharactersNS(characters or []), "w": WorldNS(world or {})}
+    if link is not None:
+        ctx["link"] = link
+    return ctx
 
 
 def render(text: str, ctx: dict[str, Any], where: str = "") -> str:
@@ -191,6 +235,11 @@ def _md():
 def render_markdown(md: str) -> str:
     """Markdown → HTML (``html=False``: сырой HTML из контента экранируется)."""
     return _md().render(md)
+
+
+def render_inline(md: str) -> str:
+    """Markdown в одной строке → HTML без обёртки ``<p>`` (ссылки ``[текст](адрес)``, ``*курсив*``)."""
+    return _md().renderInline(md)
 
 
 def dt(value: Any, fmt: str = "datetime") -> str:

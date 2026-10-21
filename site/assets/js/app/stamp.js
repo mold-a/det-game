@@ -83,3 +83,18 @@ export function stampAccepted(container, { seed, animate = false, sub = "" } = {
   container.appendChild(el);
   return el;
 }
+
+/**
+ * Сургучная печать на клапане конверта (окно «Откройте конверт №N», docs/05 §1).
+ * Рельеф — CSS (радиальные градиенты), без картинок; text — номер конверта.
+ * Декоративная: смысл передаёт заголовок окна и штамп.
+ */
+export function createSeal(text, { animate = false } = {}) {
+  const el = h(
+    "span",
+    { class: ["seal", animate && "seal--press"], "aria-hidden": "true" },
+    h("span", { class: "seal__rim" }, h("span", { class: "seal__face" }, h("span", { class: "seal__text" }, text))),
+  );
+  if (animate) el.addEventListener("animationend", () => el.classList.remove("seal--press"), { once: true });
+  return el;
+}

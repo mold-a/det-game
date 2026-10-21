@@ -16,18 +16,12 @@
 import { open, b64uDecode, b64uEncode, utf8Decode, cloudKey, KEY_LEN } from "../core/crypto.js";
 import { normalize } from "../core/normalize.js";
 import { hydrateMedia } from "../core/media.js";
+import { PAGE_MODULES } from "./page-modules.js"; // модули интерактива по типу страницы: init(root, payload)
+import { init as initUi } from "./page-ui.js"; // окна сервиса, вкладки, фото крупно — для всех типов
 
 const STORAGE_PREFIX = "detgame:page:";
 const PAYLOAD_VERSION = 1;
 
-// Модули интерактива по slug: экспортируют init(root, payload).
-const PAGE_MODULES = {
-  call: "./audio-player.js",
-  inna: "./gallery.js",
-  pharma: "./pharma.js",
-  cloud: "./cloud.js",
-  video: "./video.js",
-};
 
 const TEXT = {
   checking: "Проверяем пароль…",
@@ -131,7 +125,12 @@ async function render(slug, inner) {
   else shell.hidden = true;
   document.body.classList.add("is-open");
 
-  const modPath = PAGE_MODULES[slug];
+  try {
+    initUi(root);
+  } catch (e) {
+    console.error(e);
+  }
+  const modPath = PAGE_MODULES[inner.type || slug];
   let mod = null;
   if (modPath) {
     try {

@@ -109,6 +109,26 @@
   --col-side: 300px;
 
   --stamp-duration: 180ms;
+
+  /* Ремесло (docs/05 §1, переработка 21.10.2026): стол, картон, лист, ручка.
+     Новые токены — только для системы расследования (body.app); вымышленные
+     страницы ими не пользуются. */
+  --desk: #e4e8ec;
+  --leaf: #fcfcfa; /* лист письма и памятки — тёплее бланка */
+  --cover: #d4c6a3; /* картон обложки и корешка */
+  --cover-deep: #c3b28a;
+  --cover-edge: #a8966c;
+  --cover-ink: #3b2f1e; /* типографская краска на картоне */
+  --cover-muted: #5a4a2e;
+  --pen: #22408f; /* шариковая ручка: вписанное от руки */
+  --tape: #efe9da; /* тесёмка */
+  --margin-line: #e2b9b3; /* линия полей бланка */
+  --shadow-leaf: 0 1px 1px rgba(31, 38, 51, 0.06), 0 10px 24px -14px rgba(31, 38, 51, 0.35);
+  --shadow-lift: 0 2px 3px rgba(31, 38, 51, 0.08), 0 24px 48px -24px rgba(31, 38, 51, 0.55);
+  /* Фактуры — маленькие inline SVG (шум feTurbulence), без файлов-картинок. */
+  --tex-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .12 0 0 0 0 .14 0 0 0 0 .18 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --tex-fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .7' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .24 0 0 0 0 .1 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --tex-speck: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.6' numOctaves='1' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .25 0 0 0 0 .2 0 0 0 0 .1 0 0 0 1.6 -1.05'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
 }
 
 @media (prefers-color-scheme: dark) {
@@ -127,6 +147,21 @@
     --fine: #ee8a7b;
     --fine-on-folder: #ee8a7b;
     --backdrop: rgba(0, 0, 0, 0.6);
+
+    --desk: #161a21;
+    --leaf: #23272f;
+    --cover: #3a3329;
+    --cover-deep: #2f2921;
+    --cover-edge: #4d4436;
+    --cover-ink: #e8dfcb;
+    --cover-muted: #c9bfa9;
+    --pen: #a9c0ff;
+    --tape: #5a5243;
+    --margin-line: #5b3b3b;
+    --shadow-leaf: 0 1px 1px rgba(0, 0, 0, 0.4), 0 12px 28px -14px rgba(0, 0, 0, 0.8);
+    --shadow-lift: 0 2px 3px rgba(0, 0, 0, 0.4), 0 24px 48px -20px rgba(0, 0, 0, 0.9);
+    --tex-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .92 0 0 0 0 1 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --tex-fiber: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .7' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .82 0 0 0 0 .62 0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
   }
 }
 

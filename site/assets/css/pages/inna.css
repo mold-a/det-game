@@ -43,6 +43,14 @@ body.page--inna {
   --kd-ph: #eceef1;
   --kd-ph-text: #4b5563;
   --kd-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --svc-bg: var(--kd-card);
+  --svc-ink: var(--kd-text);
+  --svc-line: var(--kd-line);
+  --svc-accent: var(--kd-brand);
+  --svc-accent-ink: var(--kd-brand-ink);
+  --svc-font: var(--kd-font);
+  --svc-radius: 4px;
+  --svc-btn-radius: 4px;
   color-scheme: light;
   background: var(--kd-bg);
   color: var(--kd-text);
@@ -496,4 +504,47 @@ img.media-missing {
     border-left: 1px solid #262c35;
     padding-top: 64px;
   }
+}
+
+/* --- рабочие элементы: логотип-кнопка, аватар крупно, подвал */
+
+.kd-logo-btn {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+.kd-zoom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.kd-foot {
+  padding: 16px 16px 28px;
+  color: var(--kd-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.kd-foot__links {
+  justify-content: center;
+}
+
+.kd-foot__link {
+  color: var(--kd-muted);
+}
+
+.kd-foot__link:hover {
+  color: var(--kd-text);
+}
+
+.kd-foot__copy {
+  margin-top: 4px;
 }

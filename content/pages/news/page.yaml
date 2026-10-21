@@ -6,6 +6,8 @@ forbidden: ["астма", "таблетк", "отравлен", "21:18"]   # с�
 brand: "{{ w.brands.news }}"
 article:
   datetime: "2026-11-11T09:15"
+  rubric: "Культура"
+  urgent: true
   headline: "На премьере скончался народный артист {{ c.voroncov.first() }} {{ c.voroncov.last() }}"
   photo: "news/voroncov_arbenin.jpg"  # Воронцов в образе Арбенина
   body: "pages/news/article.md"       # версия «сердечный приступ», цитата {{ c.zavyalov.last('gen') }}

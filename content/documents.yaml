@@ -1,6 +1,7 @@
 # Реестр материалов дела.
 # kind: paper — в конверте `stage` (сайт только знает о нём)
-#       online — страница сайта (page = slug из content/pages/)
+#       online — страница сайта без бумажного носителя (page = slug из content/pages/); сейчас — только 4-01
+#                (на облако ведёт записка 4-13 с QR-кодом)
 #       lab — выдаётся лабораторией по запросу
 # Бумажный документ с QR-кодом: kind: paper + page.
 # Названия этапов 2–4 попадают только в зашифрованные пакеты.
@@ -18,8 +19,8 @@ documents:
   - { id: "1-09", stage: 1, kind: paper, title: "Протокол осмотра гримёрки № {{ w.theater.dressing_room_victim }}: опись вещей" }
   - { id: "1-10", stage: 1, kind: paper, title: "Фототаблица к осмотру гримёрки № {{ w.theater.dressing_room_victim }}" }
   - { id: "1-11", stage: 1, kind: paper, title: "Журнал охраны служебного входа" }
-  - { id: "1-12", stage: 1, kind: online, page: gromov, title: "Страница {{ c.gromov.short('gen') }} в соцсети «{{ w.brands.social }}»" }
-  - { id: "1-13", stage: 1, kind: online, page: news, title: "Новость портала «{{ w.brands.news }}»" }
+  - { id: "1-12", stage: 1, kind: paper, page: gromov, title: "Страница {{ c.gromov.short('gen') }} в соцсети «{{ w.brands.social }}»" }
+  - { id: "1-13", stage: 1, kind: paper, page: news, title: "Новость портала «{{ w.brands.news }}»" }
 
   # --- Конверт 2 ---
   - { id: "2-01", stage: 2, kind: lab, title: "Заключение эксперта: ингалятор погибшего" }
@@ -47,7 +48,7 @@ documents:
   - { id: "3-11", stage: 3, kind: paper, title: "Протокол повторного опроса: {{ c.volskaya.short() }}" }
 
   # --- Конверт 4 ---
-  # 4-01 — сама страница облака (онлайн-документ в списке «Документы дела»);
+  # 4-01 — сама страница облака (kind: online: список «Документы дела» на главном экране убран, REDESIGN §1);
   # 4-13 — бумажная записка с паролем и QR-кодом на ту же страницу (QR без ключа, вход по паролю).
   - { id: "4-01", stage: 4, kind: online, page: cloud, title: "Облачное хранилище погибшего «{{ w.brands.cloud }}»" }
   - { id: "4-02", stage: 4, kind: paper, title: "Смета и договор на изготовление декораций" }

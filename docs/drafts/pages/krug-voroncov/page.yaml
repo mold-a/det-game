@@ -1,0 +1,92 @@
+# Черновик сценариста (REDESIGN-2026-10 §4.3, схема §6.1). Страница погибшего в «Круге». Этап 1, открытая.
+# Посты — до 10.11, соболезнования — в комментариях к последнему посту. Манера — docs/VOICES.md: со строчной,
+# без точки в конце, «)» одной скобкой, «!!» в радости, абзац на каждую фразу, 😁 😉 🔥 🎉.
+# Запреты §4.4: ни болезни, ни лекарств, ни отъезда/поезда/вокзала, ни облака, ни аукционов, ни Громовой.
+# Мелкие «правильные» подтверждения уже известного (1-07, 1-08): Марину он сам просил не приходить на премьеру
+# («приходи, когда разыграюсь» — STORY-BIBLE §4), Кирилл ходит «на десятый спектакль» (1-08), Вольская в ложе № 2
+# (1-08), Инна носит кофе (1-08). Семейная пасхалка — брови «как у генсека» (VOICES: «Брежнев»).
+# Волков и Завьялов в комментариях — вежливо и коротко; это атмосфера, а не улика.
+slug: krug-voroncov
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: voroncov
+  position: "Народный артист · {{ w.theater.short }}"
+  city: "{{ w.city }}"
+  avatar: "portraits/voroncov.jpg"
+  cover: "news/voroncov_arbenin.jpg"
+  about: "артист. очки ношу, брови не стригу 😁"
+  friends:
+    - { person: kirill, page: krug-kirill }
+    - { person: marina, page: krug-marina }
+    - { person: volskaya, page: krug-volskaya }
+    - { person: stas }
+    - { person: reznikova }
+    - { person: volkov }
+posts:
+  - datetime: "2026-11-09T23:07"
+    geo: "{{ w.city }}"
+    text: "генеральный прогон позади\nзавтра премьера!!\nспасибо всем, кто сегодня держал за меня кулаки\nкто не держал — завтра последний шанс 😁"
+    photo: null
+    likes: 342
+    comments:
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", text: "Я тебе как артист скажу: завтра будет Чехов, не меньше! 🎭" }
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Фрак отпарен. Садиться в нём на пол запрещаю. Это ко всем относится, не только к Арбенину." }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Завтра кофеёк как обычно ☕✨" }
+      # — после 10.11: слова памяти —
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.familiar }}...." }
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} :(" }
+      - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, светлая память. Мы так и не успели поговорить." }
+      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", text: "{{ c.voroncov.familiar }}. Светлая память." }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", text: "Светлая память {{ c.voroncov.familiar }} 🙏" }
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Светлая память. Без вас в кулисе пусто." }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Кто теперь будет хвалить мой кофе 💔" }
+      - { author: "Тамара Ведерникова", text: "У нас были билеты на тринадцатое. Не верится. Светлая память." }
+      - { author: "Роман Ершов", text: "Был на премьере. Он играл так, что зал не дышал. Стоя аплодируем." }
+  - datetime: "2026-11-05T14:26"
+    text: "прогон второго акта\nарбенин злой, режиссёр злой, кофе кончился\nвсё идёт по плану 🔥"
+    photo: null
+    likes: 187
+    comments:
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Уже несу! ☕" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Злой режиссёр — к аншлагу!!!!!" }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", text: "Отличный прогон. Учусь 👌" }
+  - datetime: "2026-10-27T11:48"
+    text: "сегодня в гримёрке сказали, что с такими бровями мне не арбенина играть, а генсека 😁\nне дождётесь\nброви — это наследие"
+    photo: null
+    likes: 256
+    comments:
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Есть такое)" }
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "ахахахаххах {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} генсек 😹😹😹" }
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", text: "Я тебе как артист скажу: с такими бровями можно и Отелло. Шекспир не возражал бы. Или это был Чехов" }
+  - datetime: "2026-10-22T19:12"
+    text: "10 ноября — премьера «{{ w.play.title|lower }}»\nарбенин — я, нервы — тоже я\nприходите!! 🎭"
+    photo: "news/voroncov_arbenin.jpg"
+    likes: 412
+    link: { page: theater, text: "Афиша театра" }
+    comments:
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "а можно я на премьеру?? 😊" }
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.marina.first() }}, приходи, когда разыграюсь)" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.familiar }}, привет!\nЯ как обычно — на десятый....\nНа премьерах я сплю, ты знаешь 😂" }
+      - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, непременно буду. Ложа № 2, как всегда." }
+      - { author: "Глеб Сазонов", text: "Билетов уже нет(" }
+  - datetime: "2026-10-13T10:31"
+    text: "первая репетиция на сцене\nзал пустой, а я уже волнуюсь\nстарость? нет, профессия 😉"
+    photo: null
+    likes: 164
+    comments:
+      - { author: "{{ c.nina_actress.first() }} {{ c.nina_actress.last() }}", text: "Нина тоже волнуется. Но ей по роли положено 😉" }
+  - datetime: "2026-10-05T17:20"
+    text: "с днём учителя!!\nспасибо всем, кто меня когда-то терпел\nи {{ c.marina.first() }} — теперь {{ c.marina.g('он', 'она') }} сам{{ c.marina.g('', 'а') }} учитель и терпит других 😁"
+    photo: null
+    likes: 98
+    comments:
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "терплю с удовольствием 😛😛😛" }
+  - datetime: "2026-09-26T21:57"
+    text: "сегодня «ревизор»\nзал смеялся в правильных местах\nи даже в паре неправильных 😁\nспасибо!!"
+    photo: null
+    likes: 133
+    comments:
+      - { author: "Лидия Степановна", text: "Городничий у вас — чудо. Третий раз смотрю." }

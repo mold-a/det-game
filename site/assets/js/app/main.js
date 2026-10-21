@@ -1,15 +1,16 @@
 // Главный экран «/» (docs/04): первый запуск, текущий этап, вопросы, подсказки,
 // переход этапа с окном «Откройте конверт №N» (envelopeAck, F14), пройденные
-// этапы свёрнуты, панель документов, журнал баллов, меню, состояния ошибок.
+// этапы свёрнуты, карточка лаборатории, журнал баллов, меню, состояния ошибок.
 
 import { h, clear, announce, insertTrustedHtml } from "./dom.js";
 import { T } from "./texts.js";
 import { openModal } from "./modal.js";
-import { createStamp } from "./stamp.js";
+import { createStamp, createSeal } from "./stamp.js";
 import { renderScoreLog } from "./scorelog.js";
 import { renderQuestion, formatMessage } from "./questions.js";
 import { renderHints, hintButton } from "./hints.js";
-import { renderDocsPanel } from "./docs-panel.js";
+import { prismMark } from "./prism.js";
+import { LAB_HREF } from "./menu.js";
 import { renderHeader } from "./header.js";
 import { initPage, loadProgress, renderLoadError, renderShell, renderFatal, rulesCfg, safeLocalStorage } from "./context.js";
 import * as S from "../core/state.js";
@@ -110,9 +111,10 @@ function renderIntro() {
   const input = h("input", { class: "input", type: "text", id: "team", autocomplete: "off", maxlength: "60", placeholder: T.start.teamPlaceholder });
   const msg = h("p", { class: "q__msg q__msg--error", role: "status" });
   const btn = h("button", { type: "submit", class: "btn btn--primary" }, T.start.submit);
+  // Ярлык на обложке: «Название команды» вписывается, как на наклейке папки.
   const form = h(
     "form",
-    { class: "intro__form", novalidate: true },
+    { class: "intro__form folder__label", novalidate: true },
     h("label", { class: "field" }, h("span", { class: "field__label" }, T.start.teamLabel), input),
     msg,
     btn,
@@ -148,16 +150,47 @@ function renderIntro() {
     await envelopeModal({ title: T.envelope.first, envelope: 1, ack: false });
   });
 
+  // Обложка папки «Дело №» (docs/05 §1): картон, скрепка, тесёмки, штамп, ярлык.
+  const folder = h(
+    "section",
+    { class: "folder", "aria-labelledby": "intro-title" },
+    h("span", { class: "folder__clip", "aria-hidden": "true" }),
+    h("span", { class: "folder__ties", "aria-hidden": "true" }, h("span", { class: "folder__tie" }), h("span", { class: "folder__tie folder__tie--low" })),
+    h(
+      "div",
+      { class: "folder__head" },
+      ctx.chrome.department ? h("p", { class: "folder__dept" }, ctx.chrome.department) : null,
+      ctx.chrome.system ? h("p", { class: "folder__system" }, ctx.chrome.system) : null,
+    ),
+    h(
+      "p",
+      { class: "folder__case" },
+      h("span", { class: "folder__case-word" }, T.cover.caseWord),
+      " ",
+      h("span", { class: "folder__case-no" }, ctx.chrome.caseNo),
+    ),
+    h("h1", { class: "folder__title intro__title", id: "intro-title" }, ctx.pub.title),
+    h("div", { class: "folder__stamp" }, createStamp({ text: T.cover.dsp, variant: "dsp", seed: "dsp" })),
+    h(
+      "dl",
+      { class: "folder__lines", "aria-hidden": "true" },
+      T.cover.lines.map((l) => [h("dt", null, l), h("dd", null)]),
+    ),
+    form,
+  );
+
   ctx.mount.append(
     h(
       "main",
-      { class: "intro", id: "main" },
-      h("h1", { class: "intro__title" }, ctx.pub.title),
-      ctx.chrome.system ? h("p", { class: "intro__system" }, `${ctx.chrome.system}. ${T.header.caseNo(ctx.chrome.caseNo)}`) : null,
-      h("h2", { class: "intro__subtitle" }, T.start.rulesTitle),
-      h("ol", { class: "rules" }, T.rules(rulesCfg(ctx.pub)).map((l) => h("li", null, l))),
-      ctx.store.persistent ? null : h("p", { class: "notice" }, T.errors.storage),
-      form,
+      { class: "intro intro--cover", id: "main" },
+      folder,
+      h(
+        "section",
+        { class: "memo", "aria-labelledby": "memo-title" },
+        h("h2", { class: "memo__title intro__subtitle", id: "memo-title" }, T.start.rulesTitle),
+        h("ol", { class: "rules" }, T.rules(rulesCfg(ctx.pub)).map((l) => h("li", null, l))),
+        ctx.store.persistent ? null : h("p", { class: "notice" }, T.errors.storage),
+      ),
     ),
   );
   input.focus();
@@ -181,16 +214,20 @@ function renderGame() {
   const pack = packs[n];
   const last = n === ctx.pub.stages;
   const titleId = "stage-title";
-  const sheet = h(
-    "section",
-    { class: "sheet", "aria-labelledby": titleId },
+  main.appendChild(
     h(
       "div",
-      { class: "stage-head" },
+      { class: "stage-head stage-band" },
       h("h2", { class: "stage-head__title", id: titleId }, T.stage.title(n)),
       h("span", { class: "stage-head__meta" }, T.stage.envelopeOpened(pack.envelope)),
     ),
-    renderLetter(pack),
+  );
+  main.appendChild(renderLetter(pack));
+
+  const sheet = h(
+    "section",
+    { class: "sheet sheet--form", "aria-labelledby": titleId },
+    h("p", { class: "sheet__caption" }, h("span", null, T.stage.formTitle), h("span", { class: "sheet__caption-no" }, T.header.caseNo(ctx.chrome.caseNo))),
   );
 
   if (last) {
@@ -225,8 +262,27 @@ function renderGame() {
   // Пройденные этапы — свёрнуты, с ответами команды.
   for (let k = n - 1; k >= 1; k--) main.appendChild(renderPassed(packs[k]));
 
-  side.appendChild(renderDocsPanel({ docs: game.docs, labEntries: game.labEntries }));
+  side.appendChild(renderLabCard(state));
   side.appendChild(renderScoreLog(state, { labelFor }));
+}
+
+/** Карточка лаборатории в правой колонке: переход на сайт центра в той же вкладке. */
+function renderLabCard(state) {
+  const log = state.lab.log ?? [];
+  const ok = log.filter((e) => e.ok).length;
+  return h(
+    "section",
+    { class: "labcard", "aria-labelledby": "labcard-title" },
+    h(
+      "div",
+      { class: "labcard__head" },
+      prismMark({ className: "prism-mark labcard__mark" }),
+      h("h2", { class: "labcard__title", id: "labcard-title" }, T.lab.cardTitle(ctx.chrome.labName)),
+    ),
+    h("p", { class: "labcard__text" }, T.lab.cardText),
+    h("p", { class: "labcard__stats" }, T.lab.cardStats(log.length, ok)),
+    h("a", { class: "btn btn--secondary btn--block labcard__go", href: LAB_HREF }, T.lab.cardGo, h("span", { class: "labcard__arrow", "aria-hidden": "true" }, "→")),
+  );
 }
 
 /** Подпись вопроса для журнала: «вопрос 2.3» (тот же вид на /lab/ и /final/). */
@@ -247,10 +303,22 @@ function renderLetter(pack) {
   } catch {
     collapsed = false;
   }
-  const body = h("div", { class: "letter__body doc-text" });
-  insertTrustedHtml(body, pack.introHtml);
+  const text = h("div", { class: "letter__text doc-text" });
+  insertTrustedHtml(text, pack.introHtml);
+  // Лист бумаги (docs/05 §1): гриф и номер экземпляра сверху, текст письма PT Serif с полями.
+  const body = h(
+    "div",
+    { class: "letter__body" },
+    h("p", { class: "letter__grif" }, h("span", { class: "letter__grif-mark" }, T.cover.dsp), h("span", null, T.stage.letterCopy(pack.n))),
+    text,
+  );
   const toggle = h("span", { class: "letter__toggle-text" }, collapsed ? T.stage.letterShow : T.stage.letterHide);
-  const det = h("details", { class: "letter", open: !collapsed }, h("summary", null, T.stage.letter, toggle), body);
+  const det = h(
+    "details",
+    { class: "letter paper", open: !collapsed },
+    h("summary", null, h("span", { class: "letter__clip", "aria-hidden": "true" }), h("span", { class: "letter__label" }, T.stage.letter), toggle),
+    body,
+  );
   det.addEventListener("toggle", () => {
     toggle.textContent = det.open ? T.stage.letterHide : T.stage.letterShow;
     try {
@@ -291,6 +359,7 @@ function questionView(pack, q, { animate = false, note = null } = {}) {
   const unit = state.units[q.path];
   const v = renderQuestion(q, {
     number: questionNumber(pack, q),
+    marginNo: `${pack.n}.${pack.questions.indexOf(q) + 1}`,
     unit,
     wrongCount: q.kind === "mandatory" ? S.wrongCount(state, q.path) : 0,
     characters: pack.characters,
@@ -431,6 +500,8 @@ async function envelopeModal({ title, envelope, ack }) {
   await openModal({
     title,
     body: [T.envelope.hint],
+    className: "modal--envelope",
+    seal: createSeal(String(envelope), { animate: true }),
     stamp: createStamp({ text: T.stamp.envelope(envelope), variant: "envelope", seed: `env${envelope}`, animate: true }),
     actions: [{ id: "ok", label: T.envelope.opened, primary: true }],
     dismissible: false,

@@ -1,0 +1,6 @@
+{# Подвал «Круга»: «О сервисе», «Правила», «Помощь». Вход: brand, service. #}
+{% import "pages/_ui.html" as ui %}
+<footer class="kr-foot">
+  {{ ui.service_footer(service, brand, "kr-foot") }}
+  <p class="kr-foot__copy">© {{ brand }}, 2026</p>
+</footer>

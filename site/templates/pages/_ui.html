@@ -22,3 +22,30 @@
 {% if missing(a) %}<span class="ph ph--img {{ cls }}" role="img" aria-label="Здесь будет {{ label }}"><span class="ph__label">Здесь будет {{ label }}</span></span>
 {%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" decoding="async"{{ attrs }}>{% endif %}
 {%- endmacro %}
+
+{# ---- рабочие элементы (REDESIGN §4.1): каждая кнопка что-то делает. Всё остальное делает pages/page-ui.js. #}
+
+{# Кнопка, открывающая окно сервиса: «Чтобы подписаться, войдите в «Круг»» и «Понятно».
+   heading — необязательный заголовок внутри окна, title — подпись бренда над ним, text — абзацы через перевод строки. #}
+{% macro act(cls, title, text, heading="", label="") -%}
+<button class="{{ cls }}" type="button" aria-haspopup="dialog" data-dialog-title="{{ title }}" data-dialog-text="{{ text }}"{% if heading %} data-dialog-heading="{{ heading }}"{% endif %}{% if label %} aria-label="{{ label }}"{% endif %}>{{ caller() }}</button>
+{%- endmacro %}
+
+{# Фраза окна действия аккаунта. verb — «подписаться», «поставить отметку», … #}
+{% macro login_text(verb, brand) %}Чтобы {{ verb }}, войдите в «{{ brand }}».{% endmacro %}
+
+{# Подвал сервиса: «О сервисе», «Правила», «Помощь» из content/pages/_brands.yaml (service — словарь или none). #}
+{% macro service_footer(service, brand, cls="svc-foot", labels=("О сервисе", "Правила", "Помощь")) -%}
+{% if service %}
+<ul class="{{ cls }}__links svc-links" role="list">
+  <li>{% call act(cls ~ "__link svc-link", brand, service.about, labels[0]) %}{{ labels[0] }}{% endcall %}</li>
+  <li>{% call act(cls ~ "__link svc-link", brand, service.rules, labels[1]) %}{{ labels[1] }}{% endcall %}</li>
+  <li>{% call act(cls ~ "__link svc-link", brand, service.help, labels[2]) %}{{ labels[2] }}{% endcall %}</li>
+</ul>
+{% endif %}
+{%- endmacro %}
+
+{# Фото, которое открывается крупно: кнопка вокруг изображения (page-ui.js читает img внутри). #}
+{% macro zoom(cls, caption="") -%}
+<button class="{{ cls }}" type="button" aria-haspopup="dialog" data-zoom data-caption="{{ caption }}" aria-label="Открыть фото крупно{{ (': ' ~ caption) if caption else '' }}">{{ caller() }}</button>
+{%- endmacro %}

@@ -68,7 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--content", type=Path, default=None, help=argparse.SUPPRESS)  # для тестов
 
     sub.add_parser("release", help="build --release + check --release + архив dist")
-    sub.add_parser("vectors", help="тестовые векторы криптографии → tests/vectors/crypto.json")
+    sub.add_parser("vectors", help="тестовые векторы → tests/vectors/crypto.json и lab-match.json")
     sub.add_parser("dump-answers", help="ответы и варианты → tests/.answers.json для JS/e2e-тестов")
 
     p = sub.add_parser("rotate-salts", help="пересоздать соли и ключи страниц (после — перепечатать QR)")
@@ -87,9 +87,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "serve":
         return serve(DIST, port=args.port)
     if args.command == "vectors":
-        from engine.vectors import make_crypto_vectors  # лениво: --help без cryptography
+        from engine.vectors import make_crypto_vectors, make_lab_match_vectors  # лениво: --help без cryptography
 
         print(f"Векторы криптографии записаны: {make_crypto_vectors()}")
+        print(f"Векторы распознавания объекта записаны: {make_lab_match_vectors()}")
         return 0
     if args.command == "names":
         return cmd_names()

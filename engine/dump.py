@@ -13,6 +13,7 @@ from engine import salts as salts_mod
 from engine.answers import wrong_inputs
 from engine.build import Prepared, prepare
 from engine.content import units
+from engine.lab import lab_objects
 from engine.pages import access_of
 from engine.templating import render
 from engine.util import b64u_encode, write_text
@@ -58,6 +59,8 @@ def answers_data(prep: Prepared) -> dict:
     final_order += [f"s{last.n}.{q.id}" for q in last.questions if q.kind == "bonus"]
 
     objects = {o.id: o for o in content.expertise.objects}
+    lab_objs = lab_objects(content, prep.ctx)
+    lab_by_id = {o["id"]: o for o in lab_objs}
     lab = []
     for r in content.expertise.results:
         params, _ = prep.params[r.id]
@@ -75,7 +78,10 @@ def answers_data(prep: Prepared) -> dict:
             t = render(types[r.types[0]].title, prep.ctx)
             title = f"{render(objects[r.object].title, prep.ctx)}: {t[:1].lower() + t[1:]}"
         lab.append({
-            "result": r.id, "object": r.object, "types": list(r.types), "stage": r.stage, "bases": list(r.bases),
+            "result": r.id, "object": r.object,
+            # текст, который игрок вводит в поле «Объект исследования» (название из описи) — для e2e
+            "objectTitle": lab_by_id[r.object]["title"], "objectFromStage": objects[r.object].from_stage,
+            "types": list(r.types), "stage": r.stage, "bases": list(r.bases),
             "params": {pid: {"input": e.input, "variants": e.variants} for pid, e in params.items()},
             "doc": r.doc, "title": title, "wrongBasis": wrong_basis,
         })
@@ -109,6 +115,9 @@ def answers_data(prep: Prepared) -> dict:
         "stages": stages,
         "finalOrder": final_order,
         "lab": lab,
+        # все предметы описи: {id, title, fromStage, aliases (нормализованы), ref}
+        "labObjects": [{"id": o["id"], "title": o["title"], "fromStage": o["from_stage"], "aliases": o["aliases"],
+                        "ref": o["ref"]} for o in lab_objs],
         "pages": pages,
         "expected": {"maxScore": max_score, "perfectRunScore": max_score},
     }

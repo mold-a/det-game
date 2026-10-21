@@ -87,7 +87,8 @@ def emergency_data(content: Content) -> dict:
             body = Markup(render_markdown(r(res.text)))
             title = f"{r(obj.title)}: {lower_first(r(types[res.types[0]].title))} (без документа)"
         lab.append({
-            "stage": res.stage, "object": r(obj.title), "types": [r(types[t].title) for t in res.types],
+            "stage": res.stage, "object": r(obj.title), "object_from": obj.from_stage, "ref": r(obj.ref),
+            "types": [r(types[t].title) for t in res.types],
             "bases": [f"{b} — {r(docs[b].title)}" for b in res.bases], "params": prm,
             "title": title, "body": body,
         })

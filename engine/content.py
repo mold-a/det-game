@@ -45,10 +45,12 @@ from engine.models import (
     ExpertiseFile,
     Finale,
     FormField,
+    LabSite,
     NewsPage,
     PageBase,
     PaperFrontMatter,
     Question,
+    ServicesFile,
     Settings,
     Stage,
     StagesFile,
@@ -71,6 +73,7 @@ YAML_FILES = (
     "documents.yaml",
     "stages.yaml",
     "expertise.yaml",
+    "lab.yaml",
     "finale.yaml",
 )
 
@@ -171,6 +174,7 @@ class Content:
     expertise: ExpertiseFile
     finale: Finale
     pages: dict[str, PageBase]
+    lab: LabSite | None = None  # content/lab.yaml — тексты сайта лаборатории «Призма»
     chats: dict[str, ChatFile] = field(default_factory=dict)  # content/chats/<id>.yaml — для печати (P07)
     docs: dict[str, DocFile] = field(default_factory=dict)  # путь .md → документ с front matter
     texts: dict[str, str] = field(default_factory=dict)  # путь .md → текст (тела страниц)
@@ -179,6 +183,7 @@ class Content:
     raw: dict[str, Any] = field(default_factory=dict)  # «content/…yaml» → разобранный YAML
     missing: list[Todo] = field(default_factory=list)
     warnings: list[ContentIssue] = field(default_factory=list)
+    services: dict[str, Any] = field(default_factory=dict)  # pages/_brands.yaml: тексты подвала сервисов
 
     @property
     def characters_by_id(self) -> dict[str, Character]:
@@ -416,7 +421,9 @@ def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None
     stages = st_file.stages if st_file else None
     expertise = ld.model("expertise.yaml", ExpertiseFile, ld.read_yaml("expertise.yaml"))
     finale = ld.model("finale.yaml", Finale, ld.read_yaml("finale.yaml"))
+    lab = ld.model("lab.yaml", LabSite, ld.read_yaml("lab.yaml"))
     pages = _load_pages(ld)
+    services = _load_services(ld)
     chats = _load_chats(ld)
 
     if characters is not None:
@@ -435,6 +442,7 @@ def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None
     _check_doc_ids(ld, docs)
     if pages is not None:
         _check_pages(ld, pages, characters, documents, texts)
+        _check_page_links(ld, pages, documents, texts, characters, world, services)
     _check_chats(ld, chats, characters, documents)
     paper, paper_missing = _load_paper(ld, documents, chats, Path(paper_templates or PAPER_TEMPLATES))
 
@@ -457,6 +465,7 @@ def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None
         expertise=expertise,
         finale=finale,
         pages=pages,
+        lab=lab,
         chats=chats,
         docs=docs,
         texts=texts,
@@ -465,6 +474,7 @@ def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None
         raw=ld.raw,
         missing=ld.missing,
         warnings=ld.warnings,
+        services=services,
     )
 
 
@@ -1046,9 +1056,12 @@ def _load_pages(ld: _Loading) -> dict[str, PageBase] | None:
         data = ld.read_yaml(rel)
         if data is None:
             continue
-        cls = PAGE_MODELS.get(slug)
+        ptype = data.get("type", slug) if isinstance(data, dict) else slug
+        cls = PAGE_MODELS.get(ptype) if isinstance(ptype, str) else None
         if cls is None:
-            ld.err(rel, "", f"нет схемы для страницы «{slug}» (известны: {', '.join(PAGE_MODELS)})")
+            hint = "" if isinstance(data, dict) and "type" in data else " (у страницы с чужим slug нужно поле type)"
+            ld.err(rel, "type" if isinstance(data, dict) and "type" in data else "",
+                   f"нет схемы для страницы типа «{ptype}»{hint}; известны: {', '.join(PAGE_MODELS)}")
             continue
         if isinstance(data, dict) and data.get("slug") != slug:
             ld.err(rel, "slug", f"slug должен совпадать с именем папки «{slug}»")
@@ -1071,13 +1084,20 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
 
     for slug, page in pages.items():
         rel = f"pages/{slug}/page.yaml"
-        if docs_by_id is not None:
+        if docs_by_id is not None and page.doc is not None:
             d = docs_by_id.get(page.doc)
             if d is None:
                 ld.err(rel, "doc", f"документа «{page.doc}» нет в documents.yaml")
             elif d.page != slug:
                 ld.err(rel, "doc", f"документ «{page.doc}» в documents.yaml ссылается на страницу "
                                    f"«{d.page}», а не на «{slug}»")
+            elif page.stage is not None and page.stage != d.stage:
+                ld.err(rel, "stage", f"stage: {page.stage}, а документ «{page.doc}» лежит в конверте {d.stage}")
+        if docs_by_id is not None and page.doc is None:
+            for d in docs_by_id.values():
+                if d.page == slug:
+                    ld.err(rel, "doc", f"на страницу ссылается документ «{d.id}» (documents.yaml), значит QR "
+                                       f"печатается, а у страницы нет doc: укажите doc: \"{d.id}\" и qr_label")
         if page.locked == "password" and not isinstance(page, CloudPage):
             ld.err(rel, "locked", "locked: password поддерживается только страницей с паролем (cloud)")
         if isinstance(page, CloudPage):
@@ -1111,10 +1131,41 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
                 if f.body is not None:
                     body(rel, (*floc, "body"), f.body)
         profile = getattr(page, "profile", None)
-        if profile is not None and char_ids is not None and profile.person not in char_ids:
+        if profile is not None and char_ids is not None and profile.person is not None \
+                and profile.person not in char_ids:
             ld.err(rel, "profile.person", f"персонажа «{profile.person}» нет в characters.yaml")
+        for fi, fr in enumerate(getattr(profile, "friends", None) or []):
+            if char_ids is not None and fr.person is not None and fr.person not in char_ids:
+                ld.err(rel, ("profile", "friends", fi, "person"), f"персонажа «{fr.person}» нет в characters.yaml")
         if isinstance(page, NewsPage):
             body(rel, ("article", "body"), page.article.body)
+
+
+SERVICES_FILE = "pages/_brands.yaml"
+
+
+def _load_services(ld: _Loading) -> dict[str, Any]:
+    """Тексты подвала сервисов (``pages/_brands.yaml``, необязателен): ``{ключ бренда: ServiceTexts}``."""
+    if not (ld.root / SERVICES_FILE).is_file():
+        return {}
+    file = ld.model(SERVICES_FILE, ServicesFile, ld.read_yaml(SERVICES_FILE))
+    return dict(file.services) if file is not None else {}
+
+
+def _check_page_links(ld: _Loading, pages: dict[str, PageBase], documents: list[Document] | None,
+                      texts: dict[str, str], characters: list[Character] | None, world: dict | None,
+                      services: dict[str, Any]) -> None:
+    """Ссылки между страницами (docs/REDESIGN-2026-10 §4.1): цель есть, этап цели не позже этапа
+    источника, из открытой страницы — только на этап 1. Достижимость страниц без QR — предупреждение."""
+    if documents is None or characters is None or world is None:
+        return
+    from engine.pages import check_links
+
+    rep = check_links(pages, documents, texts, characters, world, services)
+    for slug, where, msg in rep.errors:
+        ld.errors.append(ContentIssue(ld.name(f"pages/{slug}/page.yaml"), where, msg))
+    for slug, where, msg in rep.warnings:
+        ld.warnings.append(ContentIssue(ld.name(f"pages/{slug}/page.yaml"), where, msg))
 
 
 @dataclass(frozen=True)
@@ -1154,6 +1205,10 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
         article = getattr(page, "article", None)
         if article is not None:
             refs.append((("article", "photo"), article.photo))
+        for si, sec in enumerate(getattr(page, "sections", None) or []):
+            for bi, block in enumerate(sec.blocks):
+                for ii, item in enumerate(getattr(block, "items", None) or []):
+                    refs.append((("sections", si, "blocks", bi, "items", ii, "photo"), item.photo))
         for loc, value in refs:
             if value:
                 out.append(MediaUse(f, format_loc(loc), value, ctx))
@@ -1184,7 +1239,9 @@ def _check_templates(ld: _Loading, characters: list[Character], world: dict,
     """Отрендерить все строки контента: опечатка в шаблоне — ошибка с путём до поля."""
     from engine.templating import check_tree, make_context
 
-    ctx = make_context(characters=characters, world=world)
+    from engine.templating import make_link
+
+    ctx = make_context(characters=characters, world=world, link=make_link(set(ld.page_slugs)))
     world_name = ld.name("world.yaml")
     for fname, data in ld.raw.items():
         if fname == world_name:  # мир — источник данных для шаблонов, а не шаблон

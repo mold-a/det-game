@@ -1,4 +1,5 @@
-// Шапка-папка: номер дела, название системы, команда, счёт, этапы 1–N, меню.
+// Шапка — корешок папки (docs/05 §1): ярлык «Дело №», команда, счёт крупно
+// табличными цифрами, четыре конверта (запечатан / вскрыт / текущий), меню.
 // Счёт в шапке — сумма журнала; во время финала он не меняется (баллы финала
 // пишутся только в finalFinish).
 
@@ -7,8 +8,37 @@ import { T, signed } from "./texts.js";
 import { createMenu } from "./menu.js";
 import { score } from "../core/state.js";
 
+const NS = "http://www.w3.org/2000/svg";
+
 /**
- * renderHeader(ctx, state, { onChange, verify }) → { el, update(state) }
+ * Конверт-значок. state: "sealed" | "opened" | "current".
+ * Запечатанный — клапан закрыт, на нём печать; вскрытый — клапан откинут,
+ * из конверта виден лист; текущий — вскрытый, лист отмечен цветом печати.
+ */
+export function envelopeIcon(state) {
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 40 34");
+  svg.setAttribute("class", `env env--${state}`);
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const sealed = state === "sealed";
+  // Разметка постоянная, без данных.
+  svg.innerHTML = sealed
+    ? `<rect class="env__body" x="2" y="10" width="36" height="22" rx="1.5"/>
+       <path class="env__fold" d="M2.8 31 L16 21 M37.2 31 L24 21"/>
+       <path class="env__flap" d="M2.5 10.5 L20 23 L37.5 10.5"/>
+       <circle class="env__seal" cx="20" cy="22.2" r="4.2"/>
+       <circle class="env__seal-ring" cx="20" cy="22.2" r="2.4"/>`
+    : `<path class="env__flap-open" d="M2 12 L20 1.5 L38 12 Z"/>
+       <rect class="env__sheet" x="7" y="4.5" width="26" height="18" rx="1"/>
+       <path class="env__lines" d="M11 9.5 H29 M11 13 H26 M11 16.5 H28"/>
+       <path class="env__pocket" d="M2 12 L20 23.5 L38 12 V32 H2 Z"/>
+       <path class="env__fold" d="M2.8 31 L16 21 M37.2 31 L24 21"/>`;
+  return svg;
+}
+
+/**
+ * renderHeader(ctx, state, { onChange, verify, rulesCfg }) → { el, update(state) }
  *   ctx: { pub, store, chrome }.
  */
 export function renderHeader(ctx, state, { onChange = () => location.reload(), verify, rulesCfg } = {}) {
@@ -27,7 +57,7 @@ export function renderHeader(ctx, state, { onChange = () => location.reload(), v
       h(
         "div",
         { class: "app-header__case" },
-        h("a", { class: "app-header__case-no", href: "/" }, T.header.caseNo(chrome.caseNo)),
+        h("a", { class: "app-header__case-no", href: "/" }, h("span", { class: "app-header__case-word" }, T.header.caseWord), " ", h("span", { class: "app-header__case-num" }, T.header.caseNum(chrome.caseNo))),
         chrome.system ? h("span", { class: "app-header__system" }, chrome.system) : null,
       ),
       team,
@@ -50,8 +80,9 @@ export function renderHeader(ctx, state, { onChange = () => location.reload(), v
       items.push(
         h(
           "li",
-          { class: ["stages__item", done && "is-done", cur && "is-current"], "aria-label": label, "aria-current": cur ? "step" : null },
-          String(n),
+          { class: ["stages__item", done && "is-done", cur && "is-current"], "aria-label": label, "aria-current": cur ? "step" : null, title: label },
+          envelopeIcon(cur ? "current" : done ? "opened" : "sealed"),
+          h("span", { class: "stages__no", "aria-hidden": "true" }, String(n)),
         ),
       );
     }

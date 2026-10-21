@@ -43,6 +43,14 @@ body.page--pharma {
   --fs-line: #d5e3dd;
   --fs-ph: #e7ecea;
   --fs-ph-text: #50625a;
+  --svc-bg: var(--fs-bg);
+  --svc-ink: var(--fs-text);
+  --svc-line: var(--fs-line);
+  --svc-accent: var(--fs-brand);
+  --svc-accent-ink: var(--fs-brand-ink);
+  --svc-font: var(--font-sans);
+  --svc-radius: 6px;
+  --svc-btn-radius: 6px;
   color-scheme: light;
   background: var(--fs-bg);
   color: var(--fs-text);
@@ -391,4 +399,28 @@ body.page--pharma {
   .fs-card__table tr:last-child th {
     border-bottom: 0;
   }
+}
+
+/* --- рабочие элементы: логотип-кнопка, подвал */
+
+.fs-logo-btn {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+.fs-foot__links {
+  margin-bottom: 4px;
+}
+
+.fs-foot__link {
+  padding-left: 0;
+  margin-right: 8px;
+  color: var(--fs-brand);
+}
+
+.fs-foot small {
+  display: block;
 }

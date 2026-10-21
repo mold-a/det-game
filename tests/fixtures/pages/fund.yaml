@@ -1,0 +1,24 @@
+slug: fund
+type: site
+stage: 1
+locked: false
+brand: "Фонд «Тестовый»"
+skin: fund
+tagline: "Тестовый фонд поддержки культуры"
+sections:
+  - id: about
+    title: "О фонде"
+    blocks:
+      - { kind: text, md: "Тестовое описание фонда.\n\n- первое направление\n- второе направление" }
+  - id: trustees
+    title: "Попечители"
+    blocks:
+      - kind: cards
+        items:
+          - { title: "Попечитель Первый", subtitle: "председатель совета", text: "Тестовая карточка." }
+  - id: reports
+    title: "Отчёты"
+    blocks:
+      - { kind: notice, text: "Отчёты предоставляются по запросу." }
+      - { kind: table, columns: ["Год", "Проект", "Итог"], rows: [["2025", "Тестовый проект", "завершён"]] }
+footer: "© Фонд «Тестовый»."

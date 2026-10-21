@@ -8,6 +8,9 @@ import { T } from "./texts.js";
 import { openModal, confirmDialog, alertDialog } from "./modal.js";
 import { parseState, isCompatible, exportFileName, StateError } from "../core/state.js";
 
+/** Сайт лаборатории — открывается в той же вкладке (docs/04). */
+export const LAB_HREF = "/lab/";
+
 /** «Начать заново» с двойным подтверждением. → true, если прогресс удалён. */
 export async function restartFlow(store) {
   const first = await confirmDialog({
@@ -89,10 +92,11 @@ async function importFile({ store, pub, verify = async () => true }, file, onCha
  *   onChange — (state | null) => void, после загрузки или сброса;
  *   verify   — см. loadFromFileFlow;
  *   rulesCfg — { wrongPenalty, hintCosts, autoAfter, bonus, final } для T.rules;
- *              без него пункт «Правила» не показывается.
+ *              без него пункт «Правила» не показывается;
+ *   lab      — адрес лаборатории для пункта «Лаборатория» (та же вкладка) или null.
  * Возвращает <details class="menu">.
  */
-export function createMenu({ store, pub, onChange = () => {}, verify, rulesCfg = null }) {
+export function createMenu({ store, pub, onChange = () => {}, verify, rulesCfg = null, lab = LAB_HREF }) {
   const item = (label, action, extra = {}) =>
     h("li", null, h("button", { type: "button", class: ["menu__item", extra.danger && "menu__item--danger"], onclick: action }, label));
 
@@ -103,6 +107,7 @@ export function createMenu({ store, pub, onChange = () => {}, verify, rulesCfg =
     h(
       "ul",
       { class: "menu__list" },
+      lab ? h("li", null, h("a", { class: "menu__item menu__item--link", href: lab }, T.lab.menu)) : null,
       rulesCfg ? item(T.menu.rules, showRules) : null,
       item(T.menu.save, save),
       item(T.menu.load, load),

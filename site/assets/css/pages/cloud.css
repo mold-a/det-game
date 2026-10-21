@@ -51,6 +51,13 @@ body.page--cloud {
   --tc-error: #b3261e;
   --tc-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --tc-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath d='M9.5 19h14.2a5.3 5.3 0 0 0 .7-10.55 7.4 7.4 0 0 0-14.2 1.6A4.5 4.5 0 0 0 9.5 19z' fill='%23E3EEF7' stroke='%233A7BD5' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M11.5 22.5l-1.5 4M17.5 22.5l-1.5 4M23.5 22.5l-1.5 4' stroke='%233A7BD5' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  --svc-bg: var(--tc-card);
+  --svc-ink: var(--tc-text);
+  --svc-line: var(--tc-line);
+  --svc-accent: var(--tc-brand);
+  --svc-accent-ink: var(--tc-brand-ink);
+  --svc-font: var(--tc-font);
+  --svc-radius: 12px;
   color-scheme: light;
   background: var(--tc-bg);
   color: var(--tc-text);
@@ -222,6 +229,12 @@ body.page--cloud {
 }
 
 .tc-bar__account {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
   min-width: 0;
   overflow-wrap: anywhere;
   color: var(--tc-muted);
@@ -688,4 +701,59 @@ th[aria-sort="descending"] .tc-sort {
 .tc-folder {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+/* --- рабочие элементы: логотип-кнопка, «Ввести пароль», подвал, ссылки в таблице и переписке */
+
+.tc-logo-btn {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+.tc-bar__account:hover {
+  text-decoration: underline;
+}
+
+.tc-locked__btn {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--tc-brand);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tc-brand-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tc-locked {
+  flex-wrap: wrap;
+}
+
+.tc-table a,
+.tc-msg__text a,
+.tc-doc a {
+  color: var(--tc-brand-text);
+}
+
+.tc-foot {
+  padding: 12px 16px 24px;
+  color: var(--tc-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.tc-foot__links {
+  justify-content: center;
+}
+
+.tc-foot__link {
+  color: var(--tc-muted);
+}
+
+.tc-foot__copy {
+  margin-top: 4px;
 }

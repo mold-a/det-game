@@ -1,0 +1,124 @@
+{# social — профиль в соцсети «Круг» (REDESIGN §6.1; gromov — тоже social). Каждый элемент делает что-то:
+   логотип → главная «Круга», вкладки переключаются (pages/page-ui.js), фото открываются крупно,
+   действия аккаунта показывают окно сервиса, авторы комментариев и друзья — ссылки (без своей страницы —
+   на заглушку), подвал — «О сервисе», «Правила», «Помощь». Без JS видны все разделы подряд. #}
+{% import "pages/_ui.html" as ui %}
+{% set brand = page.brand %}
+{% set bar_search = true %}
+{% set pr = page.profile %}
+{% set name = people[pr.person].full if pr.person else pr.name %}
+{% set posts = page.posts|sort(attribute="datetime", reverse=True) %}
+{% set photo_posts = posts|selectattr("photo")|list %}
+{% set friends = pr.friends %}
+<div class="kr">
+  {% include "pages/_social_bar.html" %}
+
+  <section class="kr-profile" aria-labelledby="kr-name">
+    <div class="kr-profile__cover">
+      {% if pr.cover %}{{ ui.img(media, pr.cover, "", "обложка профиля", "kr-cover") }}{% endif %}
+    </div>
+    <div class="kr-profile__card">
+      <div class="kr-profile__avatar">
+        {% if pr.avatar %}{% call ui.zoom("kr-zoom kr-zoom--avatar", name) %}{{ ui.img(media, pr.avatar, name, "фото профиля", "kr-avatar") }}{% endcall %}
+        {% else %}<span class="kr-avatar kr-avatar--blank" aria-hidden="true">{{ name[:1] }}</span>{% endif %}
+      </div>
+      <h1 class="kr-profile__name" id="kr-name">{{ name }}</h1>
+      {% if pr.position %}<p class="kr-profile__position">{{ ui.text(pr.position, "должность") }}</p>{% endif %}
+      {% if pr.city %}<p class="kr-profile__city"><span class="kr-pin" aria-hidden="true"></span>{{ ui.text(pr.city, "город") }}</p>{% endif %}
+      <div class="kr-profile__actions">
+        {% call ui.act("kr-btn kr-btn--primary", brand, ui.login_text("подписаться", brand)) %}Подписаться{% endcall %}
+        {% call ui.act("kr-btn", brand, ui.login_text("написать сообщение", brand)) %}Написать{% endcall %}
+      </div>
+      <p class="kr-profile__stats"><b>{{ posts|length }}</b> {{ "публикация" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("публикации" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "публикаций") }}{% if friends %} · <b>{{ friends|length }}</b> {{ "друг" if friends|length % 10 == 1 and friends|length % 100 != 11 else ("друга" if friends|length % 10 in [2, 3, 4] and friends|length % 100 not in [12, 13, 14] else "друзей") }}{% endif %}</p>
+    </div>
+  </section>
+
+  <div class="kr-tabs-wrap" data-tabs>
+    <div class="kr-tabs" role="tablist" aria-label="Разделы профиля">
+      <button class="kr-tab is-current" type="button" role="tab" id="kr-tab-posts" aria-controls="kr-panel-posts" aria-selected="true">Публикации</button>
+      <button class="kr-tab" type="button" role="tab" id="kr-tab-photos" aria-controls="kr-panel-photos" aria-selected="false" tabindex="-1">Фото</button>
+      <button class="kr-tab" type="button" role="tab" id="kr-tab-about" aria-controls="kr-panel-about" aria-selected="false" tabindex="-1">Сведения</button>
+    </div>
+
+    <div class="kr-panel" role="tabpanel" id="kr-panel-posts" aria-labelledby="kr-tab-posts" tabindex="0">
+      <div class="kr-feed">
+      {% for post in posts %}
+        {% set pid = "kr-post-" ~ loop.index %}
+        <article class="kr-post{% if post.geo %} has-geo{% endif %}" data-datetime="{{ post.datetime }}">
+          <header class="kr-post__head">
+            <span class="kr-post__ava">{% if pr.avatar %}{{ ui.img(media, pr.avatar, "", "фото", "kr-ava-sm") }}{% else %}<span class="kr-ava-sm kr-avatar--blank" aria-hidden="true">{{ name[:1] }}</span>{% endif %}</span>
+            <span class="kr-post__who">
+              <b class="kr-post__name">{{ name }}</b>
+              <span class="kr-post__meta">
+                <time datetime="{{ post.datetime }}" class="kr-post__time">{{ post.datetime|dt }}</time>
+                {%- if post.geo %}<span class="kr-post__geo"><span class="kr-pin" aria-hidden="true"></span>{{ post.geo }}</span>{% endif %}
+              </span>
+            </span>
+          </header>
+          <p class="kr-post__text">{{ post.text_html }}</p>
+          {% if post.photo %}
+          <figure class="kr-post__photo">
+            {% call ui.zoom("kr-zoom kr-zoom--photo", post.datetime|dt) %}{{ ui.img(media, post.photo, post.text, "фото к публикации", "kr-photo") }}{% endcall %}
+          </figure>
+          {% endif %}
+          {% if post.link %}
+          <a class="kr-linkcard" href="{{ link(post.link.page) }}"><span class="kr-linkcard__text">{{ post.link.text }}</span><span class="kr-linkcard__arrow" aria-hidden="true">→</span></a>
+          {% endif %}
+          <footer class="kr-post__actions">
+            {% call ui.act("kr-act", brand, ui.login_text("поставить отметку «Нравится»", brand)) %}<span class="kr-act__ico kr-act__ico--like" aria-hidden="true"></span>Нравится <b>{{ post.likes }}</b>{% endcall %}
+            <button class="kr-act" type="button" data-toggle="{{ pid }}-comments" aria-expanded="true" aria-controls="{{ pid }}-comments"><span class="kr-act__ico kr-act__ico--comment" aria-hidden="true"></span>Комментарии <b>{{ post.comments|length }}</b></button>
+            {% call ui.act("kr-act", brand, ui.login_text("поделиться записью", brand)) %}<span class="kr-act__ico kr-act__ico--share" aria-hidden="true"></span><span class="kr-act__label">Поделиться</span>{% endcall %}
+          </footer>
+          <div class="kr-comments-box" id="{{ pid }}-comments">
+            {% if post.comments %}
+            <ul class="kr-comments" role="list">
+              {% for cm in post.comments %}
+              <li class="kr-comment"><a class="kr-comment__author" href="{{ link(cm.page or social_stub) }}">{{ cm.author }}</a> <span class="kr-comment__text">{{ cm.text_html }}</span></li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+            {% call ui.act("kr-compose", brand, ui.login_text("оставить комментарий", brand)) %}Написать комментарий…{% endcall %}
+          </div>
+        </article>
+      {% else %}
+        <p class="kr-empty">Публикаций пока нет.</p>
+      {% endfor %}
+      </div>
+    </div>
+
+    <div class="kr-panel" role="tabpanel" id="kr-panel-photos" aria-labelledby="kr-tab-photos" tabindex="0">
+      {% if photo_posts %}
+      <ul class="kr-photos" role="list">
+        {% for post in photo_posts %}
+        <li>{% call ui.zoom("kr-zoom kr-zoom--tile", post.datetime|dt) %}{{ ui.img(media, post.photo, post.text, "фото", "kr-tile") }}{% endcall %}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="kr-empty">Фотографий пока нет.</p>
+      {% endif %}
+    </div>
+
+    <div class="kr-panel" role="tabpanel" id="kr-panel-about" aria-labelledby="kr-tab-about" tabindex="0">
+      <section class="kr-about">
+        <dl class="kr-about__list">
+          <div><dt>Имя</dt><dd>{{ name }}</dd></div>
+          {% if pr.position %}<div><dt>Должность</dt><dd>{{ pr.position }}</dd></div>{% endif %}
+          {% if pr.city %}<div><dt>Город</dt><dd>{{ pr.city }}</dd></div>{% endif %}
+          {% if pr.about %}<div><dt>О себе</dt><dd>{{ pr.about }}</dd></div>{% endif %}
+          <div><dt>Публикаций</dt><dd>{{ posts|length }}</dd></div>
+        </dl>
+        {% if friends %}
+        <h2 class="kr-about__h">Друзья</h2>
+        <ul class="kr-friends" role="list">
+          {% for fr in friends %}
+          {% set fname = people[fr.person].full if fr.person else fr.name %}
+          <li><a class="kr-friend" href="{{ link(fr.page or social_stub) }}"><span class="kr-friend__ava" aria-hidden="true">{{ fname[:1] }}</span><span class="kr-friend__name">{{ fname }}</span></a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+
+  {% include "pages/_social_foot.html" %}
+</div>

@@ -1,0 +1,71 @@
+# Черновик сценариста (REDESIGN-2026-10 §4.3, схема §6.1). Страница Кирилла в «Круге». Этап 1, открытая.
+# Балагур, шутит над собой; манера — docs/VOICES.md: «....» (четыре точки), «!!!!!», 😢 😂 🤷‍♂️ 🥳, «Есть такое)»,
+# небрежное «как то», «незнаю». Семейная пасхалка: на «А?» — «Лимон» (как в 1-08).
+# СТРОГО: фразы «Было бы за что» здесь нет и быть не может (улика 1-05 ↔ 3-04, REDESIGN §4.4); поэтому
+# Кириллу в комментариях никто не говорит «спасибо». Ни облака, ни паролей, ни «настроил другу …»:
+# программист он только в профиле и в шутке про мамин телефон.
+# Подтверждает уже известное из 1-08: со школы дружит с погибшим, «вспоминали молодость», кот, две дочери
+# (младшая — Марина, старшая — в Москве).
+slug: krug-kirill
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: kirill
+  position: "Программист"
+  city: "{{ w.city }}"
+  avatar: "portraits/kirill.jpg"
+  cover: null
+  about: "Чиню компьютеры. Себя — нет 🤷‍♂️"
+  friends:
+    - { person: voroncov, page: krug-voroncov }
+    - { person: marina, page: krug-marina }
+    - { person: marina_sister }
+    - { name: "Валерий Кузьмин" }
+    - { name: "Олег Бессонов" }
+posts:
+  - datetime: "2026-11-11T23:24"
+    text: "{{ c.voroncov.familiar }}....\nСорок с лишним лет. Со школы.\nЯ обычно в такие моменты шучу. Пытался придумать что то, что тебе бы понравилось.\nНе получается 😢"
+    photo: null
+    likes: 211
+    comments:
+      - { author: "Валерий Кузьмин", text: "{{ c.kirill.first() }}, держись. Вся наша параллель с тобой." }
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.kirill.g('пап', 'мам') }} 🤗" }
+      - { author: "Олег Бессонов", text: "Не верю до сих пор. Светлая память" }
+  - datetime: "2026-11-07T13:40"
+    text: "Кот сегодня работает из дома.\nКак и я.\nРазница в том, что ему за это платят больше 😂"
+    photo: null
+    likes: 377
+    comments:
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "котик 🤗🤗🤗 а платят ему кто?" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Я. Едой. Каждые два часа....\nЭто и есть удалёнка" }
+      - { author: "Валерий Кузьмин", text: "А?" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Лимон 😂" }
+  - datetime: "2026-10-26T20:15"
+    text: "Настроил маме новый телефон.\nТеперь она звонит мне, чтобы спросить, как позвонить мне....\nКак то так 🤷‍♂️"
+    photo: null
+    likes: 154
+    comments:
+      - { author: "Олег Бессонов", text: "У меня то же самое, только с тёщей. И телевизором" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Есть такое)" }
+  - datetime: "2026-10-17T22:41"
+    text: "Встреча одноклассников!!!!!\nНас стало меньше по количеству и больше в ширину 😂\n{{ c.voroncov.familiar }} опять рассказывал, как его в восьмом классе выгнали из драмкружка.\nВрёт конечно. Не выгнали, а попросили 🤷‍♂️"
+    photo: null
+    likes: 96
+    link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
+    comments:
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "не попросили, а отпустили на вольные хлеба 😁\nи вообще это был театральный кружок" }
+      - { author: "Валерий Кузьмин", text: "Свидетельствую: попросили. Я там был" }
+  - datetime: "2026-10-04T09:12"
+    text: "Последняя рыбалка сезона.\nПоймал: насморк, двух комаров и философское настроение.\nРыба передаёт привет 🥳"
+    photo: null
+    likes: 71
+    comments: []
+  - datetime: "2026-09-20T18:05"
+    text: "{{ c.marina.g('Младший', 'Младшая') }} теперь преподаёт английский. {{ c.marina_sister.g('Старший', 'Старшая') }} в Москве — учит жизни меня по видеосвязи.\n{{ 'Обе' if c.marina.gender == 'f' and c.marina_sister.gender == 'f' else 'Оба' }} в меня. Бедные 😂"
+    photo: null
+    likes: 128
+    comments:
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "пааап 😹😹😹" }
+      - { author: "{{ c.marina_sister.first() }} {{ c.marina_sister.last() }}", text: "Учу, потому что надо. Шапку надень." }

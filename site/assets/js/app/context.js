@@ -27,6 +27,8 @@ export function readChrome(doc = document) {
     system: ds.system || text(".chrome__system"),
     department: ds.department || text(".chrome__dept"),
     caseNo: ds.caseNo || text(".chrome__case").replace(/^Дело\s*№\s*/u, ""),
+    // Название лаборатории (content/lab.yaml → lab_site.name); заглушка TODO(content) — как пусто.
+    labName: /TODO\(content\)/.test(ds.labName ?? "") ? "" : ds.labName ?? "",
   };
   doc.querySelector(".chrome")?.remove();
   return chrome;
@@ -146,7 +148,7 @@ export function renderLoadError(ctx, code) {
 export function renderShell(ctx, headerEl) {
   clear(ctx.mount);
   const main = h("main", { class: "main", id: "main", tabindex: "-1" });
-  const side = h("aside", { class: "side", "aria-label": T.docs.title });
+  const side = h("aside", { class: "side", "aria-label": T.side });
   ctx.mount.append(
     h("a", { class: "skip-link", href: "#main" }, T.skipToMain),
     headerEl,

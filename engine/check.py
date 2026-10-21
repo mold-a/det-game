@@ -19,6 +19,8 @@ from engine.answers import iso_to_dmy, shift_time, wrong_inputs
 from engine.build import BuildError, Prepared, prepare, release_problems
 from engine.content import Content, collect_todos, units
 from engine.hardnames import familiar_collisions, hardcoded_names
+from engine.lab import lab_objects, lab_problems, lab_site
+from engine.labmatch import resolve_object
 from engine.leakscan import (
     NeedleSet,
     boilerplate_shingles,
@@ -31,7 +33,7 @@ from engine.leakscan import (
 )
 from engine.media import MEDIA_DIR, MediaPlan, media_hash
 from engine.normalize import base, normalize
-from engine.pages import access_of, cloud_password_norm, locked_page_texts
+from engine.pages import access_of, cloud_password_norm, locked_page_texts, page_stage, rendered_link_problems
 from engine.templating import render
 
 # Нейтральные примеры формата в интерфейсе (docs/02 §2): «например 08:15», placeholder и т. п.
@@ -161,7 +163,7 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
             out += [(f"развязка fates[{i}]", f.get("text", ""), last) for i, f in enumerate(dec.finale.get("fates", []))]
         docs = content.documents_by_id
         for slug, frag in dec.pages.items():
-            out.append((f"страница {slug}", page_text(frag), docs[content.pages[slug].doc].stage))
+            out.append((f"страница {slug}", page_text(frag), page_stage(content.pages[slug], docs)))
         return out
     for si, st in enumerate(content.stages):
         if si > 0:
@@ -182,7 +184,7 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
     docs = content.documents_by_id
     for source, text in locked_page_texts(content, ctx):
         slug = source.split("/")[2] if source.startswith("content/pages/") else ""
-        stage = docs[content.pages[slug].doc].stage if slug in content.pages else 0
+        stage = page_stage(content.pages[slug], docs) if slug in content.pages else 0
         out.append((source, text, stage))
     return out
 
@@ -215,8 +217,11 @@ def public_texts(content: Content, ctx: dict) -> list[str]:
             out += [r(getattr(spec, "prompt", None)), r(getattr(spec, "label", None)), r(spec.help)]
             out += [r(o.text) for o in spec.options or []] + [r(i.text) for i in spec.items or []]
     out += [r(d.title) for d in content.documents if d.stage == first.n]
-    out += [r(t.title) for t in content.expertise.types]
-    out += [r(o.title) for o in content.expertise.objects if o.from_stage == first.n]
+    out += [r(t.title) for t in content.expertise.types] + [r(t.description) for t in content.expertise.types]
+    for o in content.expertise.objects:  # каталог pack-1 открыт: названия, алиасы и ссылки на опись
+        if o.from_stage == first.n:
+            out += [r(o.title), r(o.ref), *(r(a) for a in o.aliases)]
+    out += [t for _, t in iter_strings(lab_site(content, ctx))]  # сайт лаборатории — открытая страница
     return out
 
 
@@ -315,7 +320,7 @@ def check(
     media_dir = Path(media_dir or root / "media")
     rep = CheckReport()
     prep = prepare(Path(content_dir or root / "content"), Path(salts_path or salts_mod.SALTS_LOCK),
-                   create_salts=False)
+                   create_salts=False, lab_checks=False)
     content = prep.content
     s = content.settings
     data = dist / "data"
@@ -422,10 +427,26 @@ def check(
                 problems.append(f"{u.path}: неверный ответ {w!r} принят")
     rep.add("3. Неверные ответы", problems, f"проверено: {n_wrong} + пустой ввод")
 
-    # 4. Экспертизы
+    # 4. Экспертизы: проверки каталога (распознавание, правило оснований), затем запросы как в браузере —
+    # объект определяется по тексту названия из пакета (resolve_object), а не по id
     problems = []
     n_lab = 0
     objects = {o.id: o for o in content.expertise.objects}
+    lab_errors, lab_warnings = lab_problems(content, prep.ctx)
+    problems += [str(e) for e in lab_errors]
+    rep.warnings += [str(w) for w in lab_warnings]
+    catalog_ctx = {n: lab_objects_from_packs(packs, n) for n in packs}
+    n_resolved = 0
+    for pk_n, pk in packs.items():  # каталог в пакете = контент (алиасы нормализованы), название узнаётся само
+        want = {o["id"]: o for o in lab_objects(content, prep.ctx) if o["from_stage"] == pk_n}
+        got = {o["id"]: o for o in pk["lab"]["objects"]}
+        if set(want) != set(got):
+            problems.append(f"pack-{pk_n}: объекты каталога {sorted(got)} ≠ контенту {sorted(want)}")
+        for oid, o in got.items():
+            w = want.get(oid)
+            if w is not None and (o.get("title") != w["title"] or o.get("aliases") != w["aliases"]
+                                  or o.get("ref") != w["ref"]):
+                problems.append(f"pack-{pk_n}: объект {oid}: title/aliases/ref не совпадают с контентом")
     for r in content.expertise.results:
         params, combos = prep.params[r.id]
         n = r.stage
@@ -433,11 +454,20 @@ def check(
             problems.append(f"{r.id}: пакет этапа {n} не открыт")
             continue
         entries = packs[n]["lab"]["entries"]
+        shown = next((o for o in catalog_ctx[n] if o["id"] == r.object), None)
+        if shown is None:
+            problems.append(f"{r.id}: объекта «{r.object}» нет в каталоге пакетов 1…{n}")
+            continue
+        res = resolve_object(shown["title"], catalog_ctx[n])
+        n_resolved += 1
+        if res != {"status": "ok", "id": r.object}:
+            problems.append(f"{r.id}: название «{shown['title']}» на этапе {n} распознано как {res}")
+            continue
         for t in r.types:
             for b in r.bases:
                 for p in combos:
                     n_lab += 1
-                    pt = crypto.try_entries(crypto.hkdf(keys[n], crypto.lab_info(r.object, t, b, list(p))), entries, "lab")
+                    pt = crypto.try_entries(crypto.hkdf(keys[n], crypto.lab_info(res["id"], t, b, list(p))), entries, "lab")
                     if pt is None:
                         problems.append(f"{r.id}: не открылась ({t}, {b}, {'|'.join(p)})")
                         continue
@@ -489,6 +519,7 @@ def check(
                         problems.append(f"{obj_id}: открылась запись с ({t}, {b}) на этапе {m} — "
                                         "это не основание/вид результата или не его этап")
     rep.add("4. Экспертизы", problems, f"результатов: {len(content.expertise.results)}, запросов: {n_lab}, "
+                                       f"объектов распознано по названию: {n_resolved}, "
                                        f"чужих комбинаций проверено: {n_foreign}")
 
     # 5. Страницы (+ forbidden)
@@ -523,6 +554,7 @@ def check(
         for word in page.forbidden:
             if base(word) and base(word) in text:
                 problems.append(f"{slug}: на странице есть запрещённое «{word}» (forbidden)")
+    problems += rendered_link_problems(content, prep.salts, fragments)
     rep.add("5. Страницы", problems,
             f"страниц: {len(content.pages)} (" + ", ".join(f"{k}: {access_of(v)}" for k, v in content.pages.items()) + ")")
 
@@ -629,6 +661,12 @@ def neutral_examples(dist: Path) -> set[str]:
             for rx in _EXAMPLE_RES:
                 out.update(m.strip() for m in rx.findall(text) if any(ch.isdigit() for ch in m))
     return out
+
+
+def lab_objects_from_packs(packs: dict[int, dict], stage: int) -> list[dict]:
+    """Каталог объектов, как его собирает браузер: пакеты 1…``stage``, порядок по ``ord``."""
+    objs = [o for n, pk in sorted(packs.items()) if n <= stage for o in pk["lab"]["objects"]]
+    return sorted(objs, key=lambda o: o["ord"])
 
 
 def pack_structure_problems(prep: Prepared, pack: dict, n: int) -> list[str]:

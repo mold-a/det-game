@@ -34,6 +34,7 @@ const stack = [];
  *   actions     — [{ id, label, primary?, danger? }] (по умолчанию одна «Понятно»);
  *   dismissible — Esc и кнопка «Закрыть» доступны (по умолчанию true);
  *   stamp       — элемент штампа над заголовком (переход этапа, ранг);
+ *   seal        — сургучная печать на клапане (окно-конверт, className "modal--envelope");
  *   initialFocus— id действия, которое получает фокус (по умолчанию первое поле
  *                 ввода или основная кнопка).
  */
@@ -43,6 +44,7 @@ export function openModal({
   actions = [{ id: "ok", label: T.ok, primary: true }],
   dismissible = true,
   stamp = null,
+  seal = null,
   initialFocus = null,
   className = "",
 } = {}) {
@@ -84,6 +86,7 @@ export function openModal({
         "aria-describedby": parts.length ? bodyId : null,
         tabindex: "-1",
       },
+      seal ? h("div", { class: "modal__seal" }, seal) : null,
       stamp ? h("div", { class: "modal__stamp" }, stamp) : null,
       h("h2", { class: "modal__title", id: titleId }, title),
       bodyNode,

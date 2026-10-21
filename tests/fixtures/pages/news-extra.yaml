@@ -1,0 +1,13 @@
+slug: news-extra
+type: news
+stage: 1
+locked: false
+brand: "{{ w.brands.news }}"
+article:
+  datetime: "2026-11-09T12:00"
+  headline: "Тестовая новость города"
+  body: "pages/news-extra/article.md"
+sidebar:
+  - { datetime: "2026-11-09T11:00", title: "Тестовая боковая новость", page: news }
+comments: []
+ads: []

@@ -21,11 +21,11 @@ from engine import salts as salts_mod
 from engine.answers import expand_all, stage_keys
 from engine.content import Content, Todo, collect_todos, load_content
 from engine.documents import RenderedDoc, render_document
-from engine.lab import dumps, expand_params, lab_entries, result_payload
+from engine.lab import dumps, expand_params, lab_entries, lab_problems, lab_site, result_payload
 from engine.media import MediaPlan
 from engine.packs import PackBuilder, build_finale, build_public, chrome_of, seal_finale, seal_pack
 from engine.pages import build_page
-from engine.templating import make_context, make_site_env, render
+from engine.templating import make_context, make_link, make_site_env, render
 from engine.util import b64u_encode, write_text
 
 SITE = ROOT / "site"
@@ -121,8 +121,13 @@ class Prepared:
 
 
 def site_base_ctx(content: Content, pub: dict) -> dict:
-    """Общий контекст шаблонов сайта (base.html)."""
-    return {"pub": pub, "chrome": chrome_of(content), "robots": ROBOTS}
+    """Общий контекст шаблонов сайта (base.html).
+
+    ``brands`` — бренды мира (world.yaml), ``lab_site`` — отрендеренные тексты ``content/lab.yaml``
+    (имя, слоган, о центре, сотрудники, контакты) для сайта лаборатории."""
+    ctx = make_context(content)
+    return {"pub": pub, "chrome": chrome_of(content), "robots": ROBOTS,
+            "brands": dict(content.world.get("brands", {})), "lab_site": lab_site(content, ctx)}
 
 
 def app_html(site_env: Any, base_ctx: dict, out_rel: str) -> str:
@@ -132,16 +137,26 @@ def app_html(site_env: Any, base_ctx: dict, out_rel: str) -> str:
                                              body_class="app")
 
 
-def prepare(content_dir: Path, salts_path: Path, *, create_salts: bool = True) -> Prepared:
-    """``create_salts=False`` (check, dump): файл солей только читается; его нет — ``BuildError``."""
+def prepare(content_dir: Path, salts_path: Path, *, create_salts: bool = True, lab_checks: bool = True) -> Prepared:
+    """``create_salts=False`` (check, dump): файл солей только читается; его нет — ``BuildError``.
+
+    ``lab_checks`` — проверки распознавания объекта и правило оснований (engine/lab.py ``lab_problems``):
+    ошибки — ``BuildError``, предупреждения — в ``content.warnings``. ``check`` выключает их здесь и
+    показывает отдельной строкой отчёта."""
     content = load_content(content_dir)
     ctx = make_context(content)
+    if lab_checks:
+        errors, warns = lab_problems(content, ctx)
+        if errors:
+            raise BuildError([str(e) for e in errors])
+        content.warnings.extend(warns)
     if create_salts:
         salts = salts_mod.ensure_for_content(content, salts_path)
     else:
         salts = salts_mod.read(salts_path)
         if salts is None:
             raise BuildError([f"нет файла солей {salts_path} — сначала python -m engine build"])
+    ctx["link"] = make_link(content.pages, salts)  # link('slug') подставляет ключи закрытых страниц
     expanded = expand_all(content, ctx)
     params = expand_params(content, ctx)
     keys = stage_keys(content, salts, expanded)

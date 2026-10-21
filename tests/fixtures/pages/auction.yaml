@@ -1,0 +1,21 @@
+slug: auction
+type: site
+stage: 4
+locked: true
+brand: "Клуб «Тестовые вечера»"
+skin: auction
+tagline: "Вход по приглашению"
+sections:
+  - id: club
+    title: "О клубе"
+    blocks:
+      - { kind: notice, text: "Вход только по приглашению." }
+      - { kind: text, md: "Тестовое описание клуба." }
+  - id: lots
+    title: "Архив лотов"
+    blocks:
+      - kind: cards
+        items:
+          - { title: "Лот № 1", subtitle: "тестовый предмет", text: "Описание лота." }
+      - { kind: table, columns: ["Дата", "Лот", "Цена"], rows: [["01.01.2020", "Тестовый предмет", "1000"]] }
+footer: "Клуб «Тестовые вечера». Тестовая страница."

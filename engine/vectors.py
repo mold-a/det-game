@@ -6,6 +6,10 @@ nonce, паддинг) выводятся из фиксированных мет
 Повторный запуск даёт побайтно тот же файл.
 
 Проверяют: ``tests/test_crypto.py`` (Python) и ``tests/js/crypto.test.mjs`` (JS).
+
+Там же — векторы распознавания объекта лаборатории ``tests/vectors/lab-match.json``
+(``engine/labmatch.py`` ↔ ``site/assets/js/core/labmatch.js``). Ожидания в них написаны руками,
+не выведены из кода: генератор сверяет с ними Python-реализацию и падает при расхождении.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ from engine import crypto as c
 from engine.normalize import normalize
 
 DEFAULT_OUT = ROOT / "tests" / "vectors" / "crypto.json"
+LAB_MATCH_OUT = ROOT / "tests" / "vectors" / "lab-match.json"
 
 # Итерации в векторах заведомо меньше игровых (кроме одного случая PBKDF2): тесты быстрые,
 # а совпадение реализаций от числа итераций не зависит.
@@ -277,4 +282,133 @@ def make_crypto_vectors(out: Path = DEFAULT_OUT) -> Path:
     out = Path(out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_crypto_vectors(), encoding="utf-8", newline="\n")
+    return out
+
+
+# ---------------------------------------------------------------- lab-match.json
+
+# Синтетический каталог (не сюжет игры): бытовые предметы, на которых видны все ветки алгоритма.
+_LM_CATALOG = [
+    {"id": "keys", "title": "Связка ключей", "aliases": ["ключ"]},
+    {"id": "coat", "title": "Пальто серое", "aliases": ["пальто"]},
+    {"id": "water", "title": "Бутылка воды из комнаты № 4", "aliases": ["бутылк", "бутыл вод"]},
+    {"id": "wine", "title": "Бутылка вина", "aliases": ["бутылк"]},
+    {"id": "camera", "title": "Камеры вокзала", "aliases": ["камер вокзал", "видеокамер"]},
+    {"id": "pills", "title": "Таблетница", "aliases": ["таблетниц", "пилюл"]},
+    {"id": "gloves", "title": "Пара перчаток", "aliases": ["перчат перчат"]},
+    {"id": "room", "title": "Гримёрка", "aliases": ["гример"]},
+]
+# Меньший каталог для проверки порядка в ``ambiguous`` и объектов без алиасов.
+_LM_SMALL = [
+    {"id": "zeta", "title": "Зеркало", "aliases": ["зерк"]},
+    {"id": "alpha", "title": "Зеркальце", "aliases": ["зерк"]},
+    {"id": "plain", "title": "Ножик складной", "aliases": []},
+]
+
+# Символы вне BMP: длина основы считается по символам, как len() в Python.
+_LM_ASTRAL = [
+    {"id": "a", "title": "x", "aliases": ["𝔎𝔎𝔎𝔎"]},
+    {"id": "b", "title": "y", "aliases": ["𝔎 ааааа"]},
+]
+
+_LM_TOKENS = [
+    ("", []),
+    ("   ", []),
+    ("!!! ... ???", []),
+    ("Ключи из кармана пальто", ["ключи", "из", "кармана", "пальто"]),
+    ("  ТАБЛЕТНИЦА,\tпогибшего\n", ["таблетница", "погибшего"]),
+    ("Гримёрка № 4", ["гримерка", "4"]),
+    ("ГРИМЁРКА", ["гримерка"]),
+    ("«Камеры» вокзала...", ["камеры", "вокзала"]),
+    ("пальто-плащ", ["пальто", "плащ"]),
+    ("за\u0301мок", ["замок"]),
+    ("Ёлка и ёж", ["елка", "и", "еж"]),
+    ("𝔎𝔎 а", ["𝔎𝔎", "а"]),
+]
+
+# (каталог, ввод, ожидание, пояснение)
+_LM_RESOLVE: list[tuple[str, str, dict, str]] = [
+    ("main", "", {"status": "none"}, "пустая строка"),
+    ("main", "   \t ", {"status": "none"}, "одни пробелы"),
+    ("main", "?!..", {"status": "none"}, "одна пунктуация"),
+    ("main", "ключи", {"status": "ok", "id": "keys"}, "основа «ключ» подходит токену «ключи»"),
+    ("main", "Ключ", {"status": "ok", "id": "keys"}, "регистр"),
+    ("main", "ключей", {"status": "ok", "id": "keys"}, "падеж: «ключей» начинается с «ключ»"),
+    ("main", "ключа", {"status": "ok", "id": "keys"}, "падеж"),
+    ("main", "Ключи из кармана пальто", {"status": "ok", "id": "keys"},
+     "pos 0 («ключ») раньше pos 3 («пальто»)"),
+    ("main", "пальто и ключи", {"status": "ok", "id": "coat"}, "pos 0 у «пальто» раньше pos 2 у «ключи»"),
+    ("main", "пальто", {"status": "ok", "id": "coat"}, "основа равна токену"),
+    ("main", "Связка ключей", {"status": "ok", "id": "keys"}, "название как алиас: «связка» и «ключей»"),
+    ("main", "связка", {"status": "none"}, "одной основы названия мало: алиас-название требует все токены"),
+    ("main", "таблетницу", {"status": "ok", "id": "pills"}, "падеж: винительный"),
+    ("main", "в таблетнице", {"status": "ok", "id": "pills"}, "падеж: предложный, предлог не мешает"),
+    ("main", "ТАБЛЕТНИЦЫ!!!", {"status": "ok", "id": "pills"}, "пунктуация и регистр"),
+    ("main", "таблетница", {"status": "ok", "id": "pills"}, "название из одного токена"),
+    ("main", "Гримёрка", {"status": "ok", "id": "room"}, "«ё» в вводе и в названии"),
+    ("main", "гримерка", {"status": "ok", "id": "room"}, "«е» вместо «ё»"),
+    ("main", "ГРИМЁРКЕ", {"status": "ok", "id": "room"}, "падеж и «ё»"),
+    ("main", "камеры на вокзале", {"status": "ok", "id": "camera"}, "многословный алиас: «камер» + «вокзал»"),
+    ("main", "вокзал камера", {"status": "ok", "id": "camera"}, "порядок основ в вводе не важен"),
+    ("main", "камеры", {"status": "none"}, "многословному алиасу нужны обе основы"),
+    ("main", "вокзала", {"status": "none"}, "то же: одна из двух основ"),
+    ("main", "камера камера вокзала", {"status": "ok", "id": "camera"},
+     "основа «камер» занимает самый ранний токен, «вокзал» — следующий подходящий"),
+    ("main", "видеокамеру", {"status": "ok", "id": "camera"}, "однословный алиас «видеокамер»"),
+    ("main", "перчатка", {"status": "none"}, "повтор основы: одного токена мало"),
+    ("main", "перчатка и ещё перчатка", {"status": "ok", "id": "gloves"}, "повтор основы: нужны два токена"),
+    ("main", "перчатки перчатка", {"status": "ok", "id": "gloves"}, "два разных токена с одной основой"),
+    ("main", "Пара перчаток", {"status": "ok", "id": "gloves"}, "название: «пара» и «перчаток»"),
+    ("main", "бутылка", {"status": "ambiguous", "ids": ["water", "wine"]},
+     "две бутылки с одинаковым ключом (0, -6): неоднозначно, порядок как в каталоге"),
+    ("main", "Бутылку!", {"status": "ambiguous", "ids": ["water", "wine"]}, "падеж и пунктуация"),
+    ("main", "бутылка воды", {"status": "ok", "id": "water"}, "score 9 у «бутыл вод» против 6 у «бутылк» вина"),
+    ("main", "бутылка вина", {"status": "ok", "id": "wine"}, "score 12 у названия «бутылка вина»"),
+    ("main", "бутылка воды из комнаты 4", {"status": "ok", "id": "water"}, "название целиком"),
+    ("main", "Бутылка воды из комнаты № 4", {"status": "ok", "id": "water"}, "название с «№ 4»"),
+    ("main", "откуда эта бутылка воды", {"status": "ok", "id": "water"}, "pos 2 у обоих, score решает"),
+    ("main", "нож", {"status": "none"}, "нет такого предмета"),
+    ("main", "ки", {"status": "none"}, "слишком короткий ввод: «ключ» не начинается с «ки»"),
+    ("main", "ключ пилюли", {"status": "ok", "id": "keys"}, "pos 0 у ключей, pos 1 у таблетницы"),
+    ("main", "пилюли ключ", {"status": "ok", "id": "pills"}, "pos 0 у таблетницы"),
+    ("small", "зеркала", {"status": "ambiguous", "ids": ["zeta", "alpha"]},
+     "порядок каталога, а не алфавит: zeta идёт раньше alpha"),
+    ("small", "зеркало", {"status": "ok", "id": "zeta"}, "название «зеркало»: score 7 против 4 у «зерк»"),
+    ("small", "зеркальце", {"status": "ok", "id": "alpha"}, "название «зеркальце»: score 9 против 4 у «зерк»"),
+    ("small", "Ножик складной", {"status": "ok", "id": "plain"}, "объект без алиасов распознаётся по названию"),
+    ("small", "ножик", {"status": "none"}, "без алиасов одного слова названия мало"),
+    ("astral", "𝔎𝔎𝔎𝔎 ааааа", {"status": "ok", "id": "b"},
+     "score считается в символах Unicode (6 против 4), а не в единицах UTF-16 (7 против 8)"),
+    ("astral", "𝔎𝔎𝔎𝔎", {"status": "ok", "id": "a"}, "символы вне BMP — обычные буквы; название короче 3 символов не алиас"),
+]
+
+
+def _lab_match_vectors() -> dict:
+    from engine.labmatch import lab_tokens, resolve_object
+
+    catalogs = {"main": _LM_CATALOG, "small": _LM_SMALL, "astral": _LM_ASTRAL}
+    for text, want in _LM_TOKENS:
+        got = lab_tokens(text)
+        assert got == want, f"lab-match tokens {text!r}: {got} != {want}"
+    for cat, text, want, note in _LM_RESOLVE:
+        got = resolve_object(text, catalogs[cat])
+        assert got == want, f"lab-match resolve {cat}/{text!r} ({note}): {got} != {want}"
+    return {
+        "_comment": "Сгенерировано `python -m engine vectors` (engine/vectors.py). Не редактировать руками. "
+        "Ожидания написаны вручную и сверяются с engine/labmatch.py при генерации.",
+        "version": 1,
+        "tokens": [{"input": t, "tokens": w} for t, w in _LM_TOKENS],
+        "catalogs": catalogs,
+        "resolve": [{"catalog": c, "input": t, "expected": w, "note": n} for c, t, w, n in _LM_RESOLVE],
+    }
+
+
+def render_lab_match_vectors() -> str:
+    return json.dumps(_lab_match_vectors(), ensure_ascii=False, indent=2) + "\n"
+
+
+def make_lab_match_vectors(out: Path = LAB_MATCH_OUT) -> Path:
+    out = Path(out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_lab_match_vectors(), encoding="utf-8", newline="\n")
     return out

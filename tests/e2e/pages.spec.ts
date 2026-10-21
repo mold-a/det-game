@@ -81,11 +81,10 @@ test.describe("телефон 360 px", () => {
     await expect(post.locator("time")).toHaveText("10.11.2026, 19:30");
     await expectClue(post.locator(".kr-post__geo"));
     await expect(post.locator(".kr-post__geo")).toHaveText("Северогорск");
-    // Декоративные кнопки неактивны и ничего не открывают.
+    // Действия аккаунта открывают окно сервиса (REDESIGN §4.1), а не «мёртвые» кнопки.
     for (const name of ["Подписаться", "Написать", "Войти"]) {
-      await expect(page.getByRole("button", { name })).toBeDisabled();
+      await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
     }
-    await expect(post.getByRole("button", { name: /Нравится/ })).toBeDisabled();
     await expectNoHorizontalScroll(page);
   });
 
@@ -275,4 +274,105 @@ test.describe("ноутбук 1280 px", () => {
       expect(errors).toEqual([]);
     });
   }
+});
+
+
+// ---------------------------------------------------------------- рабочие элементы (REDESIGN-2026-10 §4.1)
+
+/** Окно сервиса открыто, в нём «Понятно»; закрывается кнопкой, фокус возвращается на кнопку-источник. */
+async function expectServiceDialog(page: Page, opener: Locator, textPart: RegExp | string) {
+  await opener.click();
+  const dlg = page.locator("dialog.svc-dialog[open]");
+  await expect(dlg).toBeVisible();
+  await expect(dlg).toContainText(textPart);
+  const ok = dlg.getByRole("button", { name: "Понятно" });
+  await expect(ok).toBeFocused();
+  await ok.click();
+  await expect(dlg).toBeHidden();
+  await expect(opener).toBeFocused();
+}
+
+test.describe("рабочие элементы: «Круг»", () => {
+  test.use({ viewport: PHONE, hasTouch: true });
+
+  test("gromov: окна «войдите в «Круг»», фокус, Esc", async ({ page }) => {
+    await openPage(page, "gromov");
+    await expectServiceDialog(page, page.getByRole("button", { name: "Подписаться", exact: true }), /Чтобы подписаться, войдите в «Круг»/);
+    await expectServiceDialog(page, page.getByRole("button", { name: "Написать", exact: true }), /войдите в «Круг»/);
+    const like = page.locator(".kr-post").first().getByRole("button", { name: /Нравится/ });
+    await expectServiceDialog(page, like, /войдите в «Круг»/);
+    // Esc закрывает окно, форм входа нет.
+    await page.getByRole("button", { name: "Войти", exact: true }).click();
+    await expect(page.locator("dialog.svc-dialog input")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.locator("dialog.svc-dialog[open]")).toHaveCount(0);
+    await expectNoHorizontalScroll(page);
+  });
+
+  test("gromov: вкладки работают с клавиатуры, фото открывается крупно, подвал", async ({ page }) => {
+    await openPage(page, "gromov");
+    const tabs = page.getByRole("tab");
+    await expect(tabs).toHaveCount(3);
+    await expect(page.getByRole("tabpanel", { name: "Публикации" })).toBeVisible();
+    await tabs.first().focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByRole("tab", { name: "Фото" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("tabpanel", { name: "Фото" })).toBeVisible();
+    await expect(page.locator("#kr-panel-posts")).toBeHidden();
+    await page.getByRole("tab", { name: "Сведения" }).click();
+    await expect(page.locator("#kr-panel-about")).toContainText("Громова");
+    await page.getByRole("tab", { name: "Фото" }).click();
+    const tile = page.locator(".kr-zoom--tile").first();
+    await tile.click();
+    const zoom = page.locator("dialog.svc-zoom[open]");
+    await expect(zoom).toBeVisible();
+    await zoom.getByRole("button", { name: "Закрыть" }).click();
+    await expect(zoom).toBeHidden();
+    // Подвал: «О сервисе» — короткий текст из content/pages/_brands.yaml.
+    await page.getByRole("button", { name: "О сервисе" }).click();
+    await expect(page.locator("dialog.svc-dialog[open]")).toContainText("Круг");
+    await page.keyboard.press("Escape");
+  });
+
+  test("ссылки: автор без страницы → заглушка, логотип → главная, поиск людей", async ({ page }) => {
+    await openPage(page, "gromov");
+    await page.locator(".kr-comment__author", { hasText: "Тамара Ведерникова" }).click();
+    await expect(page).toHaveURL(/\/p\/krug-private\/$/);
+    await expect(page.getByRole("heading", { name: /ограничил доступ/ })).toBeVisible();
+    await page.getByRole("link", { name: /Круг: главная/ }).click();
+    await expect(page).toHaveURL(/\/p\/krug\/$/);
+    const q = page.locator("#kr-q");
+    await q.fill("громова");
+    await expect(page.locator(".kr-person:visible")).toHaveCount(1);
+    await q.fill("нет такого человека");
+    await expect(page.locator(".kr-person:visible")).toHaveCount(0);
+    await expect(page.locator('[data-role="empty"]')).toBeVisible();
+    await q.fill("");
+    await page.locator(".kr-person__link").first().click();
+    await expect(page).toHaveURL(/\/p\/gromov\/$/);
+    await expectNoHorizontalScroll(page);
+  });
+
+  test("news и inna: окна сервиса, логотип, подвал", async ({ page }) => {
+    await openPage(page, "news");
+    await expectServiceDialog(page, page.getByRole("button", { name: "Войти", exact: true }), /войти/i);
+    await expectServiceDialog(page, page.getByRole("button", { name: "Спорт", exact: true }), /Раздел «Спорт»/);
+    await expectServiceDialog(page, page.getByRole("button", { name: "О портале" }), /портал/i);
+    await openPage(page, "inna");
+    await expectServiceDialog(page, page.getByRole("button", { name: "Подписаться", exact: true }), /Чтобы подписаться, войдите в «Кадр»/);
+    await expectServiceDialog(page, page.getByRole("button", { name: "Войти", exact: true }), /«Кадр»/);
+    await page.locator(".kd-tile button").first().click();
+    await expectServiceDialog(page, page.locator("dialog.kd-view").getByRole("button", { name: "Отметить" }), /«Кадр»/);
+    await page.locator("dialog.kd-view").getByRole("button", { name: "Закрыть" }).click();
+    await expectNoHorizontalScroll(page);
+  });
+
+  test("pharma и cloud: подвал и учётная запись", async ({ page }) => {
+    await openPage(page, "pharma");
+    await expectServiceDialog(page, page.getByRole("button", { name: "О справочнике" }), /справочник/i);
+    await openPage(page, "cloud");
+    await expectServiceDialog(page, page.locator(".tc-bar__account"), /учётной записью/);
+    await page.locator('[data-folder-link="for_m"], .tc-folder--locked').first().click();
+    await expectServiceDialog(page, page.getByRole("button", { name: "Ввести пароль" }), /отдельный пароль/);
+  });
 });

@@ -1,11 +1,16 @@
 {% extends "base.html" %}
-{# Система расследования: данные оформления (F19) — в data-* для app/context.js; интерфейс строит JS. #}
-{% block body_attrs %} data-system="{{ chrome.system }}" data-department="{{ chrome.department }}" data-case-no="{{ chrome.caseNo }}"{% endblock %}
+{# Сайт экспертного центра (docs/04 «/lab/», docs/05 §2): своя марка и палитра — lab.css.
+   Данные оформления (F19) — в data-* для app/context.js; интерфейс строит app/lab.js.
+   lab_site — тексты из content/lab.yaml (docs/03); их нет — сайт показывает нейтральные строки. #}
+{% block head_extra %}<link rel="stylesheet" href="/assets/css/lab.css">{% endblock %}
+{% block body_attrs %} data-system="{{ chrome.system }}" data-department="{{ chrome.department }}" data-case-no="{{ chrome.caseNo }}" data-site="prizma"{% endblock %}
 {% block body %}
+{% set ls = lab_site if (lab_site is defined and lab_site) else none %}
+{% if ls %}<script type="application/json" id="lab-site">{{ ls | tojson }}</script>{% endif %}
 <main id="app" class="app app--lab">
   <div class="intro">
-    <h1 class="intro__title">Лаборатория</h1>
-    <p class="intro__system">{{ chrome.system }}. Дело №&nbsp;{{ chrome.caseNo }}</p>
+    <h1 class="intro__title">{{ ls.get("full_name") or "Лаборатория" if ls else "Лаборатория" }}</h1>
+    <p class="intro__system">Дело №&nbsp;{{ chrome.caseNo }}</p>
     <p>Загрузка…</p>
   </div>
 </main>

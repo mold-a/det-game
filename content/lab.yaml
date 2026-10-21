@@ -1,0 +1,20 @@
+# Сайт лаборатории «Призма» (/lab/): тексты разделов «Услуги», «О центре», «Контакты»
+# (REDESIGN-2026-10 §2, §6.3; docs/03 §«lab.yaml»). Открытый текст: попадает в dist/ как есть,
+# поэтому никаких ответов, улик и фактов дела — только атмосфера вымышленной организации.
+# Описания видов исследований (types[].description) — в expertise.yaml.
+# Всё ниже — заглушки: сценарист пришлёт текст (docs/drafts/lab/lab.yaml), интеграция — режиссёр.
+
+name: "{{ w.brands.lab }}"
+full_name: "{{ w.brands.lab_full }}"
+tagline: "TODO(content): слоган лаборатории (сценарист)"
+about: |
+  TODO(content): раздел «О центре» (Markdown): история, аккредитация, как устроена работа с заказчиками.
+accreditation: "TODO(content): строка об аккредитации (вымышленный номер и орган)"
+staff:
+  - { name: "TODO(content): имя эксперта (фоновое)", role: "TODO(content): должность" }
+contacts:
+  address: "TODO(content): адрес в {{ w.city_pre }}"
+  phone: "TODO(content): телефон"
+  hours: "TODO(content): часы работы"
+  email: "TODO(content): электронная почта"
+services_note: "Срок — 1 рабочий день; основание обязательно."   # формулировка режиссёра, REDESIGN §2

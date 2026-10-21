@@ -1,0 +1,35 @@
+# Тестовая фикстура (не сюжет): сайт организации со скином theater. В content/ не попадает.
+slug: theater
+type: site
+stage: 1
+locked: false
+brand: "Театр «Тестовый»"
+skin: theater
+tagline: "Тестовая афиша для проверки вёрстки"
+sections:
+  - id: afisha
+    title: "Афиша"
+    blocks:
+      - { kind: notice, text: "Тестовая плашка: ближайшие показы отменены." }
+      - kind: cards
+        title: "Ближайшее"
+        items:
+          - { title: "Тестовая премьера", subtitle: "10 ноября, 19:00", text: "Проверочный текст карточки афиши.", photo: null }
+          - { title: "Второй показ", subtitle: "12 ноября, 18:30", text: "Ещё одна карточка." }
+      - { kind: table, title: "Репертуар", columns: ["Дата", "Спектакль"], rows: [["10.11", "Тестовая премьера"], ["12.11", "Второй показ"]] }
+  - id: troupe
+    title: "Труппа"
+    blocks:
+      - kind: cards
+        items:
+          - { title: "Актёр Тестовый", subtitle: "артист", text: "Фоновая карточка.", page: krug-actor, link_text: "Страница в «Круге»" }
+          - { title: "Актриса Проверочная", subtitle: "артистка" }
+  - id: about
+    title: "О театре"
+    blocks:
+      - { kind: text, md: "Тестовый абзац о театре. Партнёр театра — [фонд «Тестовый»]({{ link('fund') }})." }
+  - id: contacts
+    title: "Контакты"
+    blocks:
+      - { kind: text, md: "Тестовый адрес и телефон." }
+footer: "© Театр «Тестовый». Тестовая страница."

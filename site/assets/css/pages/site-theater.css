@@ -1,0 +1,199 @@
+/*
+ * pages/site-theater.css — скин театра: бархат, афиша, классика.
+ * Шапка — бордовый бархат с вертикальными складками и золотой бахромой; заголовки PT Serif, золотой акцент.
+ * Афиша — крупные даты и строки программки; траурная плашка — чёрная лента с золотой линией.
+ * Светлая тема: пергамент #F6EEDD, текст #2B1A1C; тёмная — «зал при выключенном свете».
+ * Золото на светлом — #8A6516 (5,1:1 на пергаменте), на бархате — #E3C173 (7,2:1).
+ */
+
+body.page--site:has(.st--theater) {
+  --st-bg: #e9dfca;
+  --st-page: #f6eedd;
+  --st-card: #fbf6ea;
+  --st-ink: #2b1a1c;
+  --st-muted: #5d4a47;
+  --st-line: #d8c9a8;
+  --st-accent: #e3c173;
+  --st-accent-ink: #2b1214;
+  --st-accent-solid: #7a1530;
+  --st-link: #8a1d38;
+  --st-h: #5a1224;
+  --st-head-bg: #5a1224;
+  --st-head-ink: #f7ecd6;
+  --st-head-muted: #e8d6b4;
+  --st-mark: #e3c173;
+  --st-focus: #8a1d38;
+  --st-font-head: var(--font-serif);
+  --st-font-logo: var(--font-serif);
+  --st-font-text: var(--font-serif);
+  --st-logo-size: 24px;
+  --st-radius: 2px;
+  --st-notice-bg: #1d1416;
+  --st-notice-ink: #f4e9d2;
+  --st-notice-bar: #e3c173;
+  --st-notice-line: #e3c173;
+  --st-foot-bg: #3c0d19;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.page--site:has(.st--theater) {
+    --st-bg: #120b0c;
+    --st-page: #1c1315;
+    --st-card: #261a1d;
+    --st-ink: #f1e5d0;
+    --st-muted: #c4b49b;
+    --st-line: #43302f;
+    --st-link: #eab4be;
+    --st-h: #f0d79a;
+    --st-head-bg: #4b0f1f;
+    --st-focus: #e3c173;
+    --st-foot-bg: #170f11;
+    color-scheme: dark;
+  }
+}
+
+/* шапка: складки занавеса и бахрома */
+.st--theater .st-head {
+  position: relative;
+  padding-bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 26px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 12px, transparent 12px 52px), var(--st-head-bg);
+  border-bottom: 4px solid #e3c173;
+  box-shadow: 0 6px 0 -2px rgba(227, 193, 115, 0.45);
+}
+
+.st--theater .st-logo {
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.st--theater .st-tagline {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+.st--theater .st-nav__link {
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+
+.st--theater .st-nav__link.is-current {
+  color: #e3c173 !important;
+}
+
+.st--theater .st-section__h {
+  position: relative;
+  padding-bottom: 14px;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.st--theater .st-section__h::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 120px;
+  height: 7px;
+  border-top: 1px solid #b38a2c;
+  border-bottom: 1px solid #b38a2c;
+}
+
+.st--theater .st-block__h {
+  font-style: italic;
+}
+
+/* афиша: карточки как билеты */
+.st--theater .st-card {
+  position: relative;
+  border-color: #cdb98f;
+  border-top: 5px solid #7a1530;
+  background: var(--st-card);
+}
+
+.st--theater .st-card__h {
+  font-size: 21px;
+}
+
+.st--theater .st-card__sub {
+  color: #8a6516;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+@media (prefers-color-scheme: dark) {
+  .st--theater .st-card {
+    border-color: #4f3a37;
+    border-top-color: #b32a4a;
+  }
+
+  .st--theater .st-card__sub {
+    color: #e3c173;
+  }
+}
+
+.st--theater .st-card__link {
+  text-decoration-thickness: 1px;
+}
+
+/* траурная плашка и прочие notice */
+.st--theater .st-notice {
+  position: relative;
+  padding-left: 52px;
+  border-width: 1px;
+  border-left-width: 1px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  text-align: left;
+}
+
+.st--theater .st-notice::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  top: 14px;
+  width: 16px;
+  height: 22px;
+  background: linear-gradient(#e3c173 0 0) center / 4px 100% no-repeat;
+  clip-path: polygon(50% 0, 100% 40%, 62% 100%, 38% 100%, 0 40%);
+  background-color: #e3c173;
+  opacity: 0.9;
+}
+
+/* таблица-программка */
+.st--theater .st-table {
+  font-family: var(--font-serif);
+}
+
+.st--theater .st-table td:first-child {
+  color: #7a1530;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .st--theater .st-table td:first-child {
+    color: #eab4be;
+  }
+}
+
+@media (min-width: 640px) {
+  .st--theater .st-table th {
+    border-bottom: 2px solid #b38a2c;
+  }
+
+  .st--theater .st-table tr:nth-child(even) td {
+    background: rgba(179, 138, 44, 0.07);
+  }
+}
+
+.st--theater .st-foot {
+  border-top: 4px solid #e3c173;
+  color: #e8d6b4;
+}
+
+.st--theater .st-foot__link {
+  color: #f0d79a !important;
+}

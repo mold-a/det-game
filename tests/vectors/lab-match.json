@@ -1,0 +1,606 @@
+{
+  "_comment": "Сгенерировано `python -m engine vectors` (engine/vectors.py). Не редактировать руками. Ожидания написаны вручную и сверяются с engine/labmatch.py при генерации.",
+  "version": 1,
+  "tokens": [
+    {
+      "input": "",
+      "tokens": []
+    },
+    {
+      "input": "   ",
+      "tokens": []
+    },
+    {
+      "input": "!!! ... ???",
+      "tokens": []
+    },
+    {
+      "input": "Ключи из кармана пальто",
+      "tokens": [
+        "ключи",
+        "из",
+        "кармана",
+        "пальто"
+      ]
+    },
+    {
+      "input": "  ТАБЛЕТНИЦА,\tпогибшего\n",
+      "tokens": [
+        "таблетница",
+        "погибшего"
+      ]
+    },
+    {
+      "input": "Гримёрка № 4",
+      "tokens": [
+        "гримерка",
+        "4"
+      ]
+    },
+    {
+      "input": "ГРИМЁРКА",
+      "tokens": [
+        "гримерка"
+      ]
+    },
+    {
+      "input": "«Камеры» вокзала...",
+      "tokens": [
+        "камеры",
+        "вокзала"
+      ]
+    },
+    {
+      "input": "пальто-плащ",
+      "tokens": [
+        "пальто",
+        "плащ"
+      ]
+    },
+    {
+      "input": "за́мок",
+      "tokens": [
+        "замок"
+      ]
+    },
+    {
+      "input": "Ёлка и ёж",
+      "tokens": [
+        "елка",
+        "и",
+        "еж"
+      ]
+    },
+    {
+      "input": "𝔎𝔎 а",
+      "tokens": [
+        "𝔎𝔎",
+        "а"
+      ]
+    }
+  ],
+  "catalogs": {
+    "main": [
+      {
+        "id": "keys",
+        "title": "Связка ключей",
+        "aliases": [
+          "ключ"
+        ]
+      },
+      {
+        "id": "coat",
+        "title": "Пальто серое",
+        "aliases": [
+          "пальто"
+        ]
+      },
+      {
+        "id": "water",
+        "title": "Бутылка воды из комнаты № 4",
+        "aliases": [
+          "бутылк",
+          "бутыл вод"
+        ]
+      },
+      {
+        "id": "wine",
+        "title": "Бутылка вина",
+        "aliases": [
+          "бутылк"
+        ]
+      },
+      {
+        "id": "camera",
+        "title": "Камеры вокзала",
+        "aliases": [
+          "камер вокзал",
+          "видеокамер"
+        ]
+      },
+      {
+        "id": "pills",
+        "title": "Таблетница",
+        "aliases": [
+          "таблетниц",
+          "пилюл"
+        ]
+      },
+      {
+        "id": "gloves",
+        "title": "Пара перчаток",
+        "aliases": [
+          "перчат перчат"
+        ]
+      },
+      {
+        "id": "room",
+        "title": "Гримёрка",
+        "aliases": [
+          "гример"
+        ]
+      }
+    ],
+    "small": [
+      {
+        "id": "zeta",
+        "title": "Зеркало",
+        "aliases": [
+          "зерк"
+        ]
+      },
+      {
+        "id": "alpha",
+        "title": "Зеркальце",
+        "aliases": [
+          "зерк"
+        ]
+      },
+      {
+        "id": "plain",
+        "title": "Ножик складной",
+        "aliases": []
+      }
+    ],
+    "astral": [
+      {
+        "id": "a",
+        "title": "x",
+        "aliases": [
+          "𝔎𝔎𝔎𝔎"
+        ]
+      },
+      {
+        "id": "b",
+        "title": "y",
+        "aliases": [
+          "𝔎 ааааа"
+        ]
+      }
+    ]
+  },
+  "resolve": [
+    {
+      "catalog": "main",
+      "input": "",
+      "expected": {
+        "status": "none"
+      },
+      "note": "пустая строка"
+    },
+    {
+      "catalog": "main",
+      "input": "   \t ",
+      "expected": {
+        "status": "none"
+      },
+      "note": "одни пробелы"
+    },
+    {
+      "catalog": "main",
+      "input": "?!..",
+      "expected": {
+        "status": "none"
+      },
+      "note": "одна пунктуация"
+    },
+    {
+      "catalog": "main",
+      "input": "ключи",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "основа «ключ» подходит токену «ключи»"
+    },
+    {
+      "catalog": "main",
+      "input": "Ключ",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "регистр"
+    },
+    {
+      "catalog": "main",
+      "input": "ключей",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "падеж: «ключей» начинается с «ключ»"
+    },
+    {
+      "catalog": "main",
+      "input": "ключа",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "падеж"
+    },
+    {
+      "catalog": "main",
+      "input": "Ключи из кармана пальто",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "pos 0 («ключ») раньше pos 3 («пальто»)"
+    },
+    {
+      "catalog": "main",
+      "input": "пальто и ключи",
+      "expected": {
+        "status": "ok",
+        "id": "coat"
+      },
+      "note": "pos 0 у «пальто» раньше pos 2 у «ключи»"
+    },
+    {
+      "catalog": "main",
+      "input": "пальто",
+      "expected": {
+        "status": "ok",
+        "id": "coat"
+      },
+      "note": "основа равна токену"
+    },
+    {
+      "catalog": "main",
+      "input": "Связка ключей",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "название как алиас: «связка» и «ключей»"
+    },
+    {
+      "catalog": "main",
+      "input": "связка",
+      "expected": {
+        "status": "none"
+      },
+      "note": "одной основы названия мало: алиас-название требует все токены"
+    },
+    {
+      "catalog": "main",
+      "input": "таблетницу",
+      "expected": {
+        "status": "ok",
+        "id": "pills"
+      },
+      "note": "падеж: винительный"
+    },
+    {
+      "catalog": "main",
+      "input": "в таблетнице",
+      "expected": {
+        "status": "ok",
+        "id": "pills"
+      },
+      "note": "падеж: предложный, предлог не мешает"
+    },
+    {
+      "catalog": "main",
+      "input": "ТАБЛЕТНИЦЫ!!!",
+      "expected": {
+        "status": "ok",
+        "id": "pills"
+      },
+      "note": "пунктуация и регистр"
+    },
+    {
+      "catalog": "main",
+      "input": "таблетница",
+      "expected": {
+        "status": "ok",
+        "id": "pills"
+      },
+      "note": "название из одного токена"
+    },
+    {
+      "catalog": "main",
+      "input": "Гримёрка",
+      "expected": {
+        "status": "ok",
+        "id": "room"
+      },
+      "note": "«ё» в вводе и в названии"
+    },
+    {
+      "catalog": "main",
+      "input": "гримерка",
+      "expected": {
+        "status": "ok",
+        "id": "room"
+      },
+      "note": "«е» вместо «ё»"
+    },
+    {
+      "catalog": "main",
+      "input": "ГРИМЁРКЕ",
+      "expected": {
+        "status": "ok",
+        "id": "room"
+      },
+      "note": "падеж и «ё»"
+    },
+    {
+      "catalog": "main",
+      "input": "камеры на вокзале",
+      "expected": {
+        "status": "ok",
+        "id": "camera"
+      },
+      "note": "многословный алиас: «камер» + «вокзал»"
+    },
+    {
+      "catalog": "main",
+      "input": "вокзал камера",
+      "expected": {
+        "status": "ok",
+        "id": "camera"
+      },
+      "note": "порядок основ в вводе не важен"
+    },
+    {
+      "catalog": "main",
+      "input": "камеры",
+      "expected": {
+        "status": "none"
+      },
+      "note": "многословному алиасу нужны обе основы"
+    },
+    {
+      "catalog": "main",
+      "input": "вокзала",
+      "expected": {
+        "status": "none"
+      },
+      "note": "то же: одна из двух основ"
+    },
+    {
+      "catalog": "main",
+      "input": "камера камера вокзала",
+      "expected": {
+        "status": "ok",
+        "id": "camera"
+      },
+      "note": "основа «камер» занимает самый ранний токен, «вокзал» — следующий подходящий"
+    },
+    {
+      "catalog": "main",
+      "input": "видеокамеру",
+      "expected": {
+        "status": "ok",
+        "id": "camera"
+      },
+      "note": "однословный алиас «видеокамер»"
+    },
+    {
+      "catalog": "main",
+      "input": "перчатка",
+      "expected": {
+        "status": "none"
+      },
+      "note": "повтор основы: одного токена мало"
+    },
+    {
+      "catalog": "main",
+      "input": "перчатка и ещё перчатка",
+      "expected": {
+        "status": "ok",
+        "id": "gloves"
+      },
+      "note": "повтор основы: нужны два токена"
+    },
+    {
+      "catalog": "main",
+      "input": "перчатки перчатка",
+      "expected": {
+        "status": "ok",
+        "id": "gloves"
+      },
+      "note": "два разных токена с одной основой"
+    },
+    {
+      "catalog": "main",
+      "input": "Пара перчаток",
+      "expected": {
+        "status": "ok",
+        "id": "gloves"
+      },
+      "note": "название: «пара» и «перчаток»"
+    },
+    {
+      "catalog": "main",
+      "input": "бутылка",
+      "expected": {
+        "status": "ambiguous",
+        "ids": [
+          "water",
+          "wine"
+        ]
+      },
+      "note": "две бутылки с одинаковым ключом (0, -6): неоднозначно, порядок как в каталоге"
+    },
+    {
+      "catalog": "main",
+      "input": "Бутылку!",
+      "expected": {
+        "status": "ambiguous",
+        "ids": [
+          "water",
+          "wine"
+        ]
+      },
+      "note": "падеж и пунктуация"
+    },
+    {
+      "catalog": "main",
+      "input": "бутылка воды",
+      "expected": {
+        "status": "ok",
+        "id": "water"
+      },
+      "note": "score 9 у «бутыл вод» против 6 у «бутылк» вина"
+    },
+    {
+      "catalog": "main",
+      "input": "бутылка вина",
+      "expected": {
+        "status": "ok",
+        "id": "wine"
+      },
+      "note": "score 12 у названия «бутылка вина»"
+    },
+    {
+      "catalog": "main",
+      "input": "бутылка воды из комнаты 4",
+      "expected": {
+        "status": "ok",
+        "id": "water"
+      },
+      "note": "название целиком"
+    },
+    {
+      "catalog": "main",
+      "input": "Бутылка воды из комнаты № 4",
+      "expected": {
+        "status": "ok",
+        "id": "water"
+      },
+      "note": "название с «№ 4»"
+    },
+    {
+      "catalog": "main",
+      "input": "откуда эта бутылка воды",
+      "expected": {
+        "status": "ok",
+        "id": "water"
+      },
+      "note": "pos 2 у обоих, score решает"
+    },
+    {
+      "catalog": "main",
+      "input": "нож",
+      "expected": {
+        "status": "none"
+      },
+      "note": "нет такого предмета"
+    },
+    {
+      "catalog": "main",
+      "input": "ки",
+      "expected": {
+        "status": "none"
+      },
+      "note": "слишком короткий ввод: «ключ» не начинается с «ки»"
+    },
+    {
+      "catalog": "main",
+      "input": "ключ пилюли",
+      "expected": {
+        "status": "ok",
+        "id": "keys"
+      },
+      "note": "pos 0 у ключей, pos 1 у таблетницы"
+    },
+    {
+      "catalog": "main",
+      "input": "пилюли ключ",
+      "expected": {
+        "status": "ok",
+        "id": "pills"
+      },
+      "note": "pos 0 у таблетницы"
+    },
+    {
+      "catalog": "small",
+      "input": "зеркала",
+      "expected": {
+        "status": "ambiguous",
+        "ids": [
+          "zeta",
+          "alpha"
+        ]
+      },
+      "note": "порядок каталога, а не алфавит: zeta идёт раньше alpha"
+    },
+    {
+      "catalog": "small",
+      "input": "зеркало",
+      "expected": {
+        "status": "ok",
+        "id": "zeta"
+      },
+      "note": "название «зеркало»: score 7 против 4 у «зерк»"
+    },
+    {
+      "catalog": "small",
+      "input": "зеркальце",
+      "expected": {
+        "status": "ok",
+        "id": "alpha"
+      },
+      "note": "название «зеркальце»: score 9 против 4 у «зерк»"
+    },
+    {
+      "catalog": "small",
+      "input": "Ножик складной",
+      "expected": {
+        "status": "ok",
+        "id": "plain"
+      },
+      "note": "объект без алиасов распознаётся по названию"
+    },
+    {
+      "catalog": "small",
+      "input": "ножик",
+      "expected": {
+        "status": "none"
+      },
+      "note": "без алиасов одного слова названия мало"
+    },
+    {
+      "catalog": "astral",
+      "input": "𝔎𝔎𝔎𝔎 ааааа",
+      "expected": {
+        "status": "ok",
+        "id": "b"
+      },
+      "note": "score считается в символах Unicode (6 против 4), а не в единицах UTF-16 (7 против 8)"
+    },
+    {
+      "catalog": "astral",
+      "input": "𝔎𝔎𝔎𝔎",
+      "expected": {
+        "status": "ok",
+        "id": "a"
+      },
+      "note": "символы вне BMP — обычные буквы; название короче 3 символов не алиас"
+    }
+  ]
+}

@@ -108,22 +108,41 @@ export async function solve(page: Page, q: Question) {
   await expect(article(page, q.path)).toHaveClass(/q--solved/, { timeout: 30_000 });
 }
 
-/** Запрос в лабораторию со страницы /lab/. → текст сообщения. */
-export async function labRequest(page: Page, e: LabEntry, basis?: string) {
-  const sels = page.locator(".lab-form__grid select");
-  await sels.nth(0).selectOption(e.object);
-  await sels.nth(1).selectOption(e.types[0]);
-  const options = await sels.nth(2).locator("option").evaluateAll((els) => els.map((o) => (o as HTMLOptionElement).value));
+/**
+ * Текст, которым команда называет объект в заявке: название объекта из описи
+ * (dump-answers: objectTitle; до него — часть title результата до «: »).
+ */
+export function objectText(e: LabEntry): string {
+  const any = e as any;
+  return any.objectTitle ?? any.object_title ?? String(any.title ?? e.object).split(": ")[0];
+}
+
+/** Сообщение формы заявки после отправки. */
+export async function labMessage(page: Page) {
+  const msg = page.locator(".lab-form .lab-msg");
+  await expect(msg).not.toHaveText("", { timeout: 15_000 });
+  return ((await msg.textContent()) ?? "").trim();
+}
+
+/**
+ * Заявка в лабораторию со страницы /lab/ (вкладка «Новая заявка»): объект — текстом,
+ * вид, основание, параметры. → текст сообщения. text — свой текст объекта.
+ */
+export async function labRequest(page: Page, e: LabEntry, basis?: string, text?: string) {
+  if (!(await page.locator("#lab-object").isVisible())) await page.locator('.pz-nav a[href="#order"]').click();
+  await page.locator("#lab-object").fill(text ?? objectText(e));
+  await page.locator("#lab-type").selectOption(e.types[0]);
+  const options = await page.locator("#lab-basis option").evaluateAll((els) => els.map((o) => (o as HTMLOptionElement).value));
   const b = basis ?? e.bases.find((x) => options.includes(x));
   if (!b) throw new Error(`нет основания для ${e.result}: ${e.bases}`);
-  await sels.nth(2).selectOption(b);
+  await page.locator("#lab-basis").selectOption(b);
   const inputs = page.locator(".lab-params input");
   const params = Object.values(e.params);
   for (let i = 0; i < params.length; i++) await inputs.nth(i).fill(params[i].input);
-  await page.getByRole("button", { name: "Направить запрос" }).click();
-  const msg = page.locator(".lab-form .q__msg");
-  await expect(msg).not.toHaveText("", { timeout: 15_000 });
-  return (await msg.textContent()) ?? "";
+  const msg = page.locator(".lab-form .lab-msg");
+  await msg.evaluate((el) => (el.textContent = ""));
+  await page.getByRole("button", { name: "Направить заявку" }).click();
+  return labMessage(page);
 }
 
 /** Пройти этапы 1..target-1 без ошибок (с экспертизами каждого этапа); остановиться на этапе target. */
@@ -147,11 +166,11 @@ export async function playToStage(page: Page, A: Answers, target: number, done =
 export async function labAll(page: Page, A: Answers, n: number, done: Set<string>) {
   const todo = A.lab.filter((x) => x.stage <= n && !done.has(x.result));
   if (!todo.length) return;
-  await page.goto("/lab/");
+  await page.goto("/lab/#order");
   await expect(page.locator(".lab-form")).toBeVisible();
   for (const e of todo) {
     const msg = await labRequest(page, e);
-    expect(msg, e.result).toMatch(/Экспертиза выполнена/);
+    expect(msg, e.result).toMatch(/^Заключение готово/);
     done.add(e.result);
   }
   await page.goto("/");

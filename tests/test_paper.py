@@ -179,8 +179,8 @@ def test_unknown_document(root):
 
 
 def test_not_paper_kind(root):
-    write_paper(root, "1-12", 'id: "1-12"\nform: protocol')
-    assert_error(root, "content/paper/1-12.md: front matter.id", "kind: online")
+    write_paper(root, "4-01", 'id: "4-01"\nform: protocol')
+    assert_error(root, "content/paper/4-01.md: front matter.id", "kind: online")
 
 
 def test_id_must_match_filename(root):
@@ -322,8 +322,8 @@ def test_release_rendered_todo_and_missing_media(root, salts, tmp_path):
 
 def test_only_unknown_id(content, salts, tmp_path):
     with pytest.raises(PaperError) as exc:
-        render_paper(content, tmp_path, salts=salts, only=["1-12"])
-    assert "--only 1-12" in str(exc.value)
+        render_paper(content, tmp_path, salts=salts, only=["4-01"])
+    assert "--only 4-01" in str(exc.value)
 
 
 # ---------------------------------------------------------------- PDF (браузер)

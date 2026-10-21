@@ -1,0 +1,1358 @@
+/*
+ * lab.css — сайт экспертного центра на /lab/ (docs/05 §2, «Лаборатория»).
+ * Не «Электронное дело»: чистая лабораторная палитра (белый, холодный серый,
+ * глубокий бирюзовый), скругления, воздух; единственная цветная деталь —
+ * спектр из призмы (знак, тонкая линия под шапкой). Сверху — тонкая тёмная
+ * полоса заказчика со счётом и ссылкой «Вернуться к делу».
+ * Всё привязано к body[data-site="prizma"] (шаблон lab.html).
+ *
+ * Контраст (WCAG AA, расчёт): текст #14212b на #f4f7f9 — 15,2:1; приглушённый
+ * #52606d на #ffffff — 6,5:1, на #f4f7f9 — 6,0:1; акцент #0b6672 на белом — 6,7:1,
+ * белый на акценте — 6,7:1. Тёмная тема: текст #e6edf2 на #16202a — 13,9:1;
+ * приглушённый #9aa9b6 — 6,9:1; акцент #5cc8d3 — 8,4:1.
+ */
+
+body[data-site="prizma"] {
+  --pz-bg: #f4f7f9;
+  --pz-surface: #ffffff;
+  --pz-raised: #fbfcfd;
+  --pz-ink: #14212b;
+  --pz-muted: #52606d;
+  --pz-line: #dce3e9;
+  --pz-line-strong: #8795a1;
+  --pz-accent: #0b6672;
+  --pz-accent-hover: #095560;
+  --pz-accent-ink: #ffffff;
+  --pz-accent-soft: rgba(11, 102, 114, 0.08);
+  --pz-ok: #1d6b45;
+  --pz-ok-soft: #e6f4ec;
+  --pz-warn: #7a5200;
+  --pz-warn-soft: #fff4dc;
+  --pz-bad: #b13b2e;
+  --pz-bad-soft: #fdecea;
+  --pz-strip: #14212b;
+  --pz-strip-ink: #d5dee5;
+  --pz-strip-muted: #9fb3c2;
+  --pz-grid: rgba(20, 33, 43, 0.035);
+  --pz-shadow: 0 1px 2px rgba(20, 33, 43, 0.06), 0 14px 34px -18px rgba(20, 33, 43, 0.22);
+  --pz-radius: 14px;
+  --pz-radius-s: 10px;
+  --pz-spectrum: linear-gradient(90deg, #e5484d, #f08c2e, #e9c13b, #3ba776, #2f8fd8, #7a5ce0);
+  --pz-wide: 1180px;
+
+  /* Общие токены системы — под палитру центра (фокус, ссылки, документы в окне). */
+  --seal: var(--pz-accent);
+  --seal-ink: var(--pz-accent-ink);
+  --seal-soft: var(--pz-accent-soft);
+  --focus: 3px solid var(--pz-accent);
+
+  color: var(--pz-ink);
+  background-color: var(--pz-bg);
+  background-image: linear-gradient(var(--pz-grid) 1px, transparent 1px), linear-gradient(90deg, var(--pz-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@media (prefers-color-scheme: dark) {
+  body[data-site="prizma"] {
+    --pz-bg: #0f161c;
+    --pz-surface: #16202a;
+    --pz-raised: #1a2631;
+    --pz-ink: #e6edf2;
+    --pz-muted: #9aa9b6;
+    --pz-line: #2a3742;
+    --pz-line-strong: #6f8192;
+    --pz-accent: #5cc8d3;
+    --pz-accent-hover: #7fd6df;
+    --pz-accent-ink: #0f161c;
+    --pz-accent-soft: rgba(92, 200, 211, 0.12);
+    --pz-ok: #7fd6a6;
+    --pz-ok-soft: rgba(127, 214, 166, 0.12);
+    --pz-warn: #f2c46b;
+    --pz-warn-soft: rgba(242, 196, 107, 0.12);
+    --pz-bad: #ff9a8b;
+    --pz-bad-soft: rgba(255, 154, 139, 0.12);
+    --pz-strip: #0a0f13;
+    --pz-strip-ink: #d5dee5;
+    --pz-strip-muted: #9fb3c2;
+    --pz-grid: rgba(230, 237, 242, 0.03);
+    --pz-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -18px rgba(0, 0, 0, 0.8);
+  }
+}
+
+body[data-site="prizma"] a {
+  color: var(--pz-accent);
+}
+
+/* ================================================================== полоса заказчика */
+
+.pz-strip {
+  color: var(--pz-strip-ink);
+  background: var(--pz-strip);
+  font-size: var(--fs-1);
+}
+
+.pz-strip__inner {
+  max-width: var(--pz-wide);
+  margin: 0 auto;
+  padding: 0 var(--sp-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--sp-5);
+}
+
+.pz-strip__who {
+  flex: 1 1 18rem;
+  min-width: 0;
+  padding: var(--sp-2) 0;
+  overflow-wrap: anywhere;
+}
+
+.pz-strip__label,
+.pz-strip .score__label {
+  color: var(--pz-strip-muted);
+}
+
+.pz-strip__scorebox {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-1);
+  white-space: nowrap;
+}
+
+body[data-site="prizma"] .pz-strip .score__value {
+  min-width: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: #ffffff;
+  font-size: var(--fs-2);
+  line-height: inherit;
+}
+
+body[data-site="prizma"] .pz-strip .score__value.is-negative {
+  color: #ffb4a8;
+}
+
+body[data-site="prizma"] .pz-strip__back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+body[data-site="prizma"] .pz-strip__back:hover {
+  text-decoration: underline;
+}
+
+body[data-site="prizma"] .pz-strip :focus-visible {
+  outline-color: #9fe3ea;
+}
+
+/* ================================================================== шапка сайта */
+
+.pz-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--pz-surface) 94%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--pz-line);
+}
+
+.pz-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--pz-spectrum);
+  opacity: 0.85;
+}
+
+.pz-header__inner {
+  max-width: var(--pz-wide);
+  margin: 0 auto;
+  padding: var(--sp-2) var(--sp-4) 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--sp-5);
+}
+
+body[data-site="prizma"] .pz-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 56px;
+  color: var(--pz-ink);
+  text-decoration: none;
+}
+
+.pz-brand__mark {
+  width: 52px;
+  height: 39px;
+  color: var(--pz-accent);
+}
+
+.pz-brand__text {
+  display: grid;
+  line-height: 1.1;
+}
+
+.pz-brand__name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pz-brand__full {
+  font-size: 0.8125rem;
+  color: var(--pz-muted);
+}
+
+.pz-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pz-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0 var(--sp-1);
+}
+
+body[data-site="prizma"] .pz-nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 52px;
+  padding: 0 var(--sp-3);
+  color: var(--pz-muted);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+body[data-site="prizma"] .pz-nav__link:hover {
+  color: var(--pz-ink);
+}
+
+body[data-site="prizma"] .pz-nav__link[aria-current="page"] {
+  color: var(--pz-ink);
+}
+
+.pz-nav__link[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: var(--sp-3);
+  right: var(--sp-3);
+  bottom: 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--pz-accent);
+}
+
+.pz-nav__badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  font-size: 0.8125rem;
+  line-height: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--pz-accent-ink);
+  background: var(--pz-accent);
+}
+
+/* Телефон: разделы — сетка из двух-трёх колонок под знаком, без горизонтальной прокрутки. */
+@media (max-width: 899px) {
+  .pz-header {
+    position: static;
+  }
+  .pz-nav {
+    flex-basis: 100%;
+    margin: 0 calc(-1 * var(--sp-2));
+  }
+  .pz-nav__list {
+    justify-content: flex-start;
+  }
+  body[data-site="prizma"] .pz-nav__link {
+    min-height: var(--tap);
+    padding: 0 var(--sp-2);
+  }
+  .pz-nav__link[aria-current="page"]::after {
+    left: var(--sp-2);
+    right: var(--sp-2);
+  }
+}
+
+/* ================================================================== заглавный блок */
+
+.pz-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 120% at 85% 0%, var(--pz-accent-soft), transparent 70%),
+    linear-gradient(180deg, var(--pz-surface), color-mix(in srgb, var(--pz-surface) 0%, transparent));
+  border-bottom: 1px solid var(--pz-line);
+}
+
+.pz-hero__inner {
+  max-width: var(--pz-wide);
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-4) var(--sp-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.pz-hero__kicker {
+  margin-bottom: var(--sp-2);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pz-accent);
+}
+
+.pz-hero__title {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+.pz-hero__title:focus {
+  outline: none;
+}
+
+.pz-hero__lead {
+  margin-top: var(--sp-3);
+  max-width: 60ch;
+  font-size: 1.0625rem;
+  color: var(--pz-muted);
+}
+
+.pz-hero__prism {
+  display: none;
+}
+
+@media (min-width: 760px) {
+  .pz-hero__inner {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    padding: var(--sp-7) var(--sp-5) var(--sp-6);
+  }
+  .pz-hero__prism {
+    display: block;
+    width: 260px;
+    height: 195px;
+    color: var(--pz-ink);
+    opacity: 0.9;
+  }
+}
+
+/* ================================================================== содержимое */
+
+.pz-main:focus {
+  outline: none;
+}
+
+.pz-content {
+  max-width: var(--pz-wide);
+  margin: 0 auto;
+  padding: var(--sp-5) var(--sp-3) var(--sp-7);
+}
+
+@media (min-width: 600px) {
+  .pz-content {
+    padding: var(--sp-6) var(--sp-5) var(--sp-7);
+  }
+}
+
+.pz-card {
+  min-width: 0;
+  padding: var(--sp-5) var(--sp-4);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius);
+  box-shadow: var(--pz-shadow);
+}
+
+@media (min-width: 600px) {
+  .pz-card {
+    padding: var(--sp-6);
+  }
+}
+
+.pz-card__title {
+  font-size: var(--fs-3);
+  margin-bottom: var(--sp-2);
+}
+
+.pz-card--notice {
+  display: grid;
+  gap: var(--sp-4);
+  max-width: 44rem;
+}
+
+.pz-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .pz-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: var(--sp-6);
+  }
+}
+
+.pz-col {
+  display: grid;
+  gap: var(--sp-5);
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------------ форма заявки */
+
+.pz-card--form {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+.pz-field {
+  display: grid;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.pz-label {
+  font-size: var(--fs-2);
+  font-weight: 700;
+  color: var(--pz-ink);
+}
+
+.pz-label--step {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.pz-step {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: var(--fs-1);
+  font-weight: 700;
+  color: var(--pz-accent);
+  border: 2px solid var(--pz-accent);
+}
+
+body[data-site="prizma"] .pz-input,
+body[data-site="prizma"] .pz-select {
+  width: 100%;
+  min-height: 52px;
+  padding: var(--sp-2) var(--sp-4);
+  font-family: var(--font-ui);
+  font-style: normal;
+  font-size: 1.0625rem;
+  color: var(--pz-ink);
+  background: var(--pz-raised);
+  border: 1.5px solid var(--pz-line-strong);
+  border-radius: var(--pz-radius-s);
+  max-width: none;
+}
+
+body[data-site="prizma"] .pz-input:hover,
+body[data-site="prizma"] .pz-select:hover {
+  border-color: var(--pz-ink);
+}
+
+body[data-site="prizma"] .pz-input:focus-visible,
+body[data-site="prizma"] .pz-select:focus-visible {
+  border-color: var(--pz-accent);
+  background: var(--pz-surface);
+  outline: 3px solid color-mix(in srgb, var(--pz-accent) 35%, transparent);
+  outline-offset: 0;
+}
+
+body[data-site="prizma"] .pz-input[aria-invalid="true"] {
+  border-color: var(--pz-bad);
+}
+
+body[data-site="prizma"] .pz-select {
+  padding-right: 2.75rem;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 22px) 52%, calc(100% - 16px) 52%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+}
+
+body[data-site="prizma"] .pz-select option {
+  background: var(--pz-surface);
+  color: var(--pz-ink);
+}
+
+.pz-help {
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+/* «В описи: …» — распознанный предмет. */
+.pz-match {
+  justify-self: start;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--sp-1);
+  max-width: 100%;
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-1);
+  color: var(--pz-ok);
+  background: var(--pz-ok-soft);
+  border-radius: 999px;
+  overflow-wrap: anywhere;
+}
+
+.pz-match::before {
+  content: "✓";
+  font-weight: 700;
+  margin-right: var(--sp-1);
+}
+
+.pz-match__title {
+  font-weight: 700;
+}
+
+.pz-fieldset {
+  margin: 0;
+  min-width: 0;
+  padding: var(--sp-4);
+  border: 1px dashed var(--pz-line-strong);
+  border-radius: var(--pz-radius-s);
+  background: var(--pz-accent-soft);
+}
+
+.pz-fieldset > legend {
+  padding: 0 var(--sp-2);
+}
+
+.pz-params {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: var(--sp-3);
+}
+
+.pz-field--param {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.pz-field--param .pz-label {
+  font-size: var(--fs-1);
+}
+
+.pz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+body[data-site="prizma"] .pz-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 52px;
+  min-width: var(--tap);
+  padding: 0 var(--sp-5);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  border-radius: var(--pz-radius-s);
+  cursor: pointer;
+}
+
+body[data-site="prizma"] .pz-btn--primary {
+  color: var(--pz-accent-ink);
+  background: var(--pz-accent);
+  box-shadow: 0 6px 16px -8px color-mix(in srgb, var(--pz-accent) 80%, transparent);
+}
+
+body[data-site="prizma"] .pz-btn--primary:hover:not(:disabled) {
+  background: var(--pz-accent-hover);
+}
+
+body[data-site="prizma"] .pz-btn--ghost,
+body[data-site="prizma"] .pz-btn--small {
+  color: var(--pz-accent);
+  background: transparent;
+  border-color: var(--pz-accent);
+}
+
+body[data-site="prizma"] .pz-btn--small {
+  min-height: var(--tap);
+  padding: 0 var(--sp-4);
+}
+
+body[data-site="prizma"] .pz-btn--ghost:hover,
+body[data-site="prizma"] .pz-btn--small:hover {
+  background: var(--pz-accent-soft);
+}
+
+body[data-site="prizma"] .pz-btn:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.pz-card--form .pz-actions .pz-btn {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 600px) {
+  .pz-card--form .pz-actions .pz-btn {
+    flex: 0 0 auto;
+  }
+}
+
+.pz-terms {
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--pz-line);
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+/* Сообщения формы — плашки. */
+body[data-site="prizma"] .lab-msg {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-left: 4px solid var(--pz-accent);
+  border-radius: var(--pz-radius-s);
+  background: var(--pz-accent-soft);
+  color: var(--pz-ink);
+}
+
+body[data-site="prizma"] .lab-msg:empty {
+  display: none;
+}
+
+body[data-site="prizma"] .lab-msg.q__msg--error {
+  border-left-color: var(--pz-bad);
+  background: var(--pz-bad-soft);
+  color: var(--pz-ink);
+}
+
+body[data-site="prizma"] .lab-msg.q__msg--format {
+  border-left-color: var(--pz-warn);
+  background: var(--pz-warn-soft);
+}
+
+.pz-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+body[data-site="prizma"] .pz-chip {
+  min-height: var(--tap);
+  padding: var(--sp-1) var(--sp-4);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  color: var(--pz-ink);
+  background: var(--pz-surface);
+  border: 1.5px solid var(--pz-line-strong);
+  border-radius: 999px;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+body[data-site="prizma"] .pz-chip:hover {
+  border-color: var(--pz-accent);
+  color: var(--pz-accent);
+}
+
+/* ------------------------------------------------------------------ итог заявки */
+
+.pz-result:empty {
+  display: none;
+}
+
+.pz-result {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-4);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius);
+  box-shadow: var(--pz-shadow);
+  scroll-margin-top: 5rem;
+}
+
+@media (min-width: 600px) {
+  .pz-result {
+    padding: var(--sp-6);
+  }
+}
+
+.pz-result--done {
+  border-top: 4px solid var(--pz-ok);
+}
+
+.pz-result--nothing {
+  border-top: 4px solid var(--pz-line-strong);
+}
+
+.pz-result__head {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+}
+
+.pz-result__object {
+  font-size: var(--fs-3);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pz-result__ref,
+.orders__ref {
+  font-weight: 400;
+  color: var(--pz-muted);
+}
+
+.pz-result__text {
+  font-size: var(--fs-3);
+}
+
+.pz-result__charge {
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+.pz-result__more {
+  font-weight: 700;
+}
+
+/* Документ центра — лист внутри карточки. */
+.pz-doc {
+  padding: var(--sp-4);
+  background: #ffffff;
+  color: #1f2633;
+  border: 1px solid var(--pz-line);
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+  --ink: #1f2633;
+  --muted: #4f5a69;
+  --rule: #c8d3dc;
+  --sheet: #ffffff;
+  --paper: #edf0f2;
+}
+
+@media (min-width: 600px) {
+  .pz-doc {
+    padding: var(--sp-6);
+  }
+}
+
+.pz-doc .doc-view .blank {
+  padding: 0;
+}
+
+.pz-doc .btn--secondary {
+  color: #1f2633;
+  border-color: #1f2633;
+}
+
+.pz-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 2px var(--sp-3);
+  border-radius: 999px;
+  font-size: var(--fs-1);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pz-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pz-status--done {
+  color: var(--pz-ok);
+  background: var(--pz-ok-soft);
+}
+
+.pz-status--nothing {
+  color: var(--pz-muted);
+  background: color-mix(in srgb, var(--pz-muted) 12%, transparent);
+}
+
+.pz-status--tiny {
+  font-size: 0.8125rem;
+  padding: 0 var(--sp-2);
+}
+
+/* ------------------------------------------------------------------ колонка рядом с формой */
+
+.pz-aside {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius);
+  box-shadow: var(--pz-shadow);
+}
+
+@media (min-width: 960px) {
+  .pz-aside {
+    position: sticky;
+    top: 5.5rem;
+  }
+}
+
+.pz-aside__title {
+  font-size: var(--fs-3);
+}
+
+.pz-aside__empty,
+.pz-aside__terms {
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+.pz-aside__terms {
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--pz-line);
+}
+
+.pz-aside__more {
+  font-weight: 700;
+}
+
+.pz-recent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.pz-recent__link,
+.pz-recent__row {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-3);
+  font: inherit;
+  text-align: left;
+  color: var(--pz-ink);
+  background: var(--pz-raised);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius-s);
+}
+
+.pz-recent__link {
+  cursor: pointer;
+}
+
+.pz-recent__link:hover {
+  border-color: var(--pz-accent);
+}
+
+.pz-recent__object {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pz-recent__type {
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+/* ================================================================== мои заявки */
+
+.orders {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.orders__item {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-left: 4px solid var(--pz-line-strong);
+  border-radius: var(--pz-radius-s);
+  box-shadow: var(--pz-shadow);
+}
+
+.orders__item.is-done {
+  border-left-color: var(--pz-ok);
+}
+
+@media (min-width: 760px) {
+  .orders__item {
+    grid-template-columns: 11rem minmax(0, 1fr) auto;
+    align-items: start;
+    padding: var(--sp-5);
+  }
+}
+
+.orders__meta {
+  display: grid;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.orders__no {
+  font-weight: 700;
+}
+
+.orders__time {
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+.orders__object {
+  font-size: var(--fs-3);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.orders__facts {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px var(--sp-3);
+  margin-top: var(--sp-2);
+  font-size: var(--fs-1);
+}
+
+.orders__facts dt {
+  color: var(--pz-muted);
+}
+
+.orders__facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.orders__result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+@media (min-width: 760px) {
+  .orders__result {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+}
+
+/* ================================================================== услуги */
+
+.pz-services {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--sp-4);
+}
+
+.pz-service {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--sp-2);
+  padding: var(--sp-5);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius);
+  box-shadow: var(--pz-shadow);
+  overflow: hidden;
+}
+
+.pz-service::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--pz-spectrum);
+  background-size: 100% 600%;
+}
+
+.pz-service:nth-child(6n + 1)::before { background: #e5484d; }
+.pz-service:nth-child(6n + 2)::before { background: #f08c2e; }
+.pz-service:nth-child(6n + 3)::before { background: #e9c13b; }
+.pz-service:nth-child(6n + 4)::before { background: #3ba776; }
+.pz-service:nth-child(6n + 5)::before { background: #2f8fd8; }
+.pz-service:nth-child(6n + 6)::before { background: #7a5ce0; }
+
+.pz-service__no {
+  font-size: var(--fs-1);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--pz-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.pz-service__title {
+  font-size: var(--fs-3);
+  line-height: 1.25;
+}
+
+.pz-service__text {
+  color: var(--pz-muted);
+}
+
+.pz-service__terms {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+.pz-note {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  padding: var(--sp-3) var(--sp-4);
+  font-weight: 700;
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius-s);
+}
+
+.pz-note__mark {
+  flex: none;
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--pz-spectrum);
+}
+
+/* ================================================================== о центре */
+
+.pz-about {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+@media (min-width: 900px) {
+  .pz-about {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.pz-prose {
+  max-width: 68ch;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+.pz-prose > * + * {
+  margin-top: 0.8em;
+}
+
+.pz-prose ul {
+  padding-left: 1.3em;
+}
+
+.pz-accred {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+.pz-accred__seal {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--pz-surface) 58%, transparent 59%),
+    conic-gradient(#e5484d, #f08c2e, #e9c13b, #3ba776, #2f8fd8, #7a5ce0, #e5484d);
+}
+
+.pz-accred__mark {
+  width: 42px;
+  height: 32px;
+  color: var(--pz-accent);
+}
+
+.pz-subtitle {
+  margin: var(--sp-6) 0 var(--sp-4);
+  font-size: var(--fs-4);
+}
+
+.pz-staff {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: var(--sp-3);
+}
+
+.pz-person {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-4);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius-s);
+}
+
+.pz-person__avatar {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--pz-accent);
+  background: var(--pz-accent-soft);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--pz-accent) 35%, transparent);
+}
+
+.pz-person__name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.pz-person__role {
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+  overflow-wrap: anywhere;
+}
+
+.pz-pending {
+  color: var(--pz-muted);
+}
+
+/* ================================================================== контакты */
+
+.pz-contacts {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+@media (min-width: 900px) {
+  .pz-contacts {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+}
+
+.pz-contacts__list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-1);
+  margin: 0;
+}
+
+.pz-contacts__list dt {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-1);
+  font-weight: 700;
+  color: var(--pz-muted);
+}
+
+.pz-contacts__list dt:first-child {
+  margin-top: 0;
+}
+
+.pz-contacts__list dd {
+  margin: 0;
+  font-size: var(--fs-3);
+  overflow-wrap: anywhere;
+}
+
+body[data-site="prizma"] .pz-contacts__list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+/* Условная схема проезда: кварталы, река, знак центра. */
+.pz-map {
+  position: relative;
+  min-height: 240px;
+  border-radius: var(--pz-radius);
+  border: 1px solid var(--pz-line);
+  overflow: hidden;
+  background:
+    linear-gradient(115deg, transparent 58%, color-mix(in srgb, #2f8fd8 22%, transparent) 58%, color-mix(in srgb, #2f8fd8 22%, transparent) 66%, transparent 66%),
+    repeating-linear-gradient(0deg, transparent 0 46px, color-mix(in srgb, var(--pz-surface) 100%, transparent) 46px 54px),
+    repeating-linear-gradient(90deg, transparent 0 62px, color-mix(in srgb, var(--pz-surface) 100%, transparent) 62px 70px),
+    color-mix(in srgb, var(--pz-muted) 14%, var(--pz-surface));
+}
+
+.pz-map__pin {
+  position: absolute;
+  left: 42%;
+  top: 38%;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--pz-surface);
+  box-shadow: var(--pz-shadow), 0 0 0 4px var(--pz-accent-soft);
+}
+
+.pz-map__mark {
+  width: 40px;
+  height: 30px;
+  transform: rotate(45deg);
+  color: var(--pz-accent);
+}
+
+/* ================================================================== подвал */
+
+.pz-footer {
+  border-top: 1px solid var(--pz-line);
+  background: var(--pz-surface);
+}
+
+.pz-footer__inner {
+  max-width: var(--pz-wide);
+  margin: 0 auto;
+  padding: var(--sp-5) var(--sp-4) var(--sp-6);
+  display: grid;
+  gap: var(--sp-2);
+  font-size: var(--fs-1);
+  color: var(--pz-muted);
+}
+
+.pz-footer__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-weight: 700;
+  color: var(--pz-ink);
+}
+
+.pz-footer__mark {
+  width: 32px;
+  height: 24px;
+  color: var(--pz-accent);
+}
+
+/* ================================================================== окна на сайте центра */
+
+body[data-site="prizma"] .modal {
+  background: var(--pz-surface);
+  background-image: none;
+  color: var(--pz-ink);
+  border: 1px solid var(--pz-line);
+  border-top: 4px solid var(--pz-accent);
+  border-radius: var(--pz-radius);
+}
+
+body[data-site="prizma"] .modal--doc {
+  background: #ffffff;
+  color: #1f2633;
+  --ink: #1f2633;
+  --muted: #4f5a69;
+  --rule: #c8d3dc;
+  --sheet: #ffffff;
+}
+
+body[data-site="prizma"] .modal--doc .btn--secondary {
+  color: #1f2633;
+  border-color: #1f2633;
+}
+
+body[data-site="prizma"] .modal .btn--primary {
+  border-radius: var(--pz-radius-s);
+  box-shadow: none;
+}
+
+body[data-site="prizma"] .modal--doc .btn--primary {
+  color: #ffffff;
+  background: #0b6672;
+  border-color: #0b6672;
+}
+
+body[data-site="prizma"] .modal--doc .modal__close {
+  color: #4f5a69;
+}
+
+/* Экран ошибки (несовместимый прогресс и т. п.) — та же сетка, что у сайта. */
+body[data-site="prizma"] .intro {
+  margin-top: var(--sp-6);
+  background: var(--pz-surface);
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius);
+  box-shadow: var(--pz-shadow);
+}
+
+/* ================================================================== печать */
+
+@media print {
+  body[data-site="prizma"] {
+    background: #fff !important;
+  }
+  html.print-doc .pz-main > :not(.pz-content),
+  html.print-doc .pz-content > .pz-section:not(:has(.is-printing)),
+  html.print-doc .pz-grid > :not(.pz-col),
+  html.print-doc .pz-col > :not(:has(.is-printing)),
+  html.print-doc .pz-result > :not(.pz-doc) {
+    display: none !important;
+  }
+  .pz-result,
+  .pz-doc {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}

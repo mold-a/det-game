@@ -94,9 +94,14 @@ def test_pack_contents(built):
     assert q1["type"] == "form" and [f["id"] for f in q1["fields"]] == ["time", "conflict", "disease", "delivered"]
     assert all(len(f["unit"]["entries"]) >= 8 for f in q1["fields"])
     assert "lab" not in {d["kind"] for d in pk["documents"]}
-    online = [d for d in pk["documents"] if d["kind"] == "online"]
-    assert online and all(d["link"] == f"/p/{d['link'].split('/')[2]}/" for d in online)
-    assert all(d["link"] is None for d in pk["documents"] if d["kind"] == "paper")
+    # 1-12 и 1-13 — бумага с QR-кодом (REDESIGN §1): в пакете 1 онлайн-документов нет, у бумаги нет ссылки;
+    # онлайн остаётся только 4-01 (облако)
+    assert all(d["kind"] == "paper" and d["link"] is None for d in pk["documents"])
+    assert {"1-12", "1-13"} <= {d["id"] for d in pk["documents"]}
+    pk4 = json.loads(crypto.open_(crypto.hkdf(crypto.b64u_decode(rep.stage_keys[4]), crypto.pack_info(4)),
+                                  json.loads((dist / "data/pack-4.json").read_text(encoding="utf-8")), "pack/4"))
+    online = [d for d in pk4["documents"] if d["kind"] == "online"]
+    assert [d["id"] for d in online] == ["4-01"] and online[0]["link"] == "/p/cloud/"
     assert pk["lab"]["types"] and "role" not in next(iter(pk["characters"].values()))
     order = pk["questions"][1]
     answer = prep.expanded["s1.q2"].canon.split(",")

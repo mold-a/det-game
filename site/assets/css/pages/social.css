@@ -1,0 +1,824 @@
+/*
+ * pages/social.css — «Круг» (brands.social): профили (type: social, в т. ч. gromov), главная (social_home),
+ * заглушка закрытого профиля (social_stub). Документ 1-12 — страница gromov.
+ *
+ * Характер: чистая светлая лента; канцелярский официоз постов контрастирует с «живыми» отметками.
+ *   Мотив бренда — кольцо: логотип, двойное бирюзовое кольцо вокруг аватара, кольцевые иконки действий.
+ * Палитра:
+ *   светлая: фон #F1F4F7, карточки #FFFFFF, бренд #2F7D7A (бирюза; 5,0:1 на белом),
+ *            текст #1B2430, второстепенный #56636F (5,9:1), линии #DCE3EA;
+ *   тёмная:  фон #11171C, карточки #1A2228, бренд #63BDB7, текст #E4EAEE,
+ *            второстепенный #9FADB8, линии #2B363F.
+ * Шрифт: PT Sans (локальный), как и вся игра.
+ * Все элементы рабочие: вкладки «Публикации / Фото / Сведения», фото крупно, окна сервиса
+ *   (общие стили — _ui.css), ссылки на авторов, друзей и главную. Без JS видны все разделы подряд.
+ * Раскладка телефона: шапка (логотип, поиск, «Войти») → обложка и аватар в двойном кольце →
+ *   ФИО, должность, город, «Подписаться / Написать» → вкладки → лента (запись, фото без обрезки,
+ *   «Нравится · Комментарии · Поделиться», комментарии, «Написать комментарий…») → подвал.
+ * Отличие от реальных сервисов: нет левого меню и синей шапки, нет «историй» и сердечек;
+ *   центрированный профиль с кольцом-мотивом.
+ */
+
+body.page--social {
+  --kr-bg: #f1f4f7;
+  --kr-card: #ffffff;
+  --kr-brand: #2f7d7a;
+  --kr-brand-ink: #ffffff;
+  --kr-brand-soft: #e3f1f0;
+  --kr-text: #1b2430;
+  --kr-muted: #56636f;
+  --kr-line: #dce3ea;
+  --kr-ph: #e4e8ec;
+  --kr-ph-text: #56636f;
+  --kr-font: var(--font-sans);
+  color-scheme: light;
+  background: var(--kr-bg);
+  color: var(--kr-text);
+  font-family: var(--kr-font);
+  /* окна сервиса (_ui.css) */
+  --svc-bg: var(--kr-card);
+  --svc-ink: var(--kr-text);
+  --svc-line: var(--kr-line);
+  --svc-accent: var(--kr-brand);
+  --svc-accent-ink: var(--kr-brand-ink);
+  --svc-font: var(--kr-font);
+  --svc-radius: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.page--social {
+    --kr-bg: #11171c;
+    --kr-card: #1a2228;
+    --kr-brand: #63bdb7;
+    --kr-brand-ink: #0e1a19;
+    --kr-brand-soft: #1f3534;
+    --kr-text: #e4eaee;
+    --kr-muted: #9fadb8;
+    --kr-line: #2b363f;
+    --kr-ph: #26313a;
+    --kr-ph-text: #a9b6c1;
+    color-scheme: dark;
+  }
+}
+
+.page--social :focus-visible {
+  outline: 3px solid var(--kr-brand);
+  outline-offset: 2px;
+}
+
+.page--social a {
+  color: inherit;
+}
+
+.kr {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+/* --- шапка */
+
+.kr-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  background: var(--kr-card);
+  border-bottom: 1px solid var(--kr-line);
+}
+
+.kr-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--kr-brand) !important;
+  font-weight: 700;
+  font-size: 23px;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  text-transform: lowercase;
+}
+
+.kr-logo__ring {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 5px solid var(--kr-brand);
+  border-top-color: transparent;
+  transform: rotate(45deg);
+}
+
+.kr-bar__search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--kr-bg);
+  color: var(--kr-muted) !important;
+  font-size: 15px;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kr-bar__search:hover {
+  box-shadow: inset 0 0 0 1px var(--kr-brand);
+}
+
+.kr-bar .kr-btn {
+  margin-left: auto;
+}
+
+@media (max-width: 460px) {
+  .kr-bar__search {
+    display: none;
+  }
+}
+
+/* --- кнопки */
+
+.kr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--kr-line);
+  background: var(--kr-card);
+  color: var(--kr-text) !important;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.kr-btn:hover {
+  border-color: var(--kr-brand);
+}
+
+.kr-btn--primary {
+  background: var(--kr-brand);
+  border-color: var(--kr-brand);
+  color: var(--kr-brand-ink) !important;
+}
+
+.kr-btn--primary:hover {
+  filter: brightness(1.06);
+}
+
+.kr-btn--ghost {
+  border-color: var(--kr-brand);
+  color: var(--kr-brand) !important;
+}
+
+/* --- профиль */
+
+.kr-profile {
+  background: var(--kr-card);
+  border-bottom: 1px solid var(--kr-line);
+}
+
+.kr-profile__cover {
+  aspect-ratio: 16 / 6;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 120%, var(--kr-brand) 0 26%, transparent 27%),
+    radial-gradient(circle at 86% -30%, var(--kr-brand) 0 22%, transparent 23%), var(--kr-brand-soft);
+}
+
+.kr-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kr-profile__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 16px 16px;
+}
+
+.kr-profile__avatar {
+  width: 112px;
+  height: 112px;
+  margin-top: -56px;
+  border-radius: 50%;
+  padding: 4px;
+  background: var(--kr-card);
+  box-shadow: 0 0 0 3px var(--kr-brand);
+}
+
+.kr-zoom {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: zoom-in;
+}
+
+.kr-zoom--avatar {
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.kr-avatar,
+.kr-profile__avatar .ph {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.kr-avatar--blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--kr-brand-soft);
+  color: var(--kr-brand);
+  font-size: 44px;
+  font-weight: 700;
+}
+
+.kr-profile__name {
+  margin-top: 12px;
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.kr-profile__position {
+  margin-top: 4px;
+  color: var(--kr-muted);
+  font-size: 15px;
+  max-width: 34em;
+}
+
+.kr-profile__city {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--kr-muted);
+  font-size: 15px;
+}
+
+.kr-pin {
+  flex: none;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50% 50% 50% 0;
+  border: 2.5px solid currentColor;
+  transform: rotate(-45deg);
+  margin-right: 1px;
+}
+
+.kr-profile__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.kr-profile__stats {
+  margin-top: 12px;
+  color: var(--kr-muted);
+  font-size: 14px;
+}
+
+.kr-profile__stats b {
+  color: var(--kr-text);
+}
+
+/* --- вкладки */
+
+.kr-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 8px;
+  background: var(--kr-card);
+  border-bottom: 1px solid var(--kr-line);
+}
+
+.kr-tab {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--kr-muted);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.kr-tab:hover {
+  color: var(--kr-text);
+}
+
+.kr-tab.is-current {
+  color: var(--kr-text);
+  font-weight: 700;
+  border-bottom-color: var(--kr-brand);
+}
+
+/* Без JS все разделы подряд; с JS — один (hidden ставит page-ui.js). */
+.kr-tabs-wrap:not(.is-ready) .kr-tabs {
+  display: none;
+}
+
+.kr-panel:focus-visible {
+  outline-offset: -3px;
+}
+
+/* --- лента */
+
+.kr-feed {
+  display: grid;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.kr-empty {
+  padding: 24px 16px;
+  color: var(--kr-muted);
+  text-align: center;
+}
+
+.kr-post {
+  background: var(--kr-card);
+  border-top: 1px solid var(--kr-line);
+  border-bottom: 1px solid var(--kr-line);
+}
+
+.kr-post__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px 8px;
+}
+
+.kr-post__ava {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--kr-brand);
+  overflow: hidden;
+}
+
+.kr-ava-sm,
+.kr-post__ava .ph {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.kr-post__ava .kr-avatar--blank {
+  font-size: 20px;
+}
+
+.kr-post__ava .ph__label {
+  display: none;
+}
+
+.kr-post__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.kr-post__name {
+  font-size: 16px;
+}
+
+.kr-post__meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  color: var(--kr-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.kr-post__time,
+.kr-post__geo {
+  white-space: nowrap;
+}
+
+.kr-post__geo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--kr-brand);
+  font-weight: 700;
+}
+
+.kr-post__geo .kr-pin {
+  width: 9px;
+  height: 9px;
+  border-width: 2px;
+}
+
+.kr-post__text {
+  padding: 0 16px 12px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.kr-post__text a,
+.kr-comment__text a {
+  color: var(--kr-brand);
+  text-underline-offset: 0.15em;
+}
+
+.kr-post__photo {
+  margin: 0;
+  background: var(--kr-bg);
+}
+
+/* Фото — целиком, без обрезки (улика). */
+.kr-photo {
+  width: 100%;
+  height: auto;
+}
+
+.kr-zoom--photo {
+  cursor: zoom-in;
+}
+
+.kr-post__photo .ph {
+  aspect-ratio: 4 / 3;
+}
+
+/* карточка-ссылка под записью */
+.kr-linkcard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  margin: 0 16px 12px;
+  padding: 8px 14px;
+  border: 1px solid var(--kr-line);
+  border-left: 4px solid var(--kr-brand);
+  border-radius: 10px;
+  background: var(--kr-bg);
+  color: var(--kr-text) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.kr-linkcard:hover {
+  border-color: var(--kr-brand);
+}
+
+.kr-linkcard__arrow {
+  color: var(--kr-brand);
+}
+
+.kr-post__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0;
+  padding: 4px 6px;
+  border-top: 1px solid var(--kr-line);
+}
+
+.kr-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--kr-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.kr-act:hover {
+  background: var(--kr-bg);
+}
+
+.kr-act b {
+  color: var(--kr-text);
+  font-weight: 700;
+}
+
+/* На узком экране «Поделиться» — значок (подпись остаётся для читалок экрана): три действия в одну строку. */
+@media (max-width: 439px) {
+  .kr-act__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .kr-act:has(.kr-act__label) {
+    min-width: 44px;
+    justify-content: center;
+  }
+}
+
+.kr-act__ico {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--kr-brand);
+  position: relative;
+}
+
+.kr-act__ico--like::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--kr-brand);
+}
+
+.kr-act__ico--comment {
+  border-radius: 50% 50% 50% 2px;
+}
+
+.kr-act__ico--share {
+  border-radius: 3px;
+  border-style: dashed;
+}
+
+.kr-comments-box {
+  border-top: 1px solid var(--kr-line);
+  padding: 4px 16px 12px;
+}
+
+.kr .kr-comments {
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.kr-comment {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.kr-comment__author {
+  color: var(--kr-brand) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.kr-comment__author:hover {
+  text-decoration: underline;
+}
+
+.kr-compose {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--kr-line);
+  border-radius: 999px;
+  background: var(--kr-bg);
+  color: var(--kr-muted);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: text;
+}
+
+.kr-compose:hover {
+  border-color: var(--kr-brand);
+}
+
+/* --- «Фото» */
+
+.kr-photos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 12px 0;
+  list-style: none;
+}
+
+.kr-zoom--tile {
+  aspect-ratio: 1;
+}
+
+.kr-tile,
+.kr-zoom--tile .ph {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kr-zoom--tile .ph__label {
+  display: none;
+}
+
+/* --- «Сведения» и друзья */
+
+.kr-about {
+  margin: 12px 0;
+  padding: 16px;
+  background: var(--kr-card);
+  border-top: 1px solid var(--kr-line);
+  border-bottom: 1px solid var(--kr-line);
+}
+
+.kr-about__list {
+  display: grid;
+  gap: 12px;
+}
+
+.kr-about__list dt {
+  color: var(--kr-muted);
+  font-size: 13px;
+}
+
+.kr-about__list dd {
+  margin: 2px 0 0;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.kr-about__h,
+.kr-block-h {
+  margin: 20px 0 8px;
+  font-size: 18px;
+}
+
+.kr-friends {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+}
+
+.kr-friend,
+.kr-person__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 10px;
+  border: 1px solid var(--kr-line);
+  border-radius: 12px;
+  background: var(--kr-card);
+  color: var(--kr-text) !important;
+  text-decoration: none;
+}
+
+.kr-friend:hover,
+.kr-person__link:hover {
+  border-color: var(--kr-brand);
+}
+
+.kr-friend__ava,
+.kr-person__ava {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--kr-brand-soft);
+  box-shadow: 0 0 0 2px var(--kr-brand);
+  color: var(--kr-brand);
+  font-weight: 700;
+}
+
+.kr-friend__name {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+/* --- подвал */
+
+.kr-foot {
+  padding: 8px 16px;
+  color: var(--kr-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.kr-foot__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.kr-foot__link {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--kr-muted);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.kr-foot__link:hover {
+  color: var(--kr-brand);
+}
+
+.kr-foot__copy {
+  margin-top: 4px;
+}
+
+/* --- заглушки «Здесь будет …» */
+
+.page--social .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--kr-ph);
+  color: var(--kr-ph-text);
+  font-size: 14px;
+  text-align: center;
+  padding: 8px;
+}
+
+.kr-profile__avatar .ph {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.page--social .ph-text {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--kr-ph);
+  color: var(--kr-ph-text);
+  font-size: 14px;
+}
+
+@media (min-width: 640px) {
+  .kr {
+    padding-top: 16px;
+  }
+
+  .kr-bar {
+    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--kr-line);
+  }
+
+  .kr-profile {
+    border-left: 1px solid var(--kr-line);
+    border-right: 1px solid var(--kr-line);
+  }
+
+  .kr-tabs {
+    border: 1px solid var(--kr-line);
+    border-top: 0;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .kr-post,
+  .kr-about {
+    border: 1px solid var(--kr-line);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .kr-photos {
+    gap: 6px;
+  }
+}
+
+/* Длинные слова и адреса в постах переносятся, а не раздвигают ленту на 360 px (QA). */
+.kr-post,
+.kr-post__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

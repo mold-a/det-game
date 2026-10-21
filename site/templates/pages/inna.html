@@ -1,22 +1,25 @@
 {# inna — профиль в фотосети «Кадр» (docs/04: «inna»). Закрытая страница (ключ в QR).
    Интерактив — pages/gallery.js: по нажатию на снимок — крупно, подпись, дата, отметки.
-   Дата видна и на плитке, чтобы снимок от 11.11.2026 находился без лишних касаний. #}
+   Дата видна и на плитке, чтобы снимок от 11.11.2026 находился без лишних касаний.
+   Каждый элемент делает что-то: логотип — наверх, «Войти», «Подписаться», «Отметить» — окна сервиса
+   (pages/page-ui.js), аватар — фото крупно, подвал — «О сервисе», «Правила», «Помощь». #}
 {% import "pages/_ui.html" as ui %}
+{% set brand = page.brand %}
 {% set who = people[page.profile.person] %}
 {% set posts = page.posts|sort(attribute="datetime", reverse=True) %}
 <div class="kd">
   <header class="kd-bar">
-    <span class="brandmark brandmark--inna"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ page.brand }}</span></span>
-    <button class="kd-btn kd-btn--line" type="button" disabled>Войти</button>
+    <button class="kd-logo-btn" type="button" data-top aria-label="{{ brand }}: наверх"><span class="brandmark brandmark--inna"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></button>
+    {% call ui.act("kd-btn kd-btn--line", brand, ui.login_text("войти в профиль", brand)) %}Войти{% endcall %}
   </header>
 
   <section class="kd-profile" aria-labelledby="kd-name">
-    <div class="kd-profile__ava">{{ ui.img(media, page.profile.avatar, who.full, "аватар", "kd-ava") }}</div>
+    <div class="kd-profile__ava">{% call ui.zoom("kd-zoom", who.full) %}{{ ui.img(media, page.profile.avatar, who.full, "аватар", "kd-ava") }}{% endcall %}</div>
     <div class="kd-profile__info">
       <h1 class="kd-profile__name" id="kd-name">{{ who.full }}</h1>
       <p class="kd-profile__stats"><b>{{ posts|length }}</b> {{ "снимок" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("снимка" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "снимков") }}</p>
       <p class="kd-profile__bio">{{ ui.text(page.profile.bio, "описание профиля") }}</p>
-      <button class="kd-btn kd-btn--fill" type="button" disabled>Подписаться</button>
+      {% call ui.act("kd-btn kd-btn--fill", brand, ui.login_text("подписаться", brand)) %}Подписаться{% endcall %}
     </div>
   </section>
 
@@ -49,7 +52,7 @@
       <div class="kd-view__side">
         <p class="kd-view__who">{{ who.full }}</p>
         <div class="kd-view__meta"></div>
-        <button class="kd-btn kd-btn--line kd-view__decor" type="button" disabled>Отметить</button>
+        {% call ui.act("kd-btn kd-btn--line kd-view__decor", brand, ui.login_text("отметить снимок", brand)) %}Отметить{% endcall %}
       </div>
       <div class="kd-view__nav">
         <button class="kd-iconbtn" type="button" data-act="prev" aria-label="Предыдущий снимок">‹</button>
@@ -58,4 +61,9 @@
       </div>
     </div>
   </dialog>
+
+  <footer class="kd-foot">
+    {{ ui.service_footer(service, brand, "kd-foot") }}
+    <p class="kd-foot__copy">© {{ brand }}, 2026</p>
+  </footer>
 </div>

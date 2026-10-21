@@ -1,0 +1,49 @@
+{# social_home — главная «Круга»: поиск людей по открытым профилям этапа 1 и «Популярное в городе».
+   Поиск работает на странице (pages/page-ui.js, [data-people-search]); без JS виден весь список. #}
+{% import "pages/_ui.html" as ui %}
+{% set brand = page.brand %}
+{% set bar_search = false %}
+<div class="kr kr--home">
+  {% include "pages/_social_bar.html" %}
+
+  <section class="kr-hero" aria-labelledby="kr-hero-h">
+    <h1 class="kr-hero__h" id="kr-hero-h">{{ brand }}</h1>
+    <p class="kr-hero__lead">Страницы горожан, организаций и сообществ.</p>
+  </section>
+
+  <section class="kr-find" id="search" aria-labelledby="kr-find-h" data-people-search>
+    <h2 class="kr-block-h" id="kr-find-h">Поиск людей</h2>
+    <div class="kr-find__row" role="search">
+      <label class="visually-hidden" for="kr-q">Имя или фамилия</label>
+      <input class="kr-find__input" id="kr-q" type="search" name="q" placeholder="Имя или фамилия" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-role="q">
+      <button class="kr-btn kr-btn--primary kr-find__clear" type="button" data-role="clear" hidden>Сбросить</button>
+    </div>
+    <p class="kr-find__count" data-role="count" role="status" aria-live="polite"></p>
+    {% if directory %}
+    <ul class="kr-people" role="list" data-role="list">
+      {% for p in directory %}
+      <li class="kr-person" data-name="{{ p.name }}">
+        <a class="kr-person__link" href="{{ link(p.page) }}">
+          <span class="kr-person__ava" aria-hidden="true">{{ p.name[:1] }}</span>
+          <span class="kr-person__text"><b class="kr-person__name">{{ p.name }}</b>{% if p.position %}<span class="kr-person__pos">{{ p.position }}</span>{% endif %}</span>
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    <p class="kr-empty" data-role="empty"{% if directory %} hidden{% endif %}>Никого не найдено. Профили с ограниченным доступом в поиске не показываются.</p>
+  </section>
+
+  {% if page.popular %}
+  <section class="kr-popular" aria-labelledby="kr-pop-h">
+    <h2 class="kr-block-h" id="kr-pop-h">Популярное в городе</h2>
+    <ul class="kr-pop" role="list">
+      {% for item in page.popular %}
+      <li><a class="kr-pop__item" href="{{ link(item.page) }}"><span class="kr-pop__text">{{ item.text }}</span><span class="kr-pop__arrow" aria-hidden="true">→</span></a></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% include "pages/_social_foot.html" %}
+</div>

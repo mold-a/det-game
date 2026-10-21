@@ -1,0 +1,127 @@
+/*
+ * pages/site-fund.css — скин фонда (НКО): строго, спокойно, без украшений. Белое поле, тонкие линии,
+ * тёмно-синий акцент, PT Sans; заголовки жирные, выровнены влево; карточки — рамки без теней, квадратные;
+ * таблицы — ведомостями с тонкими линиями. Контраст: синий #1D4E7A на белом 8,6:1.
+ */
+
+body.page--site:has(.st--fund) {
+  --st-bg: #eceff2;
+  --st-page: #ffffff;
+  --st-card: #ffffff;
+  --st-ink: #1c2733;
+  --st-muted: #55616e;
+  --st-line: #d3dae1;
+  --st-accent: #1d4e7a;
+  --st-accent-ink: #ffffff;
+  --st-link: #1d4e7a;
+  --st-h: #12293f;
+  --st-head-bg: #ffffff;
+  --st-head-ink: #12293f;
+  --st-head-muted: #55616e;
+  --st-mark: #1d4e7a;
+  --st-font-head: var(--font-sans);
+  --st-font-logo: var(--font-sans);
+  --st-radius: 2px;
+  --st-notice-bg: #eaf1f7;
+  --st-notice-bar: #1d4e7a;
+  --st-notice-line: #c7d6e4;
+  --st-foot-bg: #f5f7f9;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.page--site:has(.st--fund) {
+    --st-bg: #0f151b;
+    --st-page: #161e26;
+    --st-card: #1a232d;
+    --st-ink: #e5ebf1;
+    --st-muted: #a2afbc;
+    --st-line: #2c3845;
+    --st-accent: #7fb4de;
+    --st-accent-ink: #0d1822;
+    --st-link: #9cc8ea;
+    --st-h: #f1f5f9;
+    --st-head-bg: #161e26;
+    --st-head-ink: #f1f5f9;
+    --st-head-muted: #a2afbc;
+    --st-mark: #7fb4de;
+    --st-notice-bg: #1c2a38;
+    --st-notice-line: #2f4258;
+    --st-foot-bg: #121a21;
+    color-scheme: dark;
+  }
+}
+
+.st--fund .st-head {
+  border-top: 6px solid var(--st-accent);
+  border-bottom: 1px solid var(--st-line);
+}
+
+.st--fund .st-logo {
+  letter-spacing: -0.005em;
+}
+
+.st--fund .st-tagline {
+  font-size: 14px;
+}
+
+.st--fund .st-nav__link {
+  font-weight: 400;
+}
+
+.st--fund .st-section__h {
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--st-h);
+  font-size: 26px;
+  letter-spacing: -0.01em;
+}
+
+.st--fund .st-block__h {
+  font-size: 18px;
+}
+
+.st--fund .st-text {
+  font-size: 17px;
+}
+
+.st--fund .st-card {
+  border-width: 1px;
+  border-left: 4px solid var(--st-accent);
+}
+
+.st--fund .st-card__h {
+  font-size: 18px;
+}
+
+.st--fund .st-card__sub {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.st--fund .st-notice {
+  border-left-width: 4px;
+  border-radius: 0;
+  font-size: 16px;
+}
+
+.st--fund .st-table th {
+  color: var(--st-h);
+}
+
+@media (min-width: 640px) {
+  .st--fund .st-table th {
+    border-bottom: 2px solid var(--st-h);
+  }
+
+  .st--fund .st-table tr:nth-child(even) td {
+    background: rgba(29, 78, 122, 0.05);
+  }
+
+  .st--fund .st-section__h {
+    font-size: 30px;
+  }
+}
+
+.st--fund .st-foot {
+  border-top: 1px solid var(--st-line);
+}

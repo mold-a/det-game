@@ -32,8 +32,11 @@ def test_cli_vectors_writes_same_file(tmp_path, monkeypatch):
     out = tmp_path / "crypto.json"
     monkeypatch.setattr(vectors, "DEFAULT_OUT", out)
     monkeypatch.setattr(vectors.make_crypto_vectors, "__defaults__", (out,))
+    lab_out = tmp_path / "lab-match.json"
+    monkeypatch.setattr(vectors.make_lab_match_vectors, "__defaults__", (lab_out,))
     assert main(["vectors"]) == 0
     assert out.read_bytes() == VECTORS_PATH.read_bytes()
+    assert lab_out.read_bytes() == (VECTORS_PATH.parent / "lab-match.json").read_bytes()
 
 
 # --- base64url ------------------------------------------------------------------

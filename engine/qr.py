@@ -58,6 +58,8 @@ def plan_cards(content: Content, salts) -> list[QrCard]:
     ctx = make_context(content)
     cards: list[QrCard] = []
     for slug, page in content.pages.items():
+        if page.doc is None:
+            continue  # страница без документа: QR не печатается, на неё попадают по ссылкам
         access = access_of(page)
         key = b64u_encode(salts.page_key(slug)) if access == "key" else None
         # куда кладётся карточка: бумажные документы со ссылкой на страницу, иначе сам документ страницы
@@ -68,7 +70,7 @@ def plan_cards(content: Content, salts) -> list[QrCard]:
             slug=slug,
             url=qr_url(content.settings.domain, slug, key),
             access=access,
-            label=render(page.qr_label, ctx, f"content/pages/{slug}/page.yaml: qr_label"),
+            label=render(page.qr_label or "", ctx, f"content/pages/{slug}/page.yaml: qr_label"),
             docs=[d.id for d in docs],
             envelope=min(d.stage for d in docs),
         ))

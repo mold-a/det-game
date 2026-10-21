@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
 # ---------------------------------------------------------------- общие типы
 
@@ -278,11 +278,16 @@ class ExpObject(Strict):
     title: str
     from_stage: PosInt = 1
     params: list[ExpParam] | None = None
+    # Основы для распознавания текста игрока (engine/labmatch.py): строка — одна или несколько основ
+    # через пробел. Сборка нормализует их; название (title) — тоже алиас, отдельно его не указывают.
+    aliases: list[str] = []
+    ref: str | None = None  # где предмет упомянут: «1-09, поз. 17.3» (показывается в «Моих заявках»)
 
 
 class ExpType(Strict):
     id: Id
     title: str
+    description: str | None = None  # раздел «Услуги» сайта лаборатории
 
 
 class ExpResult(Strict):
@@ -301,6 +306,33 @@ class ExpertiseFile(Strict):
     objects: Annotated[list[ExpObject], Field(min_length=1)]
     types: Annotated[list[ExpType], Field(min_length=1)]
     results: Annotated[list[ExpResult], Field(min_length=1)]
+
+
+# ---------------------------------------------------------------- lab.yaml
+# Тексты сайта лаборатории «Призма» (разделы «Услуги», «О центре», «Контакты»).
+
+
+class LabStaff(Strict):
+    name: str
+    role: str
+
+
+class LabContacts(Strict):
+    address: str
+    phone: str
+    hours: str
+    email: str | None = None
+
+
+class LabSite(Strict):
+    name: str
+    full_name: str
+    tagline: str
+    about: str  # Markdown
+    accreditation: str
+    staff: list[LabStaff] = []
+    contacts: LabContacts
+    services_note: str
 
 
 # ---------------------------------------------------------------- finale.yaml
@@ -322,11 +354,30 @@ class Finale(Strict):
 
 
 class PageBase(Strict):
+    """Общие поля ``page.yaml``. ``type`` по умолчанию равен ``slug`` (у каждой модели свой Literal).
+
+    ``doc`` необязателен: страница, на которую попадают только по ссылкам, задаёт ``stage``
+    (docs/REDESIGN-2026-10 §4.1). QR и ``qr_label`` — только у страниц с ``doc``.
+    """
+
     slug: Id
-    doc: Id
+    type: str
+    doc: Id | None = None
+    stage: PosInt | None = None
     locked: Literal[False, True, "password"]
-    qr_label: str
+    qr_label: str | None = None
     forbidden: list[str] = []
+
+    @model_validator(mode="after")
+    def _doc_or_stage(self) -> "PageBase":
+        if self.doc is None and self.stage is None:
+            raise ValueError("нужно одно из полей: doc (документ с QR) или stage (этап, если на страницу "
+                             "попадают только по ссылкам)")
+        if self.doc is None and self.qr_label:
+            raise ValueError("qr_label бывает только у страницы с doc: QR печатается только для страниц с документом")
+        if self.doc is not None and not (self.qr_label or "").strip():
+            raise ValueError("у страницы с doc должно быть поле qr_label (подпись под QR-кодом)")
+        return self
 
 
 # --- call
@@ -341,42 +392,90 @@ class CallRecord(Strict):
 
 class CallPage(PageBase):
     slug: Literal["call"]
+    type: Literal["call"] = "call"
     title: str
     record: CallRecord
     audio: str
     note: str
 
 
-# --- gromov
+# --- social (профиль в «Круге»), social_home, social_stub
 
 
-class GromovProfile(Strict):
-    person: Id
-    position: str
-    city: str
+class SocialPerson(Strict):
+    """Человек в «Друзьях»: ``person`` (персонаж) или ``name`` (нефигурант); ``page`` — страница профиля."""
+
+    person: Id | None = None
+    name: str | None = None
+    page: Id | None = None
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "SocialPerson":
+        if (self.person is None) == (self.name is None):
+            raise ValueError("нужно ровно одно из полей: person (ID персонажа) или name (имя нефигуранта)")
+        return self
+
+
+class SocialProfile(Strict):
+    person: Id | None = None
+    name: str | None = None
+    position: str | None = None
+    city: str | None = None
     avatar: str | None = None
     cover: str | None = None
+    about: str | None = None
+    friends: list[SocialPerson] = []
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "SocialProfile":
+        if (self.person is None) == (self.name is None):
+            raise ValueError("нужно ровно одно из полей: person (ID персонажа) или name (имя нефигуранта)")
+        return self
 
 
 class PostComment(Strict):
     author: str
     text: str
+    page: Id | None = None  # страница автора; нет — ссылка на заглушку (krug-private)
 
 
-class GromovPost(Strict):
+class PostLink(Strict):
+    page: Id
+    text: str
+
+
+class SocialPost(Strict):
     datetime: str
     geo: str | None = None
     text: str
     photo: str | None = None
     likes: NonNegInt = 0
+    link: PostLink | None = None
     comments: list[PostComment] = []
 
 
-class GromovPage(PageBase):
-    slug: Literal["gromov"]
+class SocialPage(PageBase):
+    type: Literal["social"] = "social"
     brand: str
-    profile: GromovProfile
-    posts: list[GromovPost]
+    profile: SocialProfile
+    posts: list[SocialPost] = []
+
+
+class SocialPopular(Strict):
+    page: Id
+    text: str
+
+
+class SocialHomePage(PageBase):
+    type: Literal["social_home"] = "social_home"
+    brand: str
+    popular: list[SocialPopular] = []
+
+
+class SocialStubPage(PageBase):
+    type: Literal["social_stub"] = "social_stub"
+    brand: str
+    text: str
 
 
 # --- inna
@@ -397,6 +496,7 @@ class InnaPost(Strict):
 
 class InnaPage(PageBase):
     slug: Literal["inna"]
+    type: Literal["inna"] = "inna"
     brand: str
     profile: InnaProfile
     posts: list[InnaPost]
@@ -410,11 +510,14 @@ class NewsArticle(Strict):
     headline: str
     photo: str | None = None
     body: str
+    rubric: str = "Город"  # рубрика над заголовком
+    urgent: bool = False  # плашка «Срочно»
 
 
 class NewsSidebarItem(Strict):
     title: str
     datetime: str
+    page: Id | None = None  # статья news-*; нет — окно «материал недоступен»
 
 
 class NewsComment(Strict):
@@ -429,12 +532,18 @@ class NewsAd(Strict):
 
 
 class NewsPage(PageBase):
-    slug: Literal["news"]
+    type: Literal["news"] = "news"
     brand: str
     article: NewsArticle
     sidebar: list[NewsSidebarItem] = []
     comments: list[NewsComment] = []
     ads: list[NewsAd] = []
+
+    @model_validator(mode="after")
+    def _slug_news(self) -> "NewsPage":
+        if self.slug != "news" and not self.slug.startswith("news-"):
+            raise ValueError("slug страницы типа news: «news» или «news-…»")
+        return self
 
 
 # --- pharma
@@ -451,6 +560,7 @@ class Drug(Strict):
 
 class PharmaPage(PageBase):
     slug: Literal["pharma"]
+    type: Literal["pharma"] = "pharma"
     brand: str
     disclaimer: str
     drugs: Annotated[list[Drug], Field(min_length=1)]
@@ -497,6 +607,7 @@ CLOUD_FOLDER_FIELDS: dict[str, tuple[str, ...]] = {
 
 class CloudPage(PageBase):
     slug: Literal["cloud"]
+    type: Literal["cloud"] = "cloud"
     password: str
     brand: str
     account: str
@@ -518,20 +629,97 @@ class VideoFile(Strict):
 
 class VideoPage(PageBase):
     slug: Literal["video"]
+    type: Literal["video"] = "video"
     title: str
     source: str
     file: VideoFile
     video: str
 
 
+# --- site (сайт организации: театр, фонд, клуб)
+
+SiteSkin = Literal["theater", "fund", "auction"]
+
+
+class SiteCard(Strict):
+    title: str
+    subtitle: str | None = None
+    text: str | None = None
+    photo: str | None = None
+    page: Id | None = None
+    link_text: str | None = None  # подпись ссылки карточки (по умолчанию «Подробнее»)
+
+
+class SiteText(Strict):
+    kind: Literal["text"]
+    md: str
+
+
+class SiteCards(Strict):
+    kind: Literal["cards"]
+    title: str | None = None
+    items: Annotated[list[SiteCard], Field(min_length=1)]
+
+
+class SiteTable(Strict):
+    kind: Literal["table"]
+    title: str | None = None
+    columns: Annotated[list[str], Field(min_length=1)]
+    rows: list[list[str]]
+
+
+class SiteNotice(Strict):
+    kind: Literal["notice"]
+    text: str
+
+
+SiteBlock = Annotated[SiteText | SiteCards | SiteTable | SiteNotice, Field(discriminator="kind")]
+
+
+class SiteSection(Strict):
+    id: Id
+    title: str
+    blocks: Annotated[list[SiteBlock], Field(min_length=1)]
+
+
+class SitePage(PageBase):
+    type: Literal["site"] = "site"
+    brand: str
+    skin: SiteSkin
+    tagline: str | None = None
+    sections: Annotated[list[SiteSection], Field(min_length=1)]
+    footer: str | None = None
+
+
+# --- тексты подвала сервисов (content/pages/_brands.yaml)
+
+
+class ServiceTexts(Strict):
+    """Короткие тексты подвала сервиса: «О сервисе», «Правила», «Помощь» (абзацы — через пустую строку)."""
+
+    about: str
+    rules: str
+    help: str
+
+
+class ServicesFile(Strict):
+    """``_brands.yaml``: ключ — бренд из ``world.yaml → brands`` (social, photo, news, pharma, cloud)."""
+
+    services: dict[Id, ServiceTexts]
+
+
+# Ключ — type страницы (по умолчанию = slug). Шаблон — site/templates/pages/<type>.html.
 PAGE_MODELS: dict[str, type[PageBase]] = {
     "call": CallPage,
-    "gromov": GromovPage,
     "inna": InnaPage,
     "news": NewsPage,
     "pharma": PharmaPage,
     "cloud": CloudPage,
     "video": VideoPage,
+    "social": SocialPage,
+    "social_home": SocialHomePage,
+    "social_stub": SocialStubPage,
+    "site": SitePage,
 }
 
 

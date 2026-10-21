@@ -1,0 +1,17 @@
+{# social_stub — закрытый профиль: «Пользователь ограничил доступ к своей странице». #}
+{% import "pages/_ui.html" as ui %}
+{% set brand = page.brand %}
+{% set bar_search = true %}
+<div class="kr kr--stub">
+  {% include "pages/_social_bar.html" %}
+  <section class="kr-stub" aria-labelledby="kr-stub-h">
+    <span class="kr-stub__lock" aria-hidden="true"></span>
+    <h1 class="kr-stub__h" id="kr-stub-h">{{ page.text }}</h1>
+    <p class="kr-stub__hint">Страницу видят только друзья этого пользователя.</p>
+    <div class="kr-stub__actions">
+      {% call ui.act("kr-btn kr-btn--primary", brand, ui.login_text("отправить заявку в друзья", brand)) %}Добавить в друзья{% endcall %}
+      <a class="kr-btn" href="{{ link(social_home) }}">На главную</a>
+    </div>
+  </section>
+  {% include "pages/_social_foot.html" %}
+</div>

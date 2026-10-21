@@ -1,0 +1,203 @@
+/*
+ * pages/_ui.css — общее для всех вымышленных страниц: окно сервиса («Чтобы подписаться, войдите в «Круг»» и
+ * «Понятно»), просмотр фото крупно, подвал «О сервисе / Правила / Помощь». Окна строит pages/page-ui.js.
+ *
+ * Окно рисуется в стиле бренда: страница задаёт переменные на body (--svc-bg, --svc-ink, --svc-line,
+ * --svc-accent, --svc-accent-ink, --svc-font, --svc-radius, --svc-btn-radius); без них — цвета системы.
+ * Окно — нативный <dialog>: фокус внутри, Esc закрывает, фокус возвращается на кнопку.
+ * Затемнение (::backdrop) переменные не наследует — цвет задан прямо.
+ */
+
+html.svc-lock {
+  overflow: hidden;
+}
+
+.svc-dialog,
+.svc-zoom {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--svc-ink, var(--ink));
+  max-width: none;
+  max-height: none;
+}
+
+.svc-dialog::backdrop,
+.svc-zoom::backdrop {
+  background: rgba(10, 12, 16, 0.64);
+}
+
+.svc-dialog {
+  width: min(calc(100vw - 32px), 420px);
+  margin: auto;
+}
+
+.svc-dialog.is-fallback-open,
+.svc-zoom.is-fallback-open {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  margin: auto;
+  height: fit-content;
+}
+
+.svc-dialog__box {
+  padding: 20px 20px 16px;
+  border: 1px solid var(--svc-line, var(--rule));
+  border-top: 4px solid var(--svc-accent, var(--seal));
+  border-radius: var(--svc-radius, 8px);
+  background: var(--svc-bg, var(--sheet));
+  color: var(--svc-ink, var(--ink));
+  font-family: var(--svc-font, var(--font-ui));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.svc-dialog__brand {
+  margin: 0 0 8px;
+  color: var(--svc-accent, var(--seal));
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.svc-dialog__h {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.svc-dialog__text p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.svc-dialog__text p + p {
+  margin-top: 8px;
+}
+
+.svc-dialog__ok {
+  min-width: 140px;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--svc-btn-radius, 999px);
+  background: var(--svc-accent, var(--seal));
+  color: var(--svc-accent-ink, var(--seal-ink));
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.svc-dialog__ok:hover {
+  filter: brightness(1.08);
+}
+
+.svc-dialog :focus-visible,
+.svc-zoom :focus-visible {
+  outline: 3px solid var(--svc-accent, var(--seal));
+  outline-offset: 2px;
+}
+
+/* --- фото крупно */
+
+.svc-zoom {
+  width: min(calc(100vw - 16px), 920px);
+  margin: auto;
+}
+
+.svc-zoom__frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 24px);
+  border-radius: var(--svc-radius, 8px);
+  background: #101214;
+  color: #f2f2f2;
+  overflow: hidden;
+}
+
+.svc-zoom__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  overflow: auto;
+}
+
+.svc-zoom__img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 110px);
+  object-fit: contain;
+}
+
+.svc-zoom__ph {
+  width: 100%;
+  min-height: 240px;
+  background: #23282d;
+  color: #c4cbd2;
+}
+
+.svc-zoom__caption {
+  margin: 0;
+  padding: 10px 56px 12px 16px;
+  font-size: 15px;
+  line-height: 1.4;
+  font-family: var(--svc-font, var(--font-ui));
+}
+
+.svc-zoom__close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.svc-zoom__close:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+/* --- подвал: пункты — кнопки-ссылки */
+
+.svc-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.svc-link {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .svc-dialog[open] .svc-dialog__box {
+    animation: svc-in 160ms ease-out;
+  }
+}
+
+@keyframes svc-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
