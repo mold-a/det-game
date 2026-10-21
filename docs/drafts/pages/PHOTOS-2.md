@@ -384,7 +384,7 @@ Casual smartphone photo on the wooden porch of a small Russian dacha in mid-Octo
 
 `gromov/meeting.jpg` (УЛИКА, летняя зелень за окном) и `gromov/cover.jpg` уже есть. Новые — к существующим постам и к одному личному.
 
-#### GR-01. `media/gromov/01.jpg` — субботник, к посту 11.10
+#### GR-01. `media/gromov/01.jpg` — субботник, к посту 10.10
 
 - **Приложить:** 1 — `portraits/gromov.jpg`.
 
@@ -528,7 +528,7 @@ posts:
 | Файл | Страница, где стоит | Улика? | Промпт |
 |---|---|---|---|
 | `gromov/avatar.jpg` | `gromov`, профиль | нет | AV-1 |
-| `gromov/01.jpg` | `gromov`, пост 11.10 (субботник) | нет | GR-01 |
+| `gromov/01.jpg` | `gromov`, пост 10.10 (субботник) | нет | GR-01 |
 | `gromov/02.jpg` | `gromov`, пост 24.10 (чаепитие; пятно варенья — пасхалка к комментарию) | нет | GR-02 |
 | `gromov/03.jpg` | `gromov`, пост 01.11 (дача, шарлотка) | нет | GR-03 |
 | `krug-voroncov/avatar.jpg` | `krug-voroncov`, профиль | нет | AV-2 |

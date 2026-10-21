@@ -20,7 +20,7 @@ test("финал: фиксация без оценки, счёт неизмен�
 
   const last = A.stages[3];
   const byPath = Object.fromEntries(last.questions.map((q) => [q.path, q]));
-  // верно: f1, f3, f5, fb; неверно: f2, f4, fb2
+  // верно: f1, f3, f5, fb, fb3; неверно: f2, f4, fb2
   const wrongSet = new Set(["s4.f2", "s4.f4", "s4.fb2"]);
   const logLen0 = (await readState(page)).log.length;
   for (const [i, path] of A.finalOrder.entries()) {
@@ -44,11 +44,11 @@ test("финал: фиксация без оценки, счёт неизмен�
     }
   }
   await expect(page.locator(".final-score")).toBeVisible({ timeout: 60_000 });
-  const expected = before + 3 * A.settings.points.final + A.settings.points.bonus;
+  const expected = before + 3 * A.settings.points.final + 2 * A.settings.points.bonus;
   const s = await readState(page);
   expect(sumLog(s)).toBe(expected);
   expect(s.log.filter((e: any) => e.r.startsWith("final:")).map((e: any) => e.r).sort()).toEqual(["final:s4.f1", "final:s4.f3", "final:s4.f5"]);
-  expect(s.log.filter((e: any) => e.r.startsWith("bonus:s4")).map((e: any) => e.r)).toEqual(["bonus:s4.fb"]);
+  expect(s.log.filter((e: any) => e.r.startsWith("bonus:s4")).map((e: any) => e.r)).toEqual(["bonus:s4.fb", "bonus:s4.fb3"]);
   expect(await headerScore(page)).toBe(expected);
   await expect(page.locator(".final-score__value")).toHaveText(`+${expected}`);
   await expect(page.locator(".final-score .stamp")).toHaveAttribute("aria-label", "Следователь");
