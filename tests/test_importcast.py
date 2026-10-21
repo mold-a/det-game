@@ -183,11 +183,12 @@ def test_father_daughters_derived_from_new_father(tmp_path, content):
 
 
 def test_father_child_full_fio_mismatch_is_problem(tmp_path, content):
-    path = table(tmp_path, content, cast_patch={"marina": ("Сомова Марина Петровна",)})
+    marina = next(c for c in load_content(content).characters if c.id == "marina")
+    path = table(tmp_path, content, cast_patch={"marina": (f"{marina.last} {marina.first} Петровна",)})
     rep = import_cast(path, content_root=content)
     assert not rep.ok
     assert "отчество в таблице «Петровна»" in problems(rep)
-    assert "«Кирилловна»" in problems(rep)
+    assert f"«{marina.middle}»" in problems(rep)
 
 
 def test_familiar_problem_when_first_name_changes(tmp_path, content):

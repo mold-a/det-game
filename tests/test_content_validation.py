@@ -449,14 +449,18 @@ def test_father_current_content_consistent():
 
 
 def test_father_wrong_patronymic_and_surname(root):
+    # ожидаемые формы берём из текущего content (имена меняет import-cast)
+    marina = next(c for c in load_content(root).characters if c.id == "marina")
+    exp_mid, exp_last = marina.middle, marina.last
+
     def fn(d):
         i = find(d["characters"], "marina")
         d["characters"][i]["middle"] = "Петровна"
-        d["characters"][i]["last"] = "Сомов"
+        d["characters"][i]["last"] = "Иванов"
     edit_yaml(root, "characters.yaml", fn)
     errs = assert_error(root, "content/characters.yaml: characters[", "].middle:", "указано «Петровна»",
-                        "ожидается «Кирилловна»", "forms.middle.nom")
-    assert any("].last:" in e and "ожидается «Сомова»" in e for e in errs)
+                        f"ожидается «{exp_mid}»", "forms.middle.nom")
+    assert any("].last:" in e and f"ожидается «{exp_last}»" in e for e in errs)
 
 
 def test_father_follows_renamed_father(root):

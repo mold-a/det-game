@@ -141,7 +141,8 @@ def test_emergency_data_complete(content):
     assert set(paths) == qpaths
     assert "s3.b3" in paths and "s4.fb2" in paths
     fb2 = next(q for st in data["stages"] for q in st["questions"] if q["path"] == "s4.fb2")
-    assert "Воронцов" in fb2["rows"][0]["answer"] and "Завьялов" in fb2["rows"][0]["answer"]
+    cs = {c.id: c for c in content.characters}
+    assert cs["voroncov"].last in fb2["rows"][0]["answer"] and cs["zavyalov"].last in fb2["rows"][0]["answer"]
     assert len(data["lab"]) == len(content.expertise.results)
     assert all(x["bases"] for x in data["lab"])
     sv = next(x for x in data["lab"] if any(p["label"] == "Время" for p in x["params"]))
