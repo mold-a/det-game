@@ -20,7 +20,7 @@
 
 ## Порядок работы
 
-1. **Подготовка.** Образцы лиц лежат у вас вне репозитория (папка `refs/`, см. `MEDIA-PLAN-A` §2.2): по 2 фото на человека. В запросе портрета три слота: 1-2 фото человека + стиль `voroncov.jpg` (последним). Gemini принимает до 3 изображений за запрос.
+1. **Подготовка.** Образцы лиц лежат у вас вне репозитория (папка `refs/`, см. `MEDIA-PLAN-A` §2.2): по 2 фото на человека. Для портретов — **короткие промпты** (раздел ниже) и только 1–2 фото человека, без образца стиля.
 2. **R01 - правка `voroncov.jpg`** (чёрная оправа -> прозрачная). Сделайте первой: правленый портрет нужен как образец в новости, на вокзале и как стиль для остальных.
 3. **P02-P14 - портреты.** Каждый портрет - в **новом чате** (иначе генератор тянет лицо из предыдущего). Утвердили - сохранили - можно переходить к следующему.
 4. **Сцены.** Сначала хрупкие улики (S07 таблетница, S04-S05 брошь, S06 вокзал), потом остальное. Люди в сценах - по **утверждённым портретам** (они уже нужного возраста), сырой образец - только если остался слот.
@@ -29,6 +29,77 @@
 7. Неудачные и запасные варианты - в `detgame-media/_attempts/`, не удалять до проверки.
 
 Лимиты и график по вечерам - `MEDIA-PLAN-A` §3; как работать в интерфейсе Gemini - §3.1.
+
+---
+
+## Короткие промпты портретов — ИСПОЛЬЗОВАТЬ ЭТИ (21.10)
+
+Длинные промпты ниже Gemini старил слишком сильно: слова про «морщины, поры, несовершенства» и седой образец стиля тянули возраст вверх. Поэтому:
+
+1. **Прикладывайте только 1–2 фото человека.** Образец стиля (`voroncov.jpg`) больше **не прикладывать** — фон и кадр заданы словами.
+2. Возраст задан **диапазоном с признаками** и запретом «не старше».
+3. Если всё равно старше: в том же чате — `Same image, but make the person look 10 years younger. Keep the face and everything else.` (можно повторить ещё раз).
+4. Если младше нужного — `Same image, but make the person look 5 years older.`
+
+Шаблон: `Photorealistic passport-style portrait of the person in the attached photo, {пол}. Keep the face exactly recognisable. Age: {N}, {признаки}. Do NOT make them look older than {N}. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. {внешность}. No text, no logos, no beauty filter. Vertical 4:5.`
+
+**P01. `portraits/voroncov.jpg` — Воронцов (автор), 56**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 56, mid-fifties: some grey at the temples and in the beard, moderate lines. Do NOT make them look older than 56. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A charismatic, slightly tired look, faint half-smile; thin glasses with a TRANSPARENT (clear) frame; thick dark eyebrows; dark crew-neck T-shirt. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P02. `portraits/zavyalov.jpg` — Завьялов (дедушка), 61**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 61, early sixties, a bit YOUNGER than in the photo: fewer wrinkles. Do NOT make them look older than 61. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An authoritative look over the top of reading glasses; dark suit, white shirt, dark tie; no smile. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P03. `portraits/volkov.jpg` — Волков (Слава), 31**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 31, early thirties: fresh face, NO wrinkles, NO grey hair. Do NOT make them look older than 31. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A charming friendly smile; plain dark blue-grey knit sweater. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P04. `portraits/marina.jpg` — Марина (Алина), 24**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a young woman. Keep the face exactly recognisable. Age: 24, mid-twenties: smooth youthful skin, NO wrinkles, NO grey hair. Do NOT make them look older than 24. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A closed, guarded look, no smile; plain beige or grey top. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P05. `portraits/kirill.jpg` — Кирилл (дядя Саша), 56**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 56, mid-fifties: some grey, light lines at the eyes. Do NOT make them look older than 56. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. Cheerful laughing eyes, a hint of a smirk; checked flannel shirt. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P06. `portraits/stas.jpg` — Лёвин (Стас), 44**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 44, mid-forties: a few faint lines at the eyes, almost NO grey. Do NOT make them look older than 44. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An expressive, slightly ironic look; dark turtleneck. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P07. `portraits/reznikova.jpg` — Резникова (мама), 47**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 47, late forties, well-kept: light lines at the eyes, no grey hair. Do NOT make them look older than 47. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A composed, attentive look; hair tied back; a plain black headset resting around the neck; simple dark top. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P08. `portraits/gnedich.jpg` — Гнедич (бабушка), 63**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 63, early sixties, a bit YOUNGER than in the photo. Do NOT make them look older than 63. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A strict look, no smile; a yellow tailor's measuring tape around the neck; dark blouse and cardigan. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P09. `portraits/viktor.jpg` — Виктор (двоюродный брат), 50**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 50, about fifty: a little grey at the temples, light lines — moderate, not old. Do NOT make them look older than 50. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A calm, taciturn look, no smile; plain black T-shirt. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P10. `portraits/oleg.jpg` — Олег, 64**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a man. Keep the face exactly recognisable. Age: 64, early-to-mid sixties. Do NOT make them look older than 64. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A good-natured face, small closed-mouth smile; dark navy guard jacket with NO patches, badges or logos. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P11. `portraits/inna.jpg` — Инна, 29**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 29, late twenties: smooth skin, NO wrinkles, NO grey hair. Do NOT make them look older than 29. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A lively look, small smile, bright red lipstick; cream blouse with a plain white apron. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P12. `portraits/dmitriy.jpg` — Водитель (роль «Дмитрий»), 40**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 40, around forty: very few faint lines, no grey hair. Do NOT make them look older than 40. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. A calm, reliable look; dark zip-up jacket. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P13. `portraits/volskaya.jpg` — Вольская (тётя Света), 54**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 54, mid-fifties, well-groomed: light lines, hair may be coloured. Do NOT make them look older than 54. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An elegant, self-assured look, faint polite smile; pearl necklace, ivory blouse, dark jacket. No text, no logos, no beauty filter. Vertical 4:5.
+```
+**P14. `portraits/gromov.jpg` — Громова (Юля), 57**
+```text
+Photorealistic passport-style portrait of the person in the attached photo, a woman. Keep the face exactly recognisable. Age: 57, mid-to-late fifties, well-groomed official: light lines, neat coloured hair. Do NOT make them look older than 57. Front view, looking straight into the camera, head and shoulders, plain pure white background, soft even light. An official, slightly stern look, no smile; grey blazer, white blouse, small plain round lapel pin without any symbol. No text, no logos, no beauty filter. Vertical 4:5.
+```
+Длинные промпты (раздел ниже) — запасной вариант, если короткий не даёт сходства.
 
 ---
 
