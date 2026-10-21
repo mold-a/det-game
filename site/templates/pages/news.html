@@ -1,8 +1,9 @@
 {# news — статья новостного портала «Верхнеречье сегодня» (docs/04: «news»; news-* — те же шаблон и схема).
    Нельзя добавлять своих текстов о причине смерти: всё о событии — только из контента (forbidden
-   проверяет сборщик). Каждый элемент делает что-то: логотип и «Главное» — на главную портала, остальные рубрики,
-   «Войти», баннеры и действия — окна портала (pages/page-ui.js), «Печать» — печать, пункты боковой колонки со
-   страницей — ссылки, подвал — «О портале», «Правила», «Помощь». #}
+   проверяет сборщик). Кликабельно только то, что ведёт к
+   содержимому: логотип и «Главное» — на главную портала, пункты боковой колонки со страницей — ссылки. Остальные
+   рубрики, баннеры, имена читателей и пункты без страницы — обычный текст. Входа, «Поделиться», «Печати» и формы
+   комментария нет. Подвал — раскрывающиеся «О портале», «Правила», «Помощь». #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 {% set art = page.article %}
@@ -10,7 +11,6 @@
   <header class="nw-head">
     <div class="nw-head__top">
       <span class="nw-head__date">{{ art.datetime|dt("date") }}</span>
-      {% call ui.act("nw-link", brand, "Чтобы войти, нужна учётная запись портала. В режиме просмотра вход недоступен.") %}Войти{% endcall %}
     </div>
     <div class="nw-head__brand">
       <a class="nw-logo" href="{{ link('news') }}" aria-label="{{ brand }}: главная страница портала">{% set parts = brand.split(" ", 1) %}<span class="nw-logo__main">{{ parts[0] }}</span>{% if parts|length > 1 %} <span class="nw-logo__tag">{{ parts[1] }}</span>{% endif %}</a>
@@ -18,7 +18,7 @@
     <nav class="nw-nav" aria-label="Рубрики">
       <a class="nw-nav__item is-current" href="{{ link('news') }}" aria-current="page">Главное</a>
       {% for r in ["Город", "Культура", "Спорт", "Афиша", "Погода"] %}
-      {% call ui.act("nw-nav__item", brand, "Раздел «" ~ r ~ "» в этой версии портала не обновляется. Свежие материалы — на главной странице.", "Раздел «" ~ r ~ "»") %}{{ r }}{% endcall %}
+      <span class="nw-nav__item">{{ r }}</span>
       {% endfor %}
     </nav>
   </header>
@@ -26,7 +26,7 @@
   {% set ads = page.ads %}
   <aside class="nw-ad nw-ad--top" aria-label="Реклама">
     {% if ads %}
-    {% call ui.act("nw-banner nw-banner--0", brand, "Это рекламное объявление. Условия и цены — у рекламодателя.", "Реклама: " ~ ads[0].title) %}<b class="nw-banner__title">{{ ads[0].title }}</b> <span class="nw-banner__text">{{ ads[0].text }}</span><span class="nw-banner__mark">Реклама</span>{% endcall %}
+    <div class="nw-banner nw-banner--0"><b class="nw-banner__title">{{ ads[0].title }}</b> <span class="nw-banner__text">{{ ads[0].text }}</span><span class="nw-banner__mark">Реклама</span></div>
     {% else %}
     <div class="ph ph--ad"><span class="ph__label">Здесь будет баннер местной фирмы</span></div>
     {% endif %}
@@ -42,12 +42,6 @@
         <figure class="nw-article__photo">{{ ui.img(media, art.photo, art.headline, "фото к статье", "nw-photo") }}</figure>
         {% endif %}
         <div class="nw-article__body">{{ art.body_html }}</div>
-        <div class="nw-share">
-          <span class="nw-share__label">Поделиться:</span>
-          {% call ui.act("nw-share__btn", brand, "Чтобы поделиться материалом, войдите на портал.") %}Ссылка{% endcall %}
-          {% call ui.act("nw-share__btn", brand, "Чтобы отправить материал по почте, войдите на портал.") %}Почта{% endcall %}
-          <button class="nw-share__btn" type="button" data-print>Печать</button>
-        </div>
       </article>
 
       <section class="nw-comments" aria-labelledby="nw-comments-h">
@@ -56,7 +50,7 @@
         <ul class="nw-comments__list" role="list">
           {% for cm in page.comments %}
           <li class="nw-comment">
-            <p class="nw-comment__head">{% call ui.act("nw-comment__author", brand, "Профили читателей видны только зарегистрированным пользователям портала.", cm.author) %}{{ cm.author }}{% endcall %} <time datetime="{{ cm.datetime }}">{{ cm.datetime|dt }}</time></p>
+            <p class="nw-comment__head"><b class="nw-comment__author">{{ cm.author }}</b> <time datetime="{{ cm.datetime }}">{{ cm.datetime|dt }}</time></p>
             <p class="nw-comment__text">{{ cm.text }}</p>
           </li>
           {% endfor %}
@@ -64,10 +58,6 @@
         {% else %}
         <div class="ph ph--block"><span class="ph__label">Здесь будут комментарии читателей</span></div>
         {% endif %}
-        <div class="nw-comment-form">
-          {% call ui.act("nw-comment-form__field", brand, "Чтобы оставить комментарий, войдите на портал.") %}Чтобы оставить комментарий, войдите на портал{% endcall %}
-          {% call ui.act("nw-btn", brand, "Чтобы оставить комментарий, войдите на портал.") %}Отправить{% endcall %}
-        </div>
       </section>
     </div>
 
@@ -80,7 +70,7 @@
           {% if item.page %}
           <a class="nw-side__item" href="{{ link(item.page) }}"><time datetime="{{ item.datetime }}">{{ item.datetime|dt }}</time><span class="nw-side__title">{{ item.title }}</span></a>
           {% else %}
-          {% call ui.act("nw-side__item", brand, "Полный текст этой новости в этой версии портала недоступен.", "Материал недоступен") %}<time datetime="{{ item.datetime }}">{{ item.datetime|dt }}</time><span class="nw-side__title">{{ item.title }}</span>{% endcall %}
+          <div class="nw-side__item nw-side__item--text"><time datetime="{{ item.datetime }}">{{ item.datetime|dt }}</time><span class="nw-side__title">{{ item.title }}</span></div>
           {% endif %}
         </li>
         {% endfor %}
@@ -91,7 +81,7 @@
 
       {% if ads|length > 1 %}
       {% for ad in ads[1:] %}
-      {% call ui.act("nw-banner nw-banner--" ~ (loop.index % 3) ~ " nw-banner--side", brand, "Это рекламное объявление. Условия и цены — у рекламодателя.", "Реклама: " ~ ad.title) %}<b class="nw-banner__title">{{ ad.title }}</b> <span class="nw-banner__text">{{ ad.text }}</span><span class="nw-banner__mark">Реклама</span>{% endcall %}
+      <div class="nw-banner nw-banner--{{ loop.index % 3 }} nw-banner--side"><b class="nw-banner__title">{{ ad.title }}</b> <span class="nw-banner__text">{{ ad.text }}</span><span class="nw-banner__mark">Реклама</span></div>
       {% endfor %}
       {% elif not ads %}
       <div class="ph ph--ad ph--side"><span class="ph__label">Здесь будет баннер местной фирмы</span></div>

@@ -2,14 +2,15 @@
    Плашка публикации — статичная (таймер не тикает). Интерактив — pages/cloud.js: переключение
    папок, сортировка реестра по колонкам (значения — data-sort). Без JS все папки видны подряд.
    Папка kind=locked — только замок, содержимого во фрагменте нет.
-   Каждый элемент делает что-то: логотип — наверх, учётная запись и замок — окна хранилища, подвал — «О сервисе»,
-   «Правила», «Помощь»; ссылки в ячейках, репликах и письмах (Markdown) ведут на страницы. #}
+   Кликабельно только то, что ведёт к содержимому: папки, сортировка колонок, ссылки в ячейках, репликах и письмах
+   (Markdown). Логин в шапке — текст; у замка папки нет кнопки: ввода второго пароля в игре нет. Подвал — раскрывающиеся
+   сведения о сервисе. #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 <div class="tc">
   <header class="tc-bar">
-    <button class="tc-logo-btn" type="button" data-top aria-label="{{ brand }}: наверх"><span class="brandmark brandmark--cloud"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></button>
-    {% call ui.act("tc-bar__account", brand, "Управление учётной записью недоступно в режиме просмотра хранилища.", "Учётная запись") %}{{ ui.text(page.account, "логин") }}{% endcall %}
+    <span class="tc-logo"><span class="brandmark brandmark--cloud"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></span>
+    <span class="tc-bar__account">{{ ui.text(page.account, "логин") }}</span>
   </header>
 
   <div class="tc-banner clue" data-clue="banner" role="note">
@@ -95,7 +96,6 @@
         <div class="tc-locked">
           <span class="tc-locked__icon" aria-hidden="true"></span>
           <p class="tc-locked__text">Папка защищена отдельным паролем.</p>
-          {% call ui.act("tc-locked__btn", brand, "Для открытия папки нужен отдельный пароль. Ввод пароля в режиме просмотра недоступен.", "Папка защищена") %}Ввести пароль{% endcall %}
         </div>
         {% endif %}
       </section>

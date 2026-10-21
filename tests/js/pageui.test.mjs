@@ -1,12 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { paragraphs, nextTabIndex, sectionFromHash, filterNames } from "../../site/assets/js/core/pageui.js";
-
-test("paragraphs: абзацы по переводу строки, пустые отброшены", () => {
-  assert.deepEqual(paragraphs("Первый.\n\nВторой.\n  \nТретий."), ["Первый.", "Второй.", "Третий."]);
-  assert.deepEqual(paragraphs(""), []);
-  assert.deepEqual(paragraphs(null), []);
-});
+import { nextTabIndex, sectionFromHash, filterNames } from "../../site/assets/js/core/pageui.js";
 
 test("nextTabIndex: стрелки зациклены, Home/End, чужая клавиша — null", () => {
   assert.equal(nextTabIndex("ArrowRight", 2, 3), 0);

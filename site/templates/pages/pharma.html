@@ -2,13 +2,13 @@
    Все карточки — одного формата, ни одна ничем не выделена. Интерактив — pages/pharma.js:
    поиск по названию и действующему веществу через base() (без регистра и «ё»), алфавитный
    указатель. Данные для поиска — в data-name / data-trade (торговые названия через «|»).
-   Логотип — наверх, подвал — «О справочнике», «Правила», «Помощь». #}
+   Логотип — обычная марка, подвал — раскрывающиеся «О справочнике», «Правила», «Помощь». #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 {% set drugs = page.drugs|sort(attribute="name") %}
 <div class="fs">
   <header class="fs-head">
-    <button class="fs-logo-btn" type="button" data-top aria-label="{{ brand }}: наверх"><span class="brandmark brandmark--pharma"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></button>
+    <span class="fs-logo"><span class="brandmark brandmark--pharma"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></span>
     <span class="fs-head__sub">справочник лекарственных средств</span>
   </header>
 

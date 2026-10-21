@@ -1,7 +1,8 @@
 {# site — сайт организации из разделов и блоков (REDESIGN §6.2): театр, фонд, клуб. Скин (page.skin) задаёт характер:
    site-theater.css / site-fund.css / site-auction.css. Навигация — разделы с адресами #<id>, переключаются
-   на странице (pages/page-ui.js, [data-sections]); без JS видны все разделы подряд. Каждый элемент делает что-то:
-   логотип и меню — разделы, карточки со ссылкой — страницы, фото — крупно, подвал — разделы и «Войти». #}
+   на странице (pages/page-ui.js, [data-sections]); без JS видны все разделы подряд. Кликабельно только то, что ведёт
+   к содержимому: логотип и меню — разделы, карточки со ссылкой — страницы, фото — крупно, подвал — разделы.
+   Кнопки «Войти» нет (у клуба — плашка «вход по приглашению» в содержимом). #}
 {% import "pages/_ui.html" as ui %}
 {% set first = page.sections[0] %}
 <div class="st st--{{ page.skin }}" data-sections="{{ first.id }}">
@@ -15,9 +16,6 @@
         </svg>
         <span class="st-logo__name">{{ page.brand }}</span>
       </a>
-      {% if page.skin == "auction" %}
-      {% call ui.act("st-btn st-btn--line", page.brand, "Вход в клуб — только по персональному приглашению.", "Вход") %}Войти{% endcall %}
-      {% endif %}
     </div>
     {% if page.tagline %}<p class="st-tagline">{{ page.tagline }}</p>{% endif %}
     <nav class="st-nav" aria-label="Разделы сайта">

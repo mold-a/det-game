@@ -401,14 +401,12 @@ body.page--pharma {
   }
 }
 
-/* --- рабочие элементы: логотип-кнопка, подвал */
+/* --- рабочие элементы: марка (не кнопка), подвал */
 
-.fs-logo-btn {
+.fs-logo {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
 }
 
 .fs-foot__links {

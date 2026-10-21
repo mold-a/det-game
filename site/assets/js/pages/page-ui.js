@@ -1,30 +1,25 @@
-// Общий интерактив вымышленных страниц (REDESIGN-2026-10 §4.1): каждый элемент что-то делает.
+// Общий интерактив вымышленных страниц (REDESIGN-2026-10 §4.1): кликабельно только то, что ведёт к содержимому
+// (страница, раздел, вкладка, фото крупно, раскрытие). Окон-заглушек и кнопок аккаунта нет.
 //
-//   [data-dialog-text]  окно сервиса: «Чтобы подписаться, войдите в «Круг»» и кнопка «Понятно»
-//                       (data-dialog-title — бренд, data-dialog-heading — заголовок внутри; формы входа нет)
 //   [data-zoom]         фото крупно (внутри кнопки — img или заглушка .ph; src читается в момент нажатия,
 //                       поэтому работает и для зашифрованных медиа, которые подставляются позже)
 //   [data-tabs]         вкладки role=tab/tabpanel со стрелками, Home/End
 //   [data-toggle=id]    свернуть/развернуть блок #id (aria-expanded)
 //   [data-sections]     разделы сайта по адресу #<id> (site)
 //   [data-people-search] поиск людей по списку (главная соцсети)
-//   [data-print], [data-top]  печать и «наверх»
 //
 // Подключается и открытыми страницами (open.js → init(document)), и закрытыми (shell.js → init(#page-content)).
-// Окна — нативный <dialog> (фокус внутри, Esc, возврат фокуса на кнопку); без showModal — запасной вариант.
+// Фото крупно — нативный <dialog> (фокус внутри, Esc, возврат фокуса на кнопку); без showModal — запасной вариант.
 
-import { paragraphs, nextTabIndex, sectionFromHash, filterNames } from "../core/pageui.js";
+import { nextTabIndex, sectionFromHash, filterNames } from "../core/pageui.js";
 
 const TEXT = {
-  ok: "Понятно",
   close: "Закрыть",
   found: (n) => `Найдено: ${n}`,
 };
 
 const native = typeof HTMLDialogElement === "function" && typeof HTMLDialogElement.prototype.showModal === "function";
 const reduced = () => !!globalThis.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-let dialogSeq = 0;
 
 function makeDialog(className, label) {
   const dlg = document.createElement("dialog");
@@ -72,49 +67,6 @@ function wireDialog(dlg) {
     if (ev.key === "Escape" && !native) closeDialog(dlg);
   });
   document.body.append(dlg);
-}
-
-/** Окно сервиса: бренд, необязательный заголовок, абзацы, «Понятно». Возвращает dialog. */
-export function openServiceDialog({ title = "", heading = "", text = "", opener = null } = {}) {
-  let dlg = document.querySelector("dialog.svc-dialog");
-  if (!dlg) {
-    dlg = makeDialog("svc-dialog");
-    wireDialog(dlg);
-  }
-  const id = `svc-dialog-${++dialogSeq}`;
-  const box = document.createElement("div");
-  box.className = "svc-dialog__box";
-  const brand = document.createElement("p");
-  brand.className = "svc-dialog__brand";
-  brand.id = `${id}-brand`;
-  brand.textContent = title;
-  box.append(brand);
-  let labelId = brand.id;
-  if (heading) {
-    const h = document.createElement("h2");
-    h.className = "svc-dialog__h";
-    h.id = `${id}-h`;
-    h.textContent = heading;
-    box.append(h);
-    labelId = `${brand.id} ${h.id}`;
-  }
-  const body = document.createElement("div");
-  body.className = "svc-dialog__text";
-  for (const p of paragraphs(text)) {
-    const el = document.createElement("p");
-    el.textContent = p;
-    body.append(el);
-  }
-  const ok = document.createElement("button");
-  ok.type = "button";
-  ok.className = "svc-dialog__ok";
-  ok.textContent = TEXT.ok;
-  ok.addEventListener("click", () => closeDialog(dlg));
-  box.append(body, ok);
-  dlg.replaceChildren(box);
-  dlg.setAttribute("aria-labelledby", labelId);
-  showDialog(dlg, opener, ok);
-  return dlg;
 }
 
 /** Фото крупно: копия изображения (или заглушки) из кнопки, подпись, «Закрыть». */
@@ -256,17 +208,6 @@ export function init(root = document) {
   root.addEventListener("click", (ev) => {
     const t = ev.target instanceof Element ? ev.target : null;
     if (!t) return;
-    const dlg = t.closest("[data-dialog-text]");
-    if (dlg) {
-      ev.preventDefault();
-      openServiceDialog({
-        title: dlg.dataset.dialogTitle || "",
-        heading: dlg.dataset.dialogHeading || "",
-        text: dlg.dataset.dialogText || "",
-        opener: dlg,
-      });
-      return;
-    }
     const zoom = t.closest("[data-zoom]");
     if (zoom) {
       ev.preventDefault();
@@ -282,15 +223,6 @@ export function init(root = document) {
         target.hidden = !open;
       }
       return;
-    }
-    if (t.closest("[data-print]")) {
-      ev.preventDefault();
-      globalThis.print?.();
-      return;
-    }
-    if (t.closest("[data-top]")) {
-      ev.preventDefault();
-      globalThis.scrollTo({ top: 0, behavior: reduced() ? "auto" : "smooth" });
     }
   });
 

@@ -76,23 +76,6 @@ body.page--site {
   color: var(--st-mark, var(--st-accent));
 }
 
-.st-btn {
-  min-height: 44px;
-  padding: 0 20px;
-  border: 1px solid var(--st-accent);
-  border-radius: var(--st-radius, 4px);
-  background: transparent;
-  color: var(--st-head-ink);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.st-btn:hover {
-  background: var(--st-accent);
-  color: var(--st-accent-ink, #000);
-}
-
 .st-tagline {
   margin: 2px 0 6px;
   max-width: 40em;

@@ -156,32 +156,6 @@ html.kd-lock {
   border-bottom: 1px solid var(--kd-line);
 }
 
-.kd-btn {
-  min-height: 44px;
-  padding: 0 18px;
-  border-radius: 6px;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.kd-btn:disabled {
-  cursor: default;
-  opacity: 1;
-}
-
-.kd-btn--line {
-  border: 2px solid var(--kd-text);
-  background: transparent;
-  color: var(--kd-text);
-}
-
-.kd-btn--fill {
-  border: 0;
-  background: var(--kd-brand);
-  color: var(--kd-brand-ink);
-}
-
 .kd-profile {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -381,11 +355,6 @@ html.kd-lock {
     linear-gradient(#e8a33d, #e8a33d) right bottom / 2px 6px no-repeat;
 }
 
-.kd-view .kd-btn--line {
-  border-color: #f3f4f6;
-  color: #f3f4f6;
-}
-
 .kd-view__nav {
   position: absolute;
   top: 6px;
@@ -506,14 +475,12 @@ img.media-missing {
   }
 }
 
-/* --- рабочие элементы: логотип-кнопка, аватар крупно, подвал */
+/* --- рабочие элементы: марка (не кнопка), аватар крупно, подвал */
 
-.kd-logo-btn {
+.kd-logo {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
 }
 
 .kd-zoom {

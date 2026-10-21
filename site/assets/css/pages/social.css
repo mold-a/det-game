@@ -130,10 +130,6 @@ body.page--social {
   box-shadow: inset 0 0 0 1px var(--kr-brand);
 }
 
-.kr-bar .kr-btn {
-  margin-left: auto;
-}
-
 @media (max-width: 460px) {
   .kr-bar__search {
     display: none;
@@ -171,11 +167,6 @@ body.page--social {
 
 .kr-btn--primary:hover {
   filter: brightness(1.06);
-}
-
-.kr-btn--ghost {
-  border-color: var(--kr-brand);
-  color: var(--kr-brand) !important;
 }
 
 /* --- профиль */
@@ -282,12 +273,6 @@ body.page--social {
   border: 2.5px solid currentColor;
   transform: rotate(-45deg);
   margin-right: 1px;
-}
-
-.kr-profile__actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
 }
 
 .kr-profile__stats {
@@ -516,26 +501,24 @@ body.page--social {
   background: var(--kr-bg);
 }
 
-.kr-act b {
+.kr-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 44px;
+  padding: 0 7px;
+  color: var(--kr-muted);
+  font-size: 14px;
+}
+
+.kr-stat b {
   color: var(--kr-text);
   font-weight: 700;
 }
 
-/* На узком экране «Поделиться» — значок (подпись остаётся для читалок экрана): три действия в одну строку. */
-@media (max-width: 439px) {
-  .kr-act__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  .kr-act:has(.kr-act__label) {
-    min-width: 44px;
-    justify-content: center;
-  }
+.kr-act b {
+  color: var(--kr-text);
+  font-weight: 700;
 }
 
 .kr-act__ico {
@@ -556,11 +539,6 @@ body.page--social {
 
 .kr-act__ico--comment {
   border-radius: 50% 50% 50% 2px;
-}
-
-.kr-act__ico--share {
-  border-radius: 3px;
-  border-style: dashed;
 }
 
 .kr-comments-box {
@@ -589,26 +567,6 @@ body.page--social {
 
 .kr-comment__author:hover {
   text-decoration: underline;
-}
-
-.kr-compose {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 14px;
-  border: 1px solid var(--kr-line);
-  border-radius: 999px;
-  background: var(--kr-bg);
-  color: var(--kr-muted);
-  font: inherit;
-  font-size: 15px;
-  text-align: left;
-  cursor: text;
-}
-
-.kr-compose:hover {
-  border-color: var(--kr-brand);
 }
 
 /* --- «Фото» */

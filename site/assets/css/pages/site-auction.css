@@ -47,14 +47,6 @@ body.skin-auction {
   padding-top: 8px;
 }
 
-@media (min-width: 640px) {
-  .st--auction .st-head__top .st-btn {
-    position: absolute;
-    top: 12px;
-    right: 32px;
-  }
-}
-
 .st--auction .st-logo {
   flex-direction: column;
   gap: 2px;

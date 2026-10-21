@@ -1,15 +1,7 @@
-// Логика вымышленных страниц без DOM (REDESIGN-2026-10 §4.1): окна сервиса, вкладки, разделы сайта,
+// Логика вымышленных страниц без DOM (REDESIGN-2026-10 §4.1): вкладки, разделы сайта,
 // поиск людей. DOM-часть — pages/page-ui.js. Тесты — tests/js/pageui.test.mjs.
 
 import { base } from "./normalize.js";
-
-/** Текст окна → абзацы: строки через перевод строки, пустые отбрасываются. */
-export function paragraphs(text) {
-  return String(text ?? "")
-    .split(/\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
 
 /**
  * Индекс вкладки после нажатия клавиши (ARIA tabs, горизонтальные вкладки) или null, если клавиша не наша.

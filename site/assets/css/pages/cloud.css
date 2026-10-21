@@ -229,12 +229,7 @@ body.page--cloud {
 }
 
 .tc-bar__account {
-  min-height: 44px;
   padding: 0 4px;
-  border: 0;
-  background: none;
-  font: inherit;
-  cursor: pointer;
   min-width: 0;
   overflow-wrap: anywhere;
   color: var(--tc-muted);
@@ -703,30 +698,12 @@ th[aria-sort="descending"] .tc-sort {
   overflow-wrap: anywhere;
 }
 
-/* --- рабочие элементы: логотип-кнопка, «Ввести пароль», подвал, ссылки в таблице и переписке */
+/* --- рабочие элементы: марка (не кнопка), замок без кнопки, подвал, ссылки в таблице и переписке */
 
-.tc-logo-btn {
+.tc-logo {
+  display: inline-flex;
+  align-items: center;
   min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-}
-
-.tc-bar__account:hover {
-  text-decoration: underline;
-}
-
-.tc-locked__btn {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--tc-brand);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--tc-brand-text);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .tc-locked {
