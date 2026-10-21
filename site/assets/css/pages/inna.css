@@ -50,7 +50,6 @@ body.page--inna {
   --svc-accent-ink: var(--kd-brand-ink);
   --svc-font: var(--kd-font);
   --svc-radius: 4px;
-  --svc-btn-radius: 4px;
   color-scheme: light;
   background: var(--kd-bg);
   color: var(--kd-text);
@@ -498,18 +497,6 @@ img.media-missing {
   color: var(--kd-muted);
   font-size: 14px;
   text-align: center;
-}
-
-.kd-foot__links {
-  justify-content: center;
-}
-
-.kd-foot__link {
-  color: var(--kd-muted);
-}
-
-.kd-foot__link:hover {
-  color: var(--kd-text);
 }
 
 .kd-foot__copy {

@@ -20,7 +20,6 @@ body.page--site {
   --svc-accent-ink: var(--st-accent-ink, #fff);
   --svc-font: var(--st-font-body, var(--font-sans));
   --svc-radius: var(--st-radius, 4px);
-  --svc-btn-radius: var(--st-radius, 4px);
 }
 
 .page--site :focus-visible {

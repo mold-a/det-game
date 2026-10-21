@@ -928,6 +928,32 @@ html:has(.app-header) {
   color: var(--pen);
 }
 
+/* Кнопка «Перейти к вопросам»: вопросы этапа скрыты, пока команда не изучит документы. */
+.gate {
+  display: grid;
+  justify-items: start;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+}
+
+@media (min-width: 600px) {
+  .gate {
+    padding-left: calc(4rem + var(--sp-4));
+    padding-right: var(--sp-5);
+  }
+}
+
+.gate__hint {
+  margin: 0;
+  max-width: 34em;
+  color: var(--muted);
+  font-size: var(--fs-1);
+}
+
+.sheet--form:focus {
+  outline: none;
+}
+
 .q--final-link .q__actions {
   margin-top: var(--sp-4);
 }

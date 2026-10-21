@@ -723,14 +723,6 @@ th[aria-sort="descending"] .tc-sort {
   text-align: center;
 }
 
-.tc-foot__links {
-  justify-content: center;
-}
-
-.tc-foot__link {
-  color: var(--tc-muted);
-}
-
 .tc-foot__copy {
   margin-top: 4px;
 }

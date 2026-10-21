@@ -98,9 +98,9 @@ test("XSS в контенте и имени команды + лаборатор�
   expect(await lab(page, "water", "chem", "3-01")).toMatch(/^Заключение готово/);
   await expect(page.locator(".lab-result")).toContainText("QA-WATER-STAGE3");
   expect(await headerScore(page)).toBe(before3);
-  // «Мои заявки»: заключение этапа 3 открывается из списка
+  // «Мои заявки»: новые сверху — первое заключение списка это заявка этапа 3
   await page.goto("/lab/#orders");
-  await page.locator(".orders__item.is-done").last().getByRole("button", { name: "Открыть заключение" }).click();
+  await page.locator(".orders__item.is-done").first().getByRole("button", { name: "Открыть заключение" }).click();
   await expect(page.locator(".modal")).toContainText("QA-WATER-STAGE3");
   await page.keyboard.press("Escape");
 

@@ -327,8 +327,13 @@ def test_rendered_link_check_catches_open_to_closed(built_fx):
     assert any("этапа 4" in p for p in probs)
 
 
+# Подписи кнопок аккаунта и окон-заглушек: на вымышленных страницах их быть не должно (REDESIGN §4.1).
+DEAD_END_LABELS = ("Подписаться", "Написать", "Нравится", "Поделиться", "Войти", "Отметить", "Печать", "Ввести пароль",
+                   "Добавить в друзья", "Понятно")
+
+
 def test_every_visible_control_is_wired(built_fx):
-    """На страницах нет неактивных кнопок: каждая кнопка — окно, переключатель, фото или действие страницы."""
+    """Кликабельно только то, что ведёт к содержимому: нет кнопок без действия, нет окон-заглушек."""
     tmp, c, dist, lock = built_fx
     salts = salts_mod.read(lock)
     pages_html = {slug: read(dist, slug) for slug, p in c.pages.items() if p.locked is False}
@@ -337,24 +342,32 @@ def test_every_visible_control_is_wired(built_fx):
         if p.locked is True:
             box = json.loads((dist / "p" / slug / "payload.json").read_text(encoding="utf-8"))
             pages_html[slug] = json.loads(crypto.open_(salts.page_key(slug), box, f"page/{slug}"))["html"]
-    wired = re.compile(r'data-(dialog-text|zoom|toggle|print|top|role|act|index|folder-link|section-link)|role="tab"|type="submit"|'
+    wired = re.compile(r'data-(zoom|toggle|role|act|index|folder-link|section-link)|role="tab"|type="submit"|'
                        r'class="[^"]*(kd-tile__btn|tc-sort|kd-iconbtn)')
     for slug, html in pages_html.items():
+        # окон-заглушек нет: ни диалогов сервиса, ни кнопок, открывающих их
+        assert "data-dialog-text" not in html and "svc-dialog" not in html, slug
         if slug in ("cloud", "video", "call"):
             continue  # у этих плеер/сортировка/загрузка — их собственные data-act; проверяются e2e
-        for m in re.finditer(r"<button\b[^>]*>", html):
-            tag = m.group(0)
+        for m in re.finditer(r"<button\b[^>]*>(.*?)</button>", html, re.S):
+            tag = html[m.start():html.index(">", m.start()) + 1]
+            label = re.sub(r"<[^>]+>", "", m.group(1)).strip()
             assert "disabled" not in tag, (slug, tag)
             assert wired.search(tag), (slug, tag)
+            assert not any(label.startswith(x) for x in DEAD_END_LABELS), (slug, label)
         for m in re.finditer(r'<a\b[^>]*>', html):
             assert "href=" in m.group(0), (slug, m.group(0))
+    # облако: у замка папки нет кнопки «Ввести пароль»
+    if "cloud" in pages_html:
+        assert "Ввести пароль" not in pages_html["cloud"] and "tc-locked__btn" not in pages_html["cloud"]
 
 
 def test_service_footer_texts_come_from_content(built_fx):
+    """Подвал — раскрывающийся <details> с текстами из _brands.yaml, без окон."""
     _, c, dist, _ = built_fx
     assert set(c.services) >= {"social", "photo", "news", "pharma", "cloud"}
     html = read(dist, "gromov")
-    assert "О сервисе" in html and "Правила" in html and "Помощь" in html
+    assert "<details" in html and "Сведения о сервисе" in html and "Правила." in html and "Помощь." in html
     assert c.services["social"].about.split("\n")[0].replace("{{ w.brands.social }}", "Круг")[:20] in html.replace("&#34;", '"')
 
 

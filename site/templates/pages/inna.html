@@ -21,7 +21,8 @@
     </div>
   </section>
 
-  <ul class="kd-grid" role="list" aria-label="Снимки">
+  <h2 class="visually-hidden">Снимки</h2>
+  <ul class="kd-grid" role="list">
   {% for post in posts %}
     {% set label = "Снимок от " ~ (post.datetime|dt) %}
     {% set a = media(post.photo, post.caption or label) %}

@@ -2,7 +2,7 @@
    Все карточки — одного формата, ни одна ничем не выделена. Интерактив — pages/pharma.js:
    поиск по названию и действующему веществу через base() (без регистра и «ё»), алфавитный
    указатель. Данные для поиска — в data-name / data-trade (торговые названия через «|»).
-   Логотип — обычная марка, подвал — раскрывающиеся «О справочнике», «Правила», «Помощь». #}
+   Логотип — обычная марка, подвал — раскрывающиеся сведения о сервисе. #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 {% set drugs = page.drugs|sort(attribute="name") %}
@@ -48,7 +48,7 @@
   <p class="fs-empty" id="fs-empty" hidden>Ничего не найдено. Проверьте написание или введите часть названия.</p>
 
   <footer class="fs-foot">
-    {{ ui.service_footer(service, brand, "fs-foot", ("О справочнике", "Правила", "Помощь")) }}
+    {{ ui.service_footer(service, brand, "fs-foot") }}
     <small>{{ page.disclaimer }}</small>
   </footer>
 </div>

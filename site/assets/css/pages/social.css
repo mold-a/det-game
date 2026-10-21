@@ -684,31 +684,6 @@ body.page--social {
   text-align: center;
 }
 
-.kr-foot__links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0 4px;
-  padding: 0;
-  list-style: none;
-}
-
-.kr-foot__link {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  background: transparent;
-  color: var(--kr-muted);
-  font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  cursor: pointer;
-}
-
-.kr-foot__link:hover {
-  color: var(--kr-brand);
-}
-
 .kr-foot__copy {
   margin-top: 4px;
 }

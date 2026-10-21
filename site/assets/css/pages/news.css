@@ -52,7 +52,6 @@ body.page--news {
   --svc-accent-ink: var(--nw-brand-ink);
   --svc-font: var(--font-sans);
   --svc-radius: 2px;
-  --svc-btn-radius: 2px;
   color-scheme: light;
   background: var(--nw-bg);
   color: var(--nw-text);
@@ -394,26 +393,6 @@ a.nw-nav__item:hover {
   background: #1a1a1a;
   color: #d0d0d0;
   font-size: 13px;
-}
-
-.nw-foot__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nw-foot__link {
-  min-height: 44px;
-  padding: 0 8px;
-  border: 0;
-  background: none;
-  color: #ffffff;
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
 }
 
 .nw-foot {

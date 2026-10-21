@@ -50,7 +50,6 @@ body.page--pharma {
   --svc-accent-ink: var(--fs-brand-ink);
   --svc-font: var(--font-sans);
   --svc-radius: 6px;
-  --svc-btn-radius: 6px;
   color-scheme: light;
   background: var(--fs-bg);
   color: var(--fs-text);
@@ -407,16 +406,6 @@ body.page--pharma {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-}
-
-.fs-foot__links {
-  margin-bottom: 4px;
-}
-
-.fs-foot__link {
-  padding-left: 0;
-  margin-right: 8px;
-  color: var(--fs-brand);
 }
 
 .fs-foot small {

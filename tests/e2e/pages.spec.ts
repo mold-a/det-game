@@ -81,9 +81,9 @@ test.describe("телефон 360 px", () => {
     await expect(post.locator("time")).toHaveText("10.11.2026, 19:30");
     await expectClue(post.locator(".kr-post__geo"));
     await expect(post.locator(".kr-post__geo")).toHaveText("Северогорск");
-    // Действия аккаунта открывают окно сервиса (REDESIGN §4.1), а не «мёртвые» кнопки.
+    // Кнопок аккаунта нет (REDESIGN §4.1): кликабельно только то, что ведёт к содержимому.
     for (const name of ["Подписаться", "Написать", "Войти"]) {
-      await expect(page.getByRole("button", { name, exact: true })).toBeEnabled();
+      await expect(page.getByRole("button", { name, exact: true })).toHaveCount(0);
     }
     await expectNoHorizontalScroll(page);
   });
@@ -279,33 +279,44 @@ test.describe("ноутбук 1280 px", () => {
 
 // ---------------------------------------------------------------- рабочие элементы (REDESIGN-2026-10 §4.1)
 
-/** Окно сервиса открыто, в нём «Понятно»; закрывается кнопкой, фокус возвращается на кнопку-источник. */
-async function expectServiceDialog(page: Page, opener: Locator, textPart: RegExp | string) {
-  await opener.click();
-  const dlg = page.locator("dialog.svc-dialog[open]");
-  await expect(dlg).toBeVisible();
-  await expect(dlg).toContainText(textPart);
-  const ok = dlg.getByRole("button", { name: "Понятно" });
-  await expect(ok).toBeFocused();
-  await ok.click();
-  await expect(dlg).toBeHidden();
-  await expect(opener).toBeFocused();
+/** На странице нет кнопок аккаунта и окон-заглушек; число лайков и комментариев — обычный текст. */
+async function expectNoDeadEnds(page: Page) {
+  for (const name of ["Подписаться", "Написать", "Нравится", "Поделиться", "Войти", "Отметить", "Печать", "Ввести пароль"]) {
+    await expect(page.getByRole("button", { name, exact: false }), name).toHaveCount(0);
+  }
+  await expect(page.locator("dialog.svc-dialog, [data-dialog-text]")).toHaveCount(0);
+  await expect(page.getByText(/войдите в|не обновляется|Материал недоступен/)).toHaveCount(0);
+}
+
+/** Подвал: раскрывающиеся сведения о сервисе (без окон), текст из content/pages/_brands.yaml. */
+async function expectServiceDetails(page: Page, textPart: RegExp | string) {
+  const det = page.locator("details.svc-about");
+  await expect(det).toHaveCount(1);
+  await det.scrollIntoViewIfNeeded();
+  await expect(det.locator(".svc-about__body")).toBeHidden();
+  await det.locator("summary").click();
+  await expect(det.locator(".svc-about__body")).toBeVisible();
+  await expect(det).toContainText(textPart);
+  await expect(page.locator("dialog[open]")).toHaveCount(0);
 }
 
 test.describe("рабочие элементы: «Круг»", () => {
   test.use({ viewport: PHONE, hasTouch: true });
 
-  test("gromov: окна «войдите в «Круг»», фокус, Esc", async ({ page }) => {
+  test("gromov: нет кнопок аккаунта и окон; счётчики — текст; комментарии сворачиваются", async ({ page }) => {
     await openPage(page, "gromov");
-    await expectServiceDialog(page, page.getByRole("button", { name: "Подписаться", exact: true }), /Чтобы подписаться, войдите в «Круг»/);
-    await expectServiceDialog(page, page.getByRole("button", { name: "Написать", exact: true }), /войдите в «Круг»/);
-    const like = page.locator(".kr-post").first().getByRole("button", { name: /Нравится/ });
-    await expectServiceDialog(page, like, /войдите в «Круг»/);
-    // Esc закрывает окно, форм входа нет.
-    await page.getByRole("button", { name: "Войти", exact: true }).click();
-    await expect(page.locator("dialog.svc-dialog input")).toHaveCount(0);
-    await page.keyboard.press("Escape");
-    await expect(page.locator("dialog.svc-dialog[open]")).toHaveCount(0);
+    await expectNoDeadEnds(page);
+    const post = page.locator(".kr-post").first();
+    await expect(post.locator(".kr-stat").first()).toContainText(/\d/);
+    await expect(post.locator(".kr-stat").first().locator("xpath=self::button")).toHaveCount(0);
+    await expect(page.locator(".kr-compose")).toHaveCount(0);
+    const toggle = post.locator("button[data-toggle]");
+    if (await toggle.count()) {
+      await toggle.click();
+      await expect(post.locator(".kr-comments-box")).toBeHidden();
+      await toggle.click();
+      await expect(post.locator(".kr-comments-box")).toBeVisible();
+    }
     await expectNoHorizontalScroll(page);
   });
 
@@ -328,10 +339,8 @@ test.describe("рабочие элементы: «Круг»", () => {
     await expect(zoom).toBeVisible();
     await zoom.getByRole("button", { name: "Закрыть" }).click();
     await expect(zoom).toBeHidden();
-    // Подвал: «О сервисе» — короткий текст из content/pages/_brands.yaml.
-    await page.getByRole("button", { name: "О сервисе" }).click();
-    await expect(page.locator("dialog.svc-dialog[open]")).toContainText("Круг");
-    await page.keyboard.press("Escape");
+    // Подвал: сведения о сервисе раскрываются на месте.
+    await expectServiceDetails(page, "Круг");
   });
 
   test("ссылки: автор без страницы → заглушка, логотип → главная, поиск людей", async ({ page }) => {
@@ -355,26 +364,48 @@ test.describe("рабочие элементы: «Круг»", () => {
     await expectNoHorizontalScroll(page);
   });
 
-  test("news и inna: окна сервиса, логотип, подвал", async ({ page }) => {
+  test("news: рубрики, баннеры и пункты без страницы — не кнопки и не ссылки; подвал раскрывается", async ({ page }) => {
     await openPage(page, "news");
-    await expectServiceDialog(page, page.getByRole("button", { name: "Войти", exact: true }), /войти/i);
-    await expectServiceDialog(page, page.getByRole("button", { name: "Спорт", exact: true }), /Раздел «Спорт»/);
-    await expectServiceDialog(page, page.getByRole("button", { name: "О портале" }), /портал/i);
-    await openPage(page, "inna");
-    await expectServiceDialog(page, page.getByRole("button", { name: "Подписаться", exact: true }), /Чтобы подписаться, войдите в «Кадр»/);
-    await expectServiceDialog(page, page.getByRole("button", { name: "Войти", exact: true }), /«Кадр»/);
-    await page.locator(".kd-tile button").first().click();
-    await expectServiceDialog(page, page.locator("dialog.kd-view").getByRole("button", { name: "Отметить" }), /«Кадр»/);
-    await page.locator("dialog.kd-view").getByRole("button", { name: "Закрыть" }).click();
+    await expectNoDeadEnds(page);
+    // Ссылки: логотип, «Главное», пункты боковой колонки со страницей.
+    await expect(page.locator(".nw-nav a")).toHaveCount(1);
+    await expect(page.locator(".nw-nav__item", { hasText: "Спорт" })).not.toHaveJSProperty("tagName", "A");
+    await expect(page.locator(".nw-banner a, .nw-banner button")).toHaveCount(0);
+    await expect(page.locator(".nw-comment__author a, button.nw-comment__author")).toHaveCount(0);
+    await expect(page.locator("button")).toHaveCount(0);
+    await expectServiceDetails(page, /портал/i);
     await expectNoHorizontalScroll(page);
   });
 
-  test("pharma и cloud: подвал и учётная запись", async ({ page }) => {
+  test("inna: нет «Войти», «Подписаться», «Отметить»; снимок открывается крупно", async ({ page }) => {
+    await openPage(page, "inna");
+    await expectNoDeadEnds(page);
+    await page.locator(".kd-tile button").first().click();
+    const view = page.locator("dialog.kd-view");
+    await expect(view).toBeVisible();
+    await expectNoDeadEnds(page);
+    await view.getByRole("button", { name: "Закрыть" }).click();
+    await expectServiceDetails(page, "Кадр");
+    await expectNoHorizontalScroll(page);
+  });
+
+  test("pharma и cloud: без кнопок-заглушек; замок папки — без кнопки", async ({ page }) => {
     await openPage(page, "pharma");
-    await expectServiceDialog(page, page.getByRole("button", { name: "О справочнике" }), /справочник/i);
+    await expectNoDeadEnds(page);
+    await expectServiceDetails(page, /справочник/i);
     await openPage(page, "cloud");
-    await expectServiceDialog(page, page.locator(".tc-bar__account"), /учётной записью/);
-    await page.locator('[data-folder-link="for_m"], .tc-folder--locked').first().click();
-    await expectServiceDialog(page, page.getByRole("button", { name: "Ввести пароль" }), /отдельный пароль/);
+    await expectNoDeadEnds(page);
+    await expect(page.locator("button.tc-bar__account, a.tc-bar__account")).toHaveCount(0);
+    await page.locator(".tc-folder--locked").first().click();
+    await expect(page.getByText("Папка защищена отдельным паролем")).toBeVisible();
+    await expect(page.locator(".tc-locked button, .tc-locked input")).toHaveCount(0);
+    await expectServiceDetails(page, /хранилищ/i);
+  });
+
+  test("site: у клуба нет «Войти», есть плашка «по приглашению»", async ({ page }) => {
+    await openPage(page, "auction");
+    await expectNoDeadEnds(page);
+    await expect(page.locator(".st-notice").first()).toContainText(/приглашени/i);
+    await expectNoHorizontalScroll(page);
   });
 });

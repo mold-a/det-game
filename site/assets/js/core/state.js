@@ -70,6 +70,7 @@ export function newState({ gameId, saltsId, buildId = "", team = "", startedAt, 
     startedAt,
     stage,
     envelopeAck: stage, // конверт №1 вскрывается на экране первого запуска
+    questionsOpen: [], // этапы, у которых нажато «Перейти к вопросам» (docs/01 §3)
     finished: false,
     keys: { ...keys },
     units: {},
@@ -99,6 +100,12 @@ export function normalizeState(raw) {
   if (!isInt(s.stage) || s.stage < 1) throw new StateError("shape", "Неверный этап");
   s.envelopeAck = isInt(s.envelopeAck) ? s.envelopeAck : s.stage;
   s.finished = s.finished === true;
+  // Старый прогресс (до «Перейти к вопросам»): вопросы уже начатых этапов считаются открытыми.
+  if (Array.isArray(s.questionsOpen)) {
+    s.questionsOpen = [...new Set(s.questionsOpen.filter((n) => isInt(n) && n >= 1))].sort((a, b) => a - b);
+  } else {
+    s.questionsOpen = Array.from({ length: s.stage }, (_, i) => i + 1);
+  }
   for (const k of ["keys", "units", "wrong", "hints"]) {
     if (s[k] === undefined) s[k] = {};
     if (!isObj(s[k])) throw new StateError("shape", `Раздел ${k} — не объект`);
@@ -175,6 +182,8 @@ export const wrongCount = (s, qpath) => (s.wrong[qpath] ?? []).length;
 export const wasTried = (s, qpath, hash) => (s.wrong[qpath] ?? []).includes(hash);
 export const hintLevel = (s, qpath) => s.hints[qpath] ?? 0;
 export const labSeen = (s, fp) => fp in s.lab.done || s.lab.rejected.includes(fp);
+/** Вопросы этапа n открыты («Перейти к вопросам» нажато; у старых прогрессов — все начатые этапы). */
+export const questionsOpened = (s, n) => s.questionsOpen.includes(n);
 /** Номер конверта, для которого нужно показать окно «Откройте конверт №N», или null (F14). */
 export const pendingEnvelope = (s) => (s.stage > s.envelopeAck ? s.stage : null);
 
@@ -262,6 +271,15 @@ export function ackEnvelope(s, n) {
   if (s.envelopeAck >= n) return s;
   const next = clone(s);
   next.envelopeAck = Math.min(n, next.stage);
+  return next;
+}
+
+/** Нажато «Перейти к вопросам» на этапе n: вопросы (и подсказки в них) видны всегда, назад не закрываются. */
+export function openQuestions(s, n) {
+  if (!isInt(n) || n < 1) throw new TypeError("Номер этапа");
+  if (questionsOpened(s, n)) return s;
+  const next = clone(s);
+  next.questionsOpen = [...next.questionsOpen, n].sort((a, b) => a - b);
   return next;
 }
 
@@ -410,6 +428,7 @@ export function mergeStates(local, external) {
   m.stage = Math.max(m.stage, l.stage);
   m.envelopeAck = Math.max(m.envelopeAck, l.envelopeAck);
   m.finished = m.finished || l.finished;
+  m.questionsOpen = union(m.questionsOpen, l.questionsOpen).sort((a, b) => a - b);
   for (const [k, v] of Object.entries(l.keys)) if (!(k in m.keys)) m.keys[k] = v;
   for (const [p, u] of Object.entries(l.units)) {
     if (!(p in m.units) || UNIT_RANK[u.status] > UNIT_RANK[m.units[p].status]) m.units[p] = clone(u);

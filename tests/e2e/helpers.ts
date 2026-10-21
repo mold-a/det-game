@@ -36,10 +36,36 @@ export async function startGame(page: Page, team = "Тестовая коман�
   await page.getByRole("button", { name: "Открыть дело" }).click();
   await envelopeOpened(page);
   await expect(page.locator("#stage-title")).toHaveText("Этап 1");
+  await openQuestions(page);
+}
+
+/**
+ * «Перейти к вопросам» → окно «Перейти к вопросам этапа N?» → «Перейти». Вопросы этапа скрыты, пока кнопку не нажмут;
+ * если вопросы уже открыты (кнопки нет) — ничего не делает.
+ */
+export async function openQuestions(page: Page) {
+  await expect(page.locator("#stage-title")).toBeVisible({ timeout: 30_000 });
+  const gate = page.getByRole("button", { name: "Перейти к вопросам", exact: true });
+  if (!(await gate.count())) return;
+  await gate.click();
+  const modal = page.locator(".modal");
+  await expect(modal).toContainText("Документы можно изучать и дальше");
+  await modal.getByRole("button", { name: "Перейти", exact: true }).click();
+  await expect(modal).toHaveCount(0);
+  await expect(gate).toHaveCount(0);
 }
 
 /** Окно «Откройте конверт №N» → «Конверт вскрыт». */
 export async function envelopeOpened(page: Page) {
+  const modal = page.locator(".modal");
+  await expect(modal).toBeVisible({ timeout: 30_000 });
+  await modal.getByRole("button", { name: "Конверт вскрыт" }).click();
+  await expect(modal).toHaveCount(0);
+  await openQuestions(page); // вопросы этапа скрыты за кнопкой; тесты, проходящие игру, открывают их сразу
+}
+
+/** Окно конверта закрыто, но вопросы этапа остаются скрытыми (для проверки самой кнопки). */
+export async function envelopeOpenedOnly(page: Page) {
   const modal = page.locator(".modal");
   await expect(modal).toBeVisible({ timeout: 30_000 });
   await modal.getByRole("button", { name: "Конверт вскрыт" }).click();
@@ -161,6 +187,7 @@ export async function playToStage(page: Page, A: Answers, target: number, done =
     await submit(page, last.path);
     await envelopeOpened(page);
     await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n + 1}`);
+    await openQuestions(page);
   }
   return done;
 }
@@ -178,6 +205,7 @@ export async function labAll(page: Page, A: Answers, n: number, done: Set<string
   }
   await page.goto("/");
   await expect(page.locator("#stage-title")).toBeVisible();
+  await openQuestions(page);
 }
 
 /** «Мои заявки» на сайте лаборатории: открыть заключение (по умолчанию — самой новой выполненной заявки). */

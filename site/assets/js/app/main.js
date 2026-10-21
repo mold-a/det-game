@@ -4,7 +4,7 @@
 
 import { h, clear, announce, insertTrustedHtml } from "./dom.js";
 import { T } from "./texts.js";
-import { openModal } from "./modal.js";
+import { openModal, confirmDialog } from "./modal.js";
 import { createStamp, createSeal } from "./stamp.js";
 import { renderScoreLog } from "./scorelog.js";
 import { renderQuestion, formatMessage } from "./questions.js";
@@ -230,6 +230,24 @@ function renderGame() {
     h("p", { class: "sheet__caption" }, h("span", null, T.stage.formTitle), h("span", { class: "sheet__caption-no" }, T.header.caseNo(ctx.chrome.caseNo))),
   );
 
+  if (!S.questionsOpened(state, n)) {
+    // Вопросы скрыты за кнопкой, пока команда не изучит документы конверта.
+    sheet.appendChild(renderGate(n));
+  } else {
+    fillQuestions(sheet, state, packs, n, last);
+  }
+  main.appendChild(sheet);
+
+  // Пройденные этапы — свёрнуты, с ответами команды.
+  for (let k = n - 1; k >= 1; k--) main.appendChild(renderPassed(packs[k]));
+
+  side.appendChild(renderLabCard(state));
+  side.appendChild(renderScoreLog(state, { labelFor }));
+}
+
+/** Вопросы текущего этапа и открытые бонусы прошлых этапов в бланке ответов. */
+function fillQuestions(sheet, state, packs, n, last) {
+  const pack = packs[n];
   if (last) {
     sheet.appendChild(
       h(
@@ -257,13 +275,32 @@ function renderGame() {
     sheet.appendChild(h("h3", { class: "group-title" }, T.stage.bonus));
     for (const [p, q] of openBonuses) sheet.appendChild(questionView(p, q).el);
   }
-  main.appendChild(sheet);
+}
 
-  // Пройденные этапы — свёрнуты, с ответами команды.
-  for (let k = n - 1; k >= 1; k--) main.appendChild(renderPassed(packs[k]));
-
-  side.appendChild(renderLabCard(state));
-  side.appendChild(renderScoreLog(state, { labelFor }));
+/** Кнопка «Перейти к вопросам» с подписью; подтверждение — окно системы. */
+function renderGate(n) {
+  const btn = h("button", { type: "button", class: "btn btn--primary gate__btn" }, T.stage.gate);
+  btn.addEventListener("click", async () => {
+    const ok = await confirmDialog({
+      title: T.stage.gateConfirmTitle(n),
+      text: T.stage.gateConfirm,
+      ok: T.stage.gateConfirmOk,
+    });
+    if (!ok) return;
+    commit((s) => S.openQuestions(s, n));
+    renderGame();
+    announce(T.stage.gateOpened(n));
+    const sheet = document.querySelector(".sheet--form");
+    sheet?.setAttribute("tabindex", "-1");
+    sheet?.scrollIntoView({ block: "start" });
+    sheet?.focus({ preventScroll: true });
+  });
+  return h(
+    "div",
+    { class: "gate" },
+    btn,
+    h("p", { class: "gate__hint" }, T.stage.gateHint),
+  );
 }
 
 /** Карточка лаборатории в правой колонке: переход на сайт центра в той же вкладке. */

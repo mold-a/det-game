@@ -25,6 +25,8 @@ import {
   finalFinish,
   ackEnvelope,
   pendingEnvelope,
+  openQuestions,
+  questionsOpened,
   mergeStates,
   canonicalJson,
   exportFileName,
@@ -384,6 +386,38 @@ describe("§6 счёт = сумма журнала; §7 лаборатория; 
     assert.equal(pendingEnvelope(s), null);
     assert.equal(ackEnvelope(s, 2), s);
     assert.equal(ackEnvelope(s, 5).envelopeAck, 2, "нельзя подтвердить неоткрытый этап");
+  });
+
+  test("«Перейти к вопросам»: флаг по этапам, повтор не меняет, переживает перезагрузку, этап не открывает чужие", () => {
+    let s = fresh();
+    assert.deepEqual(s.questionsOpen, []);
+    assert.equal(questionsOpened(s, 1), false);
+    s = openQuestions(s, 1);
+    assert.deepEqual(s.questionsOpen, [1]);
+    assert.equal(openQuestions(s, 1), s, "повтор — то же состояние");
+    s = advanceStage(s, 2, "k2");
+    assert.equal(questionsOpened(s, 2), false, "новый этап снова начинается с письма");
+    s = openQuestions(s, 2);
+    assert.deepEqual(parseState(JSON.stringify(s)).questionsOpen, [1, 2]);
+    assert.throws(() => openQuestions(s, 0), TypeError);
+  });
+
+  test("миграция: старый прогресс без questionsOpen — вопросы начатых этапов открыты", () => {
+    const old = clone(advanceStage(advanceStage(fresh(), 2, "k2"), 3, "k3"));
+    delete old.questionsOpen;
+    const s = parseState(JSON.stringify(old));
+    assert.deepEqual(s.questionsOpen, [1, 2, 3]);
+    assert.equal(questionsOpened(s, 3), true);
+    assert.equal(questionsOpened(s, 4), false);
+    // испорченное значение не ломает файл
+    const bad = parseState(JSON.stringify({ ...old, questionsOpen: [2, "x", 2, 0, 1] }));
+    assert.deepEqual(bad.questionsOpen, [1, 2]);
+  });
+
+  test("слияние вкладок: questionsOpen объединяется", () => {
+    const a = openQuestions(fresh(), 1);
+    const b = { ...clone(fresh()), questionsOpen: [2] };
+    assert.deepEqual(mergeStates(a, b).questionsOpen, [1, 2]);
   });
 
   test("редьюсеры не мутируют исходное состояние", () => {

@@ -27,17 +27,14 @@
    крупно, раскрытие. Кнопок-действий аккаунта и окон-заглушек нет; остальное — обычный текст. Интерактив — pages/page-ui.js. #}
 
 {# Сведения о сервисе из content/pages/_brands.yaml (service — словарь или none): раскрывающийся блок в подвале,
-   без окон. Подписи — «О сервисе», «Правила», «Помощь». #}
-{% macro service_footer(service, brand, cls="svc-foot", labels=("О сервисе", "Правила", "Помощь")) -%}
+   без окон. Первый абзац — «О сервисе»; «Правила» и «Помощь» начинаются с жирной подписи. #}
+{% macro service_footer(service, brand, cls="svc-foot") -%}
 {% if service %}
 <details class="{{ cls }}__about svc-about">
-  <summary class="svc-about__summary">{{ labels[0] }} · {{ labels[1] }} · {{ labels[2] }}</summary>
+  <summary class="svc-about__summary">Сведения о сервисе</summary>
   <div class="svc-about__body">
-    {% for part in [(labels[0], service.about), (labels[1], service.rules), (labels[2], service.help)] %}
-    <section class="svc-about__part">
-      <h3 class="svc-about__h">{{ part[0] }}</h3>
-      {% for para in part[1].split("\n\n") %}<p>{{ para|trim }}</p>{% endfor %}
-    </section>
+    {% for part in [("", service.about), ("Правила", service.rules), ("Помощь", service.help)] %}
+    {% for para in part[1].split("\n\n") %}<p>{% if loop.first and part[0] %}<b class="svc-about__h">{{ part[0] }}.</b> {% endif %}{{ para|trim }}</p>{% endfor %}
     {% endfor %}
   </div>
 </details>
