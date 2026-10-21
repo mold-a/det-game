@@ -146,11 +146,25 @@ test("XSS на вымышленных страницах (открытые, за
     await page.waitForLoadState("networkidle");
   }
   await expect(page.locator("body")).toContainText('alert("CALLNOTE")');
+  // Новые страницы (21.10): голосовые посты (audio.transcript), посты кругов, news-most
+  for (const [slug, tags] of Object.entries({
+    "krug-volkov": ["TRANSCRIPT-VOLKOV", "KPOST-VOLKOV"],
+    "krug-voroncov": ["TRANSCRIPT-VORONCOV", "KPOST-VORONCOV"],
+    "news-most": ["MOSTHEAD", "MOSTCOMMENT", "MOSTSIDE"],
+  })) {
+    await page.goto(`/p/${slug}/`);
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("body[data-ready='1']")).toHaveCount(1, { timeout: 15_000 });
+    for (const t of tags) await expect(page.locator("body")).toContainText(`alert("${t}")`);
+    const dom = await page.evaluate(() => document.querySelectorAll("img[onerror], script:not([src])").length);
+    expect(dom, slug).toBe(0);
+  }
   for (const [slug, k] of Object.entries(KEYS)) {
     await page.goto(`/p/${slug}/#k=${k}`);
     await expect(page.locator("body[data-ready='1']")).toHaveCount(1, { timeout: 15_000 });
   }
   await expect(page.locator("body")).toContainText('alert("CONTRA")');
+  await expect(page.locator("body")).toContainText('alert("APPEAR")');
   await page.locator("#fs-q").fill("img");
   await page.waitForTimeout(200);
   await page.goto("/p/inna/");

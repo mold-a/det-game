@@ -109,7 +109,7 @@ def test_for_current_content(tmp_path):
     c = load_content()
     path = tmp_path / "salts.lock.json"
     s = ensure_for_content(c, path)
-    assert len(s.data["units"]) == 25
+    assert len(s.data["units"]) == 27  # было 25 до бонусов s2.b2 и fb3
     assert set(s.data["stages"]) == {"1", "2", "3", "4"}
     # ключи — у закрытых страниц (locked: true); cloud — по паролю
     locked = {slug for slug, pg in c.pages.items() if pg.locked is True}

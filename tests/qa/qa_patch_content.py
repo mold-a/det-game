@@ -51,7 +51,23 @@ dump("pages/inna/page.yaml", i)
 ph = load("pages/pharma/page.yaml")
 ph["drugs"][1]["contraindications"] += X("CONTRA")
 ph["drugs"][1]["trade"][0] += X("TRADE")
+ph["drugs"][1]["appearance"] += X("APPEAR")          # поле «Внешний вид» (21.10)
 dump("pages/pharma/page.yaml", ph)
+
+# Голосовые посты (audio.transcript, audio.duration) и новые страницы (21.10): krug-volkov, krug-voroncov (открытые), news-most.
+for slug, tag in (("krug-volkov", "VOLKOV"), ("krug-voroncov", "VORONCOV")):
+    kp = load(f"pages/{slug}/page.yaml")
+    voiced = [p for p in kp["posts"] if p.get("audio")]
+    assert voiced, slug
+    voiced[0]["audio"]["transcript"] += X(f"TRANSCRIPT-{tag}")
+    kp["posts"][0]["text"] += X(f"KPOST-{tag}")
+    dump(f"pages/{slug}/page.yaml", kp)
+
+nm = load("pages/news-most/page.yaml")
+nm["article"]["headline"] += X("MOSTHEAD")
+nm["comments"][0]["text"] += X("MOSTCOMMENT")
+nm["sidebar"][1]["title"] += X("MOSTSIDE")
+dump("pages/news-most/page.yaml", nm)
 
 call = load("pages/call/page.yaml")
 call["note"] += X("CALLNOTE")
