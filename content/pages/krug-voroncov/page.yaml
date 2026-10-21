@@ -13,11 +13,11 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: voroncov
-  position: "Народный артист · {{ w.theater.short }}"
+  position: "{{ c.voroncov.g('Народный артист', 'Народная артистка') }} · {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "portraits/voroncov.jpg"
   cover: "news/voroncov_arbenin.jpg"
-  about: "артист. очки ношу, брови не стригу 😁"
+  about: "артист, очки ношу, брови не стригу 😁"
   friends:
     - { person: kirill, page: krug-kirill }
     - { person: marina, page: krug-marina }
@@ -71,7 +71,7 @@ posts:
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.marina.first() }}, приходи, когда разыграюсь)" }
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.familiar }}, привет!\nЯ как обычно — на десятый....\nНа премьерах я сплю, ты знаешь 😂" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, непременно буду. Ложа № 2, как всегда." }
-      - { author: "Глеб Сазонов", text: "Билетов уже нет(" }
+      - { author: "Глеб Сазонов", text: "Билеты ещё есть?(" }
   - datetime: "2026-10-13T10:31"
     text: "первая репетиция на сцене\nзал пустой, а я уже волнуюсь\nстарость? нет, профессия 😉"
     photo: null
