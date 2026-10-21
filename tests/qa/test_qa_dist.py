@@ -529,12 +529,20 @@ def _shingles(tokens: list[str], k: int) -> set[str]:
 ALLOWED_SHINGLES = {"ответы финала нельзя изменить", "здесь будет фото профиля", "так же как в",
                     # вводное письмо 4 пересказывает правило интерфейса (texts.js) — это не секрет
                     "бонусные вопросы прошлых этапов",
-                    # публичное название вымышленного учреждения: «О центре» на сайте «Призмы» (lab.yaml, открыт)
-                    # и бланк заключений СМЭ (3-05, 3-06, 2-01); это имя организации, не содержание
-                    "бюро судебно медицинской экспертизы",
-                    # служебный оборот времени: график администратора зала в театре («с 18:00 до конца спектакля»)
-                    # и период запроса к оператору (4-10); сами времена-ответы в шингл не входят
-                    "с 18 00 до"}
+                    }
+
+
+def _public_ok_shingles() -> set[str]:
+    """Законные повторы открытого и закрытого текста — ``settings.leak_public_ok`` (название учреждения «Бюро
+    судебно-медицинской экспертизы», служебный оборот «с 18:00 до» и т. п.; см. docs/02 §5а)."""
+    from engine.build import prepare
+    from engine.check import public_ok_texts
+
+    prep = prepare(ROOT / "content", ROOT / "engine" / "salts.lock.json", create_salts=False)
+    out: set[str] = set()
+    for t in public_ok_texts(prep.content, prep.ctx):
+        out |= _shingles(base(t).split(), SHINGLE)
+    return out
 
 
 def _public_brand_shingles() -> set[str]:
@@ -552,7 +560,7 @@ def _public_brand_shingles() -> set[str]:
 def test_independent_leak_scan_secret_fragments(env):
     dist = env["dist"]
     files = _open_corpus(dist)
-    brand_sh = _public_brand_shingles()
+    brand_sh = _public_brand_shingles() | _public_ok_shingles()
     open_sh: dict[str, set[str]] = {}
     for rel, text in files.items():
         allowed = set(ALLOWED_SHINGLES) | brand_sh

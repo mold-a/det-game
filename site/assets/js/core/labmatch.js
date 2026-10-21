@@ -12,6 +12,8 @@ import { normalize } from "./normalize.js";
 
 // Токены названия объекта длиной не меньше этого числа символов — основы алиаса-названия.
 export const TITLE_STEM_MIN = 3;
+// Служебные слова (предлоги, союзы, частицы): не становятся основами названия. Список одинаков в engine/labmatch.py.
+export const TITLE_STOPWORDS = new Set("для при над под без или что как это про через между".split(" "));
 
 const norm = (s) => normalize("text", String(s ?? "")) ?? "";
 // Длина в символах Unicode (как len() в Python), а не в единицах UTF-16.
@@ -24,7 +26,7 @@ export function labTokens(s) {
 }
 
 const aliasStems = (alias) => String(alias).split(" ").filter((x) => x !== "");
-const titleStems = (title) => labTokens(title).filter((t) => len(t) >= TITLE_STEM_MIN);
+const titleStems = (title) => labTokens(title).filter((t) => len(t) >= TITLE_STEM_MIN && !TITLE_STOPWORDS.has(t));
 
 // Совпадение алиаса: [pos, -score] или null.
 function matchStems(stems, tokens) {

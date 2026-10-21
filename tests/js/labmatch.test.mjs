@@ -3,7 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { labTokens, resolveObject, TITLE_STEM_MIN } from "../../site/assets/js/core/labmatch.js";
+import { labTokens, resolveObject, TITLE_STEM_MIN, TITLE_STOPWORDS } from "../../site/assets/js/core/labmatch.js";
 
 const V = JSON.parse(readFileSync(new URL("../vectors/lab-match.json", import.meta.url), "utf8"));
 const obj = (id, title, ...aliases) => ({ id, title, aliases });
@@ -38,6 +38,14 @@ test("название — алиас из токенов не короче по
   assert.deepEqual(resolveObject("Бутылка воды из гримёрки № 4", objects), { status: "ok", id: "water" });
   assert.deepEqual(resolveObject("Телефон погибшего", objects), { status: "ok", id: "phone" });
   assert.deepEqual(resolveObject("а б", [obj("x", "а б")]), { status: "none" });
+});
+
+test("служебные слова не становятся основами названия", () => {
+  for (const w of ["для", "при", "над", "под", "без", "или", "что", "как", "это"]) assert.ok(TITLE_STOPWORDS.has(w), w);
+  const objects = [obj("case", "Футляр для очков")];
+  assert.deepEqual(resolveObject("Футляр для очков", objects), { status: "ok", id: "case" });
+  assert.deepEqual(resolveObject("очков футляр", objects), { status: "ok", id: "case" });
+  assert.deepEqual(resolveObject("для", objects), { status: "none" });
 });
 
 test("ключи из кармана пальто: pos важнее порядка в каталоге", () => {

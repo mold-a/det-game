@@ -162,6 +162,23 @@
         "aliases": []
       }
     ],
+    "stop": [
+      {
+        "id": "case",
+        "title": "Футляр для очков",
+        "aliases": []
+      },
+      {
+        "id": "glasses",
+        "title": "Очки для чтения",
+        "aliases": []
+      },
+      {
+        "id": "box",
+        "title": "Ящик без дна",
+        "aliases": []
+      }
+    ],
     "astral": [
       {
         "id": "a",
@@ -583,6 +600,93 @@
         "status": "none"
       },
       "note": "без алиасов одного слова названия мало"
+    },
+    {
+      "catalog": "stop",
+      "input": "Футляр для очков",
+      "expected": {
+        "status": "ok",
+        "id": "case"
+      },
+      "note": "название целиком; «для» не основа"
+    },
+    {
+      "catalog": "stop",
+      "input": "футляр очков",
+      "expected": {
+        "status": "ok",
+        "id": "case"
+      },
+      "note": "без «для» название всё равно узнаётся"
+    },
+    {
+      "catalog": "stop",
+      "input": "очков футляр",
+      "expected": {
+        "status": "ok",
+        "id": "case"
+      },
+      "note": "порядок слов не важен"
+    },
+    {
+      "catalog": "stop",
+      "input": "очки чтения",
+      "expected": {
+        "status": "ok",
+        "id": "glasses"
+      },
+      "note": "«очки для чтения» без «для»"
+    },
+    {
+      "catalog": "stop",
+      "input": "Очки для чтения",
+      "expected": {
+        "status": "ok",
+        "id": "glasses"
+      },
+      "note": "название целиком"
+    },
+    {
+      "catalog": "stop",
+      "input": "очки",
+      "expected": {
+        "status": "none"
+      },
+      "note": "одной основы из двух мало («очк»+«чтен»)"
+    },
+    {
+      "catalog": "stop",
+      "input": "для",
+      "expected": {
+        "status": "none"
+      },
+      "note": "«для» — не основа: токен сам по себе ничего не находит"
+    },
+    {
+      "catalog": "stop",
+      "input": "для всего",
+      "expected": {
+        "status": "none"
+      },
+      "note": "служебное слово ничего не находит"
+    },
+    {
+      "catalog": "stop",
+      "input": "ящик дна",
+      "expected": {
+        "status": "ok",
+        "id": "box"
+      },
+      "note": "«без» не основа названия «Ящик без дна»"
+    },
+    {
+      "catalog": "stop",
+      "input": "ящик без дна",
+      "expected": {
+        "status": "ok",
+        "id": "box"
+      },
+      "note": "название целиком"
     },
     {
       "catalog": "astral",

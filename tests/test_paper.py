@@ -455,8 +455,9 @@ def test_no_pypdf_clear_error(content, salts, tmp_path, monkeypatch):
 
 
 def test_paper_may_quote_open_page(root, tmp_path):
-    """Бумага цитирует строку открытой страницы (как отрендерил build) — не утечка; уникальная фраза
-    той же бумаги, подложенная в dist/, — утечка."""
+    """Бумага конверта 1 цитирует строку открытой страницы (как отрендерил build) — не утечка; уникальная
+    фраза бумаги конверта 3, подложенная в dist/, — утечка. Бумагу конверта 3 открытая страница не отбеливает:
+    та же цитата в ней — иголка (docs/02 §5а)."""
     from engine.build import prepare
     from engine.check import page_text
     from engine.leakscan import is_stop_shingle, text_shingles
@@ -471,11 +472,17 @@ def test_paper_may_quote_open_page(root, tmp_path):
     assert quotes, "на открытой странице gromov нет текста сверх «обвязки»"
     quote = quotes[0]  # шингл только из открытой отрендеренной страницы (не из public_texts контента)
     unique = "Поезд отправился с третьего пути без опоздания"
-    write_paper(root, "3-07", 'id: "3-07"\nform: ticket', body=f"{quote}.\n\n{unique}.\n")
+    write_paper(root, "1-03", 'id: "1-03"\nform: ambulance', body=f"{quote}.\n")
+    write_paper(root, "3-07", 'id: "3-07"\nform: ticket', body=f"{unique}.\n")
     build(content_dir=root, dist=dist, salts_path=salts, media_dir=media)
     ns = leak_needles(prepare(root, salts, create_salts=False), media_dir=media)
     assert quote not in ns.shingles
     assert any(nd.kind == "paper" and nd.source == "content/paper/3-07.md" for nd in ns.shingles.values())
+    # та же цитата в бумаге конверта 3: открытая страница её не отбеливает
+    write_paper(root, "3-07", 'id: "3-07"\nform: ticket', body=f"{quote}.\n\n{unique}.\n")
+    nd3 = leak_needles(prepare(root, salts, create_salts=False), media_dir=media).shingles.get(quote)
+    assert nd3 is not None and nd3.kind == "paper" and nd3.source == "content/paper/3-07.md"
+    write_paper(root, "3-07", 'id: "3-07"\nform: ticket', body=f"{unique}.\n")
     rep = check(content_dir=root, dist=dist, salts_path=salts, media_dir=media)
     assert rep.ok, rep.problems
     (dist / "quote.html").write_text(f"<p>{quote}</p>", encoding="utf-8")

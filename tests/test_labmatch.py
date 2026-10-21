@@ -13,6 +13,7 @@ import pytest
 from engine.labmatch import (
     STEM_MIN,
     TITLE_STEM_MIN,
+    TITLE_STOPWORDS,
     alias_stems,
     best_match,
     lab_tokens,
@@ -105,6 +106,17 @@ def test_title_is_an_alias_of_tokens_not_shorter_than_min():
     assert title_stems("Бутылка воды из гримёрки № 4") == ["бутылка", "воды", "гримерки"]
     assert title_stems("а б") == []
     assert best_match(obj("x", "а б"), ["а", "б"]) is None
+
+
+def test_title_stopwords_are_not_stems():
+    assert {"для", "при", "над", "под", "без", "или", "что", "как", "это"} <= TITLE_STOPWORDS
+    assert title_stems("Футляр для очков") == ["футляр", "очков"]
+    assert title_stems("Ящик без дна") == ["ящик", "дна"]
+    assert title_stems("Для при над") == []
+    objects = [obj("case", "Футляр для очков")]
+    assert resolve_object("Футляр для очков", objects) == {"status": "ok", "id": "case"}
+    assert resolve_object("очков футляр", objects) == {"status": "ok", "id": "case"}
+    assert resolve_object("для", objects) == {"status": "none"}
 
 
 def test_title_recognises_itself():

@@ -305,6 +305,13 @@ _LM_SMALL = [
     {"id": "plain", "title": "Ножик складной", "aliases": []},
 ]
 
+# Служебные слова в названиях не становятся основами (TITLE_STOPWORDS): «для», «при», «без».
+_LM_STOP = [
+    {"id": "case", "title": "Футляр для очков", "aliases": []},
+    {"id": "glasses", "title": "Очки для чтения", "aliases": []},
+    {"id": "box", "title": "Ящик без дна", "aliases": []},
+]
+
 # Символы вне BMP: длина основы считается по символам, как len() в Python.
 _LM_ASTRAL = [
     {"id": "a", "title": "x", "aliases": ["𝔎𝔎𝔎𝔎"]},
@@ -377,6 +384,16 @@ _LM_RESOLVE: list[tuple[str, str, dict, str]] = [
     ("small", "зеркальце", {"status": "ok", "id": "alpha"}, "название «зеркальце»: score 9 против 4 у «зерк»"),
     ("small", "Ножик складной", {"status": "ok", "id": "plain"}, "объект без алиасов распознаётся по названию"),
     ("small", "ножик", {"status": "none"}, "без алиасов одного слова названия мало"),
+    ("stop", "Футляр для очков", {"status": "ok", "id": "case"}, "название целиком; «для» не основа"),
+    ("stop", "футляр очков", {"status": "ok", "id": "case"}, "без «для» название всё равно узнаётся"),
+    ("stop", "очков футляр", {"status": "ok", "id": "case"}, "порядок слов не важен"),
+    ("stop", "очки чтения", {"status": "ok", "id": "glasses"}, "«очки для чтения» без «для»"),
+    ("stop", "Очки для чтения", {"status": "ok", "id": "glasses"}, "название целиком"),
+    ("stop", "очки", {"status": "none"}, "одной основы из двух мало («очк»+«чтен»)"),
+    ("stop", "для", {"status": "none"}, "«для» — не основа: токен сам по себе ничего не находит"),
+    ("stop", "для всего", {"status": "none"}, "служебное слово ничего не находит"),
+    ("stop", "ящик дна", {"status": "ok", "id": "box"}, "«без» не основа названия «Ящик без дна»"),
+    ("stop", "ящик без дна", {"status": "ok", "id": "box"}, "название целиком"),
     ("astral", "𝔎𝔎𝔎𝔎 ааааа", {"status": "ok", "id": "b"},
      "score считается в символах Unicode (6 против 4), а не в единицах UTF-16 (7 против 8)"),
     ("astral", "𝔎𝔎𝔎𝔎", {"status": "ok", "id": "a"}, "символы вне BMP — обычные буквы; название короче 3 символов не алиас"),
@@ -386,7 +403,7 @@ _LM_RESOLVE: list[tuple[str, str, dict, str]] = [
 def _lab_match_vectors() -> dict:
     from engine.labmatch import lab_tokens, resolve_object
 
-    catalogs = {"main": _LM_CATALOG, "small": _LM_SMALL, "astral": _LM_ASTRAL}
+    catalogs = {"main": _LM_CATALOG, "small": _LM_SMALL, "stop": _LM_STOP, "astral": _LM_ASTRAL}
     for text, want in _LM_TOKENS:
         got = lab_tokens(text)
         assert got == want, f"lab-match tokens {text!r}: {got} != {want}"
