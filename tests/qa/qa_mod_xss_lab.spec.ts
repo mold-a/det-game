@@ -1,7 +1,8 @@
 // QA на МОДИФИЦИРОВАННОМ контенте (scratchpad/qa2/mod, патч patch_content.py):
 //  - во все текстовые поля контента подложено <img src=x onerror=alert(..)><script>alert(..)</script>;
-//  - добавлены экспертизы: water/chem/1-09 ещё и на этапе 3 («самый поздний этап»),
-//    costume/chem/1-01 на этапе 2 («отклонённый раньше срабатывает после перехода»).
+//  - добавлены экспертизы (правило REDESIGN §2.1.4: основания — документы этапа результата):
+//    water/chem/3-01 на этапе 3 («самый поздний этап»), costume/chem/2-02 на этапе 2;
+//    пустая заявка costume/chem/1-01 этапа 1 после перехода остаётся «уже выполнялась» (без штрафа и без заключения).
 // Запускать из каталога mod (там свой tests/.answers.json) против его сервера.
 import { test, expect, type Page } from "@playwright/test";
 import {
@@ -75,7 +76,11 @@ test("XSS в контенте и имени команды + лаборатор�
 
   await page.goto("/lab/");
   const before2 = await headerScore(page);
-  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/^Заключение готово/);
+  // та же пустая комбинация и после перехода — прежний итог, без штрафа (правило 2.1.4 это гарантирует)
+  expect(await lab(page, "costume", "chem", "1-01")).toMatch(/^Такая заявка уже выполнялась/);
+  expect(await headerScore(page)).toBe(before2);
+  // новое основание этапа 2 — заключение
+  expect(await lab(page, "costume", "chem", "2-02")).toMatch(/^Заключение готово/);
   await expect(page.locator(".lab-result")).toContainText("QA-COSTUME-STAGE2");
   expect(await headerScore(page)).toBe(before2);
   // «Мои заявки»: заявка теперь с заключением, пустая осталась в истории
@@ -88,9 +93,12 @@ test("XSS в контенте и имени команды + лаборатор�
   await page.goto("/lab/");
   const before3 = await headerScore(page);
   expect(await lab(page, "water", "chem", "1-09")).toMatch(/^Такая заявка уже выполнялась/);
+  await expect(page.locator(".lab-result")).not.toContainText("QA-WATER-STAGE3");
+  expect(await headerScore(page)).toBe(before3);
+  expect(await lab(page, "water", "chem", "3-01")).toMatch(/^Заключение готово/);
   await expect(page.locator(".lab-result")).toContainText("QA-WATER-STAGE3");
   expect(await headerScore(page)).toBe(before3);
-  // «Мои заявки»: заключение по старой записи — актуальное (позднее)
+  // «Мои заявки»: заключение этапа 3 открывается из списка
   await page.goto("/lab/#orders");
   await page.locator(".orders__item.is-done").last().getByRole("button", { name: "Открыть заключение" }).click();
   await expect(page.locator(".modal")).toContainText("QA-WATER-STAGE3");

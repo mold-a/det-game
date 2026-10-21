@@ -23,25 +23,24 @@
 {%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" decoding="async"{{ attrs }}>{% endif %}
 {%- endmacro %}
 
-{# ---- рабочие элементы (REDESIGN §4.1): каждая кнопка что-то делает. Всё остальное делает pages/page-ui.js. #}
+{# ---- Правило (REDESIGN §4.1): кликабельно только то, что ведёт к содержимому — страница, раздел, вкладка, фото
+   крупно, раскрытие. Кнопок-действий аккаунта и окон-заглушек нет; остальное — обычный текст. Интерактив — pages/page-ui.js. #}
 
-{# Кнопка, открывающая окно сервиса: «Чтобы подписаться, войдите в «Круг»» и «Понятно».
-   heading — необязательный заголовок внутри окна, title — подпись бренда над ним, text — абзацы через перевод строки. #}
-{% macro act(cls, title, text, heading="", label="") -%}
-<button class="{{ cls }}" type="button" aria-haspopup="dialog" data-dialog-title="{{ title }}" data-dialog-text="{{ text }}"{% if heading %} data-dialog-heading="{{ heading }}"{% endif %}{% if label %} aria-label="{{ label }}"{% endif %}>{{ caller() }}</button>
-{%- endmacro %}
-
-{# Фраза окна действия аккаунта. verb — «подписаться», «поставить отметку», … #}
-{% macro login_text(verb, brand) %}Чтобы {{ verb }}, войдите в «{{ brand }}».{% endmacro %}
-
-{# Подвал сервиса: «О сервисе», «Правила», «Помощь» из content/pages/_brands.yaml (service — словарь или none). #}
+{# Сведения о сервисе из content/pages/_brands.yaml (service — словарь или none): раскрывающийся блок в подвале,
+   без окон. Подписи — «О сервисе», «Правила», «Помощь». #}
 {% macro service_footer(service, brand, cls="svc-foot", labels=("О сервисе", "Правила", "Помощь")) -%}
 {% if service %}
-<ul class="{{ cls }}__links svc-links" role="list">
-  <li>{% call act(cls ~ "__link svc-link", brand, service.about, labels[0]) %}{{ labels[0] }}{% endcall %}</li>
-  <li>{% call act(cls ~ "__link svc-link", brand, service.rules, labels[1]) %}{{ labels[1] }}{% endcall %}</li>
-  <li>{% call act(cls ~ "__link svc-link", brand, service.help, labels[2]) %}{{ labels[2] }}{% endcall %}</li>
-</ul>
+<details class="{{ cls }}__about svc-about">
+  <summary class="svc-about__summary">{{ labels[0] }} · {{ labels[1] }} · {{ labels[2] }}</summary>
+  <div class="svc-about__body">
+    {% for part in [(labels[0], service.about), (labels[1], service.rules), (labels[2], service.help)] %}
+    <section class="svc-about__part">
+      <h3 class="svc-about__h">{{ part[0] }}</h3>
+      {% for para in part[1].split("\n\n") %}<p>{{ para|trim }}</p>{% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+</details>
 {% endif %}
 {%- endmacro %}
 

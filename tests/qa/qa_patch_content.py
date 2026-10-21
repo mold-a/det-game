@@ -61,8 +61,9 @@ e = load("expertise.yaml")
 for r in e["results"]:
     if r["id"] == "water-chem":
         r["text"] += X("LABTEXT")
-e["results"].append({"id": "qa-water-s3", "object": "water", "types": ["chem"], "stage": 3, "bases": ["1-09", "1-10"], "text": "QA-WATER-STAGE3"})
-e["results"].append({"id": "qa-costume-s2", "object": "costume", "types": ["chem"], "stage": 2, "bases": ["1-01"], "text": "QA-COSTUME-STAGE2"})
+# REDESIGN §2.1.4: объект с from_stage < N — основания результата этапа N только из документов этапа N
+e["results"].append({"id": "qa-water-s3", "object": "water", "types": ["chem"], "stage": 3, "bases": ["3-01"], "text": "QA-WATER-STAGE3"})
+e["results"].append({"id": "qa-costume-s2", "object": "costume", "types": ["chem"], "stage": 2, "bases": ["2-02"], "text": "QA-COSTUME-STAGE2"})
 dump("expertise.yaml", e)
 
 f = load("finale.yaml")

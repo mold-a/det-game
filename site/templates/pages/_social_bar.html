@@ -1,8 +1,7 @@
 {# Шапка «Круга» (social, social_home, social_stub). Вход: brand, bar_search (показывать ли строку поиска).
-   Логотип ведёт на главную сервиса, строка поиска — на её поиск людей, «Войти» — окно сервиса. #}
+   Логотип ведёт на главную сервиса, строка поиска — на её поиск людей. Кнопок аккаунта («Войти») нет. #}
 {% import "pages/_ui.html" as ui %}
 <header class="kr-bar">
   <a class="kr-logo" href="{{ link(social_home) }}" aria-label="{{ brand }}: главная страница"><span class="kr-logo__ring" aria-hidden="true"></span>{{ brand }}</a>
   {% if bar_search %}<a class="kr-bar__search" href="{{ link(social_home) }}#search">Поиск людей и сообществ</a>{% endif %}
-  {% call ui.act("kr-btn kr-btn--ghost", brand, "Вход в «" ~ brand ~ "» недоступен в режиме просмотра. Открытые страницы можно читать без входа.") %}Войти{% endcall %}
 </header>

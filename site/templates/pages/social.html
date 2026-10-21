@@ -1,7 +1,7 @@
-{# social — профиль в соцсети «Круг» (REDESIGN §6.1; gromov — тоже social). Каждый элемент делает что-то:
-   логотип → главная «Круга», вкладки переключаются (pages/page-ui.js), фото открываются крупно,
-   действия аккаунта показывают окно сервиса, авторы комментариев и друзья — ссылки (без своей страницы —
-   на заглушку), подвал — «О сервисе», «Правила», «Помощь». Без JS видны все разделы подряд. #}
+{# social — профиль в соцсети «Круг» (REDESIGN §6.1; gromov — тоже social). Кликабельно только то, что
+   ведёт к содержимому: логотип → главная «Круга», вкладки, фото крупно, раскрытие комментариев, авторы комментариев и
+   друзья — ссылки (без своей страницы — на заглушку). Счётчики отметок и комментариев — обычный текст. Кнопок
+   «Подписаться», «Написать», «Нравится», «Поделиться» и поля комментария нет. Без JS видны все разделы подряд. #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 {% set bar_search = true %}
@@ -25,10 +25,6 @@
       <h1 class="kr-profile__name" id="kr-name">{{ name }}</h1>
       {% if pr.position %}<p class="kr-profile__position">{{ ui.text(pr.position, "должность") }}</p>{% endif %}
       {% if pr.city %}<p class="kr-profile__city"><span class="kr-pin" aria-hidden="true"></span>{{ ui.text(pr.city, "город") }}</p>{% endif %}
-      <div class="kr-profile__actions">
-        {% call ui.act("kr-btn kr-btn--primary", brand, ui.login_text("подписаться", brand)) %}Подписаться{% endcall %}
-        {% call ui.act("kr-btn", brand, ui.login_text("написать сообщение", brand)) %}Написать{% endcall %}
-      </div>
       <p class="kr-profile__stats"><b>{{ posts|length }}</b> {{ "публикация" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("публикации" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "публикаций") }}{% if friends %} · <b>{{ friends|length }}</b> {{ "друг" if friends|length % 10 == 1 and friends|length % 100 != 11 else ("друга" if friends|length % 10 in [2, 3, 4] and friends|length % 100 not in [12, 13, 14] else "друзей") }}{% endif %}</p>
     </div>
   </section>
@@ -65,20 +61,19 @@
           <a class="kr-linkcard" href="{{ link(post.link.page) }}"><span class="kr-linkcard__text">{{ post.link.text }}</span><span class="kr-linkcard__arrow" aria-hidden="true">→</span></a>
           {% endif %}
           <footer class="kr-post__actions">
-            {% call ui.act("kr-act", brand, ui.login_text("поставить отметку «Нравится»", brand)) %}<span class="kr-act__ico kr-act__ico--like" aria-hidden="true"></span>Нравится <b>{{ post.likes }}</b>{% endcall %}
-            <button class="kr-act" type="button" data-toggle="{{ pid }}-comments" aria-expanded="true" aria-controls="{{ pid }}-comments"><span class="kr-act__ico kr-act__ico--comment" aria-hidden="true"></span>Комментарии <b>{{ post.comments|length }}</b></button>
-            {% call ui.act("kr-act", brand, ui.login_text("поделиться записью", brand)) %}<span class="kr-act__ico kr-act__ico--share" aria-hidden="true"></span><span class="kr-act__label">Поделиться</span>{% endcall %}
+            <span class="kr-stat"><span class="kr-act__ico kr-act__ico--like" aria-hidden="true"></span><span class="visually-hidden">Отметок «Нравится»: </span><b>{{ post.likes }}</b></span>
+            {% if post.comments %}<button class="kr-act" type="button" data-toggle="{{ pid }}-comments" aria-expanded="true" aria-controls="{{ pid }}-comments"><span class="kr-act__ico kr-act__ico--comment" aria-hidden="true"></span>Комментарии <b>{{ post.comments|length }}</b></button>
+            {% else %}<span class="kr-stat"><span class="kr-act__ico kr-act__ico--comment" aria-hidden="true"></span>Комментариев: <b>0</b></span>{% endif %}
           </footer>
+          {% if post.comments %}
           <div class="kr-comments-box" id="{{ pid }}-comments">
-            {% if post.comments %}
             <ul class="kr-comments" role="list">
               {% for cm in post.comments %}
               <li class="kr-comment"><a class="kr-comment__author" href="{{ link(cm.page or social_stub) }}">{{ cm.author }}</a> <span class="kr-comment__text">{{ cm.text_html }}</span></li>
               {% endfor %}
             </ul>
-            {% endif %}
-            {% call ui.act("kr-compose", brand, ui.login_text("оставить комментарий", brand)) %}Написать комментарий…{% endcall %}
           </div>
+          {% endif %}
         </article>
       {% else %}
         <p class="kr-empty">Публикаций пока нет.</p>
