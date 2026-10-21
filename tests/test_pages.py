@@ -383,3 +383,122 @@ def test_no_open_answer_leak_in_fixture_build(built_fx):
     for p in dist.rglob("*"):
         if p.is_file() and p.suffix in (".html", ".json") and p.parent.name != "auction":
             assert "Тестовое описание клуба" not in p.read_text(encoding="utf-8", errors="replace"), p
+
+
+# ---------------------------------------------------------------- голосовые в «Круге» и «Внешний вид» в pharma
+
+FAKE_MP3 = b"ID3\x03\x00\x00\x00\x00\x00\x00" + bytes(range(64)) * 4
+
+
+@pytest.fixture(scope="module")
+def built_voice(tmp_path_factory):
+    tmp = tmp_path_factory.mktemp("voice")
+    c = copy_content(tmp)
+    add_fixture_pages(c)
+    edit_yaml(c, "pages/pharma/page.yaml", lambda d: d["drugs"][0].update(appearance="Белые круглые таблетки, ТЕСТ-ВИД"))
+    media = tmp / "media"
+    for rel in ("krug-actor/voice-01.mp3", "krug-closed/voice-01.mp3"):  # voice-missing.mp3 нарочно нет
+        (media / rel).parent.mkdir(parents=True, exist_ok=True)
+        (media / rel).write_bytes(FAKE_MP3)
+    lock = tmp / "salts.lock.json"
+    shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
+    dist = tmp / "dist"
+    rep = build(content_dir=c, dist=dist, media_dir=media, salts_path=lock, log=lambda *_: None)
+    return tmp, dist, lock, rep
+
+
+def sealed_inner(built, slug: str) -> dict:
+    _, dist, lock, _ = built
+    box = json.loads((dist / "p" / slug / "payload.json").read_text(encoding="utf-8"))
+    return json.loads(crypto.open_(salts_mod.read(lock).page_key(slug), box, f"page/{slug}"))
+
+
+def test_post_audio_model():
+    from engine.models import PostAudio, SocialPost
+
+    p = SocialPost(datetime="2026-10-01T10:00", audio={"file": "x/v.mp3", "duration": "0:12"})  # без text — можно
+    assert p.text == "" and p.audio.transcript is None
+    assert PostAudio(file="x/v.m4a", duration="12:05", transcript="…").transcript == "…"
+    for bad in ({"file": "x/v.jpg", "duration": "0:12"}, {"file": "x/v.mp3", "duration": "12 сек"},
+                {"file": "x/v.mp3", "duration": "0:75"}, {"file": "x/v.mp3", "duration": "0:12", "lang": "ru"}):
+        with pytest.raises(ValidationError):
+            PostAudio(**bad)
+    with pytest.raises(ValidationError, match="text, photo или audio"):
+        SocialPost(datetime="2026-10-01T10:00")
+
+
+def test_drug_appearance_is_optional():
+    from engine.models import Drug
+
+    base = dict(name="Х", trade=["Т"], group="г", indications="и", contraindications="к", side_effects="п")
+    assert Drug(**base).appearance is None
+    assert Drug(**base, appearance="Белые таблетки").appearance == "Белые таблетки"
+
+
+def test_voice_media_refs_and_bad_extension(root):
+    from engine.content import media_refs
+
+    add_fixture_pages(root)
+    c = load_content(root)
+    uses = [u for u in media_refs(c.characters, c.pages, c.docs) if u.path.startswith(("krug-actor/", "krug-closed/"))]
+    assert {(u.path, u.context) for u in uses} == {
+        ("krug-actor/voice-01.mp3", "open"), ("krug-actor/voice-missing.mp3", "open"),
+        ("krug-closed/voice-01.mp3", "locked")}
+    assert all("audio" in u.loc for u in uses)
+    edit_yaml(root, "pages/krug-actor/page.yaml", lambda d: d["posts"][1]["audio"].update(file="../v.mp3"))
+    assert has_error(errors_of(root), "krug-actor", "относительным")
+
+
+def test_missing_voice_file_warns_and_renders_inactive_player(built_voice):
+    _, dist, _, rep = built_voice
+    assert "krug-actor/voice-missing.mp3" in rep.missing_media
+    assert "krug-actor/voice-01.mp3" not in rep.missing_media
+    html = read(dist, "krug-actor")
+    posts = re.findall(r'<article class="kr-post.*?</article>', html, re.S)
+    blocks = [b for b in (re.search(r'<div class="kr-voice".*', p, re.S) for p in posts) if b]
+    assert len(blocks) == 2
+    missing, present = blocks[0].group(0), blocks[1].group(0)  # лента: новые сверху
+    assert 'data-missing="1"' not in present and re.search(r'<audio[^>]+src="/m/[0-9a-f]{32}\.mp3"', present)
+    assert 'data-missing="1"' in missing and "<audio" not in missing and "src=" not in missing
+    assert "Голосовое сообщение" in missing and "0:12" in missing
+    assert 'data-act="play"' in missing  # кнопку отключает audio-player.js (без файла неактивна; e2e)
+    assert "<details" not in missing  # расшифровки нет — блока нет
+    assert "audio controls" not in html and "<audio controls" not in html
+
+
+def test_voice_transcript_is_details_and_audio_only_post_has_no_text(built_voice):
+    _, dist, _, _ = built_voice
+    html = read(dist, "krug-actor")
+    assert '<summary class="kr-voice__tr-summary">Расшифровка</summary>' in html
+    assert "Тестовая расшифровка голосового сообщения." in html
+    post = re.search(r'<article class="kr-post[^"]*" data-datetime="2026-10-02T09:15">.*?</article>', html, re.S).group(0)
+    assert "kr-post__text" not in post and "kr-voice" in post
+    other = re.search(r'<article class="kr-post[^"]*" data-datetime="2026-10-03T09:15">.*?</article>', html, re.S).group(0)
+    assert "kr-post__text" in other and "kr-voice" in other
+
+
+def test_voice_on_locked_page_is_encrypted(built_voice):
+    _, dist, _, _ = built_voice
+    inner = sealed_inner(built_voice, "krug-closed")
+    assert 'class="kr-voice"' in inner["html"] and "Расшифровка закрытого голосового." in inner["html"]
+    assert "data-media=" in inner["html"] and "src=" not in re.search(r"<audio[^>]*>", inner["html"]).group(0)
+    (ref,) = [r for r in inner["media"] if r["mime"] == "audio/mpeg"]
+    assert ref["key"] and ref["src"].endswith(".bin") and ref["aad"].startswith("media/")
+    name = ref["src"].rsplit("/", 1)[1]
+    assert (dist / "m" / name).is_file()
+    raw = (dist / "m" / name).read_bytes()
+    assert FAKE_MP3 not in raw and not raw.startswith(b"ID3")
+    opened = crypto.open_media(crypto.b64u_decode(ref["key"]), raw, ref["aad"])
+    assert opened == FAKE_MP3
+    shell = (dist / "p" / "krug-closed" / "payload.json").read_text(encoding="utf-8")
+    assert "Расшифровка закрытого" not in shell and "ID3" not in shell
+
+
+def test_pharma_appearance_row_after_active_substance(built_voice):
+    inner = sealed_inner(built_voice, "pharma")
+    html = inner["html"]
+    cards = [c for c in html.split("<article") if "ТЕСТ-ВИД" in c]
+    assert len(cards) == 1 and cards[0].count("Внешний вид") == 1
+    card = cards[0]
+    assert card.index("Действующее вещество") < card.index("Внешний вид") < card.index("Фармакологическая группа")
+    assert "Белые круглые таблетки, ТЕСТ-ВИД" in html

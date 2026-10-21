@@ -19,3 +19,11 @@ posts:
     comments:
       - { author: "Гость Тестовый", text: "Комментарий без страницы." }
       - { author: "Другой Актёр", page: gromov, text: "Комментарий со страницей." }
+  # Голосовые сообщения (docs/03 §8): файл есть только в тестах, которые его создают; иначе — предупреждение «нет файла».
+  - datetime: "2026-10-02T09:15"
+    audio: { file: "krug-actor/voice-01.mp3", duration: "0:02", transcript: "Тестовая расшифровка голосового сообщения." }
+    likes: 1
+  - datetime: "2026-10-03T09:15"
+    text: "Пост с текстом и голосовым без файла."
+    audio: { file: "krug-actor/voice-missing.mp3", duration: "0:12" }
+    likes: 0

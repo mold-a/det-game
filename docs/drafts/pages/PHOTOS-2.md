@@ -1,6 +1,20 @@
-# Фото, аватарки и голосовые для соцсетей — набор 2 (черновик сценариста, 21.10.2026)
+# Фото, аватарки и голосовые для соцсетей — набор 2 (сценарист, 21.10.2026)
 
-Дополняет `docs/drafts/pages/PHOTOS.md` (F01–F08) и `docs/PROMPTS.md`. Зачем эти кадры и какие из них улики — `docs/CLUE-MAP.md`, раздел 4 и предложения 3.1–3.10. Тексты постов здесь — черновики к кадрам. В `content/` они попадут на шаге 2, после решения автора.
+Дополняет `docs/drafts/pages/PHOTOS.md` (F01–F08) и `docs/PROMPTS.md`. Зачем эти кадры и какие из них улики — `docs/CLUE-MAP.md`, раздел 4 и предложения 3.1–3.10. **Шаг 2 выполнен 21.10 (вечер):** посты, пути к файлам и голосовые уже стоят в `content/pages/*`; пока файлов нет, сборка пишет «нет медиафайла» и показывает заглушку. Тексты постов в этом файле — те же, что в `content/` (если расходятся, прав `content/`).
+
+## Что генерировать автору (коротко, по порядку)
+
+1. **Улики — первыми, каждая в своём чате:**
+   - `media/krug-voroncov/02.jpg` — VR-02, гримёрка 28.10, дублёр за плечом смотрит в телефон (бонус fb3);
+   - `media/krug-voroncov/03.jpg` — VR-03, селфи на набережной, фигура в короткой тёмной куртке (спящая, 4-08);
+   - `media/paper/2-06-office.jpg` — **перегенерация** S18: упаковка «Анаприлина» на столе читается при увеличении (раздел 2а);
+   - `media/inna/10.jpg` — IN-10, костюм с той же брошью на вешалке у буфета (подкрепление бонуса s2.b2).
+2. **Голосовые (5 шт.), нейросетью по клонам:** V1 Молдованов (31.10, «кто-то идёт следом»), V2 и V3 Марина, V4 Вольская, V5 Волков. У Кирилла голосовых **нет**.
+3. **Аватарки (8) и обложки (6):** AV-1…AV-8, CV-2…CV-5, CV-7 (у `gromov` обложка уже есть, у `krug-levin` обложки нет).
+4. **Фото «из жизни» к постам (22):** VR-01, 04, 05; KR-01…05; MR-01, 02; VS-01…03; VK-01…03; GR-01…03; LV-01; NM-01.
+5. Ещё не сделаны и не входят в набор 2: `inna/01.jpg`…`09.jpg` (S20–S28 в `docs/PROMPTS.md`), `portraits/gnedich.jpg`, `portraits/zavyalov.jpg`, `video/rehearsal.mp4`.
+
+Полный список файлов с путями, страницами и пометкой «улика / нет» — раздел 6 в конце.
 
 ## Общие правила
 
@@ -23,10 +37,12 @@
 ## Оглавление
 
 1. Аватарки и обложки (AV, CV)
-2. Фото к постам: `krug-voroncov` (VR), `krug-kirill` (KR), `krug-marina` (MR), `krug-volskaya` (VS), `krug-volkov` (VK), `gromov` (GR), `inna` (IN), `news-most` (NM)
-3. Голосовые (V1–V6) и схема поля `audio`
-4. «Кружки»: что убрать
+2. Фото к постам: `krug-voroncov` (VR), `krug-kirill` (KR), `krug-marina` (MR), `krug-volskaya` (VS), `krug-volkov` (VK), `krug-levin` (LV), `gromov` (GR), `inna` (IN), `news-most` (NM)
+2а. Бумага: перегенерация `paper/2-06-office.jpg`
+3. Голосовые (V1–V5) и поле `audio`
+4. «Кружки»: что убрано и что осталось
 5. Соответствие старым номерам из `PHOTOS.md`
+6. Итоговый список файлов
 
 ---
 
@@ -124,7 +140,7 @@ Use image 1 as the strict identity reference: this is the same real woman, keep 
 
 Проверь: **броши нет** — брошь появляется только на улике `inna/brooch.jpg`.
 
-### AV-7. `media/krug-volkov/avatar.jpg` — Волков (если принята страница `krug-volkov`)
+### AV-7. `media/krug-volkov/avatar.jpg` — Волков (страница `krug-volkov` принята 21.10)
 
 - **Приложить:** 1 — `portraits/volkov.jpg`.
 - **Характер:** добродушный, услужливый, часто улыбается, говорит быстро.
@@ -134,6 +150,17 @@ Use image 1 as the strict identity reference: this is the same real young man, k
 ```
 
 Проверь: **серый свитер, не тёмная короткая куртка** — куртка остаётся силуэтом на улике VR-03 и в 4-08, связывать их должны игроки, а не аватарка.
+
+### AV-8. `media/krug-levin/avatar.jpg` — Лёвин (страница `krug-levin` принята 21.10)
+
+- **Приложить:** 1 — `portraits/stas.jpg`.
+- **Характер:** болтливый, любит драму, «Я вам как артист скажу»; на странице — пёс, дача, ремонт.
+
+```text
+Use image 1 as the strict identity reference: this is the same real man, keep exactly his face shape, eyes, eyebrows, nose, mouth, hairline, hairstyle and facial hair as in image 1 (glasses only if he wears them in image 1); he looks exactly 44 years old, not older. Casual smartphone selfie in a city park on a bright autumn day: he laughs theatrically with one eyebrow raised and his free hand spread in a dramatic gesture, as if telling a story; a big friendly shaggy dog pushes its head into the frame from the lower left and licks his cheek. He wears a dark-green wool coat with a scarf. Behind him, out of focus: yellow maples, a park path, a bench. Natural daylight, light phone-camera grain. Head and shoulders. No hat, no headphones, no badges, no costume. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Проверь: лицо узнаётся, 44 года; собака не закрывает лицо; никаких табличек и вывесок.
 
 ### CV-7. `media/krug-volkov/cover.jpg` — обложка Волкова: зал праздника
 
@@ -163,7 +190,7 @@ Use image 1 as the strict identity reference: the same real man, keep exactly hi
 
 #### VR-02. `media/krug-voroncov/02.jpg` — гримёрка, 28.10, перерыв — **УЛИКА**
 
-Пост `2026-10-28T15:52`: «перерыв между сценами\nотмечаюсь, что живой 😁\nфото — {Лёвин}, он считает, что это искусство» (CLUE-MAP 3.1).
+Пост `2026-10-28T15:52`: «перерыв между сценами\nотмечаюсь, что на месте 😁\nфото — {Лёвин}, он считает, что это искусство» (CLUE-MAP 3.1; подпись смягчена по решению автора 21.10 — не эхо признания R-01). Лёвин в своей ленте 28.10 в 20:15 пишет, что «открыл в себе фотографа», и ссылается на этот пост.
 
 **Что должно быть видно:** Воронцов сидит у гримировального зеркала и набирает что-то на телефоне **одним указательным пальцем**. Дублёр стоит **за его правым плечом**, наклонился и **смотрит в экран**. Экран к камере **не повёрнут** (видна задняя крышка без логотипа). Снято из дверей гримёрки. Сумки, таблетницы, бутылки воды и зарядки в кадре нет: это предметы улик 1-09 и 1-10, их не дублируем.
 
@@ -185,7 +212,7 @@ Image 1 is the strict identity reference for the OLDER man; image 2 is the stric
 
 #### VR-03. `media/krug-voroncov/03.jpg` — селфи «со вчерашней прогулки», пост 31.10 — **СПЯЩАЯ УЛИКА**
 
-Пост `2026-10-31T10:12` + голосовое V1: «вчера полдня бродил по городу\nпогода — арбенинская\nи всё время казалось, что кто-то идёт следом\nмнительность у артистов прилагается к роли бесплатно 😁» (CLUE-MAP 3.4). Снимок сделан «вчера», 30.10, после обеда.
+Пост `2026-10-31T10:12`: «вчерашняя прогулка\nпечатать лень, руки замёрзли — рассказываю голосом 😁» + голосовое V1 (в нём «вчера полдня бродил по городу… кто-то идёт следом»; CLUE-MAP 3.4). Снимок сделан «вчера», 30.10, после обеда.
 
 **Что должно быть видно:** Воронцов в **длинном тёмном пальто, без шапки, в очках** (как в 4-08). На заднем плане, метрах в 12–15, не в фокусе, — **фигура в короткой тёмной куртке, без шапки**, стоит у парапета и смотрит в его сторону. **Лица фигуры не разобрать**: в 4-08 «личность не установлена», здесь тоже.
 
@@ -227,7 +254,7 @@ Use image 1 as the strict identity reference: the same real man, keep exactly hi
 
 ### `krug-kirill` — Кирилл
 
-Манера: с заглавной, «....», «!!!!!», 😂 🤷‍♂️ 🥳, «как то», «Есть такое)». Фразы «Было бы за что» нет и быть не может; ему в комментариях не говорят «спасибо».
+Манера: с заглавной, «....», «!!!!!», 😂 🤷‍♂️ 🥳, «как то», «Есть такое)». Фразы «Было бы за что» нет и быть не может; ему в комментариях не говорят «спасибо». **Голосовых у Кирилла нет** (решение автора 21.10: голос сравнили бы со звонком 1-05 уже на этапе 1).
 
 #### KR-01. `media/krug-kirill/01.jpg` — рыбалка, к посту 04.10 (жизнь)
 
@@ -279,7 +306,7 @@ Casual smartphone photo on a teacher's desk in a classroom after a Halloween les
 
 #### MR-02. `media/krug-marina/02.jpg` — кухня 03.11, «чай так и не выпил» (эхо 4-14)
 
-Пост `2026-11-03T22:40` (CLUE-MAP 3.9). Две чашки: одна выпита, вторая **полная**.
+Пост `2026-11-03T22:40` (CLUE-MAP 3.9): «дядя тёма заезжал вечером / весь вечер просидели на кухне, а чай так и остыл нетронутый / сказал, всё будет хорошо / мб я чего то не понимаю :(». Формулировка нарочно не повторяет 4-14. Две чашки: одна выпита, вторая **полная**.
 
 ```text
 Casual smartphone photo of a small kitchen table late in the evening: two cups of tea - one empty with a tea bag on a saucer, the other FULL and untouched with a faint skin of cooled tea; a plate of cookies nobody touched, a man's grey wool scarf forgotten on the back of a chair, a lamp with warm yellow light, dark window with city lights blurred behind. Quiet, a little sad mood. No people. Vertical 4:5. No text, no labels. No pills, no medicine, no pill box anywhere. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
@@ -305,7 +332,7 @@ Casual smartphone photo from the audience of a children's concert on a small the
 
 #### VS-03. `media/krug-volskaya/03.jpg` — пирог с брусникой, 01.11 (жизнь)
 
-Пост `2026-11-01T17:15`: «Ну вот) Пирог с брусникой по бабушкиному рецепту. Получился красавец 👍 Девочки, жду в воскресенье ❤️ ❤️ ❤️»
+Пост `2026-11-01T17:15`: «Ну вот) Пирог с брусникой по бабушкиному рецепту. Получился красавец 👍 / Девочки, приглашение — голосом ❤️ ❤️ ❤️» + голосовое V4.
 
 ```text
 Casual smartphone photo of a homemade open lingonberry pie on a round wooden board on a dining table, one slice cut out and placed on a porcelain plate with a silver fork, two thin porcelain cups of tea, a small vase with dried flowers, a linen napkin, soft afternoon window light, elegant but homely. No people, no text, no labels. Square 1:1. No jewellery boxes, no silver boxes, no antiques on the table. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
@@ -313,7 +340,7 @@ Casual smartphone photo of a homemade open lingonberry pie on a round wooden boa
 
 На столе нет серебряных коробочек и антиквариата: табакерка — улика этапов 3–4.
 
-### `krug-volkov` — Волков (если принята страница)
+### `krug-volkov` — Волков (принята 21.10)
 
 Манера: с заглавной, коротко, без точки в конце, 👌 🤝 👋 😉.
 
@@ -341,6 +368,18 @@ Use image 1 as the strict identity reference: the same real young man, keep exac
 Use image 1 as the strict identity reference: the same real young man, keep exactly his face, short dark hair and clean-shaven face; he looks exactly 31 years old, not older. Lively smartphone photo at an anniversary party in a banquet hall: he is the host, in a dark-blue suit and white shirt without a tie, holding a handheld microphone and laughing, arm stretched towards the guests; behind him guests at round tables raise their hands and clap, all guests out of focus with faces not distinguishable; an elderly man with an accordion sits at the side, blurred. Warm string lights, balloons in pastel colours, garlands. Horizontal 4:3. NO banners, NO letters or numbers on balloons, no text anywhere. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
 ```
 
+### `krug-levin` — Лёвин (принята 21.10, без улик)
+
+Манера: «Я вам как артист скажу», путает авторов («Маскарад» — это Чехов). Жизнь: пёс, ремонт, дача.
+
+#### LV-01. `media/krug-levin/01.jpg` — кабачки, пост 12.10 (жизнь)
+
+Пост `2026-10-12T17:25`: «Дача закрыта. Шланги свёрнуты, кабачки раздарены всем, кто не успел спрятаться 🥒». Лица нет.
+
+```text
+Casual smartphone photo on the wooden porch of a small Russian dacha in mid-October: a wooden crate overflowing with huge green and striped zucchini, a man's hands (only hands and forearms in a dark-green coat sleeve, no face) holding up the biggest zucchini towards the camera as a trophy; a coiled green garden hose and a pair of rubber boots on the porch; yellow birches and a grey sky behind. Soft overcast light, light phone-camera grain. Vertical 4:5. No labels, no text. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
 ### `gromov` — Громова
 
 `gromov/meeting.jpg` (УЛИКА, летняя зелень за окном) и `gromov/cover.jpg` уже есть. Новые — к существующим постам и к одному личному.
@@ -365,7 +404,7 @@ Use image 1 as the strict identity reference: the same real woman, keep exactly 
 
 #### GR-03. `media/gromov/03.jpg` — дача и шарлотка, личный пост 01.11
 
-Пост `2026-11-01T13:20` в её манере: «Выходной !!! Дача, последние яблоки, шарлотка ❤️❤️❤️ Все на свежий воздух, это приказ» (CLUE-MAP 3.8).
+Пост `2026-11-01T13:20` в её манере: «Выходной !!! Дача, последние яблоки, шарлотка ❤️❤️❤️ / Все на свежий воздух. Это приказ» (CLUE-MAP 3.8). Ещё два личных поста без фото: 25.10 «Первый раз за месяц дома до восьми. Кот в шоке. Я тоже 🤣🤣» и 18.10 «Минус два. Город, где шапки ?…».
 
 - **Приложить:** 1 — `portraits/gromov.jpg`.
 
@@ -373,11 +412,11 @@ Use image 1 as the strict identity reference: the same real woman, keep exactly 
 Use image 1 as the strict identity reference: the same real woman, keep exactly her face, hairline and hairstyle; she looks exactly 45 years old, not older. Casual smartphone selfie in a small dacha garden on a cold sunny November day: she holds up a freshly baked apple charlotte pie in a baking dish towards the camera with a triumphant face, wearing a knitted cream sweater and a quilted vest, hair in a loose ponytail. Behind her: a wooden garden table with a basket of red apples, a bare apple tree, a simple wooden house. Bright low sun, light phone-camera grain. Vertical 4:5. No jewellery, no badges, no text. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
 ```
 
-### `inna` — Инна (по желанию)
+### `inna` — Инна (IN-10 внесён 21.10 — пост 09.11 17:30)
 
 #### IN-10. `media/inna/10.jpg` — буфет перед генеральным прогоном, 09.11, костюм с брошью на вешалке — подкрепление бонуса s2.b2
 
-Пост `2026-11-09T17:30`: «Генеральный прогон 🎭 Буфет готов, костюмы красивые — я бы сама всё надела ✨» Брошь должна **точно** совпадать с 2-08 и с `inna/brooch.jpg`.
+Пост `2026-11-09T17:30`: «Генеральный прогон 🎭 Буфет готов, костюмы красивые — я бы сама всё надела ✨» Брошь должна **точно** совпадать с 2-08 и с `inna/brooch.jpg`. Опись 2-08: сверка 09.11 после генерального прогона — «все позиции в наличии», т. е. брошь ещё на костюме.
 
 - **Приложить:** 1 — `work/brooch_ref.jpg` (рабочий эталон броши, `PROMPTS.md` S04); 2 — `inna/brooch.jpg`.
 
@@ -387,7 +426,7 @@ Image 1 and image 2 are the strict reference for the BROOCH only: oval, antique-
 
 Проверь: брошь та же (форма, камень, стразы, капля), платье на вешалке, людей нет.
 
-### `news-most` — новость про мост (если принята)
+### `news-most` — новость про мост (принята 21.10, вариант А)
 
 #### NM-01. `media/news-most/01.jpg` — Речной мост вечером
 
@@ -399,9 +438,29 @@ Local news photograph of an old concrete road bridge across a wide river in a pr
 
 ---
 
+## 2а. Бумага: перегенерация `media/paper/2-06-office.jpg` (S18, решение автора 21.10)
+
+Сейчас упаковка на столе бело-синяя и не читается даже при увеличении. По `docs/PAPER-REQUIREMENTS.md` и SCENARIO она должна читаться **только при увеличении**, без крупного плана. Сверено с `content/paper/2-06.md`: подпись «Рабочий стол, общий вид.» и текст («среди прочего: стопки документов, папка-скоросшиватель „Фонд „Сцена“: отчёт для администрации города“, ежедневник, письменный прибор, очки, настольная лампа, стационарный телефон, две чашки на блюдцах с остатками кофе, на одной — след губной помады») **не меняются**: упаковка входит в «среди прочего». Надпись на папке, как и раньше, накладывается при обработке.
+
+- **Приложить:** 1 — текущий `paper/2-06-office.jpg` (сохранить стол, ракурс и предметы); 2 — `paper/2-06-room.jpg` (образец комнаты).
+- **Формат:** горизонталь 3:2, как сейчас.
+
+```text
+Image 1 is the current version of this photo: keep the same office, the same desk, the same camera angle, the same lighting and the same objects in the same places. Image 2 is only a reference for the room. A general view of the whole writing desk surface from the visitor's side, slightly raised angle, the whole desk in frame (NOT a close-up). On the desk: stacks of documents; a black ring-binder folder lying on top with a blank white label sticker on its front (leave the label COMPLETELY BLANK, no letters); a diary; a desk pen set; reading glasses; a desk lamp; a landline desk telephone; TWO coffee cups on saucers, both with coffee dregs, and a faint red lipstick mark on the rim of one of them. CHANGE ONLY THIS: among the papers next to the telephone lies one small white medicine box with a thin blue stripe, half covered by a sheet of paper; on its visible side the word АНАПРИЛИН is printed in plain dark-blue Cyrillic capital letters. The box is small, not in the foreground and not in the centre: the word must be readable only when the photo is zoomed in. No other text anywhere in the picture: no other letters on the box, no manufacturer logo, no dosage, no captions, no timestamps, no watermarks, no brand names, no coats of arms, no flags, no readable signs. No blood pressure monitor, no pill blister on the desk. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Проверь перед сохранением:
+- [ ] всё, что перечислено в 2-06, на месте: папка с пустой этикеткой, **две** чашки на блюдцах, **след помады на одной**, ежедневник, письменный прибор, очки, лампа, стационарный телефон;
+- [ ] упаковка маленькая, наполовину под листом, слово «АНАПРИЛИН» читается только при увеличении, других букв на ней нет;
+- [ ] ракурс и стол те же, что на старом кадре (фото уже описано в бумаге — «общий вид»).
+
+Если генератор коверкает кириллицу: сгенерировать с **пустой** белой стороной коробки и наложить слово «АНАПРИЛИН» при обработке (PT Sans Bold, тёмно-синий, высота букв ≈ 1 % ширины кадра, лёгкий перспективный наклон под грань коробки) — так же, как надпись на папке.
+
+---
+
 ## 3. Голосовые
 
-Решение автора: немного голосовых (3–6 на всю сеть), голос — нейросетью по клонам из уже существующих голосовых, как запись звонка. Живых записей нет.
+Решение автора: немного голосовых (5 на всю сеть), голос — нейросетью по клонам из уже существующих голосовых, как запись звонка. Живых записей нет. **Голосовых у Кирилла нет** (решение 21.10). Голосовые бывают только у постов: у комментариев поля `audio` нет, поэтому голосовое Вольской перенесено в её пост 01.11.
 
 **Технически:** MP3, моно, 64–96 кбит/с, громкость около −16 LUFS, лёгкий «телефонный» фон (комната, улица), без музыки. Файл ≤ 300 КБ. Длительность — по таблице ±2 с; поле `duration` в YAML ставится по факту.
 
@@ -409,16 +468,15 @@ Local news photograph of an old concrete road bridge across a wide river in a pr
 
 | № | Файл | Где | Чей голос | ~Длит. | Текст (произносится) | Тон | Улика? |
 |---|---|---|---|---|---|---|---|
-| V1 | `media/krug-voroncov/voice-01.mp3` | пост 31.10 10:12 | Воронцов (клон автора) | 16 с | «Вчера полдня бродил по городу. Погода — арбенинская: ветер, тучи, сплошная драма. И всё время казалось, что кто-то идёт следом. Оборачиваюсь — никого. Мнительность у артистов, видимо, прилагается к роли бесплатно». В конце короткий смешок | весело, но с лёгкой паузой перед «кто-то идёт следом» | спящая: слежка 30.10 ↔ 4-08 |
-| V2 | `media/krug-marina/voice-01.mp3` | пост 10.11 17:12 (вместо «кружка») | Марина | 14 с | «Так, всем приветик! Дядя Тёма сегодня играет премьеру! Я не иду — мне сказали приходить, когда он разыграется. Так что держу кулачки дома, прям вот так. Всё, удачи ему!» | радостно, быстро | нет (её собственные слова; алиби подтверждает сестра, 1-08) |
-| V3 | `media/krug-marina/voice-02.mp3` | пост 31.10 (вместо «кружка») | Марина | 18 с | «Короче, у меня в группе Хэллоуин, и одна девочка пришла в костюме… меня. С журналом и в очках. Я прям не знаю — гордиться или бояться. Наверное, и то и другое». Смех | смешливо | нет |
-| V4 | `media/krug-volskaya/voice-01.mp3` | ответ подруге под постом 08.11 | Вольская | 7 с | «Ира, ну конечно. Ложа номер два, твоё место рядом со мной, как всегда» | тепло, с улыбкой | нет |
-| V5 | `media/krug-volkov/voice-01.mp3` | закреплённый пост «ведущий праздников» | Волков | 15 с | «Всем привет! Свадьбы, юбилеи, корпоративы — проведу так, что гости забудут, что пришли по приглашению. Музыка, конкурсы — всё своё. Пишите, договоримся. Хорошего вечера!» | быстро, вежливо, улыбаясь | нет; тот же голос, что в видео 4-07 |
-| V6 | `media/krug-kirill/voice-01.mp3` | пост 04.10 (рыбалка) — **только по решению автора** | Кирилл | 12 с | «Докладываю с рыбалки. Рыба есть. Где-то. Не у меня. У меня насморк, два комара и философское настроение. Конец связи». | бодро, с самоиронией | **риск:** голос сравнят с записью звонка 1-05 уже на этапе 1 — это ответ бонуса этапа 3 (s3.b2) |
+| V1 | `media/krug-voroncov/voice-01.mp3` | пост 31.10 10:12 (селфи VR-03) | Молдованов / Воронцов (клон автора) | 16 с | «Вчера полдня бродил по городу. Погода — арбенинская: ветер, тучи, сплошная драма. И всё время казалось, что кто-то идёт следом. Оборачиваюсь — никого. Мнительность у артистов, видимо, прилагается к роли бесплатно». В конце короткий смешок | весело, но с лёгкой паузой перед «кто-то идёт следом» | спящая: слежка 30.10 ↔ 4-08 |
+| V2 | `media/krug-marina/voice-01.mp3` | пост 10.11 17:12 («премьера!! 🤞») | Марина | 14 с | «Так, всем приветик! Дядя Тёма сегодня играет премьеру! Я не иду — мне сказали приходить, когда он разыграется. Так что держу кулачки дома, прям вот так. Всё, удачи ему!» | радостно, быстро | нет (её собственные слова; алиби подтверждает сестра, 1-08) |
+| V3 | `media/krug-marina/voice-02.mp3` | пост 31.10 18:26 (Хэллоуин, фото MR-01) | Марина | 18 с | «Короче, у меня в группе Хэллоуин, и одна девочка пришла в костюме… меня. С журналом и в очках. Я прям не знаю — гордиться или бояться. Наверное, и то и другое». Смех | смешливо | нет |
+| V4 | `media/krug-volskaya/voice-01.mp3` | пост 01.11 17:15 (пирог) | Вольская | 9 с | «Девочки, ну вот — пирог с брусникой, бабушкин рецепт. Жду вас в следующее воскресенье, всех-всех. Не опаздывайте, а то съем сама» | тепло, с улыбкой | нет |
+| V5 | `media/krug-volkov/voice-01.mp3` | пост 14.10 19:05 «Ведущий на ваш праздник — голосом…» | Волков | 15 с | «Всем привет! Свадьбы, юбилеи, корпоративы — проведу так, что гости забудут, что пришли по приглашению. Музыка, конкурсы — всё своё. Пишите, договоримся. Хорошего вечера!» | быстро, вежливо, улыбаясь | нет; тот же голос, что в видео 4-07 |
 
 «Было бы за что» нет ни в одном голосовом. В голосовых нет дат, времени, болезней, лекарств, поездок и денег театра.
 
-**Схема поля** (реализует фронтенд позже; плеер — тот же, что на странице `call`):
+**Поле в `content/`** (схему добавил фронтенд; плеер — тот же, что на странице `call`). Расшифровки в `content/` — с шаблонами имён и пола; «Тёма» звучит как `familiar`:
 
 ```yaml
 posts:
@@ -429,35 +487,25 @@ posts:
       duration: "0:16"
       transcript: "…"                      # необязательно; кнопка «Показать расшифровку», свёрнуто
     comments:
-      - author: "…"
-        page: "…"
-        text: ""                           # комментарий-голосовое
-        audio: { file: "krug-volskaya/voice-01.mp3", duration: "0:07", transcript: "…" }
+      - { author: "…", page: "…", text: "…" }   # у комментариев голосовых нет
 ```
 
 Расшифровка — открытый текст страницы: к ней применимы правила `CLUE-MAP` 3.0 (никаких иголок leak scan).
 
 ---
 
-## 4. «Кружки»: что убрать
+## 4. «Кружки»: что убрано и что осталось
 
-Решение автора 21.10: видеосообщений («кружков») в игре нет — нигде не упоминать и не изображать; Марина «любит голосовые». Правка — на шаге 2.
+Решение автора 21.10: видеосообщений («кружков») в игре нет — нигде не упоминать и не изображать; Марина «любит голосовые».
 
-| Файл | Строка | Сейчас | Заменить на |
-|---|---|---|---|
-| `content/pages/krug-marina/page.yaml` | 2–3 | комментарий «почти всё — «кружки» (видеосообщения)…» | «посты — текст и голосовые» |
-| то же | 18 | `about: "english teacher · кружки > текст 🤗"` | `about: "english teacher · голосовые > текст 🤗"` |
-| то же | 25 | пост 11.11: «даже кружок не получается записать :(» | «даже голосовое не получается записать :(» |
-| то же | 32 | пост 10.11 17:12: «🎥 кружок · 0:24 …» | голосовое V2, текст поста пустой или «премьера!! 🤞» |
-| то же | 38 | пост 31.10: «🎥 кружок · 0:41 …» | голосовое V3 + фото MR-01 |
-| то же | 44 | пост 18.10: «🎥 кружок · 0:17 …» | текстом: «папа вчера был на встрече одноклассников и вернулся с новой версией истории про драмкружок 😹😹 дядя тёма всё отрицает» (с шаблонами пола) |
-| то же | 50 | пост 29.09: «🎥 кружок · 0:09 …» | текстом: «вера говорит, в москве уже холодно. у нас тоже. всё, мы квиты 😛😛😛» (имя — шаблоном) |
-| `docs/drafts/pages/krug-marina/page.yaml` | те же | черновик-дубликат | так же или удалить черновик |
-| `docs/REDESIGN-2026-10.md` | 173 | «Марина: немного постов, «кружки»» | «…, голосовые» |
-| `docs/STORY-CHANGES.md` | 476 | «посты-«кружки»» | запись оркестратора о замене |
-| `docs/VOICES.md` | 16, 82 | «любит кружки и голосовые», «голосовые и видеокружки» | «любит голосовые» |
+| Файл | Что сделано 21.10 (вечер) |
+|---|---|
+| `content/pages/krug-marina/page.yaml` | шапка, `about` («голосовые > текст»), пост 11.11 («даже голосовое не получается записать»), 10.11 и 31.10 — голосовые V2 и V3, 18.10 и 29.09 — текстом |
+| `docs/drafts/pages/krug-marina/page.yaml` | заменён копией из `content/` |
+| `docs/REDESIGN-2026-10.md`, строка 171 | «текст и голосовые» |
+| **Осталось оркестратору** (эти файлы сценарист при параллельной работе не трогает): `docs/VOICES.md` строки 16 («любит кружки и голосовые») и 82 («голосовые и видеокружки»); `docs/STORY-CHANGES.md` строка 476 (старая запись «посты-„кружки“» — историю не переписываем, замена отмечена в записи 21.10 вечер) | |
 
-В `content/pages/krug-kirill/page.yaml` «драмкружок» — кружок самодеятельности, оставить.
+«Драмкружок» и «театральный кружок» у Кирилла, «кружки» с чаем (KR-03, SCENARIO 2-06) — не видео, оставлены.
 
 ---
 
@@ -469,4 +517,58 @@ posts:
 | F04 `krug/voroncov_rehearsal.jpg` | VR-05 `media/krug-voroncov/05.jpg` (запрос уточнён: без сумок и бутылок) |
 | F01, F02, F05–F08 | без изменений: `theater/facade.jpg`, `theater/hall.jpg`, `fund/costumes.jpg`, `news/yama.jpg`, `news/hockey.jpg`, `auction/snuffbox_lot.jpg` |
 
-**Итого в наборе 2:** 7 аватаров (AV-1…AV-7), 5 обложек (CV-2…CV-5, CV-7; у `gromov` обложка уже есть), 21 фото к постам (VR-01…05, KR-01…05, MR-01…02, VS-01…03, VK-01…03, GR-01…03, по желанию IN-10 и NM-01), 5 голосовых + 1 по решению автора. Аватар и обложка `krug-volkov`, кадры VK-* и V5 нужны, только если автор примет страницу `krug-volkov`; NM-01 — только если примет `news-most`.
+**Итого в наборе 2:** 8 аватаров (AV-1…AV-8), 5 обложек (CV-2…CV-5, CV-7), 23 фото к постам (VR-01…05, KR-01…05, MR-01…02, VS-01…03, VK-01…03, LV-01, GR-01…03, IN-10, NM-01), 1 перегенерация бумаги (2-06-office), 5 голосовых (V1–V5).
+
+---
+
+## 6. Итоговый список файлов
+
+Все пути — от `media/`. «Улика» — кадр или запись, на которых держится рассуждение (CLUE-MAP); «спящая» — смысл понятен только с бумагой поздних этапов; «нет» — жизнь страницы. Промпт — по коду в этом файле (S18 — `docs/PROMPTS.md`, новая версия — раздел 2а).
+
+| Файл | Страница, где стоит | Улика? | Промпт |
+|---|---|---|---|
+| `gromov/avatar.jpg` | `gromov`, профиль | нет | AV-1 |
+| `gromov/01.jpg` | `gromov`, пост 11.10 (субботник) | нет | GR-01 |
+| `gromov/02.jpg` | `gromov`, пост 24.10 (чаепитие; пятно варенья — пасхалка к комментарию) | нет | GR-02 |
+| `gromov/03.jpg` | `gromov`, пост 01.11 (дача, шарлотка) | нет | GR-03 |
+| `krug-voroncov/avatar.jpg` | `krug-voroncov`, профиль | нет | AV-2 |
+| `krug-voroncov/cover.jpg` | `krug-voroncov`, обложка | нет | CV-2 |
+| `krug-voroncov/01.jpg` | `krug-voroncov`, пост 11.10 (дача) | нет | VR-01 |
+| `krug-voroncov/02.jpg` | `krug-voroncov`, пост 28.10 15:52 (гримёрка) | **улика** — бонус fb3, f1 | VR-02 |
+| `krug-voroncov/03.jpg` | `krug-voroncov`, пост 31.10 10:12 (селфи) | **спящая** — силуэт из 4-08 | VR-03 |
+| `krug-voroncov/04.jpg` | `krug-voroncov`, пост 02.11 (борщ) | нет | VR-04 |
+| `krug-voroncov/05.jpg` | `krug-voroncov`, пост 06.11 (прогон) | нет | VR-05 |
+| `krug-voroncov/voice-01.mp3` | `krug-voroncov`, пост 31.10 | **спящая** — «кто-то идёт следом» | V1 |
+| `krug-kirill/avatar.jpg` | `krug-kirill`, профиль | нет | AV-3 |
+| `krug-kirill/cover.jpg` | `krug-kirill`, обложка | нет | CV-3 |
+| `krug-kirill/01.jpg` | `krug-kirill`, пост 04.10 (рыбалка) | нет | KR-01 |
+| `krug-kirill/02.jpg` | `krug-kirill`, пост 17.10 (встреча одноклассников) | нет | KR-02 |
+| `krug-kirill/03.jpg` | `krug-kirill`, пост 20.10 (ноутбук, две кружки) | фон спящего поста (сам кадр без улики) | KR-03 |
+| `krug-kirill/04.jpg` | `krug-kirill`, пост 26.10 (мамин телефон) | нет | KR-04 |
+| `krug-kirill/05.jpg` | `krug-kirill`, пост 07.11 (кот) | нет | KR-05 (= F03) |
+| `krug-marina/avatar.jpg` | `krug-marina`, профиль | нет | AV-4 |
+| `krug-marina/cover.jpg` | `krug-marina`, обложка | нет | CV-4 |
+| `krug-marina/01.jpg` | `krug-marina`, пост 31.10 (Хэллоуин) | нет | MR-01 |
+| `krug-marina/02.jpg` | `krug-marina`, пост 03.11 (две чашки) | нет (эхо 4-14) | MR-02 |
+| `krug-marina/voice-01.mp3` | `krug-marina`, пост 10.11 17:12 | нет | V2 |
+| `krug-marina/voice-02.mp3` | `krug-marina`, пост 31.10 18:26 | нет | V3 |
+| `krug-volskaya/avatar.jpg` | `krug-volskaya`, профиль | нет | AV-5 |
+| `krug-volskaya/cover.jpg` | `krug-volskaya`, обложка | нет | CV-5 |
+| `krug-volskaya/01.jpg` | `krug-volskaya`, пост 10.10 (выставка) | нет | VS-01 |
+| `krug-volskaya/02.jpg` | `krug-volskaya`, пост 24.10 (концерт студии) | нет | VS-02 |
+| `krug-volskaya/03.jpg` | `krug-volskaya`, пост 01.11 (пирог) | нет | VS-03 |
+| `krug-volskaya/voice-01.mp3` | `krug-volskaya`, пост 01.11 | нет | V4 |
+| `krug-volkov/avatar.jpg` | `krug-volkov`, профиль | нет (серый свитер, не куртка) | AV-7 |
+| `krug-volkov/cover.jpg` | `krug-volkov`, обложка | нет | CV-7 |
+| `krug-volkov/01.jpg` | `krug-volkov`, пост 21.09 (с погибшим за кулисами) | нет | VK-01 |
+| `krug-volkov/02.jpg` | `krug-volkov`, пост 04.10 (спортзал) | нет | VK-02 |
+| `krug-volkov/03.jpg` | `krug-volkov`, пост 25.10 (юбилей; под ним комментарий кредитора) | нет (улика — комментарий, не кадр) | VK-03 |
+| `krug-volkov/voice-01.mp3` | `krug-volkov`, пост 14.10 | нет (тот же голос, что в видео 4-07) | V5 |
+| `krug-levin/avatar.jpg` | `krug-levin`, профиль | нет | AV-8 |
+| `krug-levin/01.jpg` | `krug-levin`, пост 12.10 (кабачки) | нет | LV-01 |
+| `inna/avatar.jpg` | `inna`, профиль | нет (**без броши**) | AV-6 |
+| `inna/10.jpg` | `inna`, пост 09.11 17:30 (костюм с брошью у буфета) | **подкрепление** бонуса s2.b2 | IN-10 |
+| `news-most/01.jpg` | `news-most`, фото статьи | нет (без камер на мосту) | NM-01 |
+| `paper/2-06-office.jpg` | бумага 2-06, кадр 2 (перегенерация) | **улика-деталь** — упаковка «Анаприлина» (f2, f3) | раздел 2а (S18 v2) |
+
+Не из набора 2, но сборка тоже пишет «нет медиафайла»: `inna/01.jpg`…`09.jpg` (S20–S28), `portraits/gnedich.jpg`, `portraits/zavyalov.jpg`, `video/rehearsal.mp4`.

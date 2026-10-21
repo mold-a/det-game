@@ -5,7 +5,13 @@
 # Мелкие «правильные» подтверждения уже известного (1-07, 1-08): Марину он сам просил не приходить на премьеру
 # («приходи, когда разыграюсь» — STORY-BIBLE §4), Кирилл ходит «на десятый спектакль» (1-08), Вольская в ложе № 2
 # (1-08), Инна носит кофе (1-08). Семейная пасхалка — брови «как у генсека» (VOICES: «Брежнев»).
-# Волков и Завьялов в комментариях — вежливо и коротко; это атмосфера, а не улика.
+# Шаг 2 (21.10, решения автора; docs/CLUE-MAP.md 3.1, 3.4, 4.1):
+#   - СПЯЩИЕ УЛИКИ: пост 28.10 15:52 — фото Лёвина из гримёрки, дублёр за плечом смотрит в экран телефона
+#     (журнал облака: 28.10 15:47, сеть театра; бонус fb3). Подпись смягчена: «отмечаюсь, что на месте» (не эхо R-01).
+#     Пост 31.10 10:12 — голосовое и селфи «вчера… кто-то идёт следом», фигура в короткой тёмной куртке (4-08).
+#     Даты 30.10 на странице нет; слово «вчера».
+#   - «жизнь»: дача 11.10, очки 18.10, борщ 02.11, прогулка 31.10.
+# Волков и Завьялов в комментариях — вежливо и коротко.
 slug: krug-voroncov
 type: social
 stage: 1
@@ -15,16 +21,16 @@ profile:
   person: voroncov
   position: "{{ c.voroncov.g('Народный артист', 'Народная артистка') }} · {{ w.theater.short }}"
   city: "{{ w.city }}"
-  avatar: "portraits/voroncov.jpg"
-  cover: "news/voroncov_arbenin.jpg"
+  avatar: "krug-voroncov/avatar.jpg"     # AV-2, PHOTOS-2.md
+  cover: "krug-voroncov/cover.jpg"       # CV-2
   about: "артист, очки ношу, брови не стригу 😁"
   friends:
     - { person: kirill, page: krug-kirill }
     - { person: marina, page: krug-marina }
     - { person: volskaya, page: krug-volskaya }
-    - { person: stas }
+    - { person: stas, page: krug-levin }
     - { person: reznikova }
-    - { person: volkov }
+    - { person: volkov, page: krug-volkov }
 posts:
   - datetime: "2026-11-09T23:07"
     geo: "{{ w.city }}"
@@ -32,7 +38,7 @@ posts:
     photo: null
     likes: 342
     comments:
-      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", text: "Я тебе как артист скажу: завтра будет Чехов, не меньше! 🎭" }
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как артист скажу: завтра будет Чехов, не меньше! 🎭" }
       - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Фрак отпарен. Садиться в нём на пол запрещаю. Это ко всем относится, не только к Арбенину." }
       - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Завтра кофеёк как обычно ☕✨" }
       # — после 10.11: слова памяти —
@@ -40,19 +46,52 @@ posts:
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} :(" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, светлая память. Мы так и не успели поговорить." }
       - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", text: "{{ c.voroncov.familiar }}. Светлая память." }
-      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", text: "Светлая память {{ c.voroncov.familiar }} 🙏" }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Светлая память {{ c.voroncov.familiar }} 🙏" }
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Светлая память. Без вас в кулисе пусто." }
       - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Кто теперь будет хвалить мой кофе 💔" }
       - { author: "Тамара Ведерникова", text: "У нас были билеты на тринадцатое. Не верится. Светлая память." }
       - { author: "Роман Ершов", text: "Был на премьере. Он играл так, что зал не дышал. Стоя аплодируем." }
   - datetime: "2026-11-06T15:26"
     text: "прогон второго акта\nарбенин злой, режиссёр злой, кофе кончился\nвсё идёт по плану 🔥"
-    photo: null
+    photo: "krug-voroncov/05.jpg"          # VR-05, жизнь театра
     likes: 187
     comments:
       - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Уже несу! ☕" }
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Злой режиссёр — к аншлагу!!!!!" }
-      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", text: "Отличный прогон. Учусь 👌" }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Отличный прогон. Учусь 👌" }
+  - datetime: "2026-11-02T19:20"            # жизнь
+    text: "борщ по маминому рецепту\nмама сказала бы: соли мало\nмама всегда права 😁"
+    photo: "krug-voroncov/04.jpg"          # VR-04
+    likes: 201
+    comments:
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "а мне?? 😛😛😛" }
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.marina.first() }}, приезжай, кастрюля большая)" }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Сметанку не забудьте! ✨" }
+  # СПЯЩАЯ УЛИКА (CLUE-MAP 3.4): «вчера» = 30.10; фигура на заднем плане — короткая тёмная куртка, без шапки (как в 4-08).
+  - datetime: "2026-10-31T10:12"
+    text: "вчерашняя прогулка\nпечатать лень, руки замёрзли — рассказываю голосом 😁"
+    photo: "krug-voroncov/03.jpg"          # VR-03, спящая улика
+    audio:
+      file: "krug-voroncov/voice-01.mp3"   # V1 (PHOTOS-2.md)
+      duration: "0:16"
+      transcript: "Вчера полдня {{ c.voroncov.g('бродил', 'бродила') }} по городу. Погода — арбенинская: ветер, тучи, сплошная драма. И всё время казалось, что кто-то идёт следом. Оборачиваюсь — никого. Мнительность у артистов, видимо, прилагается к роли бесплатно."
+    likes: 174
+    comments:
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} не пугай :(" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Это поклонники!!!!! Привыкай 😂" }
+      - { author: "Тамара Ведерникова", text: "Шарф берегите, ветер у нас коварный." }
+  # СПЯЩАЯ УЛИКА (CLUE-MAP 3.1, бонус fb3): фото Лёвина из дверей гримёрки № 4; дублёр за правым плечом смотрит в экран.
+  # Журнал облака: 28.10 15:47, сеть театра, подтверждение «Я на связи». Кирилл здесь не комментирует: о пароле «при людях»
+  # он узнал только 04.11 (3-03, 3-04).
+  - datetime: "2026-10-28T15:52"
+    text: "перерыв между сценами\nотмечаюсь, что на месте 😁\nфото — {{ c.stas.first() }}, {{ c.stas.g('он', 'она') }} считает, что это искусство"
+    photo: "krug-voroncov/02.jpg"          # VR-02, УЛИКА
+    likes: 118
+    comments:
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как артист скажу: композиция — Чехов, не меньше! Все смотрят в одну точку 🎭" }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Учусь у лучших 👌" }
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Перерыв — десять минут, а не двадцать. Напоминаю." }
+      - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "красавчики 🤗" }
   - datetime: "2026-10-27T11:48"
     text: "сегодня в гримёрке сказали, что с такими бровями мне не арбенина играть, а генсека 😁\nне дождётесь\nброви — это наследие"
     photo: null
@@ -60,7 +99,7 @@ posts:
     comments:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Есть такое)" }
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "ахахахаххах {{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} генсек 😹😹😹" }
-      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", text: "Я тебе как артист скажу: с такими бровями можно и Отелло. Шекспир не возражал бы. Или это был Чехов" }
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как артист скажу: с такими бровями можно и Отелло. Шекспир не возражал бы. Или это был Чехов" }
   - datetime: "2026-10-22T19:12"
     text: "10 ноября — премьера «{{ w.play.title|lower }}»\nарбенин — я, нервы — тоже я\nприходите!! 🎭"
     photo: "news/voroncov_arbenin.jpg"
@@ -72,12 +111,25 @@ posts:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.familiar }}, привет!\nЯ как обычно — на десятый....\nНа премьерах я сплю, ты знаешь 😂" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, непременно буду. Ложа № 2, как всегда." }
       - { author: "Глеб Сазонов", text: "Билеты ещё есть?(" }
+  - datetime: "2026-10-18T09:05"            # жизнь
+    text: "полчаса искал{{ c.voroncov.g('', 'а') }} очки\nочки были на лбу\nарбенин так не позорился 😁"
+    likes: 233
+    comments:
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Есть такое)\nЯ так телефон ищу, разговаривая по нему 😂" }
+      - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, у Арбенина не было очков. Это всё объясняет)" }
   - datetime: "2026-10-13T10:31"
     text: "первая репетиция на сцене\nзал пустой, а я уже волнуюсь\nстарость? нет, профессия 😉"
     photo: null
     likes: 164
     comments:
       - { author: "{{ c.nina_actress.first() }} {{ c.nina_actress.last() }}", text: "{{ w.play.role_nina }} тоже волнуется. Но ей по роли положено 😉" }
+  - datetime: "2026-10-11T16:40"            # жизнь
+    text: "закрыл{{ c.voroncov.g('', 'а') }} сезон на даче\nяблоки собраны, листья побеждены\nграбли победили меня 😁"
+    photo: "krug-voroncov/01.jpg"          # VR-01
+    likes: 145
+    comments:
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Яблоки где?\nЯ спрашиваю для мамы...." }
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.kirill.first() }}, ведро у тебя в багажнике с обеда 😉" }
   - datetime: "2026-10-05T17:20"
     text: "с днём учителя!!\nспасибо всем, кто меня когда-то терпел\nи {{ c.marina.first() }} — теперь {{ c.marina.g('он', 'она') }} сам{{ c.marina.g('', 'а') }} учитель и терпит других 😁"
     photo: null

@@ -49,6 +49,7 @@ sections:
             subtitle: "{{ c.stas.g('Артист', 'Артистка') }} · Звездич («{{ w.play.title }}»)"
             text: "Хлестаков в «Ревизоре», Чацкий в «Горе от ума». Уверяет, что «Маскарад» тоже написал Чехов, просто под псевдонимом."
             photo: "portraits/stas.jpg"
+            page: krug-levin
           - title: "{{ c.nina_actress.io() }} {{ c.nina_actress.last() }}"
             subtitle: "Артистка · {{ w.play.role_nina }} («{{ w.play.title }}»)"
             text: "Лариса в «Бесприданнице», Маша в «Трёх сёстрах». В труппе с 2019 года."
@@ -57,6 +58,7 @@ sections:
             subtitle: "{{ c.volkov.g('Артист', 'Артистка') }} · дублёр роли Арбенина («{{ w.play.title }}»)"
             text: "Молчалин в «Горе от ума», Бобчинский в «Ревизоре». Третий сезон в труппе."
             photo: "portraits/volkov.jpg"
+            page: krug-volkov
       - kind: text
         md: "### Художественное руководство и цеха"
       - kind: cards

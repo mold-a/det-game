@@ -1,0 +1,12 @@
+slug: krug-closed
+type: social
+stage: 4
+locked: true
+brand: "{{ w.brands.social }}"
+profile:
+  name: "Закрытый Тестовый"
+  city: "{{ w.city }}"
+posts:
+  - datetime: "2026-10-05T18:00"
+    audio: { file: "krug-closed/voice-01.mp3", duration: "0:02", transcript: "Расшифровка закрытого голосового." }
+    likes: 0

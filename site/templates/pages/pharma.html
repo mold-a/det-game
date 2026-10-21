@@ -36,6 +36,7 @@
         <tbody>
           <tr><th scope="row">Торговые названия</th><td>{% if trades %}{{ trades|join(", ") }}{% else %}<span class="ph-text">Здесь будут торговые названия</span>{% endif %}</td></tr>
           <tr><th scope="row">Действующее вещество</th><td>{{ d.name }}</td></tr>
+          {% if d.appearance %}<tr><th scope="row">Внешний вид</th><td>{{ ui.text(d.appearance, "внешний вид") }}</td></tr>{% endif %}
           <tr><th scope="row">Фармакологическая группа</th><td>{{ ui.text(d.group, "группа") }}</td></tr>
           <tr><th scope="row">Показания</th><td>{{ ui.text(d.indications, "показания") }}</td></tr>
           <tr><th scope="row">Противопоказания</th><td>{{ ui.text(d.contraindications, "противопоказания") }}</td></tr>

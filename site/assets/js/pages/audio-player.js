@@ -65,7 +65,11 @@ function setupPlayer(box) {
   const dur = q('[data-role="dur"]');
   const msg = q('[data-role="msg"]');
 
-  if (!audio || box.dataset.missing) return; // заглушка «Здесь будет запись звонка»
+  if (!audio || box.dataset.missing) {
+    // Заглушка («Здесь будет запись звонка», голосовое без файла): все кнопки неактивны.
+    box.querySelectorAll("button, input").forEach((c) => (c.disabled = true));
+    return;
+  }
 
   const fallbackDuration = parseTime(box.dataset.duration);
   let seeking = false;
@@ -85,6 +89,7 @@ function setupPlayer(box) {
     const t = audio.currentTime || 0;
     const p = d > 0 ? Math.min(1, t / d) : 0;
     box.style.setProperty("--p", String(p));
+    box.classList.toggle("has-progress", t > 0); // голосовое: «0:03 / 0:12» вместо «0:12»
     if (cur) cur.textContent = formatTime(t);
     if (seek && !seeking) {
       seek.value = String(Math.round(p * SEEK_STEPS));
@@ -161,6 +166,12 @@ function setupPlayer(box) {
   audio.addEventListener("timeupdate", paintProgress);
   audio.addEventListener("seeked", paintProgress);
   for (const ev of ["play", "pause", "ended", "volumechange"]) audio.addEventListener(ev, paintState);
+  audio.addEventListener("play", () => {
+    // На странице может быть несколько плееров (голосовые в ленте): играет один.
+    document.querySelectorAll("audio").forEach((other) => {
+      if (other !== audio && !other.paused) other.pause();
+    });
+  });
   audio.addEventListener("ended", () => {
     box.style.setProperty("--p", "1");
   });

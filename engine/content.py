@@ -1202,6 +1202,9 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
                 refs.append((("profile", attr), getattr(profile, attr, None)))
         for pi, post in enumerate(getattr(page, "posts", None) or []):
             refs.append((("posts", pi, "photo"), getattr(post, "photo", None)))
+            audio = getattr(post, "audio", None)
+            if audio is not None:
+                refs.append((("posts", pi, "audio", "file"), audio.file))
         article = getattr(page, "article", None)
         if article is not None:
             refs.append((("article", "photo"), article.photo))

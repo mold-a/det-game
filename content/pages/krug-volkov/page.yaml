@@ -1,0 +1,76 @@
+# Сценарист, шаг 2 (21.10, решение автора; docs/CLUE-MAP.md 3.2). Страница дублёра в «Круге». Этап 1, открытая, без QR.
+# Входящие ссылки: карточка в «Труппе» на theater, друзья и комментарии у krug-voroncov, друзья у krug-levin, поиск krug.
+# Манера — docs/VOICES.md: с заглавной, коротко, без точки в конце, одно эмодзи в конце (👌 👋 🤝 😉), запятую при обращении
+# пропускает; услужливый; «заработать все деньги мира» — подрабатывает ведущим праздников.
+# СПЯЩАЯ УЛИКА: кредитор (rodionov_creditor) в друзьях и его комментарий 25.10 «раз ты при деньгах — набери»
+# (фамилия впервые — в бумаге конверта 4: 4-03, 4-06; R-01). Волков на комментарий не отвечает.
+# Как не перегнуть: пост 08.11 — без фото и без «монолога», «окна», «света» (иначе видео-алиби из 1-08 ломается на этапе 1);
+# нет шуток «отберу роль» (ложный вариант f4); нет долгов, займов, бара, декораций, ООО, фонда.
+slug: krug-volkov
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: volkov
+  position: "{{ c.volkov.g('Артист', 'Артистка') }} · {{ w.theater.short }} · {{ c.volkov.g('ведущий', 'ведущая') }} праздников"
+  city: "{{ w.city }}"
+  avatar: "krug-volkov/avatar.jpg"       # AV-7, PHOTOS-2.md
+  cover: "krug-volkov/cover.jpg"         # CV-7
+  about: "Свадьбы, юбилеи, корпоративы. Пишите 👋"
+  friends:
+    - { person: voroncov, page: krug-voroncov }
+    - { person: stas, page: krug-levin }
+    - { person: reznikova }
+    - { person: rodionov_creditor }      # СПЯЩАЯ: тот же человек, что в 4-03, 4-06, R-01
+    - { name: "Оксана Лебедь" }
+posts:
+  - datetime: "2026-11-11T09:20"
+    text: "Учитель\nСветлая память 🙏"
+    likes: 96
+    link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
+    comments:
+      - { author: "Оксана Лебедь", text: "Держись 🙏" }
+  - datetime: "2026-11-08T17:40"
+    text: "Воскресенье, а я в театре\nКто-то отдыхает, а кто-то {{ c.volkov.g('дублёр', 'дублёрша') }} 🤝"
+    likes: 41
+    comments: []
+  - datetime: "2026-11-07T16:58"
+    text: "На премьере буду на подхвате 👌\n{{ c.volkov.g('Дублёр', 'Дублёрша') }} как запасное колесо: всегда накачан{{ c.volkov.g('', 'а') }} и под рукой"
+    likes: 58
+    comments:
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как артист скажу: колесо — это у Гоголя. Но тоже классика 🎭" }
+  - datetime: "2026-10-25T23:50"            # жизнь
+    text: "{{ c.volkov.g('Отработал', 'Отработала') }} юбилей 👋\nШесть часов, сорок конкурсов, один баян\nВсе довольны, я {{ c.volkov.g('живой', 'живая') }}"
+    photo: "krug-volkov/03.jpg"          # VK-03
+    likes: 73
+    comments:
+      - { author: "Оксана Лебедь", text: "Лучший ведущий!!! Весь зал до сих пор поёт 🎉" }
+      - { author: "{{ c.rodionov_creditor.first() }} {{ c.rodionov_creditor.last() }}", text: "{{ c.volkov.first() }}, раз ты при деньгах — набери." }   # СПЯЩАЯ УЛИКА
+  - datetime: "2026-10-14T19:05"
+    text: "{{ c.volkov.g('Ведущий', 'Ведущая') }} на ваш праздник — голосом, чтобы было понятно, с кем договариваетесь 👋"
+    audio:
+      file: "krug-volkov/voice-01.mp3"   # V5 (PHOTOS-2.md); тот же голос, что в видео 4-07
+      duration: "0:15"
+      transcript: "Всем привет! Свадьбы, юбилеи, корпоративы — проведу так, что гости забудут, что пришли по приглашению. Музыка, конкурсы — всё своё. Пишите, договоримся. Хорошего вечера!"
+    likes: 34
+    comments:
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Только не в дни спектаклей. Напоминаю." }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Конечно {{ c.reznikova.io() }} 👌" }
+  - datetime: "2026-10-11T12:05"            # жизнь
+    text: "Машину из сервиса {{ c.volkov.g('забрал', 'забрала') }}\nМашина довольна, кошелёк нет 😉"
+    likes: 27
+    comments: []
+  - datetime: "2026-10-04T20:15"            # жизнь
+    text: "Спортзал. Ноги. Всё 💪"
+    photo: "krug-volkov/02.jpg"          # VK-02
+    likes: 39
+    comments:
+      - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как артист скажу: завтра будешь ходить, как Городничий в немой сцене 🎭" }
+  - datetime: "2026-09-21T22:30"
+    text: "Третий сезон в театре 🤝\nСпасибо {{ c.voroncov.first('dat') }} — учусь у лучшего"
+    photo: "krug-volkov/01.jpg"          # VK-01, с погибшим за кулисами
+    likes: 88
+    link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
+    comments:
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.volkov.first() }}, рад!! 🔥" }

@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
 
@@ -446,14 +447,46 @@ class PostLink(Strict):
     text: str
 
 
+VOICE_EXTENSIONS = (".mp3", ".m4a")
+
+
+class PostAudio(Strict):
+    """Голосовое сообщение в посте «Круга» (docs/03 §8)."""
+
+    file: str  # путь в media/, как у фото: «<page>/voice-01.mp3»
+    duration: str  # «М:СС» — показывается и при отсутствующем файле
+    transcript: str | None = None  # «Расшифровка» в раскрывающемся блоке под плеером
+
+    @field_validator("file")
+    @classmethod
+    def _audio_ext(cls, v: str) -> str:
+        if not v.lower().endswith(VOICE_EXTENSIONS):
+            raise ValueError(f"голосовое: допустимы файлы {', '.join(VOICE_EXTENSIONS)}")
+        return v
+
+    @field_validator("duration")
+    @classmethod
+    def _duration_fmt(cls, v: str) -> str:
+        if not re.fullmatch(r"\d{1,3}:[0-5]\d", v):
+            raise ValueError("длительность голосового — «М:СС», например «0:12»")
+        return v
+
+
 class SocialPost(Strict):
     datetime: str
     geo: str | None = None
-    text: str
+    text: str = ""  # может быть пустым, если есть audio или photo
     photo: str | None = None
+    audio: PostAudio | None = None
     likes: NonNegInt = 0
     link: PostLink | None = None
     comments: list[PostComment] = []
+
+    @model_validator(mode="after")
+    def _has_body(self) -> "SocialPost":
+        if not (self.text.strip() or self.photo or self.audio):
+            raise ValueError("у поста должен быть text, photo или audio")
+        return self
 
 
 class SocialPage(PageBase):
@@ -558,6 +591,7 @@ class Drug(Strict):
     indications: str
     contraindications: str
     side_effects: str
+    appearance: str | None = None  # «Внешний вид» — после «Действующего вещества»
 
 
 class PharmaPage(PageBase):

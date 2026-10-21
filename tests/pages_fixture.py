@@ -21,16 +21,16 @@ def copy_content(dst: Path, src: Path | None = None) -> Path:
 
 
 def add_fixture_pages(content: Path) -> None:
-    """Добавить в копию content/: theater, fund, auction (закрыт, этап 4), krug-actor, news-extra;
-    ссылки: из облака на auction, из статьи news на theater, из боковой колонки news на news-extra."""
+    """Добавить в копию content/: theater, fund, auction (закрыт, этап 4), krug-actor (с голосовыми), krug-closed (закрыт, этап 4, голосовое), news-extra;
+    ссылки: из облака на auction и krug-closed, из статьи news на theater, из боковой колонки news на news-extra."""
     pages = Path(content) / "pages"
-    for name in ("theater", "fund", "auction", "krug-actor", "news-extra"):
+    for name in ("theater", "fund", "auction", "krug-actor", "krug-closed", "news-extra"):
         d = pages / name
         d.mkdir(parents=True, exist_ok=True)
         (d / "page.yaml").write_text((FIXTURES / f"{name}.yaml").read_text(encoding="utf-8"), encoding="utf-8")
     shutil.copy(FIXTURES / "news-extra.md", pages / "news-extra" / "article.md")
     letter = pages / "cloud" / "if_you_read_this.md"
-    letter.write_text(letter.read_text(encoding="utf-8").rstrip() + "\n\nАрхив: [клуб]({{ link('auction') }}).\n",
+    letter.write_text(letter.read_text(encoding="utf-8").rstrip() + "\n\nАрхив: [клуб]({{ link('auction') }}). Запись: [круг]({{ link('krug-closed') }}).\n",
                       encoding="utf-8")
     art = pages / "news" / "article.md"
     art.write_text(art.read_text(encoding="utf-8").rstrip() + "\n\n[Театр]({{ link('theater') }}).\n", encoding="utf-8")

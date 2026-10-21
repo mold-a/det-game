@@ -755,3 +755,142 @@ body.page--social {
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+/* Голосовое сообщение в посте: компактный плеер «как в мессенджере». Разметка — templates/pages/social.html,
+   логика — pages/audio-player.js (data-player="audio", --p — доля проигранного, .is-playing, .has-progress). */
+.kr-voice {
+  margin: 0 16px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--kr-line);
+  border-radius: 16px;
+  background: var(--kr-brand-soft);
+  --p: 0;
+}
+
+.kr-voice__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kr-voice__btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--kr-brand);
+  color: var(--kr-brand-ink);
+  cursor: pointer;
+}
+
+.kr-voice__btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.kr-voice__btn .i-pause,
+.kr-voice.is-playing .kr-voice__btn .i-play {
+  display: none;
+}
+
+.kr-voice.is-playing .kr-voice__btn .i-pause {
+  display: block;
+}
+
+.kr-voice__btn:disabled {
+  background: var(--kr-line);
+  color: var(--kr-muted);
+  cursor: default;
+}
+
+.kr-voice__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kr-voice__wave {
+  position: relative;
+  height: 32px;
+}
+
+.kr-voice__bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.kr-voice__bars i {
+  flex: 1 1 0;
+  min-width: 2px;
+  height: var(--h);
+  border-radius: 2px;
+  background: var(--kr-muted);
+  opacity: 0.55;
+}
+
+.kr-voice__bars--played {
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+}
+
+.kr-voice__bars--played i {
+  background: var(--kr-brand);
+  opacity: 1;
+}
+
+.kr-voice__meta {
+  margin: 2px 0 0;
+  color: var(--kr-muted);
+  font-size: 13px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+
+.kr-voice__cur,
+.kr-voice__sep {
+  display: none;
+}
+
+.kr-voice.has-progress .kr-voice__cur,
+.kr-voice.has-progress .kr-voice__sep {
+  display: inline;
+}
+
+.kr-voice[data-missing] .kr-voice__bars--played {
+  display: none;
+}
+
+.kr-voice.is-failed .kr-voice__meta {
+  color: var(--kr-text);
+}
+
+.kr-voice__tr {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.kr-voice__tr-summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--kr-brand);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kr-voice__tr-text {
+  margin: 0 0 4px;
+  padding: 8px 12px;
+  border-left: 3px solid var(--kr-brand);
+  background: var(--kr-card);
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}

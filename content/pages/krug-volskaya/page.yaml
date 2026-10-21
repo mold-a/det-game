@@ -4,6 +4,9 @@
 # Запреты §4.4: ни табакерки, ни коллекций, ни серебра, ни торгов и «вечеров» (благотворительность — только
 # концерт и выставка). Громовой нет (её соседство в ложе — только в 1-08). Пост 08.11 и комментарий у Воронцова
 # повторяют уже известное из 1-08: ложа № 2, хотела поговорить и не успела.
+# Шаг 2 (21.10, CLUE-MAP 3.10, 4.1): пост 15.10 «новости, после которых хочется помолчать» — на этапе 4 совпадает
+# с датой письма эксперта (4-11); табакерка и экспертиза не названы. «Жизнь»: опята 27.09, пирог 01.11 (с голосовым).
+# На столе в кадрах — ни серебряных коробочек, ни антиквариата.
 slug: krug-volskaya
 type: social
 stage: 1
@@ -13,8 +16,8 @@ profile:
   person: volskaya
   position: "Меценат, попечитель {{ w.theater.short }}"
   city: "{{ w.city }}"
-  avatar: "portraits/volskaya.jpg"
-  cover: null
+  avatar: "krug-volskaya/avatar.jpg"     # AV-5, PHOTOS-2.md
+  cover: "krug-volskaya/cover.jpg"       # CV-5
   about: "Театр, музеи, детская студия. Люблю, когда в зале аншлаг."
   friends:
     - { person: voroncov, page: krug-voroncov }
@@ -37,21 +40,44 @@ posts:
     comments:
       - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "Место мне {{ c.volskaya.g('оставил', 'оставила') }}???" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "Ну конечно, {{ c.volskaya_friend.first() }})" }
+  - datetime: "2026-11-01T17:15"            # жизнь
+    text: "Ну вот) Пирог с брусникой по бабушкиному рецепту. Получился красавец 👍\nДевочки, приглашение — голосом ❤️ ❤️ ❤️"
+    photo: "krug-volskaya/03.jpg"        # VS-03
+    audio:
+      file: "krug-volskaya/voice-01.mp3" # V4 (PHOTOS-2.md)
+      duration: "0:09"
+      transcript: "Девочки, ну вот — пирог с брусникой, бабушкин рецепт. Жду вас в следующее воскресенье, всех-всех. Не опаздывайте, а то съем {{ c.volskaya.g('сам', 'сама') }}."
+    likes: 92
+    comments:
+      - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "Буду!!! Не ешь без меня 😘😘😘" }
+      - { author: "Лилия Штерн", text: "Рецепт бабушкин, а пирог — ваш. Красота" }
   - datetime: "2026-10-24T20:40"
     text: "Благотворительный концерт учеников детской студии театра. Дети пели так, что плакали даже папы. Сборы пойдут на костюмы к «Аленькому цветочку». Спасибо всем, кто пришёл ❤️ ❤️ ❤️"
-    photo: null
+    photo: "krug-volskaya/02.jpg"        # VS-02
     likes: 121
     link: { page: theater, text: "{{ w.theater.short }}: афиша" }
     comments:
       - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Костюмы сошьём. Но пусть сначала дорастут до размеров, а не наоборот." }
       - { author: "Лилия Штерн", text: "Красавчики 👍 Мой внук третий слева!" }
+  # СПЯЩИЙ (CLUE-MAP 3.10): 15.10 — дата письма эксперта 4-11 (этап 4). Ни табакерки, ни экспертизы.
+  - datetime: "2026-10-15T21:30"
+    text: "Ну… Бывают новости, после которых хочется помолчать. Помолчу. Кофе, плед, Тургенев."
+    likes: 37
+    comments:
+      - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "{{ c.volskaya.first() }}, что случилось??? Позвони" }
+      - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "Ну… потом)" }
   - datetime: "2026-10-10T15:15"
     text: "Открылась выставка «{{ w.city }} в акварели» в художественном музее. Сорок видов нашего города — от Набережной до Театральной площади. Рекомендую всем, кто любит {{ w.city }} не только из окна машины."
-    photo: null
+    photo: "krug-volskaya/01.jpg"        # VS-01
     likes: 58
     comments:
       - { author: "Глеб Сазонов", text: "А Садовая там есть? С ямой?" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "Ну… художник её пощадил)" }
+  - datetime: "2026-09-27T16:05"            # жизнь
+    text: "Первые опята 🍄🍄🍄 Ну… {{ c.volskaya.g('собирал', 'собирала') }} не я, но {{ c.volskaya.g('чистил', 'чистила') }} я) Вечер удался."
+    likes: 49
+    comments:
+      - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "А жарить кто будет???" }
   - datetime: "2026-09-19T19:20"
     text: "Театр открыл сезон. Труппа — красавчики 👍 Ждём премьеру «{{ w.play.title }}» в ноябре."
     photo: null

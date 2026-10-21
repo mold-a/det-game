@@ -318,7 +318,7 @@ def test_dump_answers_structure(built, tmp_path):
             for u in q.get("fields", [q]):
                 assert len(u["wrong"]) == 5 and u["canon"] in u["variants"]
     assert data["stages"][0]["questions"][1]["input"] == ["k3", "p8", "d1", "x5", "m2", "t7", "b9", "r4"]
-    assert data["finalOrder"] == ["s4.f1", "s4.f2", "s4.f3", "s4.f4", "s4.f5", "s4.fb", "s4.fb2"]
+    assert data["finalOrder"] == ["s4.f1", "s4.f2", "s4.f3", "s4.f4", "s4.f5", "s4.fb", "s4.fb2", "s4.fb3"]
     sv = next(x for x in data["lab"] if x["result"] == "station-video")
     assert sv["params"]["time"]["input"] == "14:37" and len(sv["params"]["time"]["variants"]) == 15
     assert sv["wrongBasis"] and sv["wrongBasis"] not in sv["bases"]
@@ -326,7 +326,7 @@ def test_dump_answers_structure(built, tmp_path):
     assert pages["inna"]["key"] == rep.page_keys["inna"] and pages["inna"]["url"].endswith("#k=" + rep.page_keys["inna"])
     assert pages["cloud"]["access"] == "password" and "password" in pages["cloud"]
     assert pages["call"] == {"slug": "call", "access": "open", "url": "/p/call/"}
-    assert data["expected"] == {"maxScore": 255, "perfectRunScore": 255}
+    assert data["expected"] == {"maxScore": 285, "perfectRunScore": 285}
 
 
 def test_answers_data_matches_settings(built):

@@ -1,0 +1,67 @@
+# Сценарист, шаг 2 (21.10, решение автора; docs/CLUE-MAP.md, «Вопросы автору» п. 3). Страница Лёвина в «Круге».
+# Этап 1, открытая, без QR. Для баланса со страницей дублёра: улик НЕТ. Лёвин — автор фото 28.10 у krug-voroncov
+# (пост 28.10 здесь ведёт туда ссылкой). Входящие ссылки: карточка в «Труппе» на theater, друзья и комментарии
+# у krug-voroncov и krug-volkov, поиск krug.
+# Манера (STORY-BIBLE: болтливый, любит драму, не врёт, нарочно путает авторов): «Я вам/тебе как артист скажу»,
+# «Чехов, не меньше». Запреты §4.4: ни ссоры в антракте (она только в 1-08), ни болезни, ни баллончика, ни 10.11 вечером.
+slug: krug-levin
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: stas
+  position: "{{ c.stas.g('Артист', 'Артистка') }} · {{ w.theater.short }}"
+  city: "{{ w.city }}"
+  avatar: "krug-levin/avatar.jpg"        # AV-8, PHOTOS-2.md
+  cover: null
+  about: "Я вам как артист скажу: всё на свете — Чехов. Даже Лермонтов 🎭"
+  friends:
+    - { person: voroncov, page: krug-voroncov }
+    - { person: volkov, page: krug-volkov }
+    - { person: nina_actress }
+    - { person: reznikova }
+    - { person: gnedich }
+posts:
+  - datetime: "2026-11-11T10:40"
+    text: "Я обычно начинаю с «я вам как артист скажу».\nСегодня не скажу ничего.\n{{ c.voroncov.familiar }}, светлая память."
+    likes: 187
+    link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
+    comments:
+      - { author: "{{ c.nina_actress.first() }} {{ c.nina_actress.last() }}", text: "🕯" }
+      - { author: "Лидия Степановна", text: "Держитесь, ребята. Мы придём на любой ваш спектакль." }
+  - datetime: "2026-11-09T23:15"
+    text: "Генеральный прогон сыгран!\nЯ вам как артист скажу: «{{ w.play.title }}» — это Чехов, просто Лермонтов успел раньше 🎭\nЗвездич готов, усы приклеены, премьера завтра"
+    likes: 64
+    comments:
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Завтра без опозданий. Это про тебя, {{ c.stas.first() }}." }
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Усы — казённые. Вернуть в цех в целости." }
+  - datetime: "2026-11-03T08:20"            # жизнь
+    text: "{{ c.stas.g('Выгуливал', 'Выгуливала') }} пса.\nТочнее, пёс выгуливал меня: три круга по парку и одна лужа, в которую мы зашли вместе 🐕"
+    likes: 52
+    comments:
+      - { author: "{{ c.nina_actress.first() }} {{ c.nina_actress.last() }}", text: "Кто кого дрессирует — вопрос открытый 😉" }
+  - datetime: "2026-10-28T20:15"
+    text: "Сегодня на репетиции {{ c.stas.g('открыл', 'открыла') }} в себе фотографа 📸\n{{ c.stas.g('Снимал', 'Снимала') }} коллег в перерыве. Я вам как артист скажу: фотограф из меня лучше, чем Звездич.\nРежиссёр, кажется, согласен"
+    likes: 47
+    link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
+    comments:
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Звездич тоже хорош 👌" }
+  - datetime: "2026-10-20T21:10"            # жизнь
+    text: "Ремонт в ванной, неделя третья.\nПлиточник говорит «завтра» с интонацией Чехова: тоскливо и без надежды"
+    likes: 61
+    comments:
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Держитесь! Плитка того стоит ✨" }
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.stas.first() }}, это не чехов, это горький 😁" }
+  - datetime: "2026-10-12T17:25"            # жизнь
+    text: "Дача закрыта. Шланги свёрнуты, кабачки раздарены всем, кто не успел спрятаться 🥒"
+    photo: "krug-levin/01.jpg"           # LV-01
+    likes: 44
+    comments:
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Мне два досталось. Спасибо, но больше не надо." }
+  - datetime: "2026-09-19T12:30"
+    text: "Сезон открыт!\nУ меня в этом году Звездич, Хлестаков и Чацкий. Я вам как артист скажу: все трое — немного я. Особенно Хлестаков 🎭"
+    likes: 79
+    link: { page: theater, text: "Афиша театра" }
+    comments:
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "особенно хлестаков — подтверждаю 😁" }
