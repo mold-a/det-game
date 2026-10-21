@@ -526,15 +526,30 @@ def _shingles(tokens: list[str], k: int) -> set[str]:
 
 # Совпадения, которые не утечка: общий текст интерфейса совпал с черновым TODO вводного письма 4.
 # Общие фразы-заглушки и обороты: «Здесь будет фото профиля» (F11), «так же как в».
-ALLOWED_SHINGLES = {"ответы финала нельзя изменить", "здесь будет фото профиля", "так же как в"}
+ALLOWED_SHINGLES = {"ответы финала нельзя изменить", "здесь будет фото профиля", "так же как в",
+                    # вводное письмо 4 пересказывает правило интерфейса (texts.js) — это не секрет
+                    "бонусные вопросы прошлых этапов"}
+
+
+def _public_brand_shingles() -> set[str]:
+    """Названия вымышленных организаций из world.yaml стоят в шапках открытых страниц — это не утечка,
+    даже если те же слова есть в закрытых документах (протоколы, бланки)."""
+    import yaml
+    world = yaml.safe_load((ROOT / "content" / "world.yaml").read_text(encoding="utf-8"))
+    names = [world["police"]["department"]]
+    out: set[str] = set()
+    for n in names:
+        out |= _shingles(base(n).split(), SHINGLE)
+    return out
 
 
 def test_independent_leak_scan_secret_fragments(env):
     dist = env["dist"]
     files = _open_corpus(dist)
+    brand_sh = _public_brand_shingles()
     open_sh: dict[str, set[str]] = {}
     for rel, text in files.items():
-        allowed = set(ALLOWED_SHINGLES)
+        allowed = set(ALLOWED_SHINGLES) | brand_sh
         if rel.startswith("p/") and rel.endswith("/index.html"):
             allowed |= _shingles(base(_shell_visible(text)).split(), SHINGLE)
             allowed.add(base(_shell_visible(text)))
