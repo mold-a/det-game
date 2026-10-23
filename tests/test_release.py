@@ -63,7 +63,7 @@ def complete_copy(tmp_path: Path) -> tuple[Path, Path]:
         p.write_text("\n".join(lines), encoding="utf-8")
     media = tmp_path / "media"
     c = load_content(cdir)
-    for use in media_refs(c.characters, c.pages, c.docs):
+    for use in media_refs(c.characters, c.pages, c.docs, lab=c.lab):
         f = media / use.path
         f.parent.mkdir(parents=True, exist_ok=True)
         f.write_bytes(f"media:{use.path}".encode("utf-8"))

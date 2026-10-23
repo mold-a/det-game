@@ -613,7 +613,7 @@ th[aria-sort="descending"] .tc-sort {
 
 .tc-photos {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 128px), 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;

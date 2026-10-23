@@ -219,13 +219,13 @@ body.page--site {
 }
 
 .st-img,
-.st-card__photo .ph {
+.st-card .ph {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
-.st-card__photo .ph {
+.st-card .ph {
   display: flex;
   align-items: center;
   justify-content: center;

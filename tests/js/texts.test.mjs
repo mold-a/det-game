@@ -49,3 +49,9 @@ test("причины журнала: wrong, hint, bonus, final, lab", () => {
   assert.equal(describeLogEntry({ r: "final:s4.f1" }, label), "Финал: вопрос s4.f1");
   assert.equal(describeLogEntry({ r: "lab:abc" }, label), "Экспертиза ничего не выявила");
 });
+
+test("лаборатория: подписи фотографий центра", () => {
+  assert.equal(T.lab.photoOpen(""), "Открыть фото крупно");
+  assert.equal(T.lab.photoOpen("Вход со двора"), "Открыть фото крупно: Вход со двора");
+  assert.ok(T.lab.photos && T.lab.photoAlt);
+});

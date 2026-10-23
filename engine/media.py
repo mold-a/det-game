@@ -68,7 +68,7 @@ class MediaPlan:
     def __init__(self, content: Content, media_dir: Path = MEDIA_DIR) -> None:
         self.media_dir = Path(media_dir)
         self.files: dict[str, MediaFile] = {}
-        for use in media_refs(content.characters, content.pages, content.docs, lab=content.lab):
+        for use in media_refs(content.characters, content.pages, content.docs, lab=getattr(content, "lab", None)):
             mf = self.files.get(use.path)
             if mf is None:
                 mf = MediaFile(use.path, MEDIA_MIME[Path(use.path).suffix.lower()])
