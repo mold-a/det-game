@@ -70,7 +70,7 @@ posts:
     video:
       file: "krug-marina/video-01.mp4"
       poster: "krug-marina/video-01.jpg"
-      duration: "0:05"
+      duration: "0:06"
     likes: 71
     comments:
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "самое красивое, между прочим)" }
