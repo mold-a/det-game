@@ -29,7 +29,7 @@ profile:
     - { person: marina, page: krug-marina }
     - { person: volskaya, page: krug-volskaya }
     - { person: stas, page: krug-levin }
-    - { person: reznikova }
+    - { person: reznikova, page: krug-reznikova }
     - { person: volkov, page: krug-volkov }
 posts:
   - datetime: "2026-11-09T23:07"
@@ -39,16 +39,16 @@ posts:
     likes: 342
     comments:
       - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как {{ c.stas.g('артист', 'артистка') }} скажу: завтра будет Чехов, не меньше! 🎭" }
-      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Фрак отпарен. Садиться в нём на пол запрещаю. Это ко всем относится, не только к Арбенину." }
-      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Завтра кофеёк как обычно ☕✨" }
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", page: krug-gnedich, text: "Фрак отпарен. Садиться в нём на пол запрещаю. Это ко всем относится, не только к Арбенину." }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Завтра кофеёк как обычно ☕✨" }
       # — после 10.11: слова памяти —
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.familiar }}...." }
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} :(" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, светлая память. Мы так и не успели поговорить." }
-      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", text: "{{ c.voroncov.familiar }}. Светлая память." }
+      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", page: krug-zavyalov, text: "{{ c.voroncov.familiar }}. Светлая память." }
       - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Светлая память {{ c.voroncov.familiar }} 🙏" }
-      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Светлая память. Без вас в кулисе пусто." }
-      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Кто теперь будет хвалить мой кофе 💔" }
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Светлая память. Без вас в кулисе пусто." }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Кто теперь будет хвалить мой кофе 💔" }
       - { author: "Тамара Ведерникова", text: "У нас были билеты на тринадцатое. Не верится. Светлая память." }
       - { author: "Роман Ершов", text: "Был на премьере. {{ c.voroncov.g('Он', 'Она') }} играл{{ c.voroncov.g('', 'а') }} так, что зал не дышал. Стоя аплодируем." }
   - datetime: "2026-11-06T15:26"
@@ -56,10 +56,11 @@ posts:
     photo: "krug-voroncov/05.jpg"          # VR-05, жизнь театра
     likes: 187
     comments:
-      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Уже несу! ☕" }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Уже несу! ☕" }
       # 23.10 (VOICE-VIDEO-3, RV-1): помреж голосом — без кулис помрежа, ширмы, телефонов и таблеток (3-01, 2-05, 4-06).
       - author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}"
-        text: "Голосом, раз текст никто не читает."
+        page: krug-reznikova
+        text: "Про кофе. Ещё раз."
         audio:
           file: "krug-voroncov/voice-02.mp3"
           duration: "0:14"
@@ -73,10 +74,10 @@ posts:
     comments:
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "а мне?? 😛😛😛" }
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.marina.first() }}, приезжай, кастрюля большая)" }
-      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Сметанку не забудьте! ✨" }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Сметанку не забудьте! ✨" }
   # СПЯЩАЯ УЛИКА (CLUE-MAP 3.4): «вчера» = 30.10; фигура на заднем плане — короткая тёмная куртка, без шапки (как в 4-08).
   - datetime: "2026-10-31T10:12"
-    text: "вчерашняя прогулка\nпечатать лень, руки замёрзли — рассказываю голосом 😁"
+    text: "вчерашняя прогулка\nветер, тучи и я 😁"
     photo: "krug-voroncov/03.jpg"          # VR-03, спящая улика
     audio:
       file: "krug-voroncov/voice-01.mp3"   # V1 (PHOTOS-2.md)
@@ -97,7 +98,7 @@ posts:
     comments:
       - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я тебе как {{ c.stas.g('артист', 'артистка') }} скажу: композиция — Чехов, не меньше! Все смотрят в одну точку 🎭" }
       - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Учусь у лучших 👌" }
-      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", text: "Перерыв — десять минут, а не двадцать. Напоминаю." }
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Перерыв — десять минут, а не двадцать. Напоминаю." }
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "ахахах как в кино 🤗" }
   - datetime: "2026-10-27T11:48"
     text: "сегодня в гримёрке сказали, что с такими бровями мне не арбенина играть, а генсека 😁\nне дождётесь\nброви — это наследие"

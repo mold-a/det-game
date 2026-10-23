@@ -1,0 +1,45 @@
+# Сценарист, 23.10 (решение автора: аккаунт в «Круге» у всех персонажей сюжета). Страница охранника Олега. Этап 1, открытая, без QR.
+# Манера — STORY-BIBLE §7: без знаков препинания, с ошибками в регистре; «сынок/дочка» младшим; «двадцать лет» (1-08).
+# СТРОГО (решение автора 23.10): ни 10.11 и его времени, ни перекуров и курения вообще (перекур 19:35–19:50 — улика 2-03,
+# 2-04), ни поста, журнала, рации, двери и коридора; ни страха увольнения. Работа — только «двадцать лет» и грамота.
+# Жизнь: хоккей 01.11, картошка с внуком 18.10 (2 из 4). Фото — ZU-01 (мешки картошки в гараже).
+slug: krug-zuev
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  person: oleg
+  position: "{{ c.oleg.g('Охранник', 'Охранница') }} · {{ w.theater.short }}"
+  city: "{{ w.city }}"
+  avatar: "krug-zuev/avatar.jpg"         # AV-11 (docs/PRODUCTION.md)
+  about: "Двадцать лет на одном месте"
+  friends:
+    - { person: dmitriy, page: krug-gorohova }
+    - { person: voroncov, page: krug-voroncov }
+    - { person: inna, page: krug-ryabova }        # не последней: «ФИО + Сведения о сервисе» совпадает с шапкой «Кадра» (leak scan)
+    - { person: gnedich, page: krug-gnedich }
+posts:
+  - datetime: "2026-11-11T20:47"
+    text: "{{ c.voroncov.io() }} светлая память\nвсегда за руку {{ c.voroncov.g('здоровался', 'здоровалась') }} и про внуков {{ c.voroncov.g('спрашивал', 'спрашивала') }}\nтаких Людей мало"
+    likes: 77
+    comments:
+      - { author: "{{ c.dmitriy.first() }} {{ c.dmitriy.last() }}", page: krug-gorohova, text: "{{ c.oleg.io() }}, держитесь." }
+  - datetime: "2026-11-01T21:49"            # жизнь
+    text: "Медведи 4:1 !!!\nмолодой вратарь стоял как Стена а все ругали\nя ж говорил"
+    likes: 31
+    comments:
+      - { author: "{{ c.dmitriy.first() }} {{ c.dmitriy.last() }}", page: krug-gorohova, text: "{{ c.oleg.io() }}, вы говорили, что он дырявый." }
+      - { author: "{{ c.oleg.first() }} {{ c.oleg.last() }}", page: krug-zuev, text: "это я про защиту {{ c.oleg.g('говорил', 'говорила') }}" }
+  - datetime: "2026-10-18T15:33"            # жизнь
+    text: "картошку с внуком перебрали\nтри мешка\nговорит дед давай в магазине купим\nнет сынок"
+    photo: "krug-zuev/01.jpg"              # ZU-01: мешки и ящики картошки в гараже
+    likes: 44
+    comments:
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", page: krug-gnedich, text: "{{ c.oleg.io() }}, внук дело говорит. Спину поберегите." }
+  - datetime: "2026-09-25T08:44"
+    text: "Двадцать лет на одном месте\nначальство грамоту дало\nдома говорят повесь на стену\n{{ c.oleg.g('повесил', 'повесила') }}"
+    likes: 102
+    comments:
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.oleg.middle() }}, поздравляю!! при тебе муха не пролетит 😁" }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Поздравляю!!! 🎉✨" }

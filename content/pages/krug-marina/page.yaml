@@ -48,7 +48,7 @@ posts:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.g('Был', 'Была') }} у тебя? А мне ни слова!!!!! 😢" }
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.kirill.g('пап', 'мам') }} ну ты же {{ c.kirill.g('сам', 'сама') }} всё узнаёшь последним 😛😛😛" }
   - datetime: "2026-10-31T18:26"            # жизнь
-    text: "хэллоуин в группе 🎃\nрассказываю голосом, печатать не могу от смеха 😹"
+    text: "хэллоуин в группе 🎃\nменя превзошли 😹😹"
     photo: "krug-marina/01.jpg"          # MR-01: тыква и журнал, детей в кадре нет
     audio:
       file: "krug-marina/voice-02.mp3"   # V3

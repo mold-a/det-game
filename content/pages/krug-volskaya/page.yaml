@@ -41,7 +41,7 @@ posts:
       - { author: "{{ c.volskaya_friend.first() }} {{ c.volskaya_friend.last() }}", text: "Место мне {{ c.volskaya.g('оставил', 'оставила') }}???" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "Ну конечно, {{ c.volskaya_friend.first() }})" }
   - datetime: "2026-11-01T17:15"            # жизнь
-    text: "Ну вот) Пирог с брусникой по бабушкиному рецепту. Получился красавец 👍\nДевочки, приглашение — голосом ❤️ ❤️ ❤️"
+    text: "Ну вот) Пирог с брусникой по бабушкиному рецепту. Получился красавец 👍\nДевочки, жду ❤️ ❤️ ❤️"
     photo: "krug-volskaya/03.jpg"        # VS-03
     audio:
       file: "krug-volskaya/voice-01.mp3" # V4 (PHOTOS-2.md)
@@ -57,7 +57,7 @@ posts:
     likes: 121
     link: { page: theater, text: "{{ w.theater.short }}: афиша" }
     comments:
-      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", text: "Костюмы сошьём. Но пусть сначала дорастут до размеров, а не наоборот." }
+      - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", page: krug-gnedich, text: "Костюмы сошьём. Но пусть сначала дорастут до размеров, а не наоборот." }
       - { author: "Лилия Штерн", text: "Красавчики 👍 Мой внук третий слева!" }
   # СПЯЩИЙ (CLUE-MAP 3.10): 15.10 — дата письма эксперта 4-11 (этап 4). Ни табакерки, ни экспертизы.
   - datetime: "2026-10-15T21:30"

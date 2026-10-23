@@ -27,7 +27,7 @@
 
 ## 2. Трекер
 
-Статус проставлен по факту на 23.10.2026: файл есть в `media/` — ✅, нет — ⬜. Список проверен скриптом по всем ссылкам из `content/` (страницы, бумага, документы, персонажи, `lab.yaml`) и сверен со сборкой: `python -m engine build` пишет «нет медиафайла» про **45 файлов**, и все они ⬜ ниже (42 строки трекера: три видео-поста считаются парой «файл + постер»). Из них 17 — бывшие предложения §5, которые автор взял 23.10 («берём всё»): пути и подписи уже стоят в `content/`. Лишних файлов в `media/` нет: каждый из 73 лежащих файлов привязан к строке. Постеры видео (`video-0N.jpg`) режиссёр вырезает из готового ролика сам.
+Статус проставлен по факту на 23.10.2026: файл есть в `media/` — ✅, нет — ⬜. Список проверен скриптом по всем ссылкам из `content/` (страницы, бумага, документы, персонажи, `lab.yaml`) и сверен со сборкой: `python -m engine build` пишет «нет медиафайла» про **62 файла**, и все они ⬜ ниже (59 строк трекера: три видео-поста считаются парой «файл + постер»). Из них 17 — бывшие предложения §5, которые автор взял 23.10 («берём всё»), и ещё 17 — аватарки, обложки и фото семи новых страниц «Круга» (решение автора 23.10: аккаунт у всех персонажей сюжета); пути уже стоят в `content/`. Лишних файлов в `media/` нет: каждый из 73 лежащих файлов привязан к строке. Постеры видео (`video-0N.jpg`) режиссёр вырезает из готового ролика сам.
 
 Колонка «Улика?»: **да** — на кадре держится рассуждение; **спящая** — смысл понятен только с бумагой поздних этапов; «эхо» и «фон» — подкрепление; «нет» — жизнь страницы. Не менять без сценариста.
 
@@ -43,6 +43,13 @@
 | Соцсети · `krug-volskaya` | 5 | 0 | 0 | 0 | 5 |
 | Соцсети · `krug-volkov` | 5 | 0 | 0 | 0 | 5 |
 | Соцсети · `krug-levin` | 2 | 1 | 0 | 0 | 3 |
+| Соцсети · `krug-zavyalov` (новая) | 0 | 3 | 0 | 0 | 3 |
+| Соцсети · `krug-gnedich` (новая) | 0 | 3 | 0 | 0 | 3 |
+| Соцсети · `krug-zuev` (новая) | 0 | 2 | 0 | 0 | 2 |
+| Соцсети · `krug-gorohova` (новая) | 0 | 2 | 0 | 0 | 2 |
+| Соцсети · `krug-reznikova` (новая) | 0 | 2 | 0 | 0 | 2 |
+| Соцсети · `krug-kuznecov` (новая) | 0 | 4 | 0 | 0 | 4 |
+| Соцсети · `krug-ryabova` (новая) | 0 | 1 | 0 | 0 | 1 |
 | Соцсети · `inna` | 3 | 9 | 0 | 0 | 12 |
 | Бумага | 14 | 0 | 0 | 0 | 14 |
 | Улики «Призмы», новости, сайт лаборатории | 3 | 5 | 0 | 0 | 8 |
@@ -50,7 +57,7 @@
 | Облако погибшего (`cloud`) | 0 | 3 | 0 | 0 | 3 |
 | Аудио | 5 | 9 | 0 | 0 | 14 |
 | Видео | 0 | 4 | 1 | 0 | 5 |
-| **Итого** | **73** | **42** | **1** | **0** | **116** |
+| **Итого** | **73** | **59** | **1** | **0** | **133** |
 
 Статусов 📤 (прислано), ⏸ (ждёт решения) и ❌ (не нужно) сейчас нет ни у одной строки: все 12 предложений §5 автор взял 23.10 («берём всё»), из них вышло 17 строк (у X02, X03 — по три файла, у X04 — два).
 
@@ -148,6 +155,30 @@
 | AV-8 | `media/krug-levin/avatar.jpg` | Аватарка: парк, пёс лижет щёку | `krug-levin`, профиль | нет | ✅ |  |
 | CV-6 | `media/krug-levin/cover.jpg` | Обложка: крыльцо дачи, тот же лохматый пёс, ящик кабачков | `krug-levin`, профиль (путь уже стоит) | нет | ⬜ | бывшее предложение §5; промпт — §4.9 |
 | LV-01 | `media/krug-levin/01.jpg` | Кабачки на крыльце дачи (руки) | `krug-levin`, пост 12.10 | нет | ✅ |  |
+
+#### Соцсети: новые страницы «Круга» (23.10, решение автора: аккаунт у всех персонажей сюжета)
+
+Малые страницы: 3–6 постов, 0–2 фото к постам, без видео и голосовых. Улик на них нет. Промпты — §4.10. Лица — только по портретам `media/portraits/<id>.jpg`; у Завьялова и Гнедич портретов ещё нет, их аватарки — **после портрета** (шаг 4).
+
+| № | Файл | Что это | Где | Улика? | Статус | Комментарий |
+|---|---|---|---|---|---|---|
+| AV-9 | `media/krug-zavyalov/avatar.jpg` | Аватарка Завьялова: пустой зал, проход партера, костюм без галстука | `krug-zavyalov`, профиль | нет | ⬜ | **после портрета** P02; промпт — §4.10 |
+| CV-8 | `media/krug-zavyalov/cover.jpg` | Обложка: пустой зал, режиссёрский столик с лампой в проходе партера | `krug-zavyalov`, профиль | нет | ⬜ | людей нет; промпт — §4.10 |
+| ZV-01 | `media/krug-zavyalov/01.jpg` | Внук в костюме дерева на школьной сцене, со спины | `krug-zavyalov`, пост 03.10 | нет | ⬜ | лица ребёнка не видно; промпт — §4.10 |
+| AV-10 | `media/krug-gnedich/avatar.jpg` | Аватарка Гнедич: костюмерный цех, сантиметр на шее | `krug-gnedich`, профиль | нет | ⬜ | **после портрета** P08; без брошей, шалей, перчаток и украшений; промпт — §4.10 |
+| GN-01 | `media/krug-gnedich/01.jpg` | Швейная машина и фрак на манекене | `krug-gnedich`, пост 14.10 | нет | ⬜ | без людей, украшений, платьев и второго такого же фрака; промпт — §4.10 |
+| GN-02 | `media/krug-gnedich/02.jpg` | Фиалки на подоконнике | `krug-gnedich`, пост 04.11 | нет | ⬜ | промпт — §4.10 |
+| AV-11 | `media/krug-zuev/avatar.jpg` | Аватарка охранника Олега: у сарая на даче, клетчатая рубашка и вязаный жилет | `krug-zuev`, профиль | нет | ⬜ | без сигарет; промпт — §4.10 |
+| ZU-01 | `media/krug-zuev/01.jpg` | Мешки и ящики картошки в гараже, детские руки | `krug-zuev`, пост 18.10 | нет | ⬜ | промпт — §4.10 |
+| AV-12 | `media/krug-gorohova/avatar.jpg` | Аватарка водителя Дарьи: набережная, светлое пальто | `krug-gorohova`, профиль | нет | ⬜ | не в машине и не в тёмной короткой куртке; промпт — §4.10 |
+| DM-01 | `media/krug-gorohova/01.jpg` | Зимние шины стопкой в шиномонтаже | `krug-gorohova`, пост 07.11 | нет | ⬜ | машины в кадре нет; промпт — §4.10 |
+| AV-13 | `media/krug-reznikova/avatar.jpg` | Аватарка Резниковой: кулиса, карандаш за ухом | `krug-reznikova`, профиль | нет | ⬜ | без гарнитуры, журнала и пульта; промпт — §4.10 |
+| RZ-01 | `media/krug-reznikova/01.jpg` | Банки огурцов рядами на полке | `krug-reznikova`, пост 11.10 | нет | ⬜ | без надписей; промпт — §4.10 |
+| AV-14 | `media/krug-kuznecov/avatar.jpg` | Аватарка Виктора: световая аппаратная, тёплый свет сбоку | `krug-kuznecov`, профиль | нет | ⬜ | без экранов с текстом; промпт — §4.10 |
+| CV-9 | `media/krug-kuznecov/cover.jpg` | Обложка: пустая сцена в одном тёплом луче, вид с балкона | `krug-kuznecov`, профиль | нет | ⬜ | промпт — §4.10 |
+| KZ-01 | `media/krug-kuznecov/01.jpg` | Иней на траве, низкое солнце | `krug-kuznecov`, пост 02.11 | нет | ⬜ | промпт — §4.10 |
+| KZ-02 | `media/krug-kuznecov/02.jpg` | Старый театральный прожектор на верстаке | `krug-kuznecov`, пост 28.09 | нет | ⬜ | промпт — §4.10 |
+| AV-15 | `media/krug-ryabova/avatar.jpg` | Аватарка Инны в «Круге»: осенний парк, бежевый свитер | `krug-ryabova`, профиль | нет | ⬜ | без броши и украшений; можно положить копию `inna/avatar.jpg`; промпт — §4.10 |
 
 #### Соцсети: `inna` (фотосеть «Кадр»)
 
@@ -332,15 +363,24 @@
 - **Что важно для сюжета:** на `F05` нет брошей, шалей и перчаток; на `F08` не видно дна и клейм; на `F06` нет снега (это 10.11); на сайтах организаций — ни вывесок, ни логотипов, ни надписей.
 - Промпты целиком — §4.1 (`X05`) и §4.9.
 
+### Шаг 9. Новые страницы «Круга» (23.10)
+
+- **Файлов:** 17: аватарки семи страниц (`AV-9`…`AV-15`), обложки Завьялова и Виктора (`CV-8`, `CV-9`), фото к постам (`ZV-01`, `GN-01`, `GN-02`, `ZU-01`, `DM-01`, `RZ-01`, `KZ-01`, `KZ-02`).
+- **Инструмент:** Gemini.
+- **Время:** ≈ 1,5–2 часа, один вечер (17 картинок — в пределах дневного лимита ≈ 20, если не совмещать с шагами 7 и 8).
+- **Нужно от вас:** ничего, кроме готовых портретов: аватарки — по `media/portraits/<id>.jpg`. `AV-9` и `AV-10` — **после портрета** (шаг 4), остальные можно сразу. Для `AV-15` можно ничего не генерировать и положить копию `inna/avatar.jpg`.
+- **Что важно для сюжета:** у Гнедич — ни брошей, ни шалей, ни перчаток, ни украшений (пропажи 2-08); у Олега — ни сигарет; у Дарьи — ни машины, ни багажника; никто, кроме уже готовых кадров, не одет в короткую тёмную куртку (это примета на VR-03 и 4-08); у Завьялова — ни кабинета, ни бумаг, ни лекарств.
+- Промпты целиком — §4.10.
+
 ### Итого
 
-Осталось **45 файлов** (42 строки трекера): 3 портрета, 26 фото (10 «из жизни» и 16 для сайтов, новостей и облака), 9 аудио (звонок и 8 голосовых), 7 видеофайлов (4-07 и три ролика с постерами) — плюс 1 рабочий кадр на переделку (🔁). Ориентировочно **13–18 часов чистого времени, 6–7 вечеров**; из денег — ElevenLabs Starter и Kling Standard на один месяц (по ориентиру `MEDIA-AI-OPTIONS` ≈ $11–16 на двоих) и бесплатный Gemini.
+Осталось **62 файла** (59 строк трекера): 3 портрета, 43 фото (10 «из жизни», 16 для сайтов, новостей и облака, 17 для новых страниц «Круга»), 9 аудио (звонок и 8 голосовых), 7 видеофайлов (4-07 и три ролика с постерами) — плюс 1 рабочий кадр на переделку (🔁). Ориентировочно **15–20 часов чистого времени, 7–8 вечеров**; из денег — ElevenLabs Starter и Kling Standard на один месяц (по ориентиру `MEDIA-AI-OPTIONS` ≈ $11–16 на двоих) и бесплатный Gemini.
 
 ---
 
 ## 4. Свежие промпты и тексты
 
-Здесь только то, что ещё ⬜ или 🔁. Готовое — одной строкой: портреты 12 штук (`PROMPTS.md` P01–P14), улики и бумага (`PROMPTS.md` S01–S18), аватарки, обложки, фото к постам, 5 голосовых (`PHOTOS-2.md`) — всё ✅, перегенерировать не нужно. Бывшие предложения §5 (взяты 23.10) — §4.1 (`X05`) и §4.9 (остальные 16); старые черновики F01–F08 в `PHOTOS.md` устарели, берите отсюда.
+Здесь только то, что ещё ⬜ или 🔁. Готовое — одной строкой: портреты 12 штук (`PROMPTS.md` P01–P14), улики и бумага (`PROMPTS.md` S01–S18), аватарки, обложки, фото к постам, 5 голосовых (`PHOTOS-2.md`) — всё ✅, перегенерировать не нужно. Бывшие предложения §5 (взяты 23.10) — §4.1 (`X05`) и §4.9 (остальные 16); старые черновики F01–F08 в `PHOTOS.md` устарели, берите отсюда. Новые страницы «Круга» (23.10) — §4.10.
 
 ### 4.0. Общие правила и как работать в Gemini
 
@@ -1010,6 +1050,182 @@ Use image 1 ONLY as the strict reference for the dog: the same big friendly shag
 
 ---
 
+### 4.10. Новые страницы «Круга»: 17 кадров (⬜, 23.10)
+
+Решение автора 23.10: аккаунт в «Круге» у всех персонажей сюжета. Тексты постов уже стоят в `content/pages/krug-*`; ниже в скобках — пост, к которому кадр. Общие правила — §4.0 и `PHOTOS-2.md` («Общие правила»): **лица только по портретам** `media/portraits/<id>.jpg` (приложить первым, «тот же человек»), каждый новый человек — новый чат; аватар — квадрат 1:1, обложка — очень широкая ≈ 3:1 (на экране 16:6, главное — в центре), фото к посту — 4:5 или 1:1, как указано. Улик здесь нет, но запреты строгие: **никто не в короткой тёмной куртке** (примета на VR-03 и 4-08), ни таблеток и лекарств, ни телефонов с экранами, ни гримёрок с номерами, ни надписей.
+
+#### AV-9. `krug-zavyalov/avatar.jpg` — Завьялов (**после портрета** P02)
+
+Приложить: 1 — `portraits/zavyalov.jpg` (когда будет готов, шаг 4). Характер: властный, сдержанный, обаятельный на публике.
+
+```text
+Use image 1 as the strict identity reference: this is the same real man, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1 (glasses only if he wears them in image 1); the person looks exactly 61 years old, not older. Calm, reserved smartphone portrait taken by a colleague in an empty theatre auditorium: he stands in the aisle between rows of red velvet seats, slightly turned to the camera, hands behind his back, a small polite closed-mouth smile; dark suit, white shirt, no tie. Behind him, out of focus: the stage with a closed dark-red curtain and warm house lights. Head and shoulders. No badge, no papers, no phone, no cup, no medicine, no office, no desk. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо как на портрете, около 61; зал, а не кабинет; в руках ничего.
+
+#### CV-8. `krug-zavyalov/cover.jpg` — обложка Завьялова: режиссёрский столик в зале
+
+Людей нет, образцы не нужны.
+
+```text
+Very wide photograph of an empty theatre auditorium during a rehearsal break, seen from just behind a small director's table set up in the middle aisle of the stalls: a desk lamp with a green glass shade glows on the table, a closed dark notebook and a pencil lie next to it; beyond, the empty stage is lit by a single bare work light on a stand; rows of red seats, dark balconies. No people. No papers with writing, no cups, no medicine, no phone, no screens. The table and the lit stage are in the centre of the frame; left and right edges hold only seats. Very wide horizontal composition, about 3:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: людей нет; блокнот закрыт; на столе ни бумаг, ни чашек, ни лекарств.
+
+#### ZV-01. `krug-zavyalov/01.jpg` — внук — «Второе дерево» (пост 03.10)
+
+Людей с узнаваемыми лицами нет, образцы не нужны.
+
+```text
+Casual smartphone photo taken from the side of a small school stage during a children's play: in the centre stands a boy of about seven in a homemade tree costume (a brown cardboard trunk, green paper leaves around his head), photographed from behind his shoulder so that his face is NOT visible; he stands perfectly still facing a blurred audience of parents in a school assembly hall, faces not distinguishable; other children in costumes at the edges, blurred. A simple curtain, a painted paper sun on the backdrop without letters. Warm, slightly dim hall light, light phone-camera grain. Vertical 4:5. No posters, no readable text. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лица мальчика не видно; зрители размыты; надписей нет.
+
+#### AV-10. `krug-gnedich/avatar.jpg` — Гнедич (**после портрета** P08)
+
+Приложить: 1 — `portraits/gnedich.jpg` (когда будет готов, шаг 4). Характер: ворчливая, с золотым сердцем.
+
+```text
+Use image 1 as the strict identity reference: this is the same real woman, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1 (glasses only if she wears them in image 1); the person looks exactly 63 years old, not older. Smartphone portrait in a theatre costume workshop: she looks at the camera over an imaginary pair of glasses with a strict but warm, slightly ironic expression, mouth closed; a yellow tailor's tape measure hangs around her neck over a plain dark-grey cardigan. Behind her, out of focus: a big wooden cutting table, an old sewing machine, a rail of plain dark costumes. Warm lamp light, light phone-camera grain. Head and shoulders. NO brooch, NO jewellery, NO shawl, NO gloves, no pins on clothes, no badge. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо как на портрете, около 63; **брошей, шалей, перчаток и украшений нет**; сантиметр на шее.
+
+#### GN-01. `krug-gnedich/01.jpg` — швейная машина и фрак (пост 14.10)
+
+Людей нет.
+
+```text
+Casual smartphone photo in a theatre costume workshop: an old black cast-iron sewing machine on a wide wooden worktable; next to it a tailor's dummy dressed in ONE black 19th-century tailcoat with white chalk marks on it; on the table a tape measure, a pincushion, tailor's chalk and big scissors. Warm lamp light, soft daylight from a tall window. No people, no hands. NO brooches, NO jewellery, NO shawls, NO gloves, NO dresses, no second tailcoat. No labels or tags with writing. Vertical 4:5. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: один фрак; ни брошей, ни шалей, ни перчаток, ни платьев; бирок с текстом нет.
+
+#### GN-02. `krug-gnedich/02.jpg` — фиалки (пост 04.11)
+
+Людей нет.
+
+```text
+Casual smartphone photo of a windowsill crowded with small pots of African violets in purple, pink and white, in mismatched ceramic pots; one pot freshly repotted, with a little soil spilled on a plain checked cloth; a small watering can. Soft November morning light through the window, bare trees outside out of focus. No people, no hands. Square 1:1. No newspapers, no labels, no readable text. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: много горшков; без газет и надписей.
+
+#### AV-11. `krug-zuev/avatar.jpg` — охранник Олег
+
+Приложить: 1 — `portraits/oleg.jpg`. Характер: упрямый, добродушный, говорит медленно.
+
+```text
+Use image 1 as the strict identity reference: this is the same real man, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1; the person looks exactly 64 years old, not older. Simple smartphone photo taken by a grandchild at a dacha in autumn: he stands in front of an old wooden garden shed, squinting a little from the low sun, with a kind, slightly stubborn half-smile; he wears a checked flannel shirt and a knitted green vest. Behind him, out of focus: a vegetable garden after harvest, a birch, a wooden fence. Natural daylight, light phone-camera grain. Head and shoulders. NO cigarette, no smoking, no lighter, no uniform, no badge, no cap with a logo, no dark short jacket. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо как на портрете, около 64; **ни сигарет, ни формы**.
+
+#### ZU-01. `krug-zuev/01.jpg` — картошка с внуком (пост 18.10)
+
+Лиц нет.
+
+```text
+Casual smartphone photo in a small garage cellar: three full jute sacks of potatoes and two wooden crates of sorted potatoes on a concrete floor, a bucket, an old wooden stool; from the bottom edge of the frame a child's two bare hands hold up one big potato towards the camera. A single bulb lamp, warm light, light phone-camera grain. No faces. No labels or writing on the sacks. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: видны только детские руки; на мешках нет надписей.
+
+#### AV-12. `krug-gorohova/avatar.jpg` — водитель Дарья (роль «Дмитрий»)
+
+Приложить: 1 — `portraits/dmitriy.jpg`. Характер: простая, преданная, немногословная.
+
+```text
+Use image 1 as the strict identity reference: this is the same real woman, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1; the person looks exactly 40 years old, not older. Simple smartphone portrait on a river embankment on a grey autumn day: she looks at the camera calmly with a short, reserved smile, hands in the pockets of a light-grey long padded coat, a plain knitted scarf. Behind her, out of focus: a stone parapet, the river and bare trees on the far bank. Natural daylight, light phone-camera grain. Head and shoulders. NOT in a car, no car keys, no steering wheel, no dark short jacket, no badge. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо как на портрете, около 40; не в машине; пальто светлое и длинное.
+
+#### DM-01. `krug-gorohova/01.jpg` — шиномонтаж (пост 07.11)
+
+Людей нет.
+
+```text
+Casual smartphone photo in a small tyre-fitting garage: a stack of four winter tyres with deep tread on a concrete floor in the foreground, a tyre-changing machine and a wheel balancer blurred behind, tools on a wall board, fluorescent light. NO car in the frame, no people. The tyre sidewalls are turned away or blurred so that no lettering is visible; no signs, no posters. Vertical 4:5. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: машины нет; надписей на шинах не видно.
+
+#### AV-13. `krug-reznikova/avatar.jpg` — помреж Резникова
+
+Приложить: 1 — `portraits/reznikova.jpg`. Характер: педантичная, быстрая, учительская.
+
+```text
+Use image 1 as the strict identity reference: this is the same real woman, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1 (glasses only if she wears them in image 1); the person looks exactly 47 years old, not older. Quick smartphone portrait backstage in the wings of a theatre: she looks straight into the camera with raised eyebrows and a strict, slightly amused expression, as if saying 'I'm watching you'; a pencil is tucked behind her ear; plain black turtleneck. Behind her, out of focus: black wing curtains, ropes, a strip of warm stage light. Head and shoulders. NO headset, no microphone, no notebook, no clipboard, no papers, no console, no badge. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо как на портрете, около 47; карандаш за ухом; ни гарнитуры, ни журнала, ни пульта.
+
+#### RZ-01. `krug-reznikova/01.jpg` — огурцы (пост 11.10)
+
+Людей нет.
+
+```text
+Casual smartphone photo of a wooden pantry shelf at a dacha: neat rows of glass jars of home-pickled cucumbers with dill and garlic, all with identical metal lids, perfectly aligned by height; soft daylight from a small window. No people. NO labels, no writing on jars or lids. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: ровные ряды; ни этикеток, ни надписей.
+
+#### AV-14. `krug-kuznecov/avatar.jpg` — Виктор «Мастер»
+
+Приложить: 1 — `portraits/viktor.jpg`. Характер: немногословный профи.
+
+```text
+Use image 1 as the strict identity reference: this is the same real man, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1 (glasses only if he wears them in image 1); the person looks exactly 50 years old, not older. Moody smartphone portrait in a dark theatre lighting booth: his face is lit from the side by a warm amber glow of stage light coming through the booth window, the rest in soft shadow; calm, serious look, mouth closed; plain black T-shirt. Behind him, out of focus: the dark auditorium seen through the glass. Head and shoulders. NO screens, no readable panels or labels, no headphones, no headset, no badge, no jacket. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо узнаётся, около 50; экранов и надписей нет.
+
+#### CV-9. `krug-kuznecov/cover.jpg` — обложка Виктора: луч на пустой сцене
+
+Людей нет.
+
+```text
+Very wide photograph of an empty theatre stage seen from the balcony: a single warm spotlight beam cuts through light haze and draws a bright circle on the bare wooden stage floor; the rest of the stage and the auditorium are dark, with the faint outlines of seats and balcony rails. No people. No readable text, no signs. The beam and the circle of light are in the centre of the frame. Very wide horizontal composition, about 3:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: один луч в центре; людей нет.
+
+#### KZ-01. `krug-kuznecov/01.jpg` — иней на рассвете (пост 02.11)
+
+Людей нет.
+
+```text
+Casual smartphone photo at sunrise: hoarfrost on tall dry grass and a few fallen leaves in the foreground, each blade covered with white crystals, backlit by a very low golden sun just above the horizon; behind, a misty field and a dark line of trees. No snow cover, only frost. No people. Vertical 4:5. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: иней, не снег (первый снег — в ночь на 11.11); солнце низко.
+
+#### KZ-02. `krug-kuznecov/02.jpg` — прожектор с барахолки (пост 28.09)
+
+Людей нет.
+
+```text
+Casual smartphone photo in a home garage workshop: an old 1950s theatre spotlight with a black metal body, a big Fresnel lens and cooling fins, freshly cleaned, standing on a wooden workbench and switched on, throwing a warm beam on the wall; around it rags, a screwdriver, a can of oil. Warm light, light phone-camera grain. No people. NO maker's plates or lettering on the lamp, no readable text. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: на прожекторе нет табличек и надписей.
+
+#### AV-15. `krug-ryabova/avatar.jpg` — Инна в «Круге»
+
+Приложить: 1 — `portraits/inna.jpg`. **Можно не делать:** положить копию `inna/avatar.jpg` (тот же человек в другой сети — это нормально).
+
+```text
+Use image 1 as the strict identity reference: this is the same real woman, keep exactly the face shape, eyes, eyebrows, nose, mouth, skin tone, hairline and hairstyle as in image 1; the person looks exactly 46 years old, not older. Cheerful smartphone selfie in a city park on a golden autumn day: she smiles brightly, holds a plain paper cup of coffee near her chin, wearing a soft beige knitted sweater. Behind her, out of focus: yellow maples and a park path. Warm natural light, light phone-camera grain. Head and shoulders. NO brooch, NO jewellery, no earrings, no badge, no text on the cup. Square 1:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: лицо как на портрете, около 46; **броши и украшений нет**.
+
+---
+
 ## 5. Где ещё нужны фото и видео
 
 Вопрос автора: «у нас все фото и видео только в соцсетях? больше нигде нет?». Отвечаю по факту (на 23.10.2026).
@@ -1018,7 +1234,7 @@ Use image 1 ONLY as the strict reference for the dog: the same big friendly shag
 
 | Место | Что там |
 |---|---|
-| Соцсети «Круга» и фотосеть «Кадр» | 9 страниц: аватарки, обложки, около 40 изображений (фото, аватарки, обложки), голосовые; сейчас недостаёт кота Кирилла, девяти плиток Инны, восьми голосовых и трёх видео (§2) |
+| Соцсети «Круга» и фотосеть «Кадр» | 16 страниц (из них 7 новых 23.10 — `krug-zavyalov`, `krug-gnedich`, `krug-zuev`, `krug-gorohova`, `krug-reznikova`, `krug-kuznecov`, `krug-ryabova`): аватарки, обложки, около 40 готовых изображений, голосовые; сейчас недостаёт кота Кирилла, девяти плиток Инны, 17 кадров новых страниц, восьми голосовых и трёх видео (§2) |
 | Новостной портал | `news` — Воронцов в роли Арбенина; `news-most` — мост. У `news-yama`, `news-hockey`, `news-library` пути и подписи стоят с 23.10, ждут файлов (`F06`, `F07`, `X01`) |
 | Сайт театра | карточки труппы с портретами (Воронцов, Лёвин, Волков, Резникова, Виктор, Вольская); ждут файлов Гнедич, исполнительница Нины (`X05`), фасад и зал (`F01`, `F02`); у Завьялова `photo: null` до `P02` |
 | Бумага конвертов | гримёрка 1-10 (3 кадра), камера у служебного входа 2-03 (8 кадров), кабинет худрука 2-06 (3 кадра) |
