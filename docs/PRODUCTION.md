@@ -27,7 +27,7 @@
 
 ## 2. Трекер
 
-Статус проставлен по факту на 23.10.2026: файл есть в `media/` — ✅, нет — ⬜. Список проверен скриптом по всем ссылкам из `content/` (страницы, бумага, документы, персонажи) и сверен со сборкой: `python -m engine build` пишет «нет медиафайла» ровно про **28 файлов**, и все они ⬜ ниже (25 строк трекера: три видео-поста считаются парой «файл + постер»). Лишних файлов в `media/` нет: каждый из 73 лежащих файлов привязан к строке. Постеры видео (`video-0N.jpg`) режиссёр вырезает из готового ролика сам.
+Статус проставлен по факту на 23.10.2026: файл есть в `media/` — ✅, нет — ⬜. Список проверен скриптом по всем ссылкам из `content/` (страницы, бумага, документы, персонажи, `lab.yaml`) и сверен со сборкой: `python -m engine build` пишет «нет медиафайла» про **45 файлов**, и все они ⬜ ниже (42 строки трекера: три видео-поста считаются парой «файл + постер»). Из них 17 — бывшие предложения §5, которые автор взял 23.10 («берём всё»): пути и подписи уже стоят в `content/`. Лишних файлов в `media/` нет: каждый из 73 лежащих файлов привязан к строке. Постеры видео (`video-0N.jpg`) режиссёр вырезает из готового ролика сам.
 
 Колонка «Улика?»: **да** — на кадре держится рассуждение; **спящая** — смысл понятен только с бумагой поздних этапов; «эхо» и «фон» — подкрепление; «нет» — жизнь страницы. Не менять без сценариста.
 
@@ -35,27 +35,28 @@
 
 | Раздел | ✅ | ⬜ | 🔁 | ⏸ | Всего |
 |---|---|---|---|---|---|
-| Портреты | 12 | 2 | 0 | 0 | 14 |
+| Портреты | 12 | 3 | 0 | 0 | 15 |
 | Соцсети · `gromov` | 6 | 0 | 0 | 0 | 6 |
 | Соцсети · `krug-voroncov` | 8 | 0 | 0 | 0 | 8 |
 | Соцсети · `krug-kirill` | 6 | 1 | 0 | 0 | 7 |
 | Соцсети · `krug-marina` | 4 | 0 | 0 | 0 | 4 |
 | Соцсети · `krug-volskaya` | 5 | 0 | 0 | 0 | 5 |
 | Соцсети · `krug-volkov` | 5 | 0 | 0 | 0 | 5 |
-| Соцсети · `krug-levin` | 2 | 0 | 0 | 0 | 2 |
+| Соцсети · `krug-levin` | 2 | 1 | 0 | 0 | 3 |
 | Соцсети · `inna` | 3 | 9 | 0 | 0 | 12 |
 | Бумага | 14 | 0 | 0 | 0 | 14 |
-| Сайт и улики | 3 | 0 | 0 | 0 | 3 |
+| Улики «Призмы», новости, сайт лаборатории | 3 | 5 | 0 | 0 | 8 |
+| Сайты театра, фонда и клуба | 0 | 7 | 0 | 0 | 7 |
+| Облако погибшего (`cloud`) | 0 | 3 | 0 | 0 | 3 |
 | Аудио | 5 | 9 | 0 | 0 | 14 |
 | Видео | 0 | 4 | 1 | 0 | 5 |
-| Предложения | 0 | 0 | 0 | 12 | 12 |
-| **Итого** | **73** | **25** | **1** | **12** | **111** |
+| **Итого** | **73** | **42** | **1** | **0** | **116** |
 
-Статусы 📤 (прислано) и ❌ (не нужно) пока нет ни у одной строки.
+Статусов 📤 (прислано), ⏸ (ждёт решения) и ❌ (не нужно) сейчас нет ни у одной строки: все 12 предложений §5 автор взял 23.10 («берём всё»), из них вышло 17 строк (у X02, X03 — по три файла, у X04 — два).
 
 ### Таблицы по разделам
 
-#### Портреты (14)
+#### Портреты (15)
 
 | № | Файл | Что это | Где | Улика? | Статус | Комментарий |
 |---|---|---|---|---|---|---|
@@ -73,6 +74,7 @@
 | P12 | `media/portraits/dmitriy.jpg` | Водитель Дарья (роль «Дмитрий»), 40 лет | карточки персонажей, вопросы «кто это» | нет | ✅ |  |
 | P13 | `media/portraits/volskaya.jpg` | Вольская, меценат (тётя Света), 54 года | карточки персонажей, вопросы «кто это»; сайт театра | нет | ✅ |  |
 | P14 | `media/portraits/gromov.jpg` | Громова, чиновник (сестра Юля), 57 лет | карточки персонажей, вопросы «кто это» | нет | ✅ |  |
+| X05 | `media/portraits/nina_actress.jpg` | Исполнительница роли Нины, около 30 лет; вымышленное лицо, без образца | сайт `theater`, «Труппа» (путь в карточке уже стоит) | нет | ⬜ | бывшее предложение §5; промпт — §4.1 |
 
 #### Соцсети: `gromov` (Громова, официальная страница)
 
@@ -92,7 +94,7 @@
 | AV-2 | `media/krug-voroncov/avatar.jpg` | Аватарка: селфи за кулисами, прозрачные очки | `krug-voroncov`, профиль | нет | ✅ |  |
 | CV-2 | `media/krug-voroncov/cover.jpg` | Обложка: пустая сцена, дежурная лампа | `krug-voroncov`, профиль | нет | ✅ |  |
 | VR-01 | `media/krug-voroncov/01.jpg` | Дача, грабли | `krug-voroncov`, пост 11.10 | нет | ✅ |  |
-| VR-02 | `media/krug-voroncov/02.jpg` | Гримёрка 28.10: Воронцов набирает текст, дублёр за плечом смотрит в экран | `krug-voroncov`, пост 28.10 15:52 | **да** (бонус fb3, f1) | ✅ | ⚠ экран телефона светится в сторону камеры (по промпту должен быть виден только корпус); текста на экране нет, улике не мешает |
+| VR-02 | `media/krug-voroncov/02.jpg` | Гримёрка 28.10: Воронцов набирает текст, дублёр за плечом смотрит в экран | `krug-voroncov`, пост 28.10 15:52 | **да** (бонус fb3, f1) | ✅ | экран светится — оставляем, решение автора 23.10 |
 | VR-03 | `media/krug-voroncov/03.jpg` | Селфи на набережной 30.10, вдали фигура в тёмной одежде | `krug-voroncov`, пост 31.10 10:12 | **спящая** (слежка, 4-08) | ✅ | фигура вдали идёт от камеры, лица нет; для спящей улики годится |
 | VR-04 | `media/krug-voroncov/04.jpg` | Борщ на плите | `krug-voroncov`, пост 02.11 | нет | ✅ |  |
 | VR-05 | `media/krug-voroncov/05.jpg` | Прогон второго акта, репетиционная одежда | `krug-voroncov`, пост 06.11 | нет | ✅ |  |
@@ -139,11 +141,12 @@
 | VK-02 | `media/krug-volkov/02.jpg` | Спортзал, зеркальное селфи | `krug-volkov`, пост 04.10 | нет | ✅ |  |
 | VK-03 | `media/krug-volkov/03.jpg` | Ведущий юбилея с микрофоном | `krug-volkov`, пост 25.10 | нет | ✅ |  |
 
-#### Соцсети: `krug-levin` (Лёвин, обложки нет по замыслу)
+#### Соцсети: `krug-levin` (Лёвин)
 
 | № | Файл | Что это | Где | Улика? | Статус | Комментарий |
 |---|---|---|---|---|---|---|
 | AV-8 | `media/krug-levin/avatar.jpg` | Аватарка: парк, пёс лижет щёку | `krug-levin`, профиль | нет | ✅ |  |
+| CV-6 | `media/krug-levin/cover.jpg` | Обложка: крыльцо дачи, тот же лохматый пёс, ящик кабачков | `krug-levin`, профиль (путь уже стоит) | нет | ⬜ | бывшее предложение §5; промпт — §4.9 |
 | LV-01 | `media/krug-levin/01.jpg` | Кабачки на крыльце дачи (руки) | `krug-levin`, пост 12.10 | нет | ✅ |  |
 
 #### Соцсети: `inna` (фотосеть «Кадр»)
@@ -178,17 +181,42 @@
 | S16 | `media/paper/2-03-06.jpg` | Открывает дверь, входит | бумага 2-03, кадр 6 | да | ✅ |  |
 | S11a | `media/paper/2-03-07.jpg` | Пустое крыльцо (режиссёр, из S11) | бумага 2-03, кадр 7 | да | ✅ |  |
 | S11b | `media/paper/2-03-08.jpg` | Пустое крыльцо (режиссёр, из S11) | бумага 2-03, кадр 8 | да | ✅ |  |
-| S17 | `media/paper/2-06-room.jpg` | Кабинет худрука, общий вид | бумага 2-06 (конверт 2), кадр 1 | да | ✅ | ⚠ за окном снег, а в новостях 11.11 «первый снег — к выходным», в статье news-yama «снега пока нет». Решение автора: принять (снег едва заметен) или перегенерировать окно без снега (§6, п. 1) |
-| S18 | `media/paper/2-06-office.jpg` | Рабочий стол: папка «Фонд „Сцена“», две чашки, помада, «Анаприлин»; надписи наложил режиссёр 23.10 | бумага 2-06, кадр 2 | **да** (деталь f2, f3) | ✅ | ⚠ за окном снег, а в новостях 11.11 «первый снег — к выходным», в статье news-yama «снега пока нет». Решение автора: принять (снег едва заметен) или перегенерировать окно без снега (§6, п. 1) |
+| S17 | `media/paper/2-06-room.jpg` | Кабинет худрука, общий вид | бумага 2-06 (конверт 2), кадр 1 | да | ✅ | новость поправлена: первый снег выпал в ночь на 11.11 |
+| S18 | `media/paper/2-06-office.jpg` | Рабочий стол: папка «Фонд „Сцена“», две чашки, помада, «Анаприлин»; надписи наложил режиссёр 23.10 | бумага 2-06, кадр 2 | **да** (деталь f2, f3) | ✅ | новость поправлена: первый снег выпал в ночь на 11.11 |
 | S18b | `media/paper/2-06-office-detail.jpg` | Фрагмент стола справа от ноутбука: упаковка «Анаприлин» при увеличении (режиссёр, 23.10) | бумага 2-06, кадр 3 | **да** (деталь f2, f3) | ✅ |  |
 
-#### Сайт и улики (экспертизы, новости)
+#### Улики «Призмы», новости, сайт лаборатории
 
 | № | Файл | Что это | Где | Улика? | Статус | Комментарий |
 |---|---|---|---|---|---|---|
 | S06 | `media/lab/station_cam.jpg` | Камера вокзала, касса № 2, ч/б; таймкод наложен | экспертиза 4-08 («Призма») | **да** (слежка 30.10 14:37) | ✅ |  |
 | S07 | `media/lab/pillbox.jpg` | Таблетница по дням: ПН, ВТ пусто; СР, ПТ, СБ, ВС — «S»; ЧТ — плоская с риской | экспертиза 3-06 («Призма») | **да** (таблетки по дням) | ✅ |  |
 | NM-01 | `media/news-most/01.jpg` | Речной мост вечером (без камер) | статья `news-most` | нет | ✅ |  |
+| F06 | `media/news/yama.jpg` | Садовая, 10.11 днём: свежая заплатка и новая яма, маршрутка вдали; снега нет | статья `news-yama` (`article.photo` + подпись) | нет | ⬜ | промпт — §4.9; строка в конце статьи поправлена: «Фото прислал читатель…» |
+| F07 | `media/news/hockey.jpg` | Хоккей: молодой вратарь «Медведей» в воротах, без логотипов и номеров | статья `news-hockey` | нет | ⬜ | промпт — §4.9 |
+| X01 | `media/news/library.jpg` | Стойка абонемента, потрёпанные «Двенадцать стульев»; штамп и пометка не читаются | статья `news-library` | нет | ⬜ | промпт — §4.9 |
+| X04a | `media/lab/building.jpg` | «Призма»: вход со двора бывшей фабрики оптического стекла, без вывески | сайт лаборатории, «О центре» (`lab.yaml → photos`) | нет | ⬜ | промпт — §4.9 |
+| X04b | `media/lab/prism.jpg` | Приёмная «Призмы»: стеклянная призма на подоконнике, радуга на стене | сайт лаборатории, «О центре» | нет | ⬜ | промпт — §4.9; хроматограф «Самовар» не снимаем (у настоящих приборов узнаваемый фирменный вид) |
+
+#### Сайты театра, фонда и клуба
+
+| № | Файл | Что это | Где | Улика? | Статус | Комментарий |
+|---|---|---|---|---|---|---|
+| F01 | `media/theater/facade.jpg` | Фасад театра 1958 года, ноябрьский вечер; без надписей и герба | сайт `theater`, «О театре», фото во всю ширину | нет | ⬜ | промпт — §4.9 |
+| F02 | `media/theater/hall.jpg` | Пустой зрительный зал: партер, бельэтаж с ложами у сцены, балкон | сайт `theater`, «О театре», после текста | нет | ⬜ | промпт — §4.9 |
+| F05 | `media/fund/costumes.jpg` | «Вторая жизнь костюма»: руки реставрируют бархатное платье; **без брошей, шалей и перчаток** | сайт `fund`, карточка проекта | нет | ⬜ | промпт — §4.9; броши, шали, перчатки — пропажи 2-08 |
+| F08 | `media/auction/snuffbox_lot.jpg` | Табакерка, витринный кадр клуба: прямоугольная, серебро, позолота внутри, эмаль на крышке; дно и клейма не видны | сайт `auction` (этап 4), «Архив лотов», фото во всю ширину | эхо fb2 (опознание предмета 4-11; «подлинник» на витрине) | ⬜ | решение сценариста 23.10: не улика, признаки копии только в 4-11; промпт — §4.9 |
+| X02a | `media/auction/lot-01.jpg` | Лот 2016: каминные часы, бронза с золочением | сайт `auction`, карточки «Вещи с историей» | нет | ⬜ | промпт — §4.9 |
+| X02b | `media/auction/lot-02.jpg` | Лот 2017: афиша «Маскарада» 1962 года в раме, текст не читается | сайт `auction`, карточки | нет | ⬜ | промпт — §4.9 |
+| X02c | `media/auction/lot-03.jpg` | Лот 2025: макет декорации «Дом Нины», дерево и гипс | сайт `auction`, карточки | нет | ⬜ | промпт — §4.9 |
+
+#### Облако погибшего (`cloud`, этап 4, папка «Фото»)
+
+| № | Файл | Что это | Где | Улика? | Статус | Комментарий |
+|---|---|---|---|---|---|---|
+| X03a | `media/cloud/01.jpg` | 18.09: зал из-за занавеса перед открытием сезона, зрители рассаживаются, лиц не видно | `cloud`, папка «Фото» | нет (атмосфера) | ⬜ | решение сценариста 23.10: только атмосфера; промпт — §4.9 |
+| X03b | `media/cloud/02.jpg` | 22.09: стол читки — экземпляры пьесы, карандаши, очки в прозрачной оправе, чашки | `cloud`, папка «Фото» | нет | ⬜ | промпт — §4.9 |
+| X03c | `media/cloud/03.jpg` | 11.10: дача, ведро яблок на крыльце, грабли | `cloud`, папка «Фото» | нет (эхо VR-01 и VD-3) | ⬜ | промпт — §4.9 |
 
 #### Аудио (звонок и голосовые). ✅ — 5 готовых; текст каждой реплики — §4.6
 
@@ -219,23 +247,6 @@
 | VD-2 | `media/krug-levin/video-02.mp4 + video-02.jpg` | «Закулисье, серия вторая: усы Звездича», 0:14, 9:16 | `krug-levin`, пост 05.11 21:36 | нет | ⬜ |  |
 | VD-3 | `media/krug-marina/video-01.mp4 + video-01.jpg` | Дача крёстного, яблоки, селфи-видео, 0:10, 9:16 | `krug-marina`, пост 11.10 12:47 | нет | ⬜ |  |
 
-#### Предложения (⏸): медиа, которых в игре пока нет. Подробности — §5
-
-| № | Файл | Что это | Где | Улика? | Статус | Комментарий |
-|---|---|---|---|---|---|---|
-| F01 | `media/theater/facade.jpg` | Фасад театра, ноябрь, вечер | сайт `theater`: шапка/обложка | нет | ⏸ | нужна поддержка «обложки» сайта (фронтенд) либо карточка |
-| F02 | `media/theater/hall.jpg` | Зрительный зал, пустой | сайт `theater`, «О театре» | нет | ⏸ | то же |
-| X05 | `media/portraits/nina_actress.jpg` | Исполнительница роли Нины (вымышленное лицо, без образца) | сайт `theater`, труппа (у карточки `photo: null`) | нет | ⏸ | лицо вымышленное |
-| F05 | `media/fund/costumes.jpg` | «Вторая жизнь костюма»: руки, бархатное платье, без брошей | сайт `fund`, карточка проекта | нет | ⏸ |  |
-| F08 | `media/auction/snuffbox_lot.jpg` | Табакерка, витринный кадр клуба | сайт `auction` (этап 4) | **улика — решает сценарист** | ⏸ | табакерка — улика 4-11 (подлинник/копия) |
-| X02 | `media/auction/lot-01.jpg … lot-03.jpg` | Лоты прошлых лет: каминные часы, афиша «Маскарада» 1962, макет «Дом Нины» | сайт `auction`, архив лотов | нет (атмосфера) | ⏸ | 3 файла; нужен тип блока «фото в таблице» или карточки |
-| F06 | `media/news/yama.jpg` | Яма на Садовой | статья `news-yama` | нет | ⏸ | `article.photo` уже поддерживается |
-| F07 | `media/news/hockey.jpg` | Хоккей «Медведи» | статья `news-hockey` | нет | ⏸ | `article.photo` уже поддерживается |
-| X01 | `media/news/library.jpg` | Стойка библиотеки, «Двенадцать стульев» с штампом | статья `news-library` | нет | ⏸ | новый промпт |
-| X03 | `media/cloud/…` | Фото в архиве облака погибшего | `cloud` | **улика — решает сценарист** | ⏸ | нужен новый тип папки «галерея» (фронтенд) |
-| X04 | `media/lab/building.jpg` | «Призма»: вход со двора, «Самовар» (хроматограф), призма на подоконнике | сайт лаборатории («О центре») | нет | ⏸ | нужно поле `photo` у лаборатории (фронтенд) |
-| CV-6 | `media/krug-levin/cover.jpg` | Обложка Лёвина: дача, пёс | `krug-levin`, профиль | нет | ⏸ | поле `cover` уже поддерживается |
-
 ---
 
 ## 3. План действий автора
@@ -258,8 +269,9 @@
 ### Шаг 1. Улики и бумага
 
 - **Файлов:** 0 нужно сделать. Все улики и вся бумага (`lab/pillbox`, `lab/station_cam`, `gromov/meeting`, `inna/brooch`, `inna/10`, `krug-voroncov/02` и `/03`, фототаблицы 1-10, 2-03, 2-06) уже ✅.
-- **От вас — одно решение (2 минуты):** в окне кабинета худрука (2-06, три кадра) лежит снег, а в новостях за 11.11 «снега пока нет» (§6, п. 1). Напишите «снег оставляем» или «переделать S17, S18 (окно без снега)».
-- **Инструмент / время:** — / 2 минуты.
+- **Решений от вас больше нет.** Снег в окне кабинета худрука (2-06) оставлен: новость поправлена, первый снег выпал в ночь на 11.11. Экран телефона на VR-02 оставлен (решение 23.10).
+- **Новые кадры у сайта клуба и в облаке (F08, X03) — не улики** (решение сценариста 23.10, §5): их можно делать в последнюю очередь, решение дела от них не зависит.
+- **Инструмент / время:** — / 0 минут.
 
 ### Шаг 2. Звонок (улика №1: «Было бы за что»)
 
@@ -311,15 +323,24 @@
 - **Нужно от вас:** ничего (лиц нет); фото настоящего кота дяди, если захотите.
 - Промпты целиком — §4.4 и §4.5.
 
+### Шаг 8. Сайты, новости, облако (бывшие предложения §5, взяты 23.10)
+
+- **Файлов:** 17: фасад и зал театра (`F01`, `F02`), портрет исполнительницы Нины (`X05`), фонд (`F05`), три новости (`F06`, `F07`, `X01`), «Призма» (`X04a`, `X04b`), клуб — табакерка и три лота (`F08`, `X02a`–`X02c`), облако (`X03a`–`X03c`), обложка Лёвина (`CV-6`).
+- **Инструмент:** Gemini.
+- **Время:** ≈ 2,5–3,5 часа, **два вечера** (вместе с шагом 7 это 27 картинок — больше дневного лимита ≈ 20). Удобный порядок: вечер 1 — театр, фонд, «Призма», X05 (сайты этапа 1, игроки увидят их первыми); вечер 2 — новости, клуб, облако, CV-6.
+- **Нужно от вас:** почти ничего: лиц нет, кроме `X05` (лицо вымышленное, без образца; прикладывается только `portraits/voroncov.jpg` как образец стиля). Для `CV-6` приложите `krug-levin/avatar.jpg`, чтобы пёс был тот же.
+- **Что важно для сюжета:** на `F05` нет брошей, шалей и перчаток; на `F08` не видно дна и клейм; на `F06` нет снега (это 10.11); на сайтах организаций — ни вывесок, ни логотипов, ни надписей.
+- Промпты целиком — §4.1 (`X05`) и §4.9.
+
 ### Итого
 
-Осталось **28 файлов** (25 строк трекера): 2 портрета, 10 фото, 9 аудио (звонок и 8 голосовых), 7 видеофайлов (4-07 и три ролика с постерами) — плюс 1 рабочий кадр на переделку (🔁). Ориентировочно **10–14 часов чистого времени, 4–5 вечеров**; из денег — ElevenLabs Starter и Kling Standard на один месяц (по ориентиру `MEDIA-AI-OPTIONS` ≈ $11–16 на двоих) и бесплатный Gemini.
+Осталось **45 файлов** (42 строки трекера): 3 портрета, 26 фото (10 «из жизни» и 16 для сайтов, новостей и облака), 9 аудио (звонок и 8 голосовых), 7 видеофайлов (4-07 и три ролика с постерами) — плюс 1 рабочий кадр на переделку (🔁). Ориентировочно **13–18 часов чистого времени, 6–7 вечеров**; из денег — ElevenLabs Starter и Kling Standard на один месяц (по ориентиру `MEDIA-AI-OPTIONS` ≈ $11–16 на двоих) и бесплатный Gemini.
 
 ---
 
 ## 4. Свежие промпты и тексты
 
-Здесь только то, что ещё ⬜ или 🔁. Готовое — одной строкой: портреты 12 штук (`PROMPTS.md` P01–P14), улики и бумага (`PROMPTS.md` S01–S18), аватарки, обложки, фото к постам, 5 голосовых (`PHOTOS-2.md`) — всё ✅, перегенерировать не нужно. Промпты для предложений ⏸ (§5) остаются в `PHOTOS.md` (F01–F08); скопирую сюда, когда статус станет ⬜.
+Здесь только то, что ещё ⬜ или 🔁. Готовое — одной строкой: портреты 12 штук (`PROMPTS.md` P01–P14), улики и бумага (`PROMPTS.md` S01–S18), аватарки, обложки, фото к постам, 5 голосовых (`PHOTOS-2.md`) — всё ✅, перегенерировать не нужно. Бывшие предложения §5 (взяты 23.10) — §4.1 (`X05`) и §4.9 (остальные 16); старые черновики F01–F08 в `PHOTOS.md` устарели, берите отсюда.
 
 ### 4.0. Общие правила и как работать в Gemini
 
@@ -331,7 +352,7 @@
 - **Общий «хвост»**, который уже вписан в каждый запрос ниже (чтобы ничего не добавлять): `Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.`
 - **Неудачные варианты** складывайте отдельно (`_attempts`), не удаляя до проверки режиссёром.
 
-### 4.1. Портреты: `P02` Завьялов, `P08` Гнедич (⬜)
+### 4.1. Портреты: `P02` Завьялов, `P08` Гнедич, `X05` исполнительница Нины (⬜)
 
 Формат у обоих: JPEG, 4:5, чисто белый фон, анфас, голова и плечи до середины груди, как `voroncov.jpg`; ≥ 800 px по короткой стороне. Возраст в игре — по `content/characters.yaml`.
 
@@ -386,6 +407,28 @@ AVOID: no props or accessories of any profession (no headphones, headsets, measu
 ```
 
 Чек-лист: строгое выражение, без улыбки; около 63 лет; лицо узнаваемо; белый фон; никакого реквизита (сантиметр на шее убран намеренно).
+
+#### X05. `portraits/nina_actress.jpg` — исполнительница роли Нины, около 30 лет (вымышленное лицо)
+
+Где: сайт `theater`, «Труппа», карточка рядом с Воронцовым, Лёвиным и Волковым (путь уже стоит в `content/pages/theater/page.yaml`). Больше нигде не появляется, в вопросах «кто это» её нет. Формат — как у остальных портретов: JPEG, 4:5, белый фон, ≥ 800 px по короткой стороне. Лицо **вымышленное**: образцов человека нет, прикладывается только `portraits/voroncov.jpg` как образец стиля. Возраст в `characters.yaml` не задан; «около 30» — из карточки (в труппе с 2019 года, Лариса и Маша).
+
+```text
+Create a photorealistic ID-style portrait photograph of a fictional person who does not exist (not a real person, not a celebrity, not a lookalike of anyone famous).
+
+ATTACHED IMAGE: The attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, glasses, clothes or neck chain, not the age and not the gender.
+
+SUBJECT: a woman about 30 years old, an actress of a provincial drama theatre. An ordinary, natural, likeable face with expressive eyes and a slightly asymmetrical smile line; not a fashion model. Dark-blond hair pulled back into a simple low knot, no fringe, a few loose strands. Minimal everyday make-up.
+EXPRESSION: calm and attentive, a slight smile with closed lips.
+CLOTHES AND DETAILS: a plain dark-grey high-neck knitted top. No jewellery at all.
+
+COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
+LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
+REALISM: Photorealistic, natural skin texture with visible pores, natural colours, sharp focus on the eyes. Plain document-photo look.
+
+AVOID: no stage costume, no theatrical make-up, no props or accessories of any profession, no brooches, no pins, no earrings, no necklaces, pendants or crosses, no hat, no glasses, no text, no watermark, no logos, no props in hands, no tilted head, no wide smile, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no illustration or cartoon look.
+```
+
+Чек-лист: обычное живое лицо, не «модель» и не похожа на известную актрису; около 30; никаких украшений (особенно брошей: брошь — улика этапа 2); белый фон, кадрирование как у остальных портретов.
 
 ---
 
@@ -798,6 +841,173 @@ Handheld selfie video with slight sway. The man speaks with clear lip movement i
 
 **Что делает режиссёр с вашими файлами:** режет клипы, собирает звук, приводит к 720 × 1280 и ≤ 8 МБ, вырезает постер; склейка и ремикс — только `ffmpeg`, без платных программ.
 
+### 4.9. Сайты, новости, облако: 16 кадров (⬜, бывшие предложения §5, взяты 23.10)
+
+Пути и подписи уже стоят в `content/`: как только файл ляжет в `media/`, он появится на странице. Портрет `X05` — в §4.1. Людей с узнаваемыми лицами здесь нет, образцы не нужны (кроме пса для `CV-6`). **Каждый кадр — новый чат** (общие правила — §4.0). Скачивать в полном размере; сжимает и обрезает режиссёр.
+
+**Сайты театра, фонда, клуба и лаборатории — особо строго.** Там по-прежнему нет логотипов, вывесок, гербов, флагов и надписей: в кадре не должно быть ни одной читаемой буквы, таблички, ценника или бирки с текстом. Вымышленные логотипы тоже не нужны: если Gemini дорисовал вывеску или эмблему, просите `Same image, but remove the sign / emblem completely, plain wall instead.`
+
+**Как показываются кадры (от этого форматы):**
+
+| Где | Как на экране | Что генерировать |
+|---|---|---|
+| сайт, фото «во всю ширину» (`F01`, `F02`, `F08`) | телефон 16:9, ноутбук 21:9, обрезка по центру | **16:9**, главное — в средней полосе по высоте; сверху и снизу ≈ 12 % кадра — то, что не жалко обрезать |
+| карточки сайтов (`F05`, `X02a`–`X02c`) | 4:3, обрезка по центру | **4:3** |
+| новости (`F06`, `F07`, `X01`) | 3:2 | **3:2** |
+| «Призма», «О центре» (`X04a`, `X04b`) | 4:3 | **4:3** |
+| облако, папка «Фото» (`X03a`–`X03c`) | плитка 1:1, по нажатию — целиком | **4:3**, главное — в центральном квадрате |
+| обложка «Круга» (`CV-6`) | 16:6, обрезка по центру | **очень широкий ≈ 3:1**, главное — в центре |
+
+Размер: JPEG, не меньше 1600 px по длинной стороне (обложка и «во всю ширину» — не меньше 2400 px). Режиссёр сжимает до ≤ 400 КБ (обложки и широкие — до ≤ 600 КБ).
+
+#### F01. `theater/facade.jpg` — фасад театра (сайт `theater`, «О театре», во всю ширину)
+
+Подпись на сайте: «Здание театра на Театральной площади, 1958 год. Ноябрь». Текст рядом: здание 1958 года на Театральной площади. Снега нет (первый снег — в ночь на 11.11, а сайт пресс-службы мог снимать раньше; без снега проще).
+
+```text
+Wide architectural photograph of the main facade of a provincial drama theatre built in 1958 in the late neoclassical style: a light ochre building with six tall white columns, a plain triangular pediment WITHOUT any sculpture, relief, emblem, star or lettering, a wide flight of stone steps, tall arched windows with warm light inside, two old cast-iron street lamps already lit. In front, part of an empty paved city square with bare November trees. Early evening in November, overcast blue-grey sky, wet pavement reflecting the lamps, no snow. Two or three tiny distant passers-by with umbrellas, faces not distinguishable. The building is centred and fills the middle band of the frame; the top and bottom edges hold only sky and pavement. NO posters, NO playbills, NO banners, NO signboards, NO letters or numbers on the building, NO flags, NO coats of arms, NO cars. Horizontal 16:9. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: фронтон пустой (без герба, звезды, скульптур и надписей); над входом нет вывески; ноябрь — голые деревья, мокрый асфальт, без снега; людей не узнать; фасад целиком в средней полосе (при обрезке до 21:9 колонны и ступени остаются).
+
+#### F02. `theater/hall.jpg` — зрительный зал (сайт `theater`, «О театре», во всю ширину)
+
+Подпись: «Зрительный зал: партер, бельэтаж с ложами у сцены, балкон». Текст рядом: зал на 640 мест. Ложи у сцены — те самые, где в 1-08 и 3-10 сидят Вольская и Громова; на фото они просто есть, без людей.
+
+```text
+Photograph of the empty auditorium of a mid-sized provincial drama theatre (about 640 seats), taken from the front edge of the stage looking into the hall: rows of red velvet seats in the stalls, a horseshoe-shaped dress circle with gilded plaster mouldings, two small boxes on each side close to the stage at dress-circle level, a balcony above, a modest crystal chandelier in the centre of the ceiling. Warm dim house lights at half, a little dust in the air. No people at all. NO exit signs, NO seat numbers or row numbers that can be read, NO emblem or lettering on the walls or ceiling, NO portraits, NO banners. The boxes, the dress circle and the balcony are all inside the middle band of the frame. Horizontal 16:9. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: видны партер, бельэтаж, ложи у сцены (по бокам, рядом со сценой) и балкон; зал пустой; нет табличек «Выход» и номеров; зал не огромный, не оперный.
+
+#### F05. `fund/costumes.jpg` — «Вторая жизнь костюма» (сайт `fund`, карточка проекта, 4:3)
+
+Карточка: «Реставрация исторических костюмов из подбора театра. Каждый костюм получает паспорт и бирку». **Сюжетное ограничение:** на столе и на манекене **нет брошей, шалей и перчаток** (и вообще украшений) — это пропажи из костюмерной 2-08, ложный след этапа 2; сайт фонда открыт с этапа 1. Лиц нет.
+
+```text
+Photograph in a theatre costume workshop, close-up on a wide wooden work table: two pairs of hands (faces out of frame; one pair older with short plain nails, one younger) restore an old 19th-century dark green velvet dress lying on the table: one hand stitches a frayed cuff with a needle and dark thread, the other gently smooths the velvet of the sleeve. Next to the dress: a small blank cardboard tag tied to the dress with a string, with NO writing on it; spools of thread, a pincushion with plain pins, tailor's scissors, a tape measure. In the soft background, out of focus: a tailor's dummy with a half-finished dark frock coat and a rack of old costumes. Soft daylight from a window on the left. NO brooches, NO jewellery, NO shawls, NO scarves, NO gloves, NO lace collars, nothing shiny on the table. No faces, no labels or tags with text, no logos. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: **ни одной броши, шали, перчатки и украшения** (если появились — `Same image, but remove the brooch / shawl / gloves completely`); бирка пустая; лиц нет; бархатное платье — главное.
+
+#### F06. `news/yama.jpg` — яма на Садовой (статья `news-yama`, 3:2)
+
+Подпись: «Садовая, напротив дома № 14: свежая заплатка, а в трёх метрах от неё — новая яма». Статья от 10.11, 16:20: «снег, которого пока нет», «к обеду в ней отметилась первая маршрутка»; в конце — «Фото прислал читатель». Значит: день, **без снега**, снято «с телефона прохожего».
+
+```text
+Amateur smartphone photo sent to a local news website by a reader: a street in a provincial city on a grey November afternoon, no snow. In the foreground on the worn asphalt road, a fresh dark rectangular asphalt patch, and about three metres beyond it a new deep pothole full of muddy water reflecting the grey sky. A minibus passes in the background, slightly motion-blurred, its route number not readable. Five-storey residential buildings, bare trees, wet pavement, a few fallen leaves. No people in focus. NO readable street signs, NO house number plates, NO shop signs, NO number plates, NO snow. Slightly tilted, casual framing. Horizontal 3:2. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: **снега нет**; видны и заплатка, и яма рядом; номера маршрутки и домов не читаются.
+
+#### F07. `news/hockey.jpg` — хоккей (статья `news-hockey`, 3:2)
+
+Подпись: «Девятнадцатилетний голкипер „Медведей“ отразил 31 бросок. Третий период это, увы, не спасло». Статья: «Медведи» дома проиграли 2:3. В кадре — молодой вратарь хозяев в момент сейва.
+
+```text
+Sports photograph from a small provincial ice arena: a very young goalie in plain dark-brown goalie gear and a plain dark-brown mask, without any logos, numbers or names, makes a save in his goal, the puck bouncing off his pad; two blurred players in plain white jerseys without numbers or logos rush in from the side. Bright cold arena light, scratched ice, the boards behind the goal are plain white with NO advertising. A few rows of spectators in the blurred background, faces not distinguishable. NO team logos, NO sponsor boards, NO numbers on jerseys, NO scoreboard, NO text anywhere. Horizontal 3:2. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: нет логотипов, номеров и рекламы на бортах; вратарь — главный; лица болельщиков не различимы.
+
+#### X01. `news/library.jpg` — книга на абонементе (статья `news-library`, 3:2)
+
+Подпись: «„Двенадцать стульев“ снова на абонементе. Двадцать два года спустя». Статья: книга 2004 года, на форзаце штамп и карандашная пометка. **Штамп, пометка и название на обложке не должны читаться** (буквы у Gemini выходят кривыми — пусть всё будет размыто или стёрто).
+
+```text
+Photograph at the loan desk of an old public city library: on the worn wooden counter lies a well-read old hardcover book with a faded plain cloth cover and frayed corners, open at the front endpaper, where a faded round library stamp in violet ink and a faint pencil line are visible but completely illegible (soft focus, worn away). Next to it, a small neat stack of other returned books with plain spines without readable titles, and a pair of reading glasses. In the soft background: tall wooden shelves with books, a wooden card catalogue cabinet, a green-shaded desk lamp. Warm afternoon light. No people, no faces, no hands. NO readable titles, NO readable stamp text, NO signs, NO posters. Horizontal 3:2. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: книга старая и зачитанная; штамп и пометка есть, но не читаются; на корешках нет названий.
+
+#### X04a. `lab/building.jpg` — «Призма», вход со двора (сайт лаборатории, «О центре», 4:3)
+
+Подпись: «Вход со двора: бывшая фабрика оптического стекла, нам — второй этаж». Текст «О центре»: помещение досталось от закрытой фабрики оптического стекла, высокие потолки; адрес — «вход со двора, звонок». **Ни вывески, ни таблички, ни логотипа** на двери и стене.
+
+```text
+Photograph of the courtyard entrance of a former early 20th-century optical glass factory in a provincial city, now used as offices: a red-brick facade with tall arched factory windows on the second floor, a plain dark-green metal door under a small metal canopy, three concrete steps, a small plain doorbell panel next to the door with NO text, a bicycle rack, a young birch tree, puddles on old asphalt. Overcast November daylight, no snow, quiet and tidy. No people. NO signboard, NO plaque, NO logo, NO lettering or numbers on the door or the wall, NO graffiti. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: кирпичная фабрика, высокие окна; дверь без вывески и табличек; людей нет.
+
+#### X04b. `lab/prism.jpg` — приёмная «Призмы», призма на подоконнике (4:3)
+
+Подпись: «Приёмная. Та самая призма на подоконнике: в солнечный день раскладывает свет по стене». Текст «О центре»: «стеклянная призма на подоконнике в приёмной. Её не трогают». Хроматограф «Самовар» не снимаем: у настоящих приборов узнаваемый фирменный вид. **Никаких таблеток, пробирок, реактивов и бумаг с текстом.**
+
+```text
+Photograph of a small, bright reception room in a converted old factory building with high ceilings: on a wide white-painted windowsill of a tall window stands a large clear triangular glass prism; a low sunbeam passes through it and throws a vivid rainbow spectrum stripe across the plain white wall. In the room: the corner of a simple light-wood reception desk with a closed folder and a pen, two plain chairs for visitors, a large green potted plant. Clean, calm, slightly old-fashioned. No people. NO papers with text, NO screens, NO posters, NO certificates on the walls, NO logos, NO laboratory glassware, NO pills. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: призма на подоконнике хорошо видна, радуга на стене; ни одного документа и экрана; ничего «лабораторного».
+
+#### F08. `auction/snuffbox_lot.jpg` — табакерка, витринный кадр клуба (сайт `auction`, этап 4, во всю ширину)
+
+Подпись: «Вечер 16.11.2024. Табакерка, серебро, клеймо придворного ювелира. Подлинник, частное собрание. Рекорд клуба». **Решение сценариста 23.10: не улика, а эхо fb2** — игрок узнаёт тот же предмет, что в письме эксперта 4-11 и в строке реестра облака, и видит, что клуб продавал его как подлинник. Поэтому на кадре строго описание 4-11: **прямоугольная, серебро, позолота внутри, крышка с гильошированной эмалью**. **Дно и клейма не видны** — признаки копии (литое клеймо, припои, искусственная патина) есть только в 4-11. Вещь выглядит безупречно, без потёртостей (не спорит с 4-11 «естественного износа нет»), но кадр на это не указывает. Стиль — «витрина клуба»: тёмный бархат, свеча, как у трёх лотов ниже. Ничего в узнаваемом стиле известных ювелирных домов (яйца, короны, орлы, монограммы с камнями).
+
+```text
+Elegant auction-catalogue photograph of a rectangular silver snuff box standing on dark blue velvet, with its hinged lid half open towards the viewer: the top of the lid is covered with translucent deep-blue guilloché enamel over a fine engine-turned wave pattern, framed by a narrow polished silver border with tiny chased leaves; the inside of the box and of the lid is gilded and glows warmly. The box looks immaculate and highly polished. Warm, low, candle-like side light, a dark background, shallow depth of field; one burning candle in a plain brass holder far out of focus in the background. The box is centred and sits in the middle band of a wide frame, with dark velvet around it. The bottom of the box is NOT visible, NO hallmarks or marks are visible anywhere. NO hands, NO people, NO price tags, NO labels, NO lot numbers, NO jewels or gemstones, NO crowns, eagles, monograms or coats of arms, NO egg shapes. Horizontal 16:9. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: **прямоугольная** (не овальная, не яйцо); серебро; эмаль на крышке; позолота внутри видна; **дна и клейм не видно**; без камней и гербов; без рук, бирок, номеров; при обрезке до 21:9 табакерка целиком в кадре.
+
+#### X02a, X02b, X02c. Три лота клуба: `auction/lot-01.jpg`, `lot-02.jpg`, `lot-03.jpg` (карточки «Вещи с историей», 4:3)
+
+Описания на карточках — из таблицы архива клуба (она совпадает с реестром облака): 21.10.2016 — каминные часы, «клеймо механизма читается» (на фото клеймо не показываем); 18.11.2017 — афиша «Маскарада» 1962 года; 15.11.2025 — макет декорации «Дом Нины», дерево, гипс, 1970-е. Все три — в одном «витринном» стиле с F08 (тёмный бархат, тёплый боковой свет, свеча вдали), но **каждый в новом чате**. Чистая атмосфера, улик нет.
+
+**X02a. `auction/lot-01.jpg` — каминные часы**
+
+```text
+Elegant auction-catalogue photograph of a French mantel clock from the mid-19th century in gilded bronze: a rectangular case with columns, a small allegorical figure of a reclining woman with a book on top, a white enamel dial with black Roman numerals and fine blued hands; the dial carries NO name, NO signature and NO writing. The clock stands on dark blue velvet, warm candle-like side light, dark background, shallow depth of field, one candle far out of focus. The gilding is softly worn with age. NO hands, NO people, NO price tags, NO labels, NO lot numbers, NO readable marks. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+**X02b. `auction/lot-02.jpg` — афиша «Маскарада» 1962 года.** Настоящая афиша — это текст, а читаемых букв в кадре быть не должно: снимаем под углом, с малой глубиной резкости, буквы размыты.
+
+```text
+Elegant auction-catalogue photograph of an old theatre playbill from 1962 in a simple dark wooden frame under glass, leaning against a wall on dark blue velvet, photographed at a steep angle from one side with a very shallow depth of field: the yellowed paper, two-colour letterpress printing in black and faded red, big bold headline block and columns of small type, a simple woodcut-style ornament of a theatre mask — but ALL lettering is completely soft and out of focus, NO word, letter or number can be read. Warm candle-like side light, reflections on the glass, dark background. NO hands, NO people, NO price tags, NO labels, NO lot numbers, NO coats of arms, NO stars or political symbols. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+**X02c. `auction/lot-03.jpg` — макет декорации «Дом Нины»**
+
+```text
+Elegant auction-catalogue photograph of an old theatre set-design model from the 1970s: an open-fronted wooden box about 60 cm wide, inside a miniature 19th-century drawing room — painted walls with tall windows, tiny white plaster columns and mouldings, a miniature sofa, a small round table, a tiny chandelier, a staircase in the corner; the paint is slightly faded and there is a little dust and a few chips on the plaster, it looks hand-made and loved. The model stands on dark blue velvet, warm candle-like side light falls into the miniature room, dark background, shallow depth of field. NO figures of people inside the model, NO hands, NO price tags, NO labels, NO lot numbers, NO writing. Horizontal 4:3. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист на три лота: одинаковый «витринный» свет и бархат; ни бирок, ни номеров, ни читаемых букв (на часах — пустой циферблат без подписи мастера, на афише всё размыто); людей и рук нет.
+
+#### X03a, X03b, X03c. Облако погибшего, папка «Фото» (`cloud/01.jpg`–`03.jpg`, 4:3, главное — в центральном квадрате)
+
+**Решение сценариста 23.10: только атмосфера, не улика.** Это личные снимки владельца с телефона, перенесённые в облако при настройке 20.10 вместе с реестром, поэтому все даты — до 20.10. Подписи в манере владельца (со строчной, без точки): «открытие сезона. зал из-за занавеса, до третьего звонка» (18.09), «читка «Маскарад». первый акт» (22.09), «дача. последние яблоки, грабли не сдаются» (11.10). Снимал сам владелец, поэтому его самого в кадре нет; лиц нет вообще. **В кадрах нет:** Волкова и Завьялова, гримёрки № 4, телефонов с экраном, таблеток и таблетниц, бутылок воды, сумок, часов и табакерки.
+
+**X03a. `cloud/01.jpg` — открытие сезона, 18.09**
+
+```text
+Casual smartphone photo taken by an actor from the stage, through a narrow gap in a heavy closed dark-red velvet curtain, a few minutes before a performance: the soft folds of the curtain frame the picture on both sides, and through the gap we see a warmly lit auditorium of a provincial drama theatre filling up with spectators — rows of red seats, people sitting down and taking off their coats, seen from far away and slightly blurred, no face distinguishable; the dress circle and a chandelier above. Warm golden light, slight phone-camera noise, a little motion blur. NO readable signs, NO exit signs, NO programmes with text. Horizontal 4:3, the gap with the hall in the centre. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+**X03b. `cloud/02.jpg` — читка, 22.09**
+
+```text
+Casual smartphone photo of a long rehearsal table during a break in a script read-through in a theatre rehearsal room: several bound script copies lying open, their typed lines completely blurred and unreadable, pencils, a rubber eraser, a pair of reading glasses with transparent frames lying on top of one script, three mugs of tea, chairs pushed back as if people just stood up. Soft September daylight from a tall window at the side, the window itself mostly out of frame. No people, no faces, no hands. NO phones, NO water bottles, NO bags, NO pill boxes or medicine, NO clocks, NO readable text on the pages. Horizontal 4:3, the glasses on the script in the centre. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+**X03c. `cloud/03.jpg` — дача, 11.10** (сходится с постом погибшего 11.10 «яблоки собраны… грабли победили меня» и видео VD-3 с ведром яблок)
+
+```text
+Casual smartphone photo at a country dacha in mid-October around noon: on the wooden steps of an old porch stands a full white enamel bucket of red apples, a few apples have rolled onto the step; a garden rake leans against the porch railing; yellow leaves on the ground, an apple tree with a few last leaves and a grey overcast sky behind. Soft natural daylight, slight phone-camera noise. No people, no faces, no hands, no cars. NO readable text anywhere. Horizontal 4:3, the bucket in the centre. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист на три кадра облака: лиц нет; на X03b очки с **прозрачной** оправой (как у погибшего); нет ничего из списка «в кадрах нет» выше; эмалированное ведро на X03c — как в VD-3.
+
+#### CV-6. `krug-levin/cover.jpg` — обложка Лёвина: дача и пёс (очень широкий ≈ 3:1)
+
+Страница Лёвина: дача (пост 12.10, кабачки), пёс (аватарка AV-8, голосовое 24.10 про съеденную тетрадку). Приложить `krug-levin/avatar.jpg` — **только как образец пса** (человека с него не брать).
+
+```text
+Use image 1 ONLY as the strict reference for the dog: the same big friendly shaggy dog, same colour, coat and markings. Do NOT include the man from image 1, no people at all. Very wide photograph of the wooden porch of a small country dacha on a soft early-autumn afternoon: the dog lies on the porch steps with its head on its paws and looks into the camera with a guilty, innocent expression; next to it on the step, a wooden crate full of big green and striped zucchini and a pair of rubber boots; behind — a small wooden house with a white-framed window, yellowing birches, a vegetable garden with the last greenery. Warm natural light, light phone-camera grain. The dog and the crate are in the centre of the frame; left and right edges hold only garden. No people, no faces of people. NO readable text, no papers, no notebooks. Very wide horizontal composition, about 3:1. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Чек-лист: тот же пёс, что на аватарке; людей нет; пёс и кабачки в центре (по краям обложка обрезается до 16:6).
+
 ---
 
 ## 5. Где ещё нужны фото и видео
@@ -809,29 +1019,30 @@ Handheld selfie video with slight sway. The man speaks with clear lip movement i
 | Место | Что там |
 |---|---|
 | Соцсети «Круга» и фотосеть «Кадр» | 9 страниц: аватарки, обложки, около 40 изображений (фото, аватарки, обложки), голосовые; сейчас недостаёт кота Кирилла, девяти плиток Инны, восьми голосовых и трёх видео (§2) |
-| Новостной портал | `news` — Воронцов в роли Арбенина; `news-most` — мост. У `news-yama`, `news-hockey`, `news-library` в статье `photo: null` |
-| Сайт театра | карточки труппы с портретами (Воронцов, Лёвин, Волков, Резникова, Виктор, Вольская); у Завьялова, Гнедич (ждёт файла) и исполнительницы Нины фото пока нет |
+| Новостной портал | `news` — Воронцов в роли Арбенина; `news-most` — мост. У `news-yama`, `news-hockey`, `news-library` пути и подписи стоят с 23.10, ждут файлов (`F06`, `F07`, `X01`) |
+| Сайт театра | карточки труппы с портретами (Воронцов, Лёвин, Волков, Резникова, Виктор, Вольская); ждут файлов Гнедич, исполнительница Нины (`X05`), фасад и зал (`F01`, `F02`); у Завьялова `photo: null` до `P02` |
 | Бумага конвертов | гримёрка 1-10 (3 кадра), камера у служебного входа 2-03 (8 кадров), кабинет худрука 2-06 (3 кадра) |
-| Лаборатория «Призма» | в экспертизах: таблетница 3-06, вокзал 4-08; сам сайт лаборатории — без фото |
+| Лаборатория «Призма» | в экспертизах: таблетница 3-06, вокзал 4-08; «О центре» — два фото с 23.10 ждут файлов (`X04a`, `X04b`) |
 | Портреты в вопросах | 12 из 14 портретов (+ Завьялов, Гнедич — шаг 4) |
 | Видео | 4-07 (ждёт файла) и три ролика в «Круге» (ждут файлов) |
 
-### Где пусто, но было бы уместно
+### Предложения: все приняты 23.10 («берём всё»)
 
-Все предложения — ⏸, ждут вашего «берём» (тогда статус ⬜ и промпт переедет в §4). Не придумываю улик: либо чистая атмосфера, либо пометка «**улика — решает сценарист**». Для сайтов театра, фонда, клуба и лаборатории логотипов и вывесок по-прежнему нет, поэтому риск «случайных реальных брендов» тут выше, чем в бытовых фото: в запросах они запрещены.
+Автор взял все 12 предложений; вышло 17 строк трекера (§2, статус ⬜), промпты — §4.1 (`X05`) и §4.9. Фронтенд 23.10 добавил то, чего не хватало: блок `kind: photo` (с подписью, `wide` — во всю ширину) на сайтах организаций, `photos` у лаборатории, папку `kind: photos` в облаке, `article.photo_caption` у новостей. Пути и подписи внесены в `content/`.
 
-| Код | Файл | Польза для погружения или улики | Файлов | Риск | Что нужно от кода |
-|---|---|---|---|---|---|
-| F01, F02 | `theater/facade.jpg`, `theater/hall.jpg` | сайт театра — первая страница, на которую ведёт QR этапа 1; сейчас это текст и портреты труппы, фасад и зал сразу делают его «настоящим» | 2 | низкий: надписи и герб на фронтоне запрещены в запросе | в сайтах-организациях нет блока «обложка»: нужен новый блок (`hero`) или карточка с `photo` (карточки с фото уже работают) |
-| F06, F07, X01 | `news/yama.jpg`, `news/hockey.jpg`, `news/library.jpg` | три посторонние новости на портале выглядят как настоящая лента (юмор; атмосфера без улик) | 3 | нулевой: без людей и номеров; в X01 штамп и пометка на форзаце не должны читаться | ничего: `article.photo` уже поддерживается, режиссёр подставит пути |
-| F05 | `fund/costumes.jpg` | сайт фонда — четыре карточки только текстом; «Вторая жизнь костюма» оживает и подтверждает связь фонда с костюмерным цехом | 1 | средний: рядом пропажи 2-08 (броши, шали, перчатки) — в запросе они запрещены, чтобы не дразнить ложный след раньше этапа 2 | карточка проекта получает `photo` (уже поддерживается) |
-| X04 | `lab/building.jpg` | «Призма» — сайт без единого фото: вход со двора, хроматограф «Самовар», призма на подоконнике в приёмной (всё уже названо в тексте «О центре») | 1–2 | низкий: никаких таблеток и реактивов с надписями | у лаборатории нет поля `photo` — нужна правка фронтенда |
-| F08, X02 | `auction/snuffbox_lot.jpg`, `auction/lot-01..03.jpg` | клуб «Закрытые вечера» (этап 4): фото табакерки — витринный кадр, как её снял клуб; лоты прошлых лет (каминные часы, афиша «Маскарада» 1962, макет «Дом Нины») — «аукционная» атмосфера | 1 + 3 | **F08 — улика, решает сценарист:** табакерка — предмет 4-11 (подлинник и копия); кадр может подсказать или противоречить заключению. X02 — атмосфера, риск низкий | архив лотов сейчас таблица: нужны карточки с фото или колонка-картинка |
-| X03 | `cloud/…` | фото в облаке погибшего (старые репетиции, дача) оживили бы архив | 2–4 | **улика — решает сценарист:** любое фото в облаке читается как материал дела | нужен новый тип папки «галерея» (фронтенд) |
-| X05 | `portraits/nina_actress.jpg` | в труппе на сайте театра у Нины пустая карточка рядом с тремя портретами; нужен вымышленный портрет без образца | 1 | низкий: лицо вымышленное, нигде больше не появляется | ничего (`photo: null` → путь) |
-| CV-6 | `krug-levin/cover.jpg` | у Лёвина единственная страница «Круга» без обложки: дача и пёс | 1 | нулевой | ничего: `profile.cover` уже поддерживается |
+| Код | Файл(ы) | Куда внесено | Улика? (решение сценариста 23.10) |
+|---|---|---|---|
+| F01, F02 | `theater/facade.jpg`, `theater/hall.jpg` | `theater`, «О театре»: фасад над текстом, зал после него (оба во всю ширину) | нет |
+| X05 | `portraits/nina_actress.jpg` | `theater`, «Труппа», карточка исполнительницы Нины | нет |
+| F05 | `fund/costumes.jpg` | `fund`, карточка «Вторая жизнь костюма» | нет; без брошей, шалей и перчаток (пропажи 2-08) |
+| F06, F07, X01 | `news/yama.jpg`, `news/hockey.jpg`, `news/library.jpg` | статьи `news-yama`, `news-hockey`, `news-library` (+ подписи); в `news-yama` последняя строка теперь «Фото прислал читатель…» | нет |
+| X04 | `lab/building.jpg`, `lab/prism.jpg` | `lab.yaml → photos` («О центре») | нет; «Самовар» не снимаем (фирменный вид настоящих приборов) |
+| F08 | `auction/snuffbox_lot.jpg` | `auction`, «Архив лотов», над карточками и таблицей, во всю ширину | **эхо fb2, не улика:** кадр позволяет опознать предмет 4-11 и строки реестра и показывает витринное «подлинник»; дно и клейма не видны, признаки копии — только в 4-11. Мелкая «примета копии» на фото отвергнута: (1) fb2 спрашивает, **кто знал** о копии, а не копия ли это — фото на это не отвечает; (2) отличать копию по фото без экспертизы нечестно к игрокам; (3) будь подделка видна на витрине, непонятно, почему её не заметила Вольская, и слабеет «знали только двое» |
+| X02 | `auction/lot-01.jpg`…`lot-03.jpg` | `auction`, карточки «Вещи с историей» (тексты — из таблицы архива) | нет |
+| X03 | `cloud/01.jpg`…`03.jpg` | `cloud`, новая папка «Фото» (между «Журналом входов» и «Для М.») | **нет, только атмосфера:** облако и так несёт f1, f4, fb2, fb3; кадр про Волкова, Завьялова, гримёрку № 4 или пароль стал бы вторым путём к ответу и новым фактом. Даты — до 20.10 (перенесены вместе с реестром), иначе журнал входов должен был бы показать загрузку файлов, как 03.11 для «Для М.» |
+| CV-6 | `krug-levin/cover.jpg` | `krug-levin`, профиль | нет |
 
-Отдельно (уже в `content/`, не предложение): **девять кадров Инны `S20`–`S28`** — сейчас в «Кадре» девять пустых плиток из двенадцати. Промпты — §4.4.
+Отдельно (не из предложений): **девять кадров Инны `S20`–`S28`** — сейчас в «Кадре» девять пустых плиток из двенадцати. Промпты — §4.4.
 
 Где точно **не** нужны новые фото: билет 3-07, уведомление 3-03, скриншоты чатов 4-06 и 4-12 — это графика, которую строит движок.
 
@@ -839,13 +1050,11 @@ Handheld selfie video with slight sway. The man speaks with clear lip movement i
 
 ## 6. Открытые вопросы
 
-1. **Снег в окне кабинета худрука (2-06: `S17`, `S18`).** На обоих кадрах за окном заснеженные ветки. А в новостях `news` и `news-yama` 11.11 (то же утро, 08:50): «синоптики обещают первый снег к выходным», «после того, как сойдёт снег, которого пока нет». Внимательный игрок заметит расхождение. Варианты: оставить (мелочь); перегенерировать окно без снега (серое небо, голые ветки); править новости на «первый снег выпал» (решение сценариста). Подпись и надписи на кадрах режиссёр наложит заново.
-2. **Kling:** названия кнопок, тариф для Avatar, максимальная длина аудио, расход кредитов, поддержка 9:16, выбор лица при двух героях — не проверены (§4.8). Всё проверяется на бесплатных кредитах до оплаты.
-3. **Разрешение 4-07:** в карточке файла заявлено 1920 × 1080. Если Kling даст меньше — апскейл допустим или сценарист поправит карточку на фактическое разрешение.
-4. **Согласия на клон голоса:** Громова (Юля), Резникова, Лёвин, Виктор (Антон), Кирилл (дядя Саша), а также лицо дедушки и бабушки — подтверждены ли? В документах отметки нет.
-5. **Имена в речи.** Звонок («Молдованов», «Тарасов») и голосовые («Артём», «Инна», «Алина», «Тёма») озвучены настоящими именами из `characters.yaml`; при смене имён (`import-cast`) переозвучить.
-6. **Расхождения старых документов (для сценариста и режиссёра):** `MEDIA-PLAN-A` §5–6 и `VOICE-VIDEO-3` пишут «клон XTTS-v2, делает оркестратор», а по решению автора голоса делает ElevenLabs (`TODO-AUTHOR`); `PHOTOS-2.md` §3 и `CLUE-MAP` §4.3 говорят «5 голосовых, у комментариев `audio` нет» (теперь 14 аудио, поле у комментариев есть); таблица реплик в `MEDIA-PLAN-A` §6 ещё с «Записал» (в бумаге 1-05 — «Записала»). Источник правды для статусов и промптов — этот документ, для сюжета — `content/` и `SCENARIO.md`.
-7. **VR-02:** экран телефона светится в сторону камеры (по промпту его не должно быть видно); текста на экране нет. Принято как есть, подтвердите.
+1. **Kling:** названия кнопок, тариф для Avatar, максимальная длина аудио, расход кредитов, поддержка 9:16, выбор лица при двух героях — не проверены (§4.8). Всё проверяется на бесплатных кредитах до оплаты.
+2. **Разрешение 4-07:** в карточке файла заявлено 1920 × 1080. Если Kling даст меньше — апскейл допустим или сценарист поправит карточку на фактическое разрешение.
+3. **Согласия на клон голоса:** Громова (Юля), Резникова, Лёвин, Виктор (Антон), Кирилл (дядя Саша), а также лицо дедушки и бабушки — подтверждены ли? В документах отметки нет.
+4. **Имена в речи.** Звонок («Молдованов», «Тарасов») и голосовые («Артём», «Инна», «Алина», «Тёма») озвучены настоящими именами из `characters.yaml`; при смене имён (`import-cast`) переозвучить.
+5. **Расхождения старых документов (для сценариста и режиссёра):** `MEDIA-PLAN-A` §5–6 и `VOICE-VIDEO-3` пишут «клон XTTS-v2, делает оркестратор», а по решению автора голоса делает ElevenLabs (`TODO-AUTHOR`); `PHOTOS-2.md` §3 и `CLUE-MAP` §4.3 говорят «5 голосовых, у комментариев `audio` нет» (теперь 14 аудио, поле у комментариев есть); таблица реплик в `MEDIA-PLAN-A` §6 ещё с «Записал» (в бумаге 1-05 — «Записала»). Источник правды для статусов и промптов — этот документ, для сюжета — `content/` и `SCENARIO.md`.
 
 ---
 
@@ -855,7 +1064,7 @@ Handheld selfie video with slight sway. The man speaks with clear lip movement i
 |---|---|---|
 | `docs/PROMPTS.md` | промпты P01–P14, S01–S19 (готовые кадры, оригиналы запросов и чек-листы) | история; здесь свежее по ⬜ и 🔁 |
 | `docs/drafts/pages/PHOTOS-2.md` | промпты аватарок, обложек, фото «из жизни», голосовых V1–V5 | история; готовое ✅ |
-| `docs/drafts/pages/PHOTOS.md` | F01–F08 (предложения ⏸ — промпты остаются там) | живой для ⏸ |
+| `docs/drafts/pages/PHOTOS.md` | F01–F08 (черновики предложений) | история; свежие промпты — §4.9 |
 | `docs/drafts/media/VOICE-VIDEO-3.md` | таблица голосовых, сценарии роликов, текст 4-07 | история; свежее здесь |
 | `docs/MEDIA-PLAN-A.md` | условия набора «А», образцы лиц, §6 звонок | справка |
 | `docs/MEDIA-AI-OPTIONS.md` | сервисы и цены | справка |
