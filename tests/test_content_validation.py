@@ -135,13 +135,13 @@ def test_missing_body_is_todo_not_error(root):
     assert ("content/pages/cloud/page.yaml", "folders[2].body") in missing
 
 
-def test_collect_todos():
-    c = load_content(CONTENT)
+def test_collect_todos(root):
+    # заглушки-значения в боевом content закрываются — подкладываем их в копию
+    edit_text(root, "pages/video/page.yaml", 'size: "1,4 МБ"', 'size: "TODO(content): размер"')
+    c = load_content(root)
     todos = collect_todos(c)
     kinds = {t.kind for t in todos}
     assert {"value", "comment"} <= kinds  # «text» и «missing-file» — в test_missing_body_is_todo_not_error
-    # имена фоновых и пароль облака заполнены 14.10.2026 — проверяем другие заглушки-значения
-    # привычка Кирилла и рабочий чат 4-06 заполнены 20.10.2026
     assert any(t.file == "content/pages/video/page.yaml" and t.loc == "file.size" and t.kind == "value" for t in todos)
     assert not any(t.file == "content/settings.yaml" and "домен" in t.text for t in todos)  # домен задан 20.10
     for t in todos:

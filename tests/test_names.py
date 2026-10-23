@@ -125,7 +125,9 @@ def test_cli_names():
     res = subprocess.run([sys.executable, "-m", "engine", "names"], cwd=ROOT, capture_output=True, timeout=60)
     assert res.returncode == 0, res.stderr.decode("utf-8", "replace")
     out = res.stdout.decode("utf-8")
-    assert "Завьялова" in out and "Гнедич" in out and "Сафронова" in out
+    persons = {c.id: Person(c) for c in load_content().characters}
+    for cid in ("zavyalov", "paramedic"):
+        assert persons[cid].last("gen") in out
 
 
 # ---------------------------------------------------------------- фамилия и отчество от отца

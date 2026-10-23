@@ -10,6 +10,7 @@ import pytest
 from engine import ROOT
 from engine.build import build
 from engine.check import check
+from engine.content import load_content
 from engine.hardnames import COMMON_WORD_NAMES, familiar_collisions, hardcoded_names
 from engine.models import Character
 
@@ -169,18 +170,20 @@ def test_check_warns_and_release_fails(tmp_path):
     cdir = tmp_path / "content"
     shutil.copytree(CONTENT, cdir)
     paper = sorted((cdir / "paper").glob("*.md"))[0]
-    paper.write_text(paper.read_text(encoding="utf-8") + "\nЗавьялов Юрий Викторович\n", encoding="utf-8")
+    zav = next(c for c in load_content(CONTENT).characters if c.id == "zavyalov")
+    full = f"{zav.last} {zav.first} {zav.middle}"
+    paper.write_text(paper.read_text(encoding="utf-8") + f"\n{full}\n", encoding="utf-8")
     kw = dict(content_dir=cdir, dist=tmp_path / "dist", salts_path=tmp_path / "salts.json")
     build(**kw)
     rep = check(**kw)
     row = next(r for r in rep.rows if r.name.startswith("10."))
     assert row.ok and rep.ok
-    assert any("«Завьялов Юрий Викторович» → {{ c.zavyalov.full() }}" in w for w in rep.warnings)
+    assert any(f"«{full}» → {{{{ c.zavyalov.full() }}}}" in w for w in rep.warnings)
     assert "Предупреждения" in rep.table()
     rep = check(**kw, release=True)
     row = next(r for r in rep.rows if r.name.startswith("10."))
     assert not row.ok
-    assert any(p.startswith("[10. Имена буквами] content/paper/") and "Завьялов Юрий Викторович" in p
+    assert any(p.startswith("[10. Имена буквами] content/paper/") and full in p
                for p in rep.problems)
 
 

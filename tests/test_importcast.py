@@ -136,8 +136,9 @@ def test_key_character_import(tmp_path, content):
     before = (content / "characters.yaml").read_bytes()
     rep = import_cast(path, content_root=content)
     assert rep.ok, problems(rep)
-    assert rep.changes == {"zavyalov": {"last": ("Завьялов", "Петров"), "first": ("Юрий", "Пётр"),
-                                        "middle": ("Викторович", "Петрович"), "age": (61, 70)}}
+    z = chars(content)["zavyalov"]
+    assert rep.changes == {"zavyalov": {"last": (z.last, "Петров"), "first": (z.first, "Пётр"),
+                                        "middle": (z.middle, "Петрович"), "age": (z.age, 70)}}
     assert '+    last: "Петров"' in rep.diff()
     assert (content / "characters.yaml").read_bytes() == before  # dry-run
 
