@@ -188,7 +188,7 @@ test.describe("телефон 360 px", () => {
     await openPage(page, "video");
     await expectClue(page.locator('[data-clue="filename"]'));
     await expect(page.locator('[data-clue="filename"]')).toHaveText("VID_20261108_141203.mp4");
-    await expect(page.getByText(/Изъято с телефона Волкова/)).toBeVisible();
+    await expect(page.getByText(/Изъято с телефона [А-ЯЁ][а-яё]+/)).toBeVisible();
     const created = page.locator('[data-clue="created"]');
     await expect(created).toBeHidden();
     await page.getByRole("button", { name: "Свойства файла" }).click();

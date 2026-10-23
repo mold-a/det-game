@@ -27,6 +27,7 @@ characters:
     last: "Тарасов"
     first: "Николай"
     middle: "Валентинович"
+    familiar: "Коля"        # дружеское имя: так его зовёт Воронцов в тёплом контексте (krug-zavyalov, S-88)
     gender: m
     age: 61
     photo: "portraits/zavyalov.jpg"

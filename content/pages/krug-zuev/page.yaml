@@ -32,7 +32,7 @@ posts:
       - { author: "{{ c.dmitriy.first() }} {{ c.dmitriy.last() }}", page: krug-gorohova, text: "{{ c.oleg.io() }}, вы говорили, что он дырявый." }
       - { author: "{{ c.oleg.first() }} {{ c.oleg.last() }}", page: krug-zuev, text: "это я про защиту {{ c.oleg.g('говорил', 'говорила') }}" }
   - datetime: "2026-10-18T15:33"            # жизнь
-    text: "картошку с внуком перебрали\nтри мешка\nговорит дед давай в магазине купим\nнет сынок"
+    text: "картошку с внуком перебрали\nтри мешка\nговорит {{ c.oleg.g('дед', 'бабушка') }} давай в магазине купим\nнет сынок"
     photo: "krug-zuev/01.jpg"              # ZU-01: мешки и ящики картошки в гараже
     likes: 44
     comments:

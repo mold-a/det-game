@@ -26,7 +26,7 @@ profile:
     - { person: volkov, page: krug-volkov }
 posts:
   - datetime: "2026-11-11T19:22"
-    text: "{{ c.voroncov.first() }}.\nТридцать лет я {{ c.gnedich.g('подшивал', 'подшивала') }} тебе брюки, а ты тридцать лет {{ c.voroncov.g('говорил', 'говорила') }}, что они рвутся сами.\nНе сами. Светлая память."
+    text: "{{ c.voroncov.first() }}.\nТридцать лет я {{ c.gnedich.g('подшивал', 'подшивала') }} тебе брюки, а ты тридцать лет {{ c.voroncov.g('говорил', 'говорила') }}, что они рвутся сами.\nРвались. Каждый сезон. Светлая память."
     likes: 142
     comments:
       - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "{{ c.gnedich.io() }}, {{ c.voroncov.g('он', 'она') }} всегда {{ c.voroncov.g('говорил', 'говорила') }}, что у вас золотые руки. И что брюки рвутся сами." }
@@ -36,7 +36,7 @@ posts:
     likes: 67
     comments:
       - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Какая красота!!! ✨✨✨" }
-      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Двадцать три. Записала." }
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Двадцать три. {{ c.reznikova.g('Записал', 'Записала') }}." }
   - datetime: "2026-10-14T18:09"
     text: "Шьём «{{ w.play.title }}». Артисты худеют и поправляются быстрее, чем я успеваю перешивать.\nДо премьеры — никаких пирожков. {{ c.inna.first() }}, это к вам."
     photo: "krug-gnedich/01.jpg"           # GN-01: швейная машина, фрак на манекене; без украшений и аксессуаров

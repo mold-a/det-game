@@ -29,11 +29,11 @@ posts:
     comments:
       - { author: "{{ c.viktor.first() }} {{ c.viktor.last() }}", page: krug-kuznecov, text: "Светлая память." }
   - datetime: "2026-11-05T22:37"
-    text: "До премьеры пять дней. Напоминаю:\n1. Текст — наизусть.\n2. Реквизит — на место.\n3. Телефоны — выключить.\n4. Кофе за кулисы — не носим.\nВопросы — ко мне."
+    text: "До премьеры пять дней. Напоминаю:\n1. Текст — наизусть.\n2. Реквизит — на место.\n3. Телефоны — без звука.\n4. Кофе за кулисы — не носим.\nВопросы — ко мне."
     likes: 64
     comments:
       - { author: "{{ c.stas.first() }} {{ c.stas.last() }}", page: krug-levin, text: "Я вам как {{ c.stas.g('артист', 'артистка') }} скажу: пункт четвёртый — это жестоко 🎭" }
-      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Поняла-поняла 🙈☕" }
+      - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "{{ c.inna.g('Понял-понял', 'Поняла-поняла') }} 🙈☕" }
   - datetime: "2026-10-25T12:06"            # жизнь
     text: "Сын, четырнадцать лет: «{{ c.reznikova.g('Пап', 'Мам') }}, ты даже список покупок нумеруешь».\nНумерую.\n1. Хлеб.\n2. Терпение."
     likes: 93
@@ -52,4 +52,4 @@ posts:
     comments:
       - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Хорошо {{ c.reznikova.io() }} 👌" }
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "буду вовремя!! 😁" }
-      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "{{ c.voroncov.first() }}, записала." }
+      - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "{{ c.voroncov.first() }}, {{ c.reznikova.g('записал', 'записала') }}." }

@@ -136,8 +136,8 @@ posts:
     photo: "krug-voroncov/01.jpg"          # VR-01
     likes: 145
     comments:
-      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Яблоки где?\nЯ спрашиваю для мамы...." }
-      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.kirill.first() }}, ведро у тебя в багажнике с обеда 😉" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Яблоки доехали.\nМама довольна...." }
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.kirill.first() }}, ещё бы, с обеда в багажнике 😉" }
   - datetime: "2026-10-05T17:20"
     text: "с днём учителя!!\nспасибо всем, кто меня когда-то терпел\nи {{ c.marina.first() }} — теперь {{ c.marina.g('он', 'она') }} сам{{ c.marina.g('', 'а') }} учитель и терпит других 😁"
     photo: null
