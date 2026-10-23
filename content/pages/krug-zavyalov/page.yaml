@@ -50,7 +50,7 @@ posts:
     photo: "krug-zavyalov/01.jpg"          # ZV-01: Завьялов с внуком в костюме дерева, лицо ребёнка скрыто
     likes: 156
     comments:
-      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.zavyalov.familiar }}, второе дерево — это уже карьера 😁\nпередай, что я в него верю" }
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.zavyalov.first() }}, второе дерево — это уже карьера 😁\nпередай, что я в него верю" }
       - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", page: krug-zavyalov, text: "{{ c.voroncov.familiar }}. Передам. Он просил автограф." }
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Неподвижно весь спектакль. Дисциплина — это семейное." }
   - datetime: "2026-09-27T10:52"            # жизнь
