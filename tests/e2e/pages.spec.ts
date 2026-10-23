@@ -351,13 +351,24 @@ test.describe("рабочие элементы: «Круг»", () => {
     await page.getByRole("link", { name: /Круг: главная/ }).click();
     await expect(page).toHaveURL(/\/p\/krug\/$/);
     const q = page.locator("#kr-q");
+    const status = page.locator('[data-role="status"]');
+    // Страница сама не показывает, кто в сети: пока запроса нет, виден только совет.
+    await expect(page.locator(".kr-person:visible")).toHaveCount(0);
+    await expect(status).toHaveText("Введите имя или фамилию");
+    await q.fill("гр");
+    await expect(page.locator(".kr-person:visible")).toHaveCount(0); // меньше трёх букв
     await q.fill("громова");
     await expect(page.locator(".kr-person:visible")).toHaveCount(1);
+    await q.fill("ГРОМ");
+    expect(await page.locator(".kr-person:visible").count()).toBeLessThanOrEqual(5);
+    await q.fill("мова"); // середина слова не ищется
+    await expect(page.locator(".kr-person:visible")).toHaveCount(0);
     await q.fill("нет такого человека");
     await expect(page.locator(".kr-person:visible")).toHaveCount(0);
-    await expect(page.locator('[data-role="empty"]')).toBeVisible();
+    await expect(status).toHaveText("Никого не нашли");
     await q.fill("");
-    await expect(page.locator(".kr-person:visible").nth(1)).toBeVisible(); // пустой запрос — видны все профили
+    await expect(page.locator(".kr-person:visible")).toHaveCount(0);
+    await expect(status).toHaveText("Введите имя или фамилию");
     await q.fill("громова");
     await page.locator(".kr-person:visible .kr-person__link").click();
     await expect(page).toHaveURL(/\/p\/gromov\/$/);

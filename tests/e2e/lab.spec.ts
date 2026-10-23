@@ -3,7 +3,7 @@
 // экспертиза −5, повтор без штрафа; заключение → «Мои заявки» и выбор вопроса типа
 // document; разделы сайта — вкладки с адресами.
 import { test, expect } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, labRequest, headerScore, article, objectText, openConclusion } from "./helpers";
+import { loadAnswers, startGame, playToStage, reachQuestion, labRequest, headerScore, article, objectText, openConclusion } from "./helpers";
 
 const A = loadAnswers();
 const S = A.settings;
@@ -86,6 +86,7 @@ test("заключение — в «Мои заявки» и в выборе в�
   test.skip(!target, "в контенте нет вопроса типа document с ответом-экспертизой");
   const lab = A.lab.find((l) => l.doc === target!.doc)!;
   const done = await playToStage(page, A, target!.stage);
+  await reachQuestion(page, A, target!.qpath); // вопросы идут по одному
 
   const select = article(page, target!.qpath).locator("select");
   const before = await select.first().locator("option").evaluateAll((o) => o.map((x) => (x as HTMLOptionElement).value));

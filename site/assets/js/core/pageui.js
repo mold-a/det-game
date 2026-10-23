@@ -37,10 +37,27 @@ export function sectionFromHash(hash, ids, fallback = ids[0]) {
   return ids.includes(decoded) ? decoded : fallback;
 }
 
-/** Какие имена подходят под запрос (без регистра, «ё», знаков препинания; подстрокой по словам). Пустой запрос — все. */
-export function filterNames(names, query) {
+/** Поиск людей на главной «Круга»: с какой длины запроса искать и сколько результатов показывать. */
+export const PEOPLE_MIN = 3;
+export const PEOPLE_MAX = 5;
+
+/**
+ * Поиск людей по запросу (docs/04, social_home). Без учёта регистра и «ё». Совпадение — по началу имени или
+ * фамилии (первые два слова ФИО; отчество не ищется); запрос из нескольких слов — каждое слово должно
+ * начинать имя или фамилию. Пустой или слишком короткий запрос ничего не показывает.
+ * → { status: "idle" | "short" | "none" | "found", indices: number[] } (индексы в порядке списка, не больше max).
+ */
+export function searchPeople(names, query, { min = PEOPLE_MIN, max = PEOPLE_MAX } = {}) {
   const q = base(query ?? "");
-  return names.map((n) => !q || base(n).includes(q));
+  if (!q) return { status: "idle", indices: [] };
+  if (q.replaceAll(" ", "").length < min) return { status: "short", indices: [] };
+  const words = q.split(" ");
+  const indices = [];
+  names.forEach((name, i) => {
+    const own = base(name).split(" ").slice(0, 2);
+    if (words.every((w) => own.some((o) => o.startsWith(w)))) indices.push(i);
+  });
+  return indices.length ? { status: "found", indices: indices.slice(0, max) } : { status: "none", indices: [] };
 }
 
 /** Сколько фото показывает галерея «О центре» (docs/04). */

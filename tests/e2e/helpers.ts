@@ -174,20 +174,58 @@ export async function labRequest(page: Page, e: LabEntry, basis?: string, text?:
   return labMessage(page);
 }
 
-/** Пройти этапы 1..target-1 без ошибок (с экспертизами каждого этапа); остановиться на этапе target. */
-export async function playToStage(page: Page, A: Answers, target: number, done = new Set<string>()) {
+/** Вопрос уже решён верно (на странице есть его участок со штампом). */
+async function isSolved(page: Page, path: string) {
+  const a = article(page, path);
+  return (await a.count()) > 0 && /q--solved/.test((await a.getAttribute("class")) ?? "");
+}
+
+/**
+ * Вопросы этапа открываются по одному (docs/01 «Поток этапа»): решить верно все обязательные вопросы этапа,
+ * идущие до вопроса `path`, — чтобы он появился на странице.
+ */
+export async function reachQuestion(page: Page, A: Answers, path: string) {
+  const st = A.stages.find((s) => s.questions.some((q) => q.path === path))!;
+  for (const q of st.questions.filter((x) => x.kind === "mandatory")) {
+    if (q.path === path) break;
+    if (!(await isSolved(page, q.path))) await solve(page, q);
+  }
+  await expect(article(page, path)).toBeVisible();
+}
+
+/**
+ * Пройти этап по одному вопросу: обязательные по порядку (последний — ключ следующего этапа), затем бонусы
+ * (bonus: "answer" — ответить на все верно; "skip" — «Пропустить бонусы и перейти к конверту №N»), затем окно конверта.
+ */
+export async function finishStage(page: Page, stage: { n: number; questions: Question[] }, bonus: "answer" | "skip" = "answer") {
+  const mand = stage.questions.filter((x) => x.kind === "mandatory");
+  const bonuses = stage.questions.filter((x) => x.kind === "bonus");
+  for (const q of mand.slice(0, -1)) if (!(await isSolved(page, q.path))) await solve(page, q);
+  const last = mand[mand.length - 1];
+  if (!(await isSolved(page, last.path))) {
+    await fillQuestion(page, last);
+    await submit(page, last.path);
+  }
+  if (bonuses.length) {
+    // Окно конверта ждёт: сначала бонусы этапа, по одному.
+    await expect(article(page, bonuses[0].path)).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".modal")).toHaveCount(0);
+    if (bonus === "answer") {
+      for (const q of bonuses) if (!(await isSolved(page, q.path))) await solve(page, q);
+    } else {
+      await page.getByRole("button", { name: /^Пропустить бонусы и перейти к конверту №\d+$/ }).click();
+    }
+  }
+  await envelopeOpened(page);
+  await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n + 1}`);
+}
+
+/** Пройти этапы 1..target-1 без ошибок (с экспертизами каждого этапа, бонусы — верно); остановиться на этапе target. */
+export async function playToStage(page: Page, A: Answers, target: number, done = new Set<string>(), bonus: "answer" | "skip" = "answer") {
   await startGame(page);
   for (const stage of A.stages.filter((s) => s.n < target)) {
     await labAll(page, A, stage.n, done);
-    for (const q of stage.questions.filter((x) => x.kind === "bonus")) await solve(page, q);
-    const mand = stage.questions.filter((x) => x.kind === "mandatory");
-    for (const q of mand.slice(0, -1)) await solve(page, q);
-    const last = mand[mand.length - 1];
-    await fillQuestion(page, last);
-    await submit(page, last.path);
-    await envelopeOpened(page);
-    await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n + 1}`);
-    await openQuestions(page);
+    await finishStage(page, stage, bonus);
   }
   return done;
 }

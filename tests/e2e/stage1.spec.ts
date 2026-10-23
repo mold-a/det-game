@@ -1,55 +1,83 @@
 // P04: прохождение этапа 1 правильными ответами; неверный ответ −5, повтор — без штрафа;
 // перезагрузка не теряет прогресс. Ответы — из tests/.answers.json.
 import { test, expect } from "@playwright/test";
-import { loadAnswers, startGame, article, fillQuestion, submit, solve, headerScore, envelopeOpened, envelopeOpenedOnly, scoreLog } from "./helpers";
+import { loadAnswers, startGame, reachQuestion, article, fillQuestion, submit, solve, headerScore, envelopeOpened, envelopeOpenedOnly, scoreLog } from "./helpers";
 
 const A = loadAnswers();
 const stage1 = A.stages[0];
 const penalty = A.settings.penalties.wrongAttempt;
 
-test("этап 1: штраф за неверный ответ, повтор без штрафа, переход к этапу 2", async ({ page }) => {
+test("этап 1: вопросы по одному, штраф за неверный ответ, повтор без штрафа, бонус, переход к этапу 2", async ({ page }) => {
   await startGame(page);
   expect(await headerScore(page)).toBe(0);
 
+  const mandatory = stage1.questions.filter((q) => q.kind === "mandatory");
   const order = stage1.questions.find((q) => q.type === "order")!;
-  await fillQuestion(page, order, order.wrong[0]);
-  await submit(page, order.path);
-  await expect(article(page, order.path).locator(".q__msg")).toHaveText(/не подтверждается/);
-  expect(await headerScore(page)).toBe(penalty);
+  const form = stage1.questions.find((q) => q.type === "form")!;
+  expect(mandatory.indexOf(form)).toBe(0); // порядок из content: форма первая, порядок карточек — дальше
+  expect(mandatory.indexOf(order)).toBeGreaterThan(0);
 
-  await fillQuestion(page, order, order.wrong[0]);
-  await submit(page, order.path);
-  await expect(article(page, order.path).locator(".q__msg")).toHaveText("Этот ответ уже проверяли.");
-  expect(await headerScore(page)).toBe(penalty);
+  // Виден только первый вопрос; следующие скрыты целиком (даже заголовком), вместо них — одна строка.
+  await expect(page.locator("article[data-path]")).toHaveCount(1);
+  await expect(article(page, form.path)).toBeVisible();
+  await expect(article(page, order.path)).toHaveCount(0);
+  await expect(page.getByText("Следующий вопрос откроется после ответа на текущий")).toHaveCount(1);
+  await expect(page.getByText("Бонусные вопросы")).toHaveCount(0);
 
   // Неформатный ввод — не попытка.
-  const form = stage1.questions.find((q) => q.type === "form")!;
   const bad = Object.fromEntries(form.fields!.map((f) => [f.id, f.input]));
   bad[form.fields!.find((f) => f.type === "time")!.id] = "25:70";
   await fillQuestion(page, form, bad);
   await submit(page, form.path);
   await expect(article(page, form.path).locator(".q__msg")).toHaveText(/ЧЧ:ММ/);
+  expect(await headerScore(page)).toBe(0);
+  await expect(article(page, order.path)).toHaveCount(0);
+
+  // Неверный ответ — штраф, следующий вопрос не открывается; повтор — без штрафа.
+  const wrongForm = Object.fromEntries(form.fields!.map((f) => [f.id, f.wrong[0]]));
+  await fillQuestion(page, form, wrongForm);
+  await submit(page, form.path);
+  await expect(article(page, form.path).locator(".q__msg")).toHaveText(/не подтверждается/);
+  expect(await headerScore(page)).toBe(penalty);
+  await expect(article(page, order.path)).toHaveCount(0);
+  await fillQuestion(page, form, wrongForm);
+  await submit(page, form.path);
+  await expect(article(page, form.path).locator(".q__msg")).toHaveText("Этот ответ уже проверяли.");
   expect(await headerScore(page)).toBe(penalty);
 
-  // Бонус — до перехода, затем обязательные.
-  for (const q of stage1.questions.filter((x) => x.kind === "bonus")) {
-    await solve(page, q);
-  }
-  const bonusPts = A.settings.points.bonus * stage1.questions.filter((x) => x.kind === "bonus").length;
-  expect(await headerScore(page)).toBe(penalty + bonusPts);
+  // Верно — штамп, и только теперь появляется следующий вопрос; прежний остаётся выше.
+  await solve(page, form);
+  await expect(article(page, form.path).locator(".stamp")).toBeVisible();
+  await expect(article(page, order.path)).toBeVisible();
+  await expect(page.locator("article[data-path]")).toHaveCount(2);
+  await expect(page.getByText("Следующий вопрос откроется после ответа на текущий")).toHaveCount(mandatory.length > 2 ? 1 : 0);
 
-  const mandatory = stage1.questions.filter((q) => q.kind === "mandatory");
-  for (const q of mandatory.slice(0, -1)) await solve(page, q);
+  // Подсказка и ввод — только у видимого текущего вопроса.
+  await expect(article(page, form.path).getByRole("button", { name: /Подсказка/ })).toHaveCount(0);
+  await expect(article(page, order.path).getByRole("button", { name: /Подсказка/ })).toHaveCount(1);
+
+  // Последний обязательный: ключ получен, но окно конверта ждёт бонусов этапа.
+  for (const q of mandatory.slice(2, -1)) await solve(page, q);
   const last = mandatory[mandatory.length - 1];
   await fillQuestion(page, last);
   await submit(page, last.path);
+  const bonuses = stage1.questions.filter((x) => x.kind === "bonus");
+  await expect(article(page, bonuses[0].path)).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator(".modal")).toHaveCount(0);
+  await expect(page.locator("#stage-title")).toHaveText("Этап 1");
+  await expect(page.getByRole("button", { name: /^Пропустить бонусы и перейти к конверту №2$/ })).toBeVisible();
+
+  // Бонус: ответ → окно «Откройте конверт №2».
+  for (const q of bonuses) await solve(page, q);
+  const bonusPts = A.settings.points.bonus * bonuses.length;
   await expect(page.locator(".modal")).toContainText("2", { timeout: 30_000 });
   await envelopeOpened(page);
   await expect(page.locator("#stage-title")).toHaveText("Этап 2");
+  expect(await headerScore(page)).toBe(penalty + bonusPts);
 
   // Журнал баллов: одна запись штрафа, бонус.
   await page.locator(".scorelog__summary").click();
-  await expect(page.locator(".scorelog tbody tr")).toHaveCount(1 + stage1.questions.filter((x) => x.kind === "bonus").length);
+  await expect(page.locator(".scorelog tbody tr")).toHaveCount(1 + bonuses.length);
 
   // Перезагрузка не теряет прогресс и не показывает конверт повторно.
   await page.reload();
@@ -62,6 +90,7 @@ test("этап 1: штраф за неверный ответ, повтор бе
 test("три ошибки → бесплатная подсказка; покупка уровней 2 и 3 по порядку", async ({ page }) => {
   await startGame(page);
   const order = stage1.questions.find((q) => q.type === "order")!;
+  await reachQuestion(page, A, order.path);
   const N = A.settings.hints.autoAfterWrong;
   for (let i = 0; i < N; i++) {
     await fillQuestion(page, order, order.wrong[i]);

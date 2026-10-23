@@ -2,7 +2,7 @@
 // 1280 px (и тёмная тема) и проверка отсутствия горизонтальной прокрутки.
 // Скриншоты — в test-results/ (вложения отчёта). Вымышленные страницы — pages.spec (P06).
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, labAll, fillQuestion, submit, article, openConclusion } from "./helpers";
+import { loadAnswers, startGame, reachQuestion, playToStage, labAll, fillQuestion, submit, article, openConclusion } from "./helpers";
 
 const A = loadAnswers();
 test.setTimeout(240_000);
@@ -42,6 +42,7 @@ for (const w of WIDTHS) {
     // Этап 1 с ошибкой и подсказкой, окно подсказки, меню.
     await startGame(page);
     const order = A.stages[0].questions.find((q) => q.type === "order")!;
+    await reachQuestion(page, A, order.path);
     await fillQuestion(page, order, order.wrong[0]);
     await submit(page, order.path);
     await expect(article(page, order.path).locator(".q__msg")).toBeVisible();

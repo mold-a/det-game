@@ -3,7 +3,7 @@
 // меняется до конца), итоги с рангом и разбором, развязка.
 // Итог: expected.perfectRunScore минус один штраф за пустую экспертизу.
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, solve, fillQuestion, submit, article, envelopeOpened, labRequest, headerScore, objectText } from "./helpers";
+import { loadAnswers, startGame, finishStage, fillQuestion, submit, article, labRequest, headerScore, objectText } from "./helpers";
 
 const A = loadAnswers();
 const S = A.settings;
@@ -44,14 +44,7 @@ test("полная игра: этапы, лаборатория, финал, и�
   for (const stage of A.stages.slice(0, -1)) {
     await labStage(page, stage.n, done);
     await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n}`);
-    for (const q of stage.questions.filter((x) => x.kind === "bonus")) await solve(page, q);
-    const mand = stage.questions.filter((x) => x.kind === "mandatory");
-    for (const q of mand.slice(0, -1)) await solve(page, q);
-    const last = mand[mand.length - 1];
-    await fillQuestion(page, last);
-    await submit(page, last.path);
-    await envelopeOpened(page);
-    await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n + 1}`);
+    await finishStage(page, stage);
   }
 
   const lastStage = A.stages[A.stages.length - 1];

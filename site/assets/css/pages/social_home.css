@@ -81,11 +81,15 @@
   color: var(--kr-muted);
 }
 
-.kr-find__count {
+.kr-find__status {
   min-height: 1.5em;
   margin: 8px 0 4px;
   color: var(--kr-muted);
   font-size: 14px;
+}
+
+.kr-person[hidden] {
+  display: none;
 }
 
 .kr-people {

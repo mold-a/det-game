@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { nextTabIndex, sectionFromHash, filterNames, labPhotos, LAB_PHOTOS_MAX } from "../../site/assets/js/core/pageui.js";
+import { nextTabIndex, sectionFromHash, searchPeople, PEOPLE_MIN, PEOPLE_MAX, labPhotos, LAB_PHOTOS_MAX } from "../../site/assets/js/core/pageui.js";
 
 test("nextTabIndex: стрелки зациклены, Home/End, чужая клавиша — null", () => {
   assert.equal(nextTabIndex("ArrowRight", 2, 3), 0);
@@ -20,13 +20,38 @@ test("sectionFromHash: известный раздел, пустой и чужо
   assert.equal(sectionFromHash("#k=abc", ids), "afisha"); // ключ страницы — не раздел
 });
 
-test("filterNames: регистр, «ё», подстрока, пустой запрос", () => {
-  const names = ["Громова Елена Петровна", "Вольская Тамара", "Сазонов Глеб"];
-  assert.deepEqual(filterNames(names, "ГРОМ"), [true, false, false]);
-  assert.deepEqual(filterNames(names, "елена"), [true, false, false]);
-  assert.deepEqual(filterNames(["Фёдоров Артём"], "федоров артем"), [true]);
-  assert.deepEqual(filterNames(names, ""), [true, true, true]);
-  assert.deepEqual(filterNames(names, "ничего"), [false, false, false]);
+const PEOPLE = ["Громова Елена Петровна", "Вольская Тамара", "Сазонов Глеб", "Фёдоров Артём", "Громов Игорь", "Елена Прекрасная"];
+
+test("searchPeople: пустой запрос и короче трёх букв — ничего", () => {
+  assert.equal(PEOPLE_MIN, 3);
+  assert.deepEqual(searchPeople(PEOPLE, ""), { status: "idle", indices: [] });
+  assert.deepEqual(searchPeople(PEOPLE, "   "), { status: "idle", indices: [] });
+  assert.deepEqual(searchPeople(PEOPLE, "гр"), { status: "short", indices: [] });
+  assert.deepEqual(searchPeople(PEOPLE, "г р"), { status: "short", indices: [] });
+  assert.deepEqual(searchPeople(PEOPLE, "-,."), { status: "idle", indices: [] }); // одни знаки — как пустой
+});
+
+test("searchPeople: начало имени или фамилии, без регистра и «ё»", () => {
+  assert.deepEqual(searchPeople(PEOPLE, "ГРОМ"), { status: "found", indices: [0, 4] });
+  assert.deepEqual(searchPeople(PEOPLE, "тамар").indices, [1]); // имя
+  assert.deepEqual(searchPeople(PEOPLE, "вольс").indices, [1]); // фамилия
+  assert.deepEqual(searchPeople(PEOPLE, "федоров артем").indices, [3]); // «ё», два слова
+  assert.deepEqual(searchPeople(PEOPLE, "елена гром").indices, [0]); // слова в любом порядке
+});
+
+test("searchPeople: подстрока внутри слова и отчество не считаются", () => {
+  assert.equal(searchPeople(PEOPLE, "мова").status, "none"); // середина слова
+  assert.equal(searchPeople(PEOPLE, "петров").status, "none"); // отчество
+  assert.deepEqual(searchPeople(PEOPLE, "ничего"), { status: "none", indices: [] });
+});
+
+test("searchPeople: не больше пяти результатов, в порядке списка", () => {
+  assert.equal(PEOPLE_MAX, 5);
+  const many = Array.from({ length: 9 }, (_, i) => `Иванов Иван${i}`);
+  const r = searchPeople(many, "иван");
+  assert.equal(r.status, "found");
+  assert.deepEqual(r.indices, [0, 1, 2, 3, 4]);
+  assert.deepEqual(searchPeople(many, "иван", { max: 2 }).indices, [0, 1]);
 });
 
 test("labPhotos: только открытые адреса /m/, не больше трёх, подпись и запасной alt", () => {

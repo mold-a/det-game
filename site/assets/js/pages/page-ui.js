@@ -11,11 +11,14 @@
 // Подключается и открытыми страницами (open.js → init(document)), и закрытыми (shell.js → init(#page-content)).
 // Фото крупно — нативный <dialog> (фокус внутри, Esc, возврат фокуса на кнопку); без showModal — запасной вариант.
 
-import { nextTabIndex, sectionFromHash, filterNames } from "../core/pageui.js";
+import { nextTabIndex, sectionFromHash, searchPeople } from "../core/pageui.js";
 
 const TEXT = {
   close: "Закрыть",
   found: (n) => `Найдено: ${n}`,
+  hint: "Введите имя или фамилию",
+  short: "Введите не меньше трёх букв",
+  none: "Никого не нашли",
 };
 
 const native = typeof HTMLDialogElement === "function" && typeof HTMLDialogElement.prototype.showModal === "function";
@@ -176,18 +179,19 @@ function setupPeopleSearch(box) {
   const input = box.querySelector('[data-role="q"]');
   const items = Array.from(box.querySelectorAll(".kr-person"));
   if (!input) return;
-  const count = box.querySelector('[data-role="count"]');
-  const empty = box.querySelector('[data-role="empty"]');
+  const status = box.querySelector('[data-role="status"]');
   const clear = box.querySelector('[data-role="clear"]');
   const names = items.map((el) => el.dataset.name || "");
+  // Список людей сам ничего не показывает: только результаты запроса (до PEOPLE_MAX).
   const apply = () => {
-    const ok = filterNames(names, input.value);
-    items.forEach((el, i) => (el.hidden = !ok[i]));
-    const n = ok.filter(Boolean).length;
-    const active = input.value.trim() !== "";
-    if (count) count.textContent = active ? TEXT.found(n) : "";
-    if (empty) empty.hidden = n > 0;
-    if (clear) clear.hidden = !active;
+    const r = searchPeople(names, input.value);
+    const shown = new Set(r.indices);
+    items.forEach((el, i) => (el.hidden = !shown.has(i)));
+    if (status) {
+      status.textContent = { idle: TEXT.hint, short: TEXT.short, none: TEXT.none, found: TEXT.found(r.indices.length) }[r.status];
+      status.classList.toggle("is-none", r.status === "none");
+    }
+    if (clear) clear.hidden = input.value.trim() === "";
   };
   input.addEventListener("input", apply);
   clear?.addEventListener("click", () => {

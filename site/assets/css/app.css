@@ -958,6 +958,53 @@ html:has(.app-header) {
   margin-top: var(--sp-4);
 }
 
+/* Скрытые вопросы: вместо них одна строка (docs/01 «Поток этапа»), без заголовка и номера. */
+.q-locked {
+  margin: var(--sp-4) var(--sp-4) var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius, 4px);
+  color: var(--muted);
+  font-size: var(--fs-1);
+}
+
+.passed__body > .q-locked {
+  margin-inline: 0;
+}
+
+/* Бонусы после обязательных: пропустить и перейти к следующему конверту. */
+.bonus-skip {
+  display: grid;
+  justify-items: start;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+
+.bonus-skip__hint {
+  margin: 0;
+  max-width: 38em;
+  color: var(--muted);
+  font-size: var(--fs-1);
+}
+
+.bonus-skip__btn {
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+}
+
+@media (min-width: 600px) {
+  .q-locked {
+    margin-left: calc(4rem + var(--sp-4));
+    margin-right: var(--sp-5);
+  }
+  .bonus-skip {
+    padding-left: calc(4rem + var(--sp-4));
+    padding-right: var(--sp-5);
+  }
+}
+
 .q__actions {
   display: flex;
   flex-wrap: wrap;

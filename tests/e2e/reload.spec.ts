@@ -10,10 +10,8 @@ test("перезагрузка посреди этапа 3", async ({ page }) =>
   await labAll(page, A, 3, done);
   const st = A.stages.find((s) => s.n === 3)!;
   const mand = st.questions.filter((q) => q.kind === "mandatory");
-  const bonus = st.questions.find((q) => q.kind === "bonus")!;
 
   await solve(page, mand[0]);
-  await solve(page, bonus);
   const wrongQ = mand[1];
   await fillQuestion(page, wrongQ, wrongQ.type === "form" ? Object.fromEntries(wrongQ.fields!.map((f) => [f.id, f.wrong[0]])) : wrongQ.wrong[0]);
   await submit(page, wrongQ.path);
@@ -29,9 +27,10 @@ test("перезагрузка посреди этапа 3", async ({ page }) =>
   expect(await headerScore(page)).toBe(score);
   await expect(article(page, mand[0].path)).toHaveClass(/q--solved/);
   await expect(article(page, mand[0].path).locator(".stamp")).toBeVisible();
-  await expect(article(page, bonus.path)).toHaveClass(/q--solved/);
   await expect(article(page, wrongQ.path).locator(".q__meta")).toHaveText("Неверных попыток: 1");
   await expect(article(page, wrongQ.path).locator(".hints__item")).toHaveCount(1);
+  // Вопросы идут по одному: третий обязательный после перезагрузки по-прежнему скрыт.
+  await expect(article(page, mand[2].path)).toHaveCount(0);
   await expect(page.locator("details.passed")).toHaveCount(2);
   // Заключения после перезагрузки — в «Мои заявки» на сайте лаборатории.
   await page.goto("/lab/#orders");

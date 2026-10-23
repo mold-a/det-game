@@ -19,7 +19,8 @@ test("две вкладки: запрос в лаборатории виден �
   const q = A.stages[0].questions.find((x) => x.type === "order")!;
   // Фоновая вкладка не рисует кадры (rAF): действия Playwright ждут видимую вкладку.
   await page.bringToFront();
-  const { fillQuestion, submit } = await import("./helpers");
+  const { fillQuestion, submit, reachQuestion } = await import("./helpers");
+  await reachQuestion(page, A, q.path);
   await fillQuestion(page, q, q.wrong[0]);
   await submit(page, q.path);
   await expect.poll(() => headerScore(lab)).toBe(A.settings.penalties.labNoBasis + A.settings.penalties.wrongAttempt);

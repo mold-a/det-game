@@ -1,5 +1,6 @@
 {# social_home — главная «Круга»: поиск людей по открытым профилям этапа 1 и «Популярное в городе».
-   Поиск работает на странице (pages/page-ui.js, [data-people-search]); без JS виден весь список. #}
+   Страница сама не показывает, кто в сети: профили лежат скрытыми и появляются только как результат запроса
+   (от 3 букв, по началу имени или фамилии, не больше 5; pages/page-ui.js, [data-people-search]). #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 {% set bar_search = false %}
@@ -18,11 +19,11 @@
       <input class="kr-find__input" id="kr-q" type="search" name="q" placeholder="Имя или фамилия" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" data-role="q">
       <button class="kr-btn kr-btn--primary kr-find__clear" type="button" data-role="clear" hidden>Сбросить</button>
     </div>
-    <p class="kr-find__count" data-role="count" role="status" aria-live="polite"></p>
+    <p class="kr-find__status" data-role="status" role="status" aria-live="polite">Введите имя или фамилию</p>
     {% if directory %}
     <ul class="kr-people" role="list" data-role="list">
       {% for p in directory %}
-      <li class="kr-person" data-name="{{ p.name }}">
+      <li class="kr-person" data-name="{{ p.name }}" hidden>
         <a class="kr-person__link" href="{{ link(p.page) }}">
           <span class="kr-person__ava" aria-hidden="true">{{ p.name[:1] }}</span>
           <span class="kr-person__text"><b class="kr-person__name">{{ p.name }}</b>{% if p.position %}<span class="kr-person__pos">{{ p.position }}</span>{% endif %}</span>
@@ -31,7 +32,6 @@
       {% endfor %}
     </ul>
     {% endif %}
-    <p class="kr-empty" data-role="empty"{% if directory %} hidden{% endif %}>Никого не найдено. Профили с ограниченным доступом в поиске не показываются.</p>
   </section>
 
   {% if page.popular %}

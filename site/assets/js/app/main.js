@@ -14,6 +14,7 @@ import { LAB_HREF } from "./menu.js";
 import { renderHeader } from "./header.js";
 import { initPage, loadProgress, renderLoadError, renderShell, renderFatal, rulesCfg, safeLocalStorage } from "./context.js";
 import * as S from "../core/state.js";
+import { stageFlow, pendingBonuses, viewStage } from "../core/flow.js";
 import {
   startKey,
   openPack,
@@ -21,7 +22,6 @@ import {
   wrongHash,
   isStageComplete,
   nextStageKey,
-  bonuses,
 } from "../core/game.js";
 import { b64uEncode } from "../core/crypto.js";
 import { makeLabelFor } from "./labels.js";
@@ -44,6 +44,12 @@ let views = new Map(); // qpath → { q, n, idx, view }
 /** Черновики: незаконченный ввод по пути вопроса, переживает перерисовку страницы. */
 const drafts = new Map();
 let envelopeShown = false;
+/** Что показать на вопросе после перерисовки страницы: { animate, note } по пути вопроса (расходуется один раз). */
+const effects = new Map();
+/** Этап, на котором экран удерживается до «Конверт вскрыт» (после последнего бонуса показываем его результат). */
+let holdStage = null;
+/** Пройденные этапы, раскрытые пользователем. */
+const openPassed = new Set();
 
 /** Запомнить ввод всех открытых вопросов перед перерисовкой. */
 function saveDrafts() {
@@ -210,7 +216,9 @@ function renderGame() {
     main.appendChild(h("p", { class: "notice" }, T.final.finished, " ", h("a", { href: "/final/" }, T.final.toResults)));
   }
 
-  const n = state.stage;
+  // Экран остаётся на пройденном этапе, пока не отвечены (или не пропущены) его бонусы: до окна «Откройте конверт».
+  const n = holdStage ?? viewStage(state, packs);
+  const bonusPhase = n < state.stage;
   const pack = packs[n];
   const last = n === ctx.pub.stages;
   const titleId = "stage-title";
@@ -234,7 +242,7 @@ function renderGame() {
     // Вопросы скрыты за кнопкой, пока команда не изучит документы конверта.
     sheet.appendChild(renderGate(n));
   } else {
-    fillQuestions(sheet, state, packs, n, last);
+    fillQuestions(sheet, state, packs, n, last, bonusPhase);
   }
   main.appendChild(sheet);
 
@@ -245,8 +253,11 @@ function renderGame() {
   side.appendChild(renderScoreLog(state, { labelFor }));
 }
 
-/** Вопросы текущего этапа и открытые бонусы прошлых этапов в бланке ответов. */
-function fillQuestions(sheet, state, packs, n, last) {
+/**
+ * Вопросы этапа по одному (docs/01 «Поток этапа»): решённые остаются выше со штампом, текущий — с полем ввода,
+ * остальные скрыты вовсе. Бонусы — после последнего обязательного, тоже по одному.
+ */
+function fillQuestions(sheet, state, packs, n, last, bonusPhase) {
   const pack = packs[n];
   if (last) {
     sheet.appendChild(
@@ -257,24 +268,30 @@ function fillQuestions(sheet, state, packs, n, last) {
         h("div", { class: "q__actions" }, h("a", { class: "btn btn--primary", href: "/final/" }, state.finished ? T.final.toResults : T.final.toFinal)),
       ),
     );
-  } else {
-    const mand = pack.questions.filter((q) => q.kind === "mandatory");
+    return;
+  }
+  const flow = stageFlow(pack, state.units);
+  if (flow.mandatory.shown.length) {
     sheet.appendChild(h("h3", { class: "group-title" }, T.stage.mandatory));
-    for (const q of mand) sheet.appendChild(questionView(pack, q).el);
+    for (const q of flow.mandatory.shown) sheet.appendChild(questionView(pack, q).el);
+    if (flow.mandatory.hidden) sheet.appendChild(lockedRow());
   }
-
-  // Бонусы: текущего этапа (кроме финального) и неотвеченные прошлых — пока не начат финал.
-  const openBonuses = [];
-  for (let k = 1; k <= n; k++) {
-    if (k === ctx.pub.stages) continue;
-    for (const q of bonuses(packs[k])) {
-      if (k === n || (!state.units[q.path] && !state.final.started)) openBonuses.push([packs[k], q]);
-    }
-  }
-  if (openBonuses.length) {
+  if (flow.bonus.shown.length) {
     sheet.appendChild(h("h3", { class: "group-title" }, T.stage.bonus));
-    for (const [p, q] of openBonuses) sheet.appendChild(questionView(p, q).el);
+    for (const q of flow.bonus.shown) sheet.appendChild(questionView(pack, q).el);
+    if (flow.bonus.hidden) sheet.appendChild(lockedRow());
   }
+  if (bonusPhase && pendingBonuses(pack, state).length) {
+    const next = packs[pack.n + 1];
+    const skip = h("button", { type: "button", class: "btn btn--secondary bonus-skip__btn" }, T.stage.skipBonuses(next?.envelope ?? pack.n + 1));
+    skip.addEventListener("click", () => showPendingEnvelope({ skip: true }));
+    sheet.appendChild(h("div", { class: "bonus-skip" }, h("p", { class: "bonus-skip__hint" }, T.stage.bonusPhase(pack.n)), skip));
+  }
+}
+
+/** Строка вместо скрытых вопросов: ни заголовка, ни числа — только напоминание о порядке. */
+function lockedRow() {
+  return h("p", { class: "q-locked" }, T.stage.nextLocked);
 }
 
 /** Кнопка «Перейти к вопросам» с подписью; подтверждение — окно системы. */
@@ -371,10 +388,18 @@ function renderLetter(pack) {
 
 function renderPassed(pack) {
   const { state } = game;
+  const flow = stageFlow(pack, state.units);
+  const pending = pendingBonuses(pack, state);
+  const visible = new Set([...flow.mandatory.shown, ...flow.bonus.shown].map((q) => q.path));
   const body = h("div", { class: "passed__body" });
   for (const q of pack.questions) {
+    if (!visible.has(q.path)) continue;
     const unit = state.units[q.path];
-    if (!unit && q.kind === "bonus") continue; // открытый бонус показан выше
+    if (!unit && q.kind === "bonus") {
+      // Неотвеченный бонус прошлого этапа (пропущен или остался от старого сохранения): по одному, в своём этапе.
+      if (pending.includes(q)) body.appendChild(questionView(pack, q).el);
+      continue;
+    }
     const v = renderQuestion(q, {
       number: questionNumber(pack, q),
       unit: unit ?? { status: "open" },
@@ -386,12 +411,27 @@ function renderPassed(pack) {
     });
     body.appendChild(v.el);
   }
-  return h("details", { class: "passed" }, h("summary", null, `${T.stage.passed(pack.n)} — ${T.stage.passedAnswers.toLowerCase()}`), body);
+  if (pending.length && flow.bonus.hidden) body.appendChild(lockedRow());
+  const title = `${T.stage.passed(pack.n)} — ${T.stage.passedAnswers.toLowerCase()}`;
+  const det = h(
+    "details",
+    { class: ["passed", pending.length && "passed--bonus"], open: pending.length > 0 || openPassed.has(pack.n) },
+    h("summary", null, pending.length ? `${title} · ${T.stage.passedBonus}` : title),
+    body,
+  );
+  det.addEventListener("toggle", () => {
+    if (det.open) openPassed.add(pack.n);
+    else openPassed.delete(pack.n);
+  });
+  return det;
 }
 
 // ------------------------------------------------------------------ вопрос
 
-function questionView(pack, q, { animate = false, note = null } = {}) {
+function questionView(pack, q, opts = {}) {
+  const fx = effects.get(q.path);
+  effects.delete(q.path);
+  const { animate = fx?.animate ?? false, note = fx?.note ?? null } = opts;
   const { state } = game;
   const unit = state.units[q.path];
   const v = renderQuestion(q, {
@@ -472,8 +512,17 @@ async function onCheck(pack, q, inputs) {
     });
     const text = already ? T.result.repeat : r.correct ? T.result.bonusRight(ctx.pub.points.bonus) : T.result.bonusWrong;
     const ok = !already && r.correct;
-    refresh(pack, q, { animate: ok, note: { text, kind: already ? "info" : r.correct ? "info" : "error" } });
+    const note = { text, kind: already ? "info" : r.correct ? "info" : "error" };
     announce(text);
+    // Ответ на бонус (верный или нет) открывает следующий. Отвечен последний бонус пройденного этапа — окно конверта.
+    effects.set(q.path, { animate: ok, note });
+    if (game.state.stage > pack.n && S.pendingEnvelope(game.state) === pack.n + 1 && !pendingBonuses(pack, game.state).length) {
+      holdStage = pack.n;
+      rerender(pack, null);
+      await showPendingEnvelope({ note: text });
+      return;
+    }
+    rerender(pack, stageFlow(pack, game.state.units).current);
     return;
   }
 
@@ -502,8 +551,11 @@ async function onCheck(pack, q, inputs) {
 
   // Верно
   commit((s) => S.solve(s, q.path, r.canon));
+  const accepted = { animate: true, note: { text: T.result.accepted, kind: "info" } };
   if (!isStageComplete(pack, game.state.units) || !pack.saltStage) {
-    refresh(pack, q, { animate: true, note: { text: T.result.accepted, kind: "info" } });
+    // Следующий вопрос появляется только после верного ответа на этот.
+    effects.set(q.path, accepted);
+    rerender(pack, stageFlow(pack, game.state.units).current);
     announce(T.result.accepted);
     return;
   }
@@ -518,25 +570,47 @@ async function onCheck(pack, q, inputs) {
     renderFatal(ctx, { text: T.errors.pack, reload: true, restart: true });
     return;
   }
+  effects.set(q.path, accepted);
   await reload();
+  // Если у этапа есть неотвеченные бонусы — они идут первыми, окно конверта покажет showPendingEnvelope после них.
+  const bonusNext = stageFlow(pack, game.state.units).current;
+  if (bonusNext && viewStage(game.state, game.packs) === pack.n) focusQuestion(bonusNext);
   await showPendingEnvelope();
+}
+
+/** Перерисовать экран после изменения набора видимых вопросов и поставить фокус на следующий вопрос. */
+function rerender(pack, focusPath) {
+  const y = window.scrollY;
+  renderGame();
+  window.scrollTo(0, y);
+  if (focusPath) focusQuestion(focusPath);
+}
+
+function focusQuestion(path) {
+  const el = document.querySelector(`article[data-path="${CSS.escape(path)}"]`);
+  el?.querySelector("input, select, button")?.focus({ preventScroll: false });
 }
 
 // ------------------------------------------------------------------ конверт
 
-async function showPendingEnvelope() {
+/**
+ * Окно «Откройте конверт №N». Пока у пройденного этапа остаются бонусы, окно не показывается
+ * (экран держит этот этап); skip — «Пропустить бонусы и перейти к конверту №N».
+ */
+async function showPendingEnvelope({ skip = false, note = null } = {}) {
   const n = S.pendingEnvelope(game.state);
   if (!n || envelopeShown) return;
+  if (!skip && holdStage === null && viewStage(game.state, game.packs) < n) return;
   const prev = game.packs[n - 1];
   const env = game.packs[n].envelope;
-  await envelopeModal({ title: prev?.onComplete || T.result.acceptedEnvelope(env), envelope: env, ack: n });
+  await envelopeModal({ title: prev?.onComplete || T.result.acceptedEnvelope(env), envelope: env, ack: n, note });
 }
 
-async function envelopeModal({ title, envelope, ack }) {
+async function envelopeModal({ title, envelope, ack, note = null }) {
   envelopeShown = true;
   await openModal({
     title,
-    body: [T.envelope.hint],
+    body: [...(note ? [note] : []), T.envelope.hint],
     className: "modal--envelope",
     seal: createSeal(String(envelope), { animate: true }),
     stamp: createStamp({ text: T.stamp.envelope(envelope), variant: "envelope", seed: `env${envelope}`, animate: true }),
@@ -546,7 +620,9 @@ async function envelopeModal({ title, envelope, ack }) {
   envelopeShown = false;
   if (ack) {
     commit((s) => S.ackEnvelope(s, ack));
-    header?.update(game.state);
+    // Экран мог держаться на пройденном этапе (бонусы): после «Конверт вскрыт» показываем новый.
+    holdStage = null;
+    renderGame();
   }
   document.getElementById("stage-title")?.scrollIntoView({ block: "start" });
   document.getElementById("main")?.focus({ preventScroll: true });

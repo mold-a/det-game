@@ -2,7 +2,7 @@
 // Замеры — в консоль и во вложение perf.json; жёсткий порог не ставится (отчёт),
 // но проверка ответа дольше 2 с считается провалом.
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, article, fillQuestion, submit } from "./helpers";
+import { loadAnswers, startGame, article, fillQuestion, submit, solve } from "./helpers";
 
 const A = loadAnswers();
 test.setTimeout(240_000);
@@ -72,6 +72,12 @@ async function uiTimings(page: Page) {
   await submit(page, form.path);
   await expect(article(page, form.path).locator(".q__msg")).toHaveText(/не подтверждается/, { timeout: 20_000 });
   out.uiForm4 = Date.now() - s;
+  // Бонус открывается после обязательных вопросов этапа (по одному).
+  const mand = st1.questions.filter((q) => q.kind === "mandatory");
+  for (const q of mand.slice(0, -1)) await solve(page, q);
+  await fillQuestion(page, mand[mand.length - 1]);
+  await submit(page, mand[mand.length - 1].path);
+  await expect(article(page, text.path)).toBeVisible({ timeout: 30_000 });
   await fillQuestion(page, text, text.wrong[0]);
   s = Date.now();
   await submit(page, text.path);
