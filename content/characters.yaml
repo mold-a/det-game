@@ -208,7 +208,7 @@ characters:
   #     автор может заменить родственниками через лист «Фоновые имена» и import-cast ---
   - { id: nina_actress, working: "Исполнительница роли Нины", role: "Исполнительница роли Нины", importance: background, last: "Светлова", first: "Полина", middle: "Андреевна", gender: f, in_pool: false }
   - { id: volskaya_friend, working: "Подруга Вольской в ложе №2", role: "Подруга Вольской", importance: background, last: "Карпова", first: "Ирина", middle: "Львовна", gender: f, in_pool: false }
-  - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "Бурцев", first: "Николай", middle: "Сергеевич", gender: m, in_pool: false }
+  - { id: stagehand1, working: "Монтировщик 1", role: "Монтировщик сцены", importance: background, last: "Бурцев", first: "Григорий", middle: "Сергеевич", gender: m, in_pool: false }
   - { id: stagehand2, working: "Монтировщик 2", role: "Монтировщик сцены", importance: background, last: "Гайнуллин", first: "Руслан", middle: "Тимурович", gender: m, in_pool: false }
   - { id: marina_sister, working: "Сестра Марины", role: "Дочь Кирилла, сестра Марины; живёт в другом городе", importance: background, father: kirill, last: "Горенкова", first: "Вера", middle: "Александровна", gender: f, in_pool: false }
   - { id: paramedic, working: "Врач скорой", role: "Врач скорой помощи", importance: background, last: "Сафронов", first: "Артур", middle: "Вадимович", gender: m, in_pool: false }
