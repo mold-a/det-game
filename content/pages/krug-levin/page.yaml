@@ -38,13 +38,13 @@ posts:
     comments:
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Завтра без опозданий. Это про тебя, {{ c.stas.first() }}." }
       - { author: "{{ c.gnedich.first() }} {{ c.gnedich.last() }}", page: krug-gnedich, text: "Усы — казённые. Вернуть в цех в целости." }
-  # 23.10 (VD-2): видео, Лёвин и погибший в гримёрке Лёвина; телефон стоит на гримировальном столе.
+  # 23.10 (VD-2): видео 0:05, Лёвин у гримировального зеркала; погибший — голос из коридора за кадром; телефон стоит на гримировальном столе.
   - datetime: "2026-11-05T21:36"
     text: "Закулисье, серия вторая 🎬\nРежиссёр разрешил снимать. Смеяться не разрешал"
     video:
       file: "krug-levin/video-02.mp4"
       poster: "krug-levin/video-02.jpg"
-      duration: "0:14"
+      duration: "0:05"
     likes: 112
     comments:
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "это был не чехов, это клей 😁" }
@@ -54,13 +54,13 @@ posts:
     likes: 52
     comments:
       - { author: "{{ c.nina_actress.first() }} {{ c.nina_actress.last() }}", text: "Кто кого дрессирует — вопрос открытый 😉" }
-  # 23.10 (VD-1): видео, помреж и художник по свету в световой аппаратной, днём; Лёвин за кадром.
+  # 23.10 (VD-1): видео 0:05, помреж в дверях световой аппаратной, днём; художник по свету спиной, его реплика — голос; Лёвин за кадром.
   - datetime: "2026-10-31T16:44"
     text: "{{ c.stas.g('Освоил', 'Освоила') }} видео 🎬\nЗакулисье, серия первая: помреж и свет. Без дублей, всё по-настоящему"
     video:
       file: "krug-levin/video-01.mp4"
       poster: "krug-levin/video-01.jpg"
-      duration: "0:12"
+      duration: "0:05"
     likes: 68
     comments:
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Съёмка в аппаратной — по согласованию. Напоминаю." }
