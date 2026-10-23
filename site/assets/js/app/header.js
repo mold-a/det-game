@@ -7,6 +7,7 @@ import { h, replace } from "./dom.js";
 import { T, signed } from "./texts.js";
 import { createMenu } from "./menu.js";
 import { score } from "../core/state.js";
+import { envelopeMarks } from "../core/flow.js";
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -38,10 +39,11 @@ export function envelopeIcon(state) {
 }
 
 /**
- * renderHeader(ctx, state, { onChange, verify, rulesCfg }) → { el, update(state) }
- *   ctx: { pub, store, chrome }.
+ * renderHeader(ctx, state, { onChange, verify, rulesCfg, viewOf }) → { el, update(state) }
+ *   ctx: { pub, store, chrome }; viewOf(state) → номер этапа, показанного на экране (по умолчанию state.stage):
+ *   именно он подсвечивается «текущим», следующий конверт остаётся запечатанным.
  */
-export function renderHeader(ctx, state, { onChange = () => location.reload(), verify, rulesCfg } = {}) {
+export function renderHeader(ctx, state, { onChange = () => location.reload(), verify, rulesCfg, viewOf } = {}) {
   const { pub, chrome } = ctx;
   const team = h("div", { class: "app-header__team" });
   const value = h("span", { class: "score__value" });
@@ -73,19 +75,21 @@ export function renderHeader(ctx, state, { onChange = () => location.reload(), v
     value.textContent = total === 0 ? "0" : signed(total);
     value.classList.toggle("is-negative", total < 0);
     const items = [];
-    for (let n = 1; n <= pub.stages; n++) {
-      const cur = s && n === s.stage && !s.finished;
-      const done = s && (n < s.stage || (s.finished && n === s.stage));
+    const marks = envelopeMarks(s, s ? viewOf?.(s) : null, pub.stages);
+    marks.forEach((mark, i) => {
+      const n = i + 1;
+      const cur = mark === "current";
+      const done = mark === "opened";
       const label = done ? T.header.stageDone(n) : cur ? T.header.stageCurrent(n) : T.header.stageLocked(n);
       items.push(
         h(
           "li",
           { class: ["stages__item", done && "is-done", cur && "is-current"], "aria-label": label, "aria-current": cur ? "step" : null, title: label },
-          envelopeIcon(cur ? "current" : done ? "opened" : "sealed"),
+          envelopeIcon(mark),
           h("span", { class: "stages__no", "aria-hidden": "true" }, String(n)),
         ),
       );
-    }
+    });
     replace(stages, items);
   }
   update(state);

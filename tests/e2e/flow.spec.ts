@@ -9,6 +9,20 @@ test.setTimeout(240_000);
 
 const skipBtn = (page: any, env: number) => page.getByRole("button", { name: `Пропустить бонусы и перейти к конверту №${env}` });
 
+// Подсветка «текущий» в шапке совпадает с этапом на экране; конверты дальше — запечатаны, раньше — вскрыты.
+async function expectHeaderCurrent(page: any, n: number) {
+  const items = page.locator(".stages__item");
+  await expect(page.locator(".stages__item.is-current")).toHaveCount(1);
+  await expect(items.nth(n - 1)).toHaveClass(/is-current/);
+  await expect(items.nth(n - 1)).toHaveAttribute("aria-current", "step");
+  await expect(page.locator("#stage-title")).toHaveText(`Этап ${n}`);
+  for (let k = 1; k < n; k++) await expect(items.nth(k - 1)).toHaveClass(/is-done/);
+  for (let k = n + 1; k <= (await items.count()); k++) {
+    await expect(items.nth(k - 1)).not.toHaveClass(/is-(current|done)/);
+    await expect(items.nth(k - 1)).toHaveAttribute("aria-label", `Этап ${k}, конверт не вскрыт`);
+  }
+}
+
 test("бонусы этапа 2: по одному; неверный ответ тоже открывает следующий; после последнего — окно конверта", async ({ page }) => {
   const done = await playToStage(page, A, 2);
   const st = A.stages.find((s) => s.n === 2)!;
@@ -27,6 +41,7 @@ test("бонусы этапа 2: по одному; неверный ответ 
 
   // Последний обязательный решён: окна нет, виден первый бонус, остальные скрыты, кнопка «Пропустить» на месте.
   await expect(article(page, bonuses[0].path)).toBeVisible({ timeout: 30_000 });
+  await expectHeaderCurrent(page, 2);
   await expect(page.locator(".modal")).toHaveCount(0);
   await expect(page.locator("#stage-title")).toHaveText("Этап 2");
   await expect(article(page, last.path)).toHaveClass(/q--solved/);
@@ -39,6 +54,7 @@ test("бонусы этапа 2: по одному; неверный ответ 
   await expect(article(page, bonuses[0].path)).toBeVisible();
   await expect(page.locator(".modal")).toHaveCount(0);
   await expect(article(page, bonuses[1].path)).toHaveCount(0);
+  await expectHeaderCurrent(page, 2);
 
   // Неверный ответ на первый бонус: вопрос закрыт, второй открылся, окна всё ещё нет.
   const before = await headerScore(page);
@@ -53,8 +69,12 @@ test("бонусы этапа 2: по одному; неверный ответ 
   await solve(page, bonuses[1]);
   await expect(page.locator(".modal")).toContainText("3");
   await expect(page.locator(".modal")).toContainText(S.points.bonus ? "+" : "");
+  // Окно открыто, но «Конверт вскрыт» не нажат: на экране ещё этап 2, конверт 3 запечатан.
+  await expect(page.locator("#stage-title")).toHaveText("Этап 2");
+  await expectHeaderCurrent(page, 2);
   await envelopeOpened(page);
   await expect(page.locator("#stage-title")).toHaveText("Этап 3");
+  await expectHeaderCurrent(page, 3);
   expect(await headerScore(page)).toBe(before + S.points.bonus);
   await expect(skipBtn(page, 3)).toHaveCount(0);
 });

@@ -60,3 +60,22 @@ export function viewStage(state, packs) {
   if (n > 1 && state.envelopeAck < n && pendingBonuses(packs?.[n - 1], state).length) return n - 1;
   return n;
 }
+
+/**
+ * Состояние конвертов в шапке: массив длины `count`, элементы "opened" | "current" | "sealed".
+ * «Текущий» — конверт того этапа, что показан на экране (view = viewStage), а не state.stage: пока команда
+ * отвечает на бонусы пройденного этапа или не нажала «Конверт вскрыт», следующий конверт остаётся запечатанным.
+ * После завершения дела текущего нет: этапы до state.stage включительно вскрыты.
+ */
+export function envelopeMarks(state, view, count) {
+  const marks = [];
+  for (let n = 1; n <= count; n++) {
+    if (!state) marks.push("sealed");
+    else if (state.finished) marks.push(n <= state.stage ? "opened" : "sealed");
+    else {
+      const v = view ?? state.stage;
+      marks.push(n < v ? "opened" : n === v ? "current" : "sealed");
+    }
+  }
+  return marks;
+}

@@ -207,7 +207,7 @@ function renderIntro() {
 function renderGame() {
   saveDrafts();
   const { state, packs } = game;
-  header = renderHeader(ctx, state, { onChange: () => start(), verify, rulesCfg: rulesCfg(ctx.pub) });
+  header = renderHeader(ctx, state, { onChange: () => start(), verify, rulesCfg: rulesCfg(ctx.pub), viewOf: (s) => holdStage ?? viewStage(s, game.packs) });
   const { main, side } = renderShell(ctx, header.el);
   views = new Map();
 

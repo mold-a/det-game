@@ -1,7 +1,7 @@
 // Порядок вопросов этапа (core/flow.js): по одному, следующий — после ответа на текущий.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { stageFlow, pendingBonuses, viewStage } from "../../site/assets/js/core/flow.js";
+import { stageFlow, pendingBonuses, viewStage, envelopeMarks } from "../../site/assets/js/core/flow.js";
 
 const pack = (n = 1, spec = "mmmbb") => ({
   n,
@@ -98,4 +98,26 @@ test("viewStage: бонусы пройденного этапа показыва
   assert.equal(viewStage(st(), { 1: pack(1, "mm"), 2: pack(2) }), 2);
   assert.equal(viewStage(st({ stage: 1, envelopeAck: 1 }), packs), 1);
   assert.equal(viewStage(st({ final: { started: true } }), packs), 2);
+});
+
+test("envelopeMarks: текущий конверт — тот этап, что на экране; следующий запечатан", () => {
+  // Этап 2 пройден, бонусы не закончены: экран на этапе 1 (viewStage), конверт 2 ещё не вскрыт.
+  const st = { stage: 2, envelopeAck: 1, finished: false };
+  assert.deepEqual(envelopeMarks(st, 1, 4), ["current", "sealed", "sealed", "sealed"]);
+  // Бонусный этап 2 при state.stage = 3.
+  assert.deepEqual(envelopeMarks({ stage: 3, envelopeAck: 2, finished: false }, 2, 4), ["opened", "current", "sealed", "sealed"]);
+  // После «Конверт вскрыт» экран и состояние совпадают.
+  assert.deepEqual(envelopeMarks({ stage: 3, envelopeAck: 3, finished: false }, 3, 4), ["opened", "opened", "current", "sealed"]);
+  // Без view — по state.stage.
+  assert.deepEqual(envelopeMarks({ stage: 2, envelopeAck: 2, finished: false }, undefined, 4), ["opened", "current", "sealed", "sealed"]);
+});
+
+test("envelopeMarks: с viewStage — бонусная фаза и вскрытие; дело завершено; нет состояния", () => {
+  const packs = { 1: { questions: [{ path: "s1.b1", kind: "bonus" }] } };
+  const st = { stage: 2, envelopeAck: 1, finished: false, units: {}, final: {} };
+  assert.deepEqual(envelopeMarks(st, viewStage(st, packs), 3), ["current", "sealed", "sealed"]);
+  const acked = { ...st, envelopeAck: 2 };
+  assert.deepEqual(envelopeMarks(acked, viewStage(acked, packs), 3), ["opened", "current", "sealed"]);
+  assert.deepEqual(envelopeMarks({ stage: 3, finished: true }, 3, 4), ["opened", "opened", "opened", "sealed"]);
+  assert.deepEqual(envelopeMarks(null, null, 2), ["sealed", "sealed"]);
 });
