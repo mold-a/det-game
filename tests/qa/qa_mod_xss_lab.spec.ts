@@ -66,7 +66,7 @@ test("XSS в контенте и имени команды + лаборатор�
   await expect(page.locator(".lab-result")).toContainText("Питьевая вода");
   await expect(page.locator(".lab-result")).not.toContainText("QA-WATER-STAGE3");
   // объект этапа 2 ещё «не в описи»
-  expect(await lab(page, "inhaler", "chem", "1-01")).toMatch(/^Такого предмета нет в описи/);
+  expect(await lab(page, "inhaler", "chem", "1-01")).toMatch(/^Сейчас этот предмет нельзя передать/);
   expect(await headerScore(page)).toBe(scoreAfterHint - PEN);
 
   await page.goto("/");

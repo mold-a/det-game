@@ -121,7 +121,8 @@ def test_render_all_content_strings():
     brands = 1 if (CONTENT / "pages" / "_brands.yaml").is_file() else 0  # тексты подвала сервисов
     assert n == 7 + len(c.pages) + len(c.chats) + brands  # файлы YAML без world.yaml (с lab.yaml) + страницы + переписки
     # пример: шаблон с персонажем и миром
-    assert render("{{ c.zavyalov.short() }}, {{ w.theater.short }}", ctx) == "Завьялов Ю. В., ВОДТ"
+    z = next(ch for ch in c.characters if ch.id == "zavyalov")
+    assert render("{{ c.zavyalov.short() }}, {{ w.theater.short }}", ctx) == f"{z.last}\xa0{z.first[0]}.\xa0{z.middle[0]}., ВОДТ"
 
 
 def test_missing_body_is_todo_not_error(root):
