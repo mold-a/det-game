@@ -45,7 +45,7 @@ posts:
     photo: "krug-volskaya/03.jpg"        # VS-03
     audio:
       file: "krug-volskaya/voice-01.mp3" # V4 (PHOTOS-2.md)
-      duration: "0:09"
+      duration: "0:11"
       transcript: "Девочки, ну вот — пирог с брусникой, бабушкин рецепт. Жду вас в следующее воскресенье, всех-всех. Не опаздывайте, а то съем {{ c.volskaya.g('сам', 'сама') }}."
     likes: 92
     comments:
