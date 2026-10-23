@@ -57,7 +57,7 @@ posts:
     video:
       file: "krug-levin/video-01.mp4"
       poster: "krug-levin/video-01.jpg"
-      duration: "0:05"
+      duration: "0:09"
     likes: 68
     comments:
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Съёмка в аппаратной — по согласованию. Напоминаю." }
