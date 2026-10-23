@@ -38,6 +38,12 @@
         {% elif block.kind == "notice" %}
         <p class="st-notice" role="note">{{ block.text }}</p>
 
+        {% elif block.kind == "photo" %}
+        <figure class="st-photo{% if block.wide %} st-photo--wide{% endif %}">
+          {{ ui.zoom_img(media, block.file, block.caption or "Фотография", "фото", "st-photo__btn st-zoom", "st-photo__img", block.caption or "") }}
+          {% if block.caption %}<figcaption class="st-photo__cap">{{ block.caption }}</figcaption>{% endif %}
+        </figure>
+
         {% elif block.kind == "cards" %}
         <div class="st-block">
           {% if block.title %}<h2 class="st-block__h">{{ block.title }}</h2>{% endif %}
@@ -45,7 +51,7 @@
             {% for item in block["items"] %}
             <li class="st-card{% if item.photo %} has-photo{% endif %}">
               {% if item.photo %}
-              {% call ui.zoom("st-card__photo st-zoom", item.title) %}{{ ui.img(media, item.photo, item.title, "фото", "st-img") }}{% endcall %}
+              {{ ui.zoom_img(media, item.photo, item.title, "фото", "st-card__photo st-zoom", "st-img", item.title) }}
               {% endif %}
               <div class="st-card__body">
                 <h3 class="st-card__h">{{ item.title }}</h3>

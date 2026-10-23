@@ -234,6 +234,74 @@ body.page--site {
   font-size: 14px;
 }
 
+/* фото в разделе (kind: photo): в колонке текста или на всю ширину, как обложка (wide) */
+
+.st-photo {
+  margin: 20px 0 0;
+}
+
+.st-photo:not(.st-photo--wide) {
+  max-width: 44rem;
+}
+
+.st-photo__btn {
+  border-radius: var(--st-radius, 4px);
+  overflow: hidden;
+}
+
+.st-photo__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--st-radius, 4px);
+}
+
+.st-photo__img:not([src]):not(.ph) {
+  aspect-ratio: 3 / 2;
+}
+
+.st-photo .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 3 / 2;
+  background: var(--st-line);
+  color: var(--st-muted);
+  font-size: 14px;
+}
+
+.st-photo__cap {
+  margin-top: 8px;
+  color: var(--st-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.st-photo--wide {
+  margin-right: -16px;
+  margin-left: -16px;
+}
+
+.st-photo--wide .st-photo__btn,
+.st-photo--wide .st-photo__img {
+  border-radius: 0;
+}
+
+.st-photo--wide .st-photo__img,
+.st-photo--wide .ph {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.st-photo--wide .st-photo__cap {
+  padding: 0 16px;
+}
+
+/* рамка фокуса внутри кадра: снаружи её обрежет край экрана */
+.page--site .st-photo--wide .st-photo__btn:focus-visible {
+  outline-offset: -4px;
+}
+
 .st-card__body {
   display: flex;
   flex: 1;
@@ -351,6 +419,20 @@ body.page--site {
 
   .st-body {
     padding: 32px 32px 40px;
+  }
+
+  .st-photo--wide {
+    margin-right: -32px;
+    margin-left: -32px;
+  }
+
+  .st-photo--wide .st-photo__img,
+  .st-photo--wide .ph {
+    aspect-ratio: 21 / 9;
+  }
+
+  .st-photo--wide .st-photo__cap {
+    padding: 0 32px;
   }
 
   .st-head {

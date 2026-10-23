@@ -1,6 +1,7 @@
 {# cloud — облако «Тучка» (docs/04: «cloud»). Закрыто паролем (FORMATS §6.4).
    Плашка публикации — статичная (таймер не тикает). Интерактив — pages/cloud.js: переключение
    папок, сортировка реестра по колонкам (значения — data-sort). Без JS все папки видны подряд.
+   Папка kind=photos — сетка миниатюр, снимок крупно по нажатию (page-ui.js, фото шифруются вместе со страницей).
    Папка kind=locked — только замок, содержимого во фрагменте нет.
    Кликабельно только то, что ведёт к содержимому: папки, сортировка колонок, ссылки в ячейках, репликах и письмах
    (Markdown). Логин в шапке — текст; у замка папки нет кнопки: ввода второго пароля в игре нет. Подвал — раскрывающиеся
@@ -91,6 +92,19 @@
 
         {% elif f.kind == "letter" %}
         <div class="tc-doc">{{ f.body_html }}</div>
+
+        {% elif f.kind == "photos" %}
+        <ul class="tc-photos" role="list">
+          {% for it in f["items"] %}
+          {% set when = it.date|dt("date") if it.date else "" %}
+          {% set cap = (it.caption or "") ~ (" · " if it.caption and when else "") ~ when %}
+          <li class="tc-photo">
+            {{ ui.zoom_img(media, it.file, it.caption or "Фото из папки", "фото", "tc-photo__btn", "tc-photo__img", cap) }}
+            {% if it.caption or when %}<p class="tc-photo__cap">{% if it.caption %}<span class="tc-photo__text">{{ it.caption }}</span>{% endif %}{% if when %} <time class="tc-photo__date" datetime="{{ it.date }}">{{ when }}</time>{% endif %}</p>{% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="tc-meta">Фото: {{ f["items"]|length }}. Нажмите на снимок, чтобы открыть крупно.</p>
 
         {% else %}
         <div class="tc-locked">

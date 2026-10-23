@@ -120,14 +120,14 @@ class Prepared:
     params: dict
 
 
-def site_base_ctx(content: Content, pub: dict) -> dict:
+def site_base_ctx(content: Content, pub: dict, plan: MediaPlan | None = None) -> dict:
     """Общий контекст шаблонов сайта (base.html).
 
     ``brands`` — бренды мира (world.yaml), ``lab_site`` — отрендеренные тексты ``content/lab.yaml``
-    (имя, слоган, о центре, сотрудники, контакты) для сайта лаборатории."""
+    (имя, слоган, о центре, сотрудники, контакты, фото) для сайта лаборатории; ``plan`` нужен для фото."""
     ctx = make_context(content)
     return {"pub": pub, "chrome": chrome_of(content), "robots": ROBOTS,
-            "brands": dict(content.world.get("brands", {})), "lab_site": lab_site(content, ctx)}
+            "brands": dict(content.world.get("brands", {})), "lab_site": lab_site(content, ctx, plan)}
 
 
 def app_html(site_env: Any, base_ctx: dict, out_rel: str) -> str:
@@ -282,7 +282,7 @@ def build(
     lab_by_stage = lab_entries(content, keys, payloads, prep.params, warnings)
 
     pub = build_public(content, salts)
-    base_ctx = site_base_ctx(content, pub)
+    base_ctx = site_base_ctx(content, pub, plan)
 
     tmp = dist.with_name(dist.name + ".__tmp__")
     if tmp.exists():

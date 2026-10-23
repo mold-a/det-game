@@ -282,6 +282,13 @@ a.nw-nav__item:hover {
   aspect-ratio: 3 / 2;
 }
 
+.nw-article__caption {
+  padding: 8px 16px 0;
+  color: var(--nw-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .nw-article__body {
   margin-top: 16px;
   font-size: 17px;
@@ -470,6 +477,11 @@ a.nw-nav__item:hover {
   .nw-article__photo {
     margin-left: 0;
     margin-right: 0;
+  }
+
+  .nw-article__caption {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
 

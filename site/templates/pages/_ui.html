@@ -49,6 +49,14 @@
 {%- endmacro %}
 
 
+{# Фото с просмотром крупно. Файл есть — кнопка (btn_cls) вокруг картинки (img_cls); файла нет — только аккуратная
+   заглушка «Здесь будет …» без кнопки: открывать крупно нечего. caption — подпись в окне просмотра; alt — для чтения с экрана. #}
+{% macro zoom_img(media, rel, alt, label, btn_cls="", img_cls="", caption="") -%}
+{% if missing(media(rel, alt)) %}{{ img(media, rel, alt, label, img_cls) }}
+{%- else %}{% call zoom(btn_cls, caption) %}{{ img(media, rel, alt, label, img_cls) }}{% endcall %}{% endif %}
+{%- endmacro %}
+
+
 {# Голосовое сообщение: свой плеер (pages/audio-player.js), не <audio controls>. Нет файла — неактивная плашка.
    compact — у комментария: тот же плеер, плотнее. Разметка и классы общие с постом (.kr-voice). #}
 {% macro voice(media, au, compact=false) -%}

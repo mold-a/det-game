@@ -609,6 +609,74 @@ th[aria-sort="descending"] .tc-sort {
   margin-top: 0.9em;
 }
 
+/* --- фотографии: сетка миниатюр, снимок крупно по нажатию */
+
+.tc-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 148px), 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tc-photo {
+  min-width: 0;
+}
+
+.tc-photo__btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--tc-line);
+  border-radius: 10px;
+  background: var(--tc-ph);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.tc-photo__btn:hover {
+  border-color: var(--tc-brand);
+}
+
+.tc-photo__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.tc-photo .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--tc-ph);
+  color: var(--tc-ph-text);
+  font-size: 13px;
+  text-align: center;
+}
+
+.tc-photo__cap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.tc-photo__date {
+  color: var(--tc-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 900px) {
+  .tc-photos {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  }
+}
+
 /* --- закрытая папка */
 
 .tc-locked {

@@ -23,6 +23,9 @@ import * as S from "../core/state.js";
 import { receivedDocuments } from "../core/game.js";
 import { labCatalog, labFingerprint, labRequest, labDocTitles, prepareLabRequest, labOrders } from "../core/lab.js";
 import { resolveObject } from "../core/labmatch.js";
+import { labPhotos } from "../core/pageui.js";
+// Фото крупно — то же окно, что на вымышленных страницах (нативный <dialog>, стили pages/_ui.css).
+import { openZoom } from "../pages/page-ui.js";
 
 const TABS = ["order", "orders", "services", "about", "contacts"];
 /** Распознавание вживую: пауза после ввода и порог длины для «Нет в описи» (без фокуса — сразу). */
@@ -773,12 +776,44 @@ function initials(name) {
     .toUpperCase();
 }
 
+/** Галерея «О центре»: 1–3 снимка, крупно по нажатию. Файл не загрузился — снимок убирается, без сломанной картинки. */
+function renderGallery(photos) {
+  return h(
+    "section",
+    { class: "pz-gallery", "aria-labelledby": "pz-photos-h" },
+    h("h2", { class: "pz-subtitle", id: "pz-photos-h" }, T.lab.photos),
+    h(
+      "ul",
+      { class: ["pz-photos", `pz-photos--${photos.length}`] },
+      photos.map((p) => {
+        const img = h("img", { class: "pz-photo__img", src: p.src, alt: p.alt, loading: "lazy", decoding: "async" });
+        const btn = h(
+          "button",
+          {
+            type: "button",
+            class: "pz-photo__btn",
+            "aria-haspopup": "dialog",
+            "aria-label": T.lab.photoOpen(p.caption),
+            dataset: { caption: p.caption },
+            on: { click: () => openZoom(btn) },
+          },
+          img,
+        );
+        const item = h("li", { class: "pz-photo" }, btn, p.caption ? h("p", { class: "pz-photo__cap" }, p.caption) : null);
+        img.addEventListener("error", () => item.remove());
+        return item;
+      }),
+    ),
+  );
+}
+
 function renderAbout() {
   const section = h("section", { class: "pz-section", dataset: { tab: "about" } });
   const prose = richText("about_html", "about");
   const acc = str(site?.accreditation);
   const staff = Array.isArray(site?.staff) ? site.staff.filter((p) => str(p?.name)) : [];
-  if (!prose && !acc && !staff.length) {
+  const photos = labPhotos(site?.photos, T.lab.photoAlt);
+  if (!prose && !acc && !staff.length && !photos.length) {
     section.append(h("div", { class: "pz-card pz-card--notice" }, pending()));
     return section;
   }
@@ -797,6 +832,7 @@ function renderAbout() {
         : null,
     ),
   );
+  if (photos.length) section.append(renderGallery(photos));
   if (staff.length) {
     section.append(
       h("h2", { class: "pz-subtitle" }, T.lab.staff),

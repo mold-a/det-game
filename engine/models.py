@@ -59,6 +59,13 @@ class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=False)
 
 
+def _photo_file(v: str) -> str:
+    """Поле «фото»: путь к картинке (.jpg, .jpeg, .png, .webp)."""
+    if not v.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+        raise ValueError("фото: допустимы файлы .jpg, .jpeg, .png, .webp")
+    return v
+
+
 # ---------------------------------------------------------------- settings.yaml
 
 
@@ -327,6 +334,18 @@ class LabContacts(Strict):
     email: str | None = None
 
 
+class LabPhoto(Strict):
+    """Фото в разделе «О центре»: путь относительно ``media/``, подпись необязательна."""
+
+    file: str
+    caption: str | None = None
+
+    _file_ext = field_validator("file")(staticmethod(_photo_file))
+
+
+LAB_PHOTOS_MAX = 3  # галерея «О центре» — 1–3 снимка (docs/04)
+
+
 class LabSite(Strict):
     name: str
     full_name: str
@@ -336,6 +355,7 @@ class LabSite(Strict):
     staff: list[LabStaff] = []
     contacts: LabContacts
     services_note: str
+    photos: Annotated[list[LabPhoto], Field(max_length=LAB_PHOTOS_MAX)] = []
 
 
 # ---------------------------------------------------------------- finale.yaml
@@ -584,6 +604,7 @@ class NewsArticle(Strict):
     datetime: str
     headline: str
     photo: str | None = None
+    photo_caption: str | None = None  # подпись под фото; без photo не показывается
     body: str
     rubric: str = "Город"  # рубрика над заголовком
     urgent: bool = False  # плашка «Срочно»
@@ -659,17 +680,28 @@ class ChatMessage(Strict):
     text: str
 
 
+class CloudPhoto(Strict):
+    """Фото в папке ``kind: photos``: путь относительно ``media/``; подпись и дата необязательны."""
+
+    file: str
+    caption: str | None = None
+    date: str | None = None  # ISO-дата или дата-время мира игры; показывается как ДД.ММ.ГГГГ
+
+    _file_ext = field_validator("file")(staticmethod(_photo_file))
+
+
 class CloudFolder(Strict):
     """Папка облака. Набор полей зависит от ``kind`` — проверяется в content.py."""
 
     id: Id
     title: str
-    kind: Literal["table", "chat", "letter", "locked"]
+    kind: Literal["table", "chat", "letter", "photos", "locked"]
     columns: list[str] | None = None
     rows: list[list[str]] | None = None
     participants: list[Id] | None = None
     messages: list[ChatMessage] | None = None
     body: str | None = None
+    items: list[CloudPhoto] | None = None
 
 
 # Какие поля обязательны для каждого вида папки (остальные необязательные запрещены).
@@ -677,6 +709,7 @@ CLOUD_FOLDER_FIELDS: dict[str, tuple[str, ...]] = {
     "table": ("columns", "rows"),
     "chat": ("participants", "messages"),
     "letter": ("body",),
+    "photos": ("items",),
     "locked": (),
 }
 
@@ -749,7 +782,18 @@ class SiteNotice(Strict):
     text: str
 
 
-SiteBlock = Annotated[SiteText | SiteCards | SiteTable | SiteNotice, Field(discriminator="kind")]
+class SitePhoto(Strict):
+    """Фото в разделе: ``wide`` — на всю ширину, как обложка; иначе — в колонке текста."""
+
+    kind: Literal["photo"]
+    file: str
+    caption: str | None = None
+    wide: bool = False
+
+    _file_ext = field_validator("file")(staticmethod(_photo_file))
+
+
+SiteBlock = Annotated[SiteText | SiteCards | SiteTable | SiteNotice | SitePhoto, Field(discriminator="kind")]
 
 
 class SiteSection(Strict):

@@ -446,7 +446,7 @@ def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None
     _check_chats(ld, chats, characters, documents)
     paper, paper_missing = _load_paper(ld, documents, chats, Path(paper_templates or PAPER_TEMPLATES))
 
-    for use in media_refs(characters or [], pages or {}, docs, name=ld.name):
+    for use in media_refs(characters or [], pages or {}, docs, name=ld.name, lab=lab):
         _check_media(ld, use)
 
     if characters is not None and world is not None:
@@ -1109,12 +1109,14 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
             for fi, f in enumerate(page.folders):
                 floc = ("folders", fi)
                 need = CLOUD_FOLDER_FIELDS[f.kind]
-                for name in ("columns", "rows", "participants", "messages", "body"):
+                for name in ("columns", "rows", "participants", "messages", "body", "items"):
                     present = getattr(f, name) is not None
                     if name in need and not present:
                         ld.err(rel, (*floc, name), f"у папки kind: {f.kind} должно быть поле {name}")
                     elif name not in need and present:
                         ld.err(rel, (*floc, name), f"поле {name} не применимо к папке kind: {f.kind}")
+                if f.kind == "photos" and f.items is not None and not f.items:
+                    ld.err(rel, (*floc, "items"), "у папки kind: photos нужна хотя бы одна фотография")
                 if f.columns is not None and f.rows is not None:
                     for ri, row in enumerate(f.rows):
                         if len(row) != len(f.columns):
@@ -1183,8 +1185,10 @@ class MediaUse:
 
 
 def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: dict[str, DocFile],
-               *, name=lambda rel: f"content/{rel}") -> list[MediaUse]:
-    """Все ссылки на медиа в контенте (пути относительно ``media/``)."""
+               *, name=lambda rel: f"content/{rel}", lab: LabSite | None = None) -> list[MediaUse]:
+    """Все ссылки на медиа в контенте (пути относительно ``media/``).
+
+    ``lab`` — ``content/lab.yaml``: сайт лаборатории открыт, поэтому его фото — контекст ``open``."""
     out: list[MediaUse] = []
     for i, ch in enumerate(characters):
         if ch.photo:
@@ -1219,6 +1223,11 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
             for bi, block in enumerate(sec.blocks):
                 for ii, item in enumerate(getattr(block, "items", None) or []):
                     refs.append((("sections", si, "blocks", bi, "items", ii, "photo"), item.photo))
+                if block.kind == "photo":
+                    refs.append((("sections", si, "blocks", bi, "file"), block.file))
+        for fi, folder in enumerate(getattr(page, "folders", None) or []):
+            for ii, item in enumerate(folder.items or []):
+                refs.append((("folders", fi, "items", ii, "file"), item.file))
         for loc, value in refs:
             if value:
                 out.append(MediaUse(f, format_loc(loc), value, ctx))
@@ -1226,6 +1235,8 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
         if df.meta is not None:
             for mi, value in enumerate(df.meta.media):
                 out.append(MediaUse(name(path), format_loc(("front matter", "media", mi)), value, "locked"))
+    for pi, photo in enumerate(lab.photos if lab is not None else []):
+        out.append(MediaUse(name("lab.yaml"), format_loc(("photos", pi, "file")), photo.file, "open"))
     return out
 
 

@@ -147,10 +147,29 @@ def lab_catalog(content: Content, ctx: dict, n: int, entries: list[dict]) -> dic
     return {"types": types, "objects": objects, "entries": entries}
 
 
-def lab_site(content: Content, ctx: dict) -> dict:
+def lab_photos(content: Content, ctx: dict, plan: Any | None) -> list[dict]:
+    """Фото «О центре» для браузера: ``[{src, caption, alt}]``. Сайт лаборатории открыт, поэтому ``src`` — прямой
+    адрес в ``/m/``. Файла нет (или плана нет) — снимок пропускается: на сайте без сломанной картинки,
+    предупреждение о нехватке файла даёт сборка (``MediaPlan.missing``)."""
+    if content.lab is None or plan is None:
+        return []
+    out: list[dict] = []
+    for p in content.lab.photos:
+        caption = render(p.caption, ctx) if p.caption else ""
+        ref = plan.ref(p.file, caption)
+        if ref["src"] is None:
+            continue
+        if "key" in ref:  # lab.yaml открыт: ссылка из него делает файл открытым (MediaPlan)
+            raise ValueError(f"фото лаборатории «{p.file}» оказалось зашифрованным")
+        out.append({"src": ref["src"], "caption": caption, "alt": caption or "Фотография центра"})
+    return out
+
+
+def lab_site(content: Content, ctx: dict, plan: Any | None = None) -> dict:
     """Тексты сайта лаборатории (``content/lab.yaml``) для шаблона ``lab.html``, уже отрендеренные.
 
-    ``about`` — Markdown с подставленными шаблонами, ``about_html`` — он же в HTML. Пусто, если файла нет."""
+    ``about`` — Markdown с подставленными шаблонами, ``about_html`` — он же в HTML. Пусто, если файла нет.
+    ``plan`` — ``MediaPlan``: нужен для ``photos`` (без него список пуст)."""
     lab = content.lab
     if lab is None:
         return {}
@@ -167,6 +186,7 @@ def lab_site(content: Content, ctx: dict) -> dict:
         "contacts": {"address": r(lab.contacts.address), "phone": r(lab.contacts.phone),
                      "hours": r(lab.contacts.hours), "email": r(lab.contacts.email)},
         "services_note": r(lab.services_note),
+        "photos": lab_photos(content, ctx, plan),
     }
 
 

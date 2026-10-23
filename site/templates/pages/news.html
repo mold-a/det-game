@@ -39,7 +39,9 @@
         <h1 class="nw-article__h">{{ art.headline }}</h1>
         <p class="nw-article__meta"><time datetime="{{ art.datetime }}">{{ art.datetime|dt }}</time></p>
         {% if art.photo %}
-        <figure class="nw-article__photo">{{ ui.img(media, art.photo, art.headline, "фото к статье", "nw-photo") }}</figure>
+        <figure class="nw-article__photo">{{ ui.img(media, art.photo, art.headline, "фото к статье", "nw-photo") }}
+          {% if art.photo_caption %}<figcaption class="nw-article__caption">{{ art.photo_caption }}</figcaption>{% endif %}
+        </figure>
         {% endif %}
         <div class="nw-article__body">{{ art.body_html }}</div>
       </article>

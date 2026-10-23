@@ -2,7 +2,7 @@
 {# Сайт экспертного центра (docs/04 «/lab/», docs/05 §2): своя марка и палитра — lab.css.
    Данные оформления (F19) — в data-* для app/context.js; интерфейс строит app/lab.js.
    lab_site — тексты из content/lab.yaml (docs/03); их нет — сайт показывает нейтральные строки. #}
-{% block head_extra %}<link rel="stylesheet" href="/assets/css/lab.css">{% endblock %}
+{% block head_extra %}<link rel="stylesheet" href="/assets/css/pages/_ui.css"><link rel="stylesheet" href="/assets/css/lab.css">{% endblock %}
 {% block body_attrs %} data-system="{{ chrome.system }}" data-department="{{ chrome.department }}" data-case-no="{{ chrome.caseNo }}" data-site="prizma"{% endblock %}
 {% block body %}
 {% set ls = lab_site if (lab_site is defined and lab_site) else none %}

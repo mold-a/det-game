@@ -8,7 +8,8 @@ brand: "{{ w.brands.news }}"
 article:
   datetime: "2026-11-10T16:20"
   headline: "На улице Садовой заделали яму, которую горожане успели прозвать Бермудским треугольником. Через сутки рядом появилась новая"
-  photo: null
+  photo: "news/yama.jpg"          # F06 (решение автора 23.10; docs/PRODUCTION.md §4.9), атмосфера
+  photo_caption: "Садовая, напротив дома № 14: свежая заплатка, а в трёх метрах от неё — новая яма"
   body: "pages/news-yama/article.md"
 sidebar:
   - { datetime: "2026-11-11T09:15", title: "На премьере {{ c.voroncov.g('скончался', 'скончалась') }} {{ c.voroncov.g('народный артист', 'народная артистка') }} {{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: news }

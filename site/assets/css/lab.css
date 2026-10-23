@@ -40,6 +40,12 @@ body[data-site="prizma"] {
   --pz-spectrum: linear-gradient(90deg, #e5484d, #f08c2e, #e9c13b, #3ba776, #2f8fd8, #7a5ce0);
   --pz-wide: 1180px;
 
+  /* Окно «фото крупно» (pages/_ui.css) — в палитре центра. */
+  --svc-ink: var(--pz-ink);
+  --svc-accent: var(--pz-accent);
+  --svc-font: var(--font-ui, inherit);
+  --svc-radius: var(--pz-radius-s);
+
   /* Общие токены системы — под палитру центра (фокус, ссылки, документы в окне). */
   --seal: var(--pz-accent);
   --seal-ink: var(--pz-accent-ink);
@@ -1228,6 +1234,63 @@ body[data-site="prizma"] .pz-chip:hover {
 .pz-subtitle {
   margin: var(--sp-6) 0 var(--sp-4);
   font-size: var(--fs-4);
+}
+
+/* галерея «О центре»: 1–3 снимка */
+
+.pz-photos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+}
+
+.pz-photos--1 {
+  grid-template-columns: minmax(0, 640px);
+}
+
+.pz-photo {
+  min-width: 0;
+  margin: 0;
+}
+
+.pz-photo__btn {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--pz-line);
+  border-radius: var(--pz-radius);
+  background: var(--pz-surface);
+  box-shadow: var(--pz-shadow);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.pz-photo__btn:hover {
+  border-color: var(--pz-accent);
+}
+
+.pz-photo__btn:focus-visible {
+  outline: var(--focus);
+  outline-offset: 3px;
+}
+
+.pz-photo__img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--pz-line);
+}
+
+.pz-photo__cap {
+  margin: var(--sp-2) 0 0;
+  color: var(--pz-muted);
+  font-size: var(--fs-1);
+  line-height: 1.45;
 }
 
 .pz-staff {

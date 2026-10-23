@@ -42,3 +42,24 @@ export function filterNames(names, query) {
   const q = base(query ?? "");
   return names.map((n) => !q || base(n).includes(q));
 }
+
+/** Сколько фото показывает галерея «О центре» (docs/04). */
+export const LAB_PHOTOS_MAX = 3;
+
+/**
+ * Фото лаборатории из данных сайта (`lab_site.photos`): только снимки с адресом в /m/ (сборка кладёт туда
+ * открытые медиа; чужие адреса и пустые записи отбрасываются), не больше LAB_PHOTOS_MAX. Подпись — обрезанная
+ * строка (заглушка TODO(content) считается пустой); alt — подпись или запасной текст.
+ */
+export function labPhotos(list, fallbackAlt = "Фотография центра") {
+  if (!Array.isArray(list)) return [];
+  const out = [];
+  for (const p of list) {
+    const src = typeof p?.src === "string" ? p.src : "";
+    if (!/^\/m\/[0-9a-z._-]+$/i.test(src)) continue;
+    const raw = typeof p.caption === "string" && !p.caption.includes("TODO(content)") ? p.caption.trim() : "";
+    out.push({ src, caption: raw, alt: raw || fallbackAlt });
+    if (out.length >= LAB_PHOTOS_MAX) break;
+  }
+  return out;
+}

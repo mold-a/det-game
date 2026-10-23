@@ -251,7 +251,7 @@ def published_texts(prep: Prepared, *, site_dir: Path = SITE, media_dir: Path = 
     site_env = make_site_env(Path(site_dir) / "templates")
     plan = MediaPlan(content, Path(media_dir))
     pub = build_public(content, prep.salts)
-    base_ctx = site_base_ctx(content, pub)
+    base_ctx = site_base_ctx(content, pub, plan)
     out = [json_text(pub)]
     for page in content.pages.values():
         if pages and access_of(page) == "open":
