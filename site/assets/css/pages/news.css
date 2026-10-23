@@ -269,6 +269,10 @@ a.nw-nav__item:hover {
   background: var(--nw-bg);
 }
 
+.nw-photo:not([src]) {
+  aspect-ratio: 3 / 2;
+}
+
 .nw-photo {
   width: 100%;
   height: auto;

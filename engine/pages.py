@@ -135,7 +135,7 @@ def page_data(content: Content, page: PageBase, ctx: dict) -> dict:
         if "text" in post:  # social: Markdown в одну строку (ссылки link('…'))
             post["text_html"] = Markup(render_inline(post["text"]))
             for cm in post.get("comments", []):
-                cm["text_html"] = Markup(render_inline(cm["text"]))
+                cm["text_html"] = Markup(render_inline(cm["text"])) if cm["text"] else ""
     for sec in data.get("sections", []):
         for block in sec["blocks"]:
             if block["kind"] == "text":

@@ -894,3 +894,184 @@ body.page--social {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+
+/* Голосовое у комментария: тот же плеер, плотнее (кнопка остаётся ≥ 44 px). */
+.kr-voice--compact {
+  margin: 6px 0 2px;
+  padding: 6px 10px;
+  border-radius: 14px;
+}
+
+.kr-voice--compact .kr-voice__row {
+  gap: 10px;
+}
+
+.kr-voice--compact .kr-voice__btn {
+  width: 44px;
+  height: 44px;
+}
+
+.kr-voice--compact .kr-voice__btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.kr-voice--compact .kr-voice__wave {
+  height: 24px;
+}
+
+.kr-voice--compact .kr-voice__meta {
+  margin-top: 0;
+  font-size: 12px;
+}
+
+.kr-voice--compact .kr-voice__tr-summary {
+  font-size: 13px;
+}
+
+/* Видео в посте: во всю ширину ленты, пропорции — по постеру (--ratio ставит pages/social.js), по умолчанию 16:9.
+   Длительность лежит на постере и пропадает после запуска. Нет файла — серая плашка «Видео недоступно». */
+.kr-video {
+  position: relative;
+  margin: 0 0 12px;
+  background: #000;
+  --ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.kr-video__el,
+.kr-video__poster {
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--ratio);
+  max-height: 80vh;
+  object-fit: contain;
+  background: #000;
+}
+
+.kr-video__dur {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.kr-video.is-started .kr-video__dur {
+  display: none;
+}
+
+/* Закрытая страница: файл ещё не расшифрован — кнопка поверх постера. */
+.kr-video__load {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  text-align: center;
+}
+
+.kr-video__load[hidden] {
+  display: none;
+}
+
+.kr-video__btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 24px;
+  background: var(--kr-brand);
+  color: var(--kr-brand-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kr-video__progress {
+  width: min(240px, 100%);
+}
+
+.kr-video__progress[hidden] {
+  display: none;
+}
+
+.kr-video__bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+
+.kr-video__bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #fff;
+}
+
+.kr-video__status {
+  margin: 0;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+}
+
+.kr-video__status:empty {
+  display: none;
+}
+
+.kr-video.is-missing {
+  background: var(--kr-ph);
+  min-height: 140px;
+}
+
+.kr-video.is-missing .kr-video__poster {
+  filter: grayscale(1) brightness(0.55);
+}
+
+.kr-video__off {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 16px;
+  color: var(--kr-ph-text);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.kr-video.is-missing .kr-video__poster ~ .kr-video__off {
+  color: #fff;
+}
+
+/* Фото, пока не расшифровано (закрытая страница, ленивая загрузка): место под него уже занято. */
+.kr-photo:not([src]) {
+  aspect-ratio: 4 / 3;
+  background: var(--kr-ph);
+}
+
+.kr-video__el:focus-visible {
+  outline: 3px solid var(--kr-brand);
+  outline-offset: -3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kr-video__bar i {
+    transition: none;
+  }
+}

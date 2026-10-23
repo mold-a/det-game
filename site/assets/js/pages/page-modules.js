@@ -4,7 +4,7 @@
 
 export const PAGE_MODULES = {
   call: "./audio-player.js",
-  social: "./audio-player.js", // голосовые сообщения в постах «Круга»
+  social: "./social.js", // голосовые (посты, комментарии) и видео в постах «Круга»
   inna: "./gallery.js",
   pharma: "./pharma.js",
   cloud: "./cloud.js",

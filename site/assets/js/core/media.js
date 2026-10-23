@@ -63,36 +63,66 @@ export async function revokeAll() {
   }
 }
 
+const NEAR_MARGIN = "600px 0px"; // расшифровывать фото чуть заранее, до входа в экран
+
+/** Вызвать fn один раз, когда node окажется рядом с видимой областью (без IntersectionObserver — сразу). */
+export function whenNear(node, fn) {
+  if (typeof IntersectionObserver === "undefined") {
+    fn();
+    return;
+  }
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      fn();
+    },
+    { rootMargin: NEAR_MARGIN },
+  );
+  io.observe(node);
+}
+
 /**
  * Подставить медиа во фрагмент: для каждого [data-media="i"] — refs[i].
  * img/video/audio/source получают src; отсутствующий файл — класс media-missing
  * и подпись alt (CSS рисует серую заглушку «Здесь будет …»).
+ * Зашифрованные <img loading="lazy"> не расшифровываются сразу: только когда подошли к экрану
+ * (десятки фото в ленте не должны ждать друг друга). Промис не ждёт такие картинки.
  * missingText(alt) — текст заглушки (из texts.js). Ошибки отдельных файлов не роняют страницу.
  */
 export async function hydrateMedia(root, refs, { missingText = (alt) => alt, onProgress, fetchFn } = {}) {
   const nodes = Array.from(root.querySelectorAll("[data-media]"));
+
+  async function hydrateOne(node, ref) {
+    if (ref?.alt && node.tagName === "IMG" && !node.getAttribute("alt")) node.setAttribute("alt", ref.alt);
+    let url = null;
+    try {
+      url = await mediaUrl(ref, { fetchFn, onProgress: onProgress && ((l, t) => onProgress(node, l, t)) });
+    } catch {
+      url = null;
+    }
+    if (!url) {
+      markMissing(node, missingText(ref?.alt ?? ""));
+      return;
+    }
+    if (node.tagName === "VIDEO" || node.tagName === "AUDIO") {
+      node.setAttribute("playsinline", "");
+      node.src = url;
+    } else if ("src" in node) {
+      node.src = url;
+    } else {
+      node.style.backgroundImage = `url("${url}")`;
+    }
+  }
+
   await Promise.all(
-    nodes.map(async (node) => {
+    nodes.map((node) => {
       const ref = refs?.[Number(node.getAttribute("data-media"))];
-      if (ref?.alt && node.tagName === "IMG" && !node.getAttribute("alt")) node.setAttribute("alt", ref.alt);
-      let url = null;
-      try {
-        url = await mediaUrl(ref, { fetchFn, onProgress: onProgress && ((l, t) => onProgress(node, l, t)) });
-      } catch {
-        url = null;
+      if (node.tagName === "IMG" && node.getAttribute("loading") === "lazy" && ref?.key) {
+        whenNear(node, () => hydrateOne(node, ref));
+        return null;
       }
-      if (!url) {
-        markMissing(node, missingText(ref?.alt ?? ""));
-        return;
-      }
-      if (node.tagName === "VIDEO" || node.tagName === "AUDIO") {
-        node.setAttribute("playsinline", "");
-        node.src = url;
-      } else if ("src" in node) {
-        node.src = url;
-      } else {
-        node.style.backgroundImage = `url("${url}")`;
-      }
+      return hydrateOne(node, ref);
     }),
   );
 }

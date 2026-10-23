@@ -10,3 +10,8 @@ posts:
   - datetime: "2026-10-05T18:00"
     audio: { file: "krug-closed/voice-01.mp3", duration: "0:02", transcript: "Расшифровка закрытого голосового." }
     likes: 0
+  - datetime: "2026-10-07T18:00"
+    video: { file: "krug-closed/video-01.mp4", poster: "krug-closed/video-01.jpg", duration: "0:02" }
+    likes: 0
+    comments:
+      - { author: "Гость Закрытый", audio: { file: "krug-closed/comment-voice-01.mp3", duration: "0:02" } }

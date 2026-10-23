@@ -436,12 +436,6 @@ class SocialProfile(Strict):
         return self
 
 
-class PostComment(Strict):
-    author: str
-    text: str
-    page: Id | None = None  # страница автора; нет — ссылка на заглушку (krug-private)
-
-
 class PostLink(Strict):
     page: Id
     text: str
@@ -472,20 +466,66 @@ class PostAudio(Strict):
         return v
 
 
+class PostComment(Strict):
+    author: str
+    text: str = ""  # может быть пустым, если есть audio
+    audio: PostAudio | None = None  # голосовое у комментария: та же схема и плеер, что у поста
+    page: Id | None = None  # страница автора; нет — ссылка на заглушку (krug-private)
+
+    @model_validator(mode="after")
+    def _has_body(self) -> "PostComment":
+        if not (self.text.strip() or self.audio):
+            raise ValueError("у комментария должен быть text или audio")
+        return self
+
+
+POSTER_EXTENSIONS = (".jpg", ".jpeg", ".png", ".webp")
+
+
+class PostVideo(Strict):
+    """Видео в посте «Круга» (docs/03 §8): файл H.264 + AAC в mp4, постер — картинка."""
+
+    file: str  # путь в media/: «<page>/video-01.mp4»
+    poster: str  # путь в media/: «<page>/video-01.jpg»
+    duration: str  # «М:СС» — показывается на постере и при отсутствующем файле
+
+    @field_validator("file")
+    @classmethod
+    def _video_ext(cls, v: str) -> str:
+        if not v.lower().endswith(".mp4"):
+            raise ValueError("видео: допустим только файл .mp4 (H.264 + AAC)")
+        return v
+
+    @field_validator("poster")
+    @classmethod
+    def _poster_ext(cls, v: str) -> str:
+        if not v.lower().endswith(POSTER_EXTENSIONS):
+            raise ValueError(f"постер видео: допустимы файлы {', '.join(POSTER_EXTENSIONS)}")
+        return v
+
+    @field_validator("duration")
+    @classmethod
+    def _duration_fmt(cls, v: str) -> str:
+        if not re.fullmatch(r"\d{1,3}:[0-5]\d", v):
+            raise ValueError("длительность видео — «М:СС», например «0:15»")
+        return v
+
+
 class SocialPost(Strict):
     datetime: str
     geo: str | None = None
-    text: str = ""  # может быть пустым, если есть audio или photo
+    text: str = ""  # может быть пустым, если есть audio, photo или video
     photo: str | None = None
     audio: PostAudio | None = None
+    video: PostVideo | None = None
     likes: NonNegInt = 0
     link: PostLink | None = None
     comments: list[PostComment] = []
 
     @model_validator(mode="after")
     def _has_body(self) -> "SocialPost":
-        if not (self.text.strip() or self.photo or self.audio):
-            raise ValueError("у поста должен быть text, photo или audio")
+        if not (self.text.strip() or self.photo or self.audio or self.video):
+            raise ValueError("у поста должен быть text, photo, audio или video")
         return self
 
 

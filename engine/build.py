@@ -254,6 +254,10 @@ def build(
 
     plan = MediaPlan(content, media_dir)
     missing_media = sorted(mf.rel for mf in plan.missing)
+    size_errors, size_warns = plan.size_problems()
+    if size_errors:
+        raise BuildError(size_errors)
+    warnings.extend(size_warns)
     todos = collect_todos(content)
     if release:
         problems = release_problems(content, todos, missing_media)

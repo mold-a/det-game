@@ -5,6 +5,8 @@
 # есть в 1-08: крёстный сам просил не приходить на премьеру, вечер дома (алиби подтверждает не она — сестра).
 # Шаг 2 (21.10, CLUE-MAP 3.9): пост 03.11 — крёстный заезжал вечером, к чаю не притронулся (эхо 4-14 и журнала облака
 # 03.11 23:20, без слов 4-14 и без отъезда); Кирилл: «А мне ни слова» — ему не сказали.
+# 23.10 (docs/drafts/media/VOICE-VIDEO-3.md, VD-3): видео 11.10 с дачи крёстного — яблоки (эхо поста погибшего 11.10
+# и комментария Кирилла «для мамы»). Кирилла в кадре нет и его голоса не слышно. Улик нет.
 slug: krug-marina
 type: social
 stage: 1
@@ -60,6 +62,16 @@ posts:
     likes: 46
     link: { page: krug-kirill, text: "{{ c.kirill.first() }} {{ c.kirill.last() }}" }
     comments: []
+  - datetime: "2026-10-11T12:47"            # жизнь, видео VD-3 (до обеда: ведро потом уходит в багажник Кирилла — пост погибшего 11.10)
+    text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} раздаёт урожай\nугадайте, сколько досталось мне 😹"
+    video:
+      file: "krug-marina/video-01.mp4"
+      poster: "krug-marina/video-01.jpg"
+      duration: "0:10"
+    likes: 71
+    comments:
+      - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "самое красивое, между прочим)" }
+      - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Ведро у меня!!!!! Делиться не буду 😂" }
   - datetime: "2026-09-29T21:10"            # жизнь
     text: "{{ c.marina_sister.first()|lower }} говорит, в москве уже холодно\nу нас тоже\nвсё, мы квиты 😛😛😛"
     likes: 39

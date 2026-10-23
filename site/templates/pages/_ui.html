@@ -17,10 +17,12 @@
 {% macro missing(attrs) %}{{ "1" if "data-missing" in attrs else "" }}{% endmacro %}
 
 {# Картинка или блочная заглушка того же места. cls — классы, label — «Здесь будет …». #}
-{% macro img(media, rel, alt, label, cls="", attrs="") -%}
+{# Фото грузятся лениво (loading="lazy"; на закрытых страницах расшифровку откладывает core/media.js до
+   приближения к экрану). eager=true — только для того, что видно сразу (аватар, обложка). #}
+{% macro img(media, rel, alt, label, cls="", attrs="", eager=false) -%}
 {% set a = media(rel, alt) %}
 {% if missing(a) %}<span class="ph ph--img {{ cls }}" role="img" aria-label="Здесь будет {{ label }}"><span class="ph__label">Здесь будет {{ label }}</span></span>
-{%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" decoding="async"{{ attrs }}>{% endif %}
+{%- else %}<img class="{{ cls }}" {{ a }} alt="{{ alt }}" loading="{{ 'eager' if eager else 'lazy' }}" decoding="async"{{ attrs }}>{% endif %}
 {%- endmacro %}
 
 {# ---- Правило (REDESIGN §4.1): кликабельно только то, что ведёт к содержимому — страница, раздел, вкладка, фото
@@ -44,4 +46,64 @@
 {# Фото, которое открывается крупно: кнопка вокруг изображения (page-ui.js читает img внутри). #}
 {% macro zoom(cls, caption="") -%}
 <button class="{{ cls }}" type="button" aria-haspopup="dialog" data-zoom data-caption="{{ caption }}" aria-label="Открыть фото крупно{{ (': ' ~ caption) if caption else '' }}">{{ caller() }}</button>
+{%- endmacro %}
+
+
+{# Голосовое сообщение: свой плеер (pages/audio-player.js), не <audio controls>. Нет файла — неактивная плашка.
+   compact — у комментария: тот же плеер, плотнее. Разметка и классы общие с постом (.kr-voice). #}
+{% macro voice(media, au, compact=false) -%}
+{% set va = media(au.file, "Голосовое сообщение") %}
+{% set vmiss = missing(va) %}
+<div class="kr-voice{% if compact %} kr-voice--compact{% endif %}" data-player="audio" data-variant="voice" data-duration="{{ au.duration }}"{% if vmiss %} data-missing="1"{% endif %}>
+  {% if not vmiss %}<audio class="kr-voice__audio" {{ va }} preload="metadata" playsinline></audio>{% endif %}
+  <div class="kr-voice__row">
+    <button class="kr-voice__btn" type="button" data-act="play" aria-label="Воспроизвести голосовое сообщение">
+      <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
+    </button>
+    <div class="kr-voice__body">
+      {% set bars %}{% for h in [30,52,40,72,58,86,64,44,76,92,60,38,68,84,50,34,62,80,56,42,70,88,54,36,64,78,46,32,58,74] %}<i style="--h:{{ h }}%"></i>{% endfor %}{% endset %}
+      <div class="kr-voice__wave" aria-hidden="true">
+        <div class="kr-voice__bars">{{ bars }}</div>
+        <div class="kr-voice__bars kr-voice__bars--played">{{ bars }}</div>
+      </div>
+      <p class="kr-voice__meta"><span class="kr-voice__label">Голосовое сообщение</span> · <span class="kr-voice__time"><span class="kr-voice__cur" data-role="cur">0:00</span><span class="kr-voice__sep"> / </span><span data-role="dur">{{ au.duration }}</span></span></p>
+    </div>
+  </div>
+  <p class="visually-hidden" data-role="msg" role="status">{% if vmiss %}Запись пока недоступна{% endif %}</p>
+  {% if au.transcript %}
+  <details class="kr-voice__tr">
+    <summary class="kr-voice__tr-summary">Расшифровка</summary>
+    <p class="kr-voice__tr-text">{{ au.transcript }}</p>
+  </details>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{# Видео в посте: <video playsinline preload="none" poster controls>, без автозапуска; длительность на постере.
+   Открытая страница: прямой src и poster. Закрытая: атрибуты data-video-media / data-poster-media — файл не
+   качается и не расшифровывается, пока игрок не нажмёт «Смотреть видео» (pages/social.js). Нет файла видео —
+   <video> нет вовсе: постер (если есть) и надпись «Видео недоступно», без кнопки. #}
+{% macro post_video(media, v) -%}
+{% set va = media(v.file, "Видео") %}
+{% set pa = media(v.poster, "Постер видео") %}
+{% set vmiss = missing(va) %}
+{% set pmiss = missing(pa) %}
+{% if vmiss %}
+<div class="kr-video is-missing" data-player="postvideo" data-missing="1">
+  {% if not pmiss %}<img class="kr-video__poster" {{ pa }} alt="" loading="lazy" decoding="async">{% endif %}
+  <p class="kr-video__off" role="img" aria-label="Видео недоступно">Видео недоступно</p>
+  <span class="kr-video__dur">{{ v.duration }}</span>
+</div>
+{% else %}
+<div class="kr-video" data-player="postvideo" data-duration="{{ v.duration }}">
+  <video class="kr-video__el" {{ va|replace("data-media=", "data-video-media=") }}{% if not pmiss %} {{ pa|replace("data-media=", "data-poster-media=")|replace("data-mime=", "data-poster-mime=")|replace("src=", "poster=") }}{% endif %} controls playsinline preload="none" aria-label="Видео к публикации, {{ v.duration }}"></video>
+  <span class="kr-video__dur" aria-hidden="true">{{ v.duration }}</span>
+  <div class="kr-video__load" data-role="load" hidden>
+    <button class="kr-video__btn" type="button" data-act="load">Смотреть видео</button>
+    <div class="kr-video__progress" data-role="progress" hidden><span class="kr-video__bar"><i data-role="bar"></i></span></div>
+    <p class="kr-video__status" data-role="ptext" role="status"></p>
+  </div>
+</div>
+{% endif %}
 {%- endmacro %}

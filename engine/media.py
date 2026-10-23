@@ -29,6 +29,12 @@ from engine.models import MEDIA_MIME
 MEDIA_DIR = ROOT / "media"
 HASH_HEX = 32  # первые 32 hex-символа sha256 исходного файла (FORMATS §5)
 
+# Видео: технический предел для телефона, не сюжетный параметр. Зашифрованное видео браузер скачивает целиком
+# и расшифровывает в памяти (файл + расшифрованная копия + Blob), поэтому на закрытых страницах оно ограничено;
+# открытое играет потоком (HTTP Range) и такого предела не имеет, но вес всё равно стоит держать в рамках.
+MAX_SEALED_VIDEO_BYTES = 25 * 1024 * 1024
+WARN_VIDEO_BYTES = 15 * 1024 * 1024
+
 _PLACEHOLDER_ALT = {"image": "Здесь будет фото", "audio": "Здесь будет аудиозапись", "video": "Здесь будет видео"}
 
 
@@ -68,6 +74,7 @@ class MediaPlan:
                 mf = MediaFile(use.path, MEDIA_MIME[Path(use.path).suffix.lower()])
                 self.files[use.path] = mf
             mf.uses.append(use)
+        data_by_hash: dict[str, bytes] = {}
         for mf in self.files.values():
             src = self.media_dir / mf.rel
             mf.exists = src.is_file()
@@ -75,12 +82,40 @@ class MediaPlan:
                 continue
             data = src.read_bytes()
             mf.hash = media_hash(data)
-            mf.encrypted = not mf.open_context
+            data_by_hash[mf.hash] = data
+        # Одинаковое содержимое под разными путями — один файл в dist/m/: открытый, если открыт хоть один из
+        # путей, иначе зашифрованный с одним общим ключом (иначе второй файл затёр бы первый вместе с его ключом).
+        keys: dict[str, bytes] = {}
+        open_hashes = {mf.hash for mf in self.files.values() if mf.exists and mf.open_context}
+        for mf in self.files.values():
+            if not mf.exists:
+                continue
+            mf.encrypted = mf.hash not in open_hashes
             if mf.encrypted:
-                mf.key = secrets.token_bytes(crypto.KEY_LEN)
-                mf.size = crypto.NONCE_LEN + len(data) + crypto.TAG_LEN
+                mf.key = keys.setdefault(mf.hash, secrets.token_bytes(crypto.KEY_LEN))
+                mf.size = crypto.NONCE_LEN + len(data_by_hash[mf.hash]) + crypto.TAG_LEN
             else:
-                mf.size = len(data)
+                mf.size = len(data_by_hash[mf.hash])
+
+    def size_problems(self) -> tuple[list[str], list[str]]:
+        """(ошибки, предупреждения) по размеру видео: зашифрованное > MAX_SEALED_VIDEO_BYTES — ошибка."""
+        errors: list[str] = []
+        warns: list[str] = []
+        for mf in self.files.values():
+            if not mf.exists or mf.mime != "video/mp4":
+                continue
+            raw = (self.media_dir / mf.rel).stat().st_size
+            mb = raw / 1024 / 1024
+            where = ", ".join(f"{u.file} → {u.loc}" for u in mf.uses[:2])
+            if mf.encrypted and raw > MAX_SEALED_VIDEO_BYTES:
+                errors.append(
+                    f"видео media/{mf.rel} — {mb:.1f} МБ, а на закрытых страницах видео не больше "
+                    f"{MAX_SEALED_VIDEO_BYTES // 1024 // 1024} МБ (браузер расшифровывает его целиком в памяти): "
+                    f"пережмите (H.264, 720p, ~1,5 Мбит/с) или сделайте страницу открытой ({where})")
+            elif raw > WARN_VIDEO_BYTES:
+                warns.append(f"видео media/{mf.rel} — {mb:.1f} МБ: для телефона лучше до "
+                             f"{WARN_VIDEO_BYTES // 1024 // 1024} МБ (H.264 + AAC, ~1,5 Мбит/с)")
+        return errors, warns
 
     @property
     def missing(self) -> list[MediaFile]:
@@ -105,9 +140,11 @@ class MediaPlan:
         """Записать файлы в ``dist/m/``: открытые — копией, остальные — зашифрованными."""
         out: list[Path] = []
         mdir = Path(dist) / "m"
+        done: set[str] = set()
         for mf in self.files.values():
-            if not mf.exists:
+            if not mf.exists or mf.out_name in done:
                 continue
+            done.add(mf.out_name)
             mdir.mkdir(parents=True, exist_ok=True)
             data = (self.media_dir / mf.rel).read_bytes()
             if mf.encrypted:

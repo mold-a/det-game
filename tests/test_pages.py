@@ -388,6 +388,8 @@ def test_no_open_answer_leak_in_fixture_build(built_fx):
 # ---------------------------------------------------------------- голосовые в «Круге» и «Внешний вид» в pharma
 
 FAKE_MP3 = b"ID3\x03\x00\x00\x00\x00\x00\x00" + bytes(range(64)) * 4
+FAKE_MP4 = b"\x00\x00\x00\x18ftypmp42" + bytes(range(256)) * 8
+FAKE_JPG = b"\xff\xd8\xff\xe0" + bytes(range(100)) * 3
 
 
 @pytest.fixture(scope="module")
@@ -397,9 +399,13 @@ def built_voice(tmp_path_factory):
     add_fixture_pages(c)
     edit_yaml(c, "pages/pharma/page.yaml", lambda d: d["drugs"][0].update(appearance="Белые круглые таблетки, ТЕСТ-ВИД"))
     media = tmp / "media"
-    for rel in ("krug-actor/voice-01.mp3", "krug-closed/voice-01.mp3"):  # voice-missing.mp3 нарочно нет
+    for rel in ("krug-actor/voice-01.mp3", "krug-closed/voice-01.mp3",  # voice-missing.mp3 нарочно нет
+                "krug-actor/comment-voice-01.mp3", "krug-closed/comment-voice-01.mp3"):
         (media / rel).parent.mkdir(parents=True, exist_ok=True)
-        (media / rel).write_bytes(FAKE_MP3)
+        (media / rel).write_bytes(FAKE_MP3 + rel.encode())  # у закрытых и открытых файлов содержимое разное
+    for page in ("krug-actor", "krug-closed"):  # video-missing.mp4 и comment-voice-missing.mp3 нарочно нет
+        (media / page / "video-01.mp4").write_bytes(FAKE_MP4 + page.encode())
+        (media / page / "video-01.jpg").write_bytes(FAKE_JPG + page.encode())
     lock = tmp / "salts.lock.json"
     shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
     dist = tmp / "dist"
@@ -423,7 +429,7 @@ def test_post_audio_model():
                 {"file": "x/v.mp3", "duration": "0:75"}, {"file": "x/v.mp3", "duration": "0:12", "lang": "ru"}):
         with pytest.raises(ValidationError):
             PostAudio(**bad)
-    with pytest.raises(ValidationError, match="text, photo или audio"):
+    with pytest.raises(ValidationError, match="text, photo, audio или video"):
         SocialPost(datetime="2026-10-01T10:00")
 
 
@@ -443,8 +449,16 @@ def test_voice_media_refs_and_bad_extension(root):
     uses = [u for u in media_refs(c.characters, c.pages, c.docs) if u.path.startswith(("krug-actor/", "krug-closed/"))]
     assert {(u.path, u.context) for u in uses} == {
         ("krug-actor/voice-01.mp3", "open"), ("krug-actor/voice-missing.mp3", "open"),
-        ("krug-closed/voice-01.mp3", "locked")}
-    assert all("audio" in u.loc for u in uses)
+        ("krug-actor/comment-voice-01.mp3", "open"), ("krug-actor/comment-voice-missing.mp3", "open"),
+        ("krug-actor/video-01.mp4", "open"), ("krug-actor/video-01.jpg", "open"),
+        ("krug-actor/video-missing.mp4", "open"),
+        ("krug-closed/voice-01.mp3", "locked"), ("krug-closed/comment-voice-01.mp3", "locked"),
+        ("krug-closed/video-01.mp4", "locked"), ("krug-closed/video-01.jpg", "locked")}
+    by_path = {u.path: u.loc for u in uses}
+    assert re.fullmatch(r"posts\[\d+\]\.audio\.file", by_path["krug-actor/voice-01.mp3"])
+    assert re.fullmatch(r"posts\[\d+\]\.comments\[\d+\]\.audio\.file", by_path["krug-actor/comment-voice-01.mp3"])
+    assert re.fullmatch(r"posts\[\d+\]\.video\.file", by_path["krug-actor/video-01.mp4"])
+    assert re.fullmatch(r"posts\[\d+\]\.video\.poster", by_path["krug-actor/video-01.jpg"])
     edit_yaml(root, "pages/krug-actor/page.yaml", lambda d: d["posts"][1]["audio"].update(file="../v.mp3"))
     assert has_error(errors_of(root), "krug-actor", "относительным")
 
@@ -482,16 +496,202 @@ def test_voice_on_locked_page_is_encrypted(built_voice):
     inner = sealed_inner(built_voice, "krug-closed")
     assert 'class="kr-voice"' in inner["html"] and "Расшифровка закрытого голосового." in inner["html"]
     assert "data-media=" in inner["html"] and "src=" not in re.search(r"<audio[^>]*>", inner["html"]).group(0)
-    (ref,) = [r for r in inner["media"] if r["mime"] == "audio/mpeg"]
-    assert ref["key"] and ref["src"].endswith(".bin") and ref["aad"].startswith("media/")
-    name = ref["src"].rsplit("/", 1)[1]
-    assert (dist / "m" / name).is_file()
-    raw = (dist / "m" / name).read_bytes()
-    assert FAKE_MP3 not in raw and not raw.startswith(b"ID3")
-    opened = crypto.open_media(crypto.b64u_decode(ref["key"]), raw, ref["aad"])
-    assert opened == FAKE_MP3
+    refs = [r for r in inner["media"] if r["mime"] == "audio/mpeg"]
+    assert len(refs) == 2  # голосовое поста и голосовое комментария
+    for ref in refs:
+        assert ref["key"] and ref["src"].endswith(".bin") and ref["aad"].startswith("media/")
+        name = ref["src"].rsplit("/", 1)[1]
+        assert (dist / "m" / name).is_file()
+        raw = (dist / "m" / name).read_bytes()
+        assert FAKE_MP3 not in raw and not raw.startswith(b"ID3")
+        opened = crypto.open_media(crypto.b64u_decode(ref["key"]), raw, ref["aad"])
+        assert opened.startswith(FAKE_MP3 + b"krug-closed/")
     shell = (dist / "p" / "krug-closed" / "payload.json").read_text(encoding="utf-8")
     assert "Расшифровка закрытого" not in shell and "ID3" not in shell
+
+
+# ---------------------------------------------------------------- голосовое у комментария и видео в посте
+
+
+def test_comment_model_text_or_audio():
+    from engine.models import PostComment
+
+    c = PostComment(author="А", audio={"file": "x/c.mp3", "duration": "0:07"})  # без text — можно
+    assert c.text == "" and c.audio.duration == "0:07" and c.page is None
+    assert PostComment(author="А", text="Привет").audio is None
+    assert PostComment(author="А", text="Привет", audio={"file": "x/c.m4a", "duration": "1:07", "transcript": "…"}).audio.transcript
+    with pytest.raises(ValidationError, match="text или audio"):
+        PostComment(author="А")
+    with pytest.raises(ValidationError, match="text или audio"):
+        PostComment(author="А", text="  ")
+    with pytest.raises(ValidationError):  # те же правила, что у голосового поста
+        PostComment(author="А", audio={"file": "x/c.wav", "duration": "0:07"})
+    with pytest.raises(ValidationError):
+        PostComment(author="А", audio={"file": "x/c.mp3", "duration": "7 сек"})
+
+
+def test_post_video_model():
+    from engine.models import PostVideo, SocialPost
+
+    v = PostVideo(file="p/video-01.mp4", poster="p/video-01.jpg", duration="0:15")
+    p = SocialPost(datetime="2026-10-01T10:00", video=v.model_dump())  # пост только с видео — можно
+    assert p.text == "" and p.video.poster == "p/video-01.jpg"
+    assert PostVideo(file="p/v.MP4", poster="p/v.webp", duration="12:05").duration == "12:05"
+    for bad in (dict(file="p/v.mov", poster="p/v.jpg", duration="0:15"),
+                dict(file="p/v.webm", poster="p/v.jpg", duration="0:15"),
+                dict(file="p/v.mp4", poster="p/v.mp3", duration="0:15"),
+                dict(file="p/v.mp4", poster="p/v.jpg", duration="15 сек"),
+                dict(file="p/v.mp4", poster="p/v.jpg", duration="0:75"),
+                dict(file="p/v.mp4", duration="0:15"),  # постер обязателен
+                dict(file="p/v.mp4", poster="p/v.jpg", duration="0:15", autoplay=True)):
+        with pytest.raises(ValidationError):
+            PostVideo(**bad)
+
+
+def test_comment_audio_and_video_bad_paths_are_content_errors(root):
+    add_fixture_pages(root)
+    edit_yaml(root, "pages/krug-actor/page.yaml",
+              lambda d: d["posts"][3]["comments"][0]["audio"].update(file="../c.mp3"))
+    assert has_error(errors_of(root), "krug-actor", "comments[0].audio.file", "относительным")
+
+
+def test_video_poster_bad_extension_is_error(root):
+    add_fixture_pages(root)
+    edit_yaml(root, "pages/krug-actor/page.yaml", lambda d: d["posts"][3]["video"].update(poster="krug-actor/p.gif"))
+    assert errors_of(root)
+
+
+def test_open_page_video_and_comment_voice_markup(built_voice):
+    _, dist, _, rep = built_voice
+    html = read(dist, "krug-actor")
+    post = re.search(r'<article class="kr-post[^"]*" data-datetime="2026-10-04T12:00">.*?</article>', html, re.S).group(0)
+    # Видео: плеер браузера, без автозапуска, постер, длительность на постере.
+    video = re.search(r"<video[^>]*>", post).group(0)
+    for needle in ('playsinline', 'preload="none"', "controls", 'poster="/m/'):
+        assert needle in video, needle
+    assert re.search(r'src="/m/[0-9a-f]{32}\.mp4"', video)
+    assert "autoplay" not in html
+    assert '<span class="kr-video__dur" aria-hidden="true">0:02</span>' in post
+    assert "kr-post__text" not in post  # пост только с видео
+    # Голосовые в комментариях: компактный вариант того же плеера.
+    comments = re.search(r'<ul class="kr-comments".*?</ul>', post, re.S).group(0)
+    voices = re.findall(r'<div class="kr-voice kr-voice--compact"[^>]*>', comments)
+    assert len(voices) == 2
+    assert 'data-missing="1"' not in voices[0] and 'data-missing="1"' in voices[1]
+    assert "Комментарий с текстом и голосовым." in comments
+    assert "Расшифровка голосового комментария." in comments
+    assert re.search(r'<audio[^>]+src="/m/[0-9a-f]{32}\.mp3"', comments)
+    # Комментарий без текста: подписи text нет.
+    second = comments.split('<li class="kr-comment">')[2]
+    assert "kr-comment__text" not in second and "kr-voice" in second
+    assert "krug-actor/video-missing.mp4" in rep.missing_media and "krug-actor/comment-voice-missing.mp3" in rep.missing_media
+    assert "krug-actor/video-01.mp4" not in rep.missing_media
+
+
+def test_missing_video_file_renders_unavailable_stub(built_voice):
+    _, dist, _, rep = built_voice
+    html = read(dist, "krug-actor")
+    post = re.search(r'<article class="kr-post[^"]*" data-datetime="2026-10-06T12:00">.*?</article>', html, re.S).group(0)
+    box = re.search(r'<div class="kr-video is-missing".*?</div>', post, re.S).group(0)
+    assert "Видео недоступно" in box and "0:15" in box
+    assert "<video" not in post and "video-missing" not in post  # ни <video>, ни ссылки на файл
+    assert "<button" not in box and "src=\"/m/" in box  # кнопки нет; постер (он существует) остаётся
+    assert any("video-missing.mp4" in w for w in rep.warnings)  # предупреждение сборки
+    assert not any("krug-actor/video-01.mp4" in w for w in rep.warnings), rep.warnings
+
+
+def test_video_without_poster_file_has_stub_without_image(tmp_path):
+    c = copy_content(tmp_path)
+    add_fixture_pages(c)
+    media = tmp_path / "media"
+    media.mkdir()  # вообще никаких файлов
+    lock = tmp_path / "salts.lock.json"
+    shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
+    dist = tmp_path / "dist"
+    rep = build(content_dir=c, dist=dist, media_dir=media, salts_path=lock, log=lambda *_: None)
+    html = read(dist, "krug-actor")
+    post = re.search(r'<article class="kr-post[^"]*" data-datetime="2026-10-04T12:00">.*?</article>', html, re.S).group(0)
+    box = re.search(r'<div class="kr-video is-missing".*?</div>', post, re.S).group(0)
+    assert "<video" not in post and "Видео недоступно" in box and "<img" not in box
+    assert "krug-actor/video-01.mp4" in rep.missing_media and "krug-actor/video-01.jpg" in rep.missing_media
+
+
+def test_closed_page_video_and_poster_are_encrypted(built_voice):
+    _, dist, _, _ = built_voice
+    inner = sealed_inner(built_voice, "krug-closed")
+    html = inner["html"]
+    video = re.search(r"<video[^>]*>", html).group(0)
+    assert "src=" not in video and "poster=" not in video  # ни файла, ни постера в открытом виде
+    vi = int(re.search(r'data-video-media="(\d+)"', video).group(1))
+    pi = int(re.search(r'data-poster-media="(\d+)"', video).group(1))
+    assert " data-media=" not in video  # hydrateMedia не должен качать видео сам
+    vref, pref = inner["media"][vi], inner["media"][pi]
+    assert vref["mime"] == "video/mp4" and pref["mime"] == "image/jpeg"
+    for ref, plain in ((vref, FAKE_MP4 + b"krug-closed"), (pref, FAKE_JPG + b"krug-closed")):
+        assert ref["key"] and ref["src"].endswith(".bin")
+        raw = (dist / "m" / ref["src"].rsplit("/", 1)[1]).read_bytes()
+        assert plain not in raw and not raw.startswith(b"\x00\x00\x00\x18ftyp")
+        assert crypto.open_media(crypto.b64u_decode(ref["key"]), raw, ref["aad"]) == plain
+        assert ref["size"] == len(raw)  # по size играет индикатор загрузки
+    assert not any(p.read_bytes().endswith(b"krug-closed") for p in (dist / "m").iterdir())  # открытых копий нет
+    assert 'class="kr-voice kr-voice--compact"' in html  # голосовое комментария тоже внутри шифрованной части
+
+
+def test_identical_media_under_two_paths_shares_one_file(tmp_path):
+    """Одинаковое содержимое под двумя путями (открытая и закрытая страница) — один файл в dist/m/: открытый;
+    два закрытых пути — один файл с одним ключом (раньше второй затирал первый вместе с его ключом)."""
+    from engine.content import MediaUse
+    from engine.media import MediaPlan
+
+    media = tmp_path / "media"
+    (media / "a").mkdir(parents=True)
+    for rel in ("a/1.mp3", "a/2.mp3", "a/3.mp3"):
+        (media / rel).write_bytes(FAKE_MP3)
+    c = type("C", (), {"characters": [], "pages": {}, "docs": {}})()
+    import engine.media as media_mod
+
+    uses = {"a/1.mp3": "locked", "a/2.mp3": "locked", "a/3.mp3": "open"}
+    orig = media_mod.media_refs
+    media_mod.media_refs = lambda *_a, **_k: [MediaUse("f", "loc", p, ctx) for p, ctx in uses.items()]
+    try:
+        plan = MediaPlan(c, media)
+        assert all(not f.encrypted for f in plan.files.values())  # третий путь открыт — файл уже публичен
+        uses["a/3.mp3"] = "locked"
+        plan = MediaPlan(c, media)
+    finally:
+        media_mod.media_refs = orig
+    assert len({f.key for f in plan.files.values()}) == 1 and all(f.encrypted for f in plan.files.values())
+    out = plan.emit(tmp_path / "dist")
+    assert len(out) == 1
+    f = plan.files["a/1.mp3"]
+    assert crypto.open_media(f.key, out[0].read_bytes(), f"media/{f.hash}") == FAKE_MP3
+
+
+def test_sealed_video_over_limit_is_build_error(tmp_path, monkeypatch):
+    import engine.media as media_mod
+
+    c = copy_content(tmp_path)
+    add_fixture_pages(c)
+    media = tmp_path / "media"
+    (media / "krug-closed").mkdir(parents=True)
+    (media / "krug-actor").mkdir(parents=True)
+    (media / "krug-closed" / "video-01.mp4").write_bytes(FAKE_MP4)
+    (media / "krug-actor" / "video-01.mp4").write_bytes(FAKE_MP4 + b"open")
+    lock = tmp_path / "salts.lock.json"
+    shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
+    from engine.build import BuildError
+
+    monkeypatch.setattr(media_mod, "MAX_SEALED_VIDEO_BYTES", len(FAKE_MP4) - 1)
+    monkeypatch.setattr(media_mod, "WARN_VIDEO_BYTES", len(FAKE_MP4) - 1)
+    with pytest.raises(BuildError) as e:
+        build(content_dir=c, dist=tmp_path / "dist", media_dir=media, salts_path=lock, log=lambda *_: None)
+    msgs = "\n".join(e.value.problems)
+    assert "krug-closed/video-01.mp4" in msgs and "закрытых страницах" in msgs
+    assert "krug-actor/video-01.mp4" not in msgs  # открытая страница — не ошибка, только предупреждение
+    # Тот же файл на открытой странице: сборка проходит, предупреждение о весе.
+    (media / "krug-closed" / "video-01.mp4").unlink()
+    rep = build(content_dir=c, dist=tmp_path / "dist", media_dir=media, salts_path=lock, log=lambda *_: None)
+    assert any("krug-actor/video-01.mp4" in w and "лучше до" in w for w in rep.warnings)
 
 
 def test_pharma_appearance_row_after_active_substance(built_voice):

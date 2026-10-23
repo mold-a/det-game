@@ -15,11 +15,11 @@
 
   <section class="kr-profile" aria-labelledby="kr-name">
     <div class="kr-profile__cover">
-      {% if pr.cover %}{{ ui.img(media, pr.cover, "", "обложка профиля", "kr-cover") }}{% endif %}
+      {% if pr.cover %}{{ ui.img(media, pr.cover, "", "обложка профиля", "kr-cover", "", true) }}{% endif %}
     </div>
     <div class="kr-profile__card">
       <div class="kr-profile__avatar">
-        {% if pr.avatar %}{% call ui.zoom("kr-zoom kr-zoom--avatar", name) %}{{ ui.img(media, pr.avatar, name, "фото профиля", "kr-avatar") }}{% endcall %}
+        {% if pr.avatar %}{% call ui.zoom("kr-zoom kr-zoom--avatar", name) %}{{ ui.img(media, pr.avatar, name, "фото профиля", "kr-avatar", "", true) }}{% endcall %}
         {% else %}<span class="kr-avatar kr-avatar--blank" aria-hidden="true">{{ name[:1] }}</span>{% endif %}
       </div>
       <h1 class="kr-profile__name" id="kr-name">{{ name }}</h1>
@@ -52,35 +52,8 @@
             </span>
           </header>
           {% if post.text %}<p class="kr-post__text">{{ post.text_html }}</p>{% endif %}
-          {% if post.audio %}
-          {# Голосовое сообщение: свой плеер (pages/audio-player.js), не <audio controls>. Нет файла — неактивная плашка. #}
-          {% set va = media(post.audio.file, "Голосовое сообщение") %}
-          {% set vmiss = ui.missing(va) %}
-          <div class="kr-voice" data-player="audio" data-variant="voice" data-duration="{{ post.audio.duration }}"{% if vmiss %} data-missing="1"{% endif %}>
-            {% if not vmiss %}<audio class="kr-voice__audio" {{ va }} preload="metadata" playsinline></audio>{% endif %}
-            <div class="kr-voice__row">
-              <button class="kr-voice__btn" type="button" data-act="play" aria-label="Воспроизвести голосовое сообщение">
-                <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-                <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>
-              </button>
-              <div class="kr-voice__body">
-                {% set bars %}{% for h in [30,52,40,72,58,86,64,44,76,92,60,38,68,84,50,34,62,80,56,42,70,88,54,36,64,78,46,32,58,74] %}<i style="--h:{{ h }}%"></i>{% endfor %}{% endset %}
-                <div class="kr-voice__wave" aria-hidden="true">
-                  <div class="kr-voice__bars">{{ bars }}</div>
-                  <div class="kr-voice__bars kr-voice__bars--played">{{ bars }}</div>
-                </div>
-                <p class="kr-voice__meta"><span class="kr-voice__label">Голосовое сообщение</span> · <span class="kr-voice__time"><span class="kr-voice__cur" data-role="cur">0:00</span><span class="kr-voice__sep"> / </span><span data-role="dur">{{ post.audio.duration }}</span></span></p>
-              </div>
-            </div>
-            <p class="visually-hidden" data-role="msg" role="status">{% if vmiss %}Запись пока недоступна{% endif %}</p>
-            {% if post.audio.transcript %}
-            <details class="kr-voice__tr">
-              <summary class="kr-voice__tr-summary">Расшифровка</summary>
-              <p class="kr-voice__tr-text">{{ post.audio.transcript }}</p>
-            </details>
-            {% endif %}
-          </div>
-          {% endif %}
+          {% if post.audio %}{{ ui.voice(media, post.audio) }}{% endif %}
+          {% if post.video %}{{ ui.post_video(media, post.video) }}{% endif %}
           {% if post.photo %}
           <figure class="kr-post__photo">
             {% call ui.zoom("kr-zoom kr-zoom--photo", post.datetime|dt) %}{{ ui.img(media, post.photo, post.text, "фото к публикации", "kr-photo") }}{% endcall %}
@@ -98,7 +71,7 @@
           <div class="kr-comments-box" id="{{ pid }}-comments">
             <ul class="kr-comments" role="list">
               {% for cm in post.comments %}
-              <li class="kr-comment"><a class="kr-comment__author" href="{{ link(cm.page or social_stub) }}">{{ cm.author }}</a> <span class="kr-comment__text">{{ cm.text_html }}</span></li>
+              <li class="kr-comment"><a class="kr-comment__author" href="{{ link(cm.page or social_stub) }}">{{ cm.author }}</a> {% if cm.text %}<span class="kr-comment__text">{{ cm.text_html }}</span>{% endif %}{% if cm.audio %}{{ ui.voice(media, cm.audio, true) }}{% endif %}</li>
               {% endfor %}
             </ul>
           </div>

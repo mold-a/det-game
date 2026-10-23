@@ -57,6 +57,13 @@ posts:
     likes: 187
     comments:
       - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", text: "Уже несу! ☕" }
+      # 23.10 (VOICE-VIDEO-3, RV-1): помреж голосом — без кулис помрежа, ширмы, телефонов и таблеток (3-01, 2-05, 4-06).
+      - author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}"
+        text: "Голосом, раз текст никто не читает."
+        audio:
+          file: "krug-voroncov/voice-02.mp3"
+          duration: "0:14"
+          transcript: "Так. Напоминаю. Кофе за кулисы не носим — ни на прогоне, ни на премьере. {{ c.inna.first() }}, это и вас касается. Вчера на реквизитном столе лежал бутерброд. Чей бутерброд — я знаю. У меня всё записано. Всё, работаем."
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Злой режиссёр — к аншлагу!!!!!" }
       - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Отличный прогон. Учусь 👌" }
   - datetime: "2026-11-02T19:20"            # жизнь

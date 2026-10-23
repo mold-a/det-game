@@ -1205,6 +1205,13 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
             audio = getattr(post, "audio", None)
             if audio is not None:
                 refs.append((("posts", pi, "audio", "file"), audio.file))
+            video = getattr(post, "video", None)
+            if video is not None:
+                refs.append((("posts", pi, "video", "file"), video.file))
+                refs.append((("posts", pi, "video", "poster"), video.poster))
+            for ci, cm in enumerate(getattr(post, "comments", None) or []):
+                if cm.audio is not None:
+                    refs.append((("posts", pi, "comments", ci, "audio", "file"), cm.audio.file))
         article = getattr(page, "article", None)
         if article is not None:
             refs.append((("article", "photo"), article.photo))

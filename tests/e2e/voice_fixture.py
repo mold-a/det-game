@@ -31,11 +31,24 @@ def make(out: Path) -> dict:
     content = copy_content(out, Path(src) if src else None)
     add_fixture_pages(content)
     media = out / "media"
-    for rel in ("krug-actor/voice-01.mp3", "krug-closed/voice-01.mp3"):
+    # Содержимое файлов на открытой и закрытой странице должно различаться: одинаковые файлы сборщик
+    # складывает в dist/ один раз и открытым (см. MediaPlan), и «закрытое» оказалось бы публичным.
+    for rel, freq in (("krug-actor/voice-01.mp3", 440), ("krug-closed/voice-01.mp3", 523)):
         dst = media / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "sine=frequency=440:duration=2",
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", f"sine=frequency={freq}:duration=2",
                         "-ac", "1", "-b:a", "32k", str(dst)], check=True)
+    # Видео-фикстуры: mp4 с VP9 + Opus (2 с, 320x240), а не боевой H.264 + AAC: Chromium от Playwright
+    # кодеков H.264/AAC не содержит и такой файл не проиграл бы. Контейнер и путь через сайт те же.
+    for page, src_name in (("krug-actor", "testsrc"), ("krug-closed", "testsrc2")):
+        (media / page).mkdir(parents=True, exist_ok=True)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", f"{src_name}=size=320x240:rate=15:duration=2",
+                        "-f", "lavfi", "-i", "sine=frequency=330:duration=2", "-c:v", "libvpx-vp9", "-pix_fmt", "yuv420p",
+                        "-b:v", "150k", "-c:a", "libopus", "-b:a", "32k", "-movflags", "+faststart", "-shortest",
+                        str(media / page / "video-01.mp4")], check=True)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(media / page / "video-01.mp4"),
+                        "-frames:v", "1", str(media / page / "video-01.jpg")], check=True)
+        shutil.copy(media / page / "voice-01.mp3", media / page / "comment-voice-01.mp3")
     lock = out / "salts.lock.json"
     shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
     build(content_dir=content, dist=out / "dist", media_dir=media, salts_path=lock, log=lambda *_: None)
