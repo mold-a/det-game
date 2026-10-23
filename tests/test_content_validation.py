@@ -138,6 +138,8 @@ def test_missing_body_is_todo_not_error(root):
 def test_collect_todos(root):
     # заглушки-значения в боевом content закрываются — подкладываем их в копию
     edit_text(root, "pages/video/page.yaml", 'size: "1,4 МБ"', 'size: "TODO(content): размер"')
+    with (root / "pages" / "video" / "page.yaml").open("a", encoding="utf-8") as f:
+        f.write("\n# TODO(content): комментарий-заглушка\n")
     c = load_content(root)
     todos = collect_todos(c)
     kinds = {t.kind for t in todos}
