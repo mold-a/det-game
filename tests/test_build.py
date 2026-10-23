@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -250,15 +251,25 @@ def test_media_open_and_encrypted(tmp_path):
 
 def test_release_fails_with_todos(built, tmp_path):
     _, dist, salts, _ = built
+    # заглушки и пустая media подкладываются в копию — живой content может быть уже полностью заполнен
+    cdir = tmp_path / "content"
+    shutil.copytree(ROOT / "content", cdir)
+    page = cdir / "pages" / "video" / "page.yaml"
+    txt = page.read_text(encoding="utf-8")
+    assert 'size: "' in txt
+    txt = re.sub(r'size: "[^"]*"', 'size: "TODO(content): размер"', txt, count=1)
+    page.write_text(txt + "\n# TODO(content): комментарий-заглушка\n", encoding="utf-8")
+    media = tmp_path / "media-empty"
+    media.mkdir()
     with pytest.raises(BuildError) as exc:
-        build(dist=tmp_path / "dist", salts_path=salts, release=True)
+        build(content_dir=cdir, media_dir=media, dist=tmp_path / "dist", salts_path=salts, release=True)
     text = str(exc.value)
     assert "TODO(content)" in text and "комментарий" in text
     # пароль облака задан в content (14.10.2026) — проверка «пароль облака не задан» здесь больше не срабатывает
     # домен задан в content (20.10.2026: mydetgame.ru) — «домен-заглушка» здесь больше не срабатывает
     assert "нет медиафайла" in text and "домен-заглушка" not in text
     assert not (tmp_path / "dist").exists()
-    rep = check(dist=dist, salts_path=salts, release=True)
+    rep = check(content_dir=cdir, media_dir=media, dist=dist, salts_path=salts, release=True)
     assert not next(r for r in rep.rows if r.name.startswith("8.")).ok
 
 

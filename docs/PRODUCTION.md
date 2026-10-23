@@ -1,6 +1,6 @@
 # Производство медиа: что осталось
 
-**Актуально на 24.10.2026.** Готово 122 из 133 позиций, отменено 8, **осталось 3 позиции (5 файлов)**. Как пользоваться: пишете в чат **«готово КОД»** (например, «готово GV-1») или **«переделать КОД: причина»**; режиссёр кладёт файл в `media/`, сверяет и ставит ✅. Проверка: `python -m engine build 2>&1 | grep "нет медиафайла"` должно стать пустым. Сюжет кадров — `docs/SCENARIO.md` и `content/`; если что-то расходится, прав сценарий. Образцы лиц и голосов в репозиторий не кладутся (`media/_refs/` в `.gitignore`).
+**Актуально на 24.10.2026.** Готово 123 из 133 позиций, отменено 8, **осталось 2 позиции (4 файла)**. Как пользоваться: пишете в чат **«готово КОД»** (например, «готово GV-1») или **«переделать КОД: причина»**; режиссёр кладёт файл в `media/`, сверяет и ставит ✅. Проверка: `python -m engine build 2>&1 | grep "нет медиафайла"` должно стать пустым. Сюжет кадров — `docs/SCENARIO.md` и `content/`; если что-то расходится, прав сценарий. Образцы лиц и голосов в репозиторий не кладутся (`media/_refs/` в `.gitignore`).
 
 > **Правила автора.** Никаких живых съёмок и записей: лица — по готовым портретам `media/portraits/<id>.jpg`, голоса — клоны по существующим голосовым. Реальные товары и интерфейсы, случайно попавшие в бытовые кадры (телефон, ноутбук, наушники, конфеты), не замазываем (решение 23.10, семейная версия). Сервисы игры остаются вымышленными, логотипов и вывесок нет.
 
@@ -37,7 +37,6 @@
 |---|---|---|---|---|---|
 | VD-1 | `media/krug-levin/video-01.mp4` + `video-01.jpg` | «Закулисье, серия первая: помреж и свет», 0:05, 9:16 | `krug-levin`, пост 31.10 16:44 | Gemini (кадр) + ElevenLabs (реплики) + Kling | ⬜ |
 | VD-3 | `media/krug-marina/video-01.mp4` + `video-01.jpg` | Дача крёстного, яблоки, селфи-видео, 0:05, 9:16 | `krug-marina`, пост 11.10 12:47 | Gemini (кадр) + ElevenLabs (реплики) + Kling | ⬜ |
-| X05 | `media/portraits/nina_actress.jpg` | Исполнительница роли Нины, около 30 лет, вымышленное лицо | сайт `theater`, «Труппа» | Gemini | ⬜ |
 
 Улик среди семи позиций нет: сюжет от них не зависит.
 
@@ -57,29 +56,7 @@
 
 ## 4. Промпты и тексты
 
-### 4.1. `X05` — `portraits/nina_actress.jpg` — исполнительница роли Нины, около 30 лет (вымышленное лицо)
-
-Где: сайт `theater`, «Труппа», карточка рядом с Воронцовым, Лёвиным и Волковым (путь уже стоит в `content/pages/theater/page.yaml`). Больше нигде не появляется, в вопросах «кто это» её нет. Формат — как у остальных портретов: JPEG, 4:5, белый фон, ≥ 800 px по короткой стороне. Лицо **вымышленное**: образцов человека нет, прикладывается только `portraits/voroncov.jpg` как образец стиля. Возраст в `characters.yaml` не задан; «около 30» — из карточки (в труппе с 2019 года, Лариса и Маша).
-
-```text
-Create a photorealistic ID-style portrait photograph of a fictional person who does not exist (not a real person, not a celebrity, not a lookalike of anyone famous).
-
-ATTACHED IMAGE: The attached image is a STYLE reference only. Match its pure white seamless background, its framing (frontal view, head and shoulders, cropped at mid-chest, head centred with a small margin of white space above the hair), its soft even daylight-like lighting and its natural, neutral colours of a document photo. Do NOT copy the person from that image: not the face, hair, glasses, clothes or neck chain, not the age and not the gender.
-
-SUBJECT: a woman about 30 years old, an actress of a provincial drama theatre. An ordinary, natural, likeable face with expressive eyes and a slightly asymmetrical smile line; not a fashion model. Dark-blond hair pulled back into a simple low knot, no fringe, a few loose strands. Minimal everyday make-up.
-EXPRESSION: calm and attentive, a slight smile with closed lips.
-CLOTHES AND DETAILS: a plain dark-grey high-neck knitted top. No jewellery at all.
-
-COMPOSITION: Strictly frontal, facing straight into the camera, eyes looking directly into the lens, head upright and level (not tilted, not turned), shoulders square to the camera, head and shoulders down to mid-chest, face centred. Both hands out of frame. Vertical 4:5 format.
-LIGHT AND BACKGROUND: Soft, even, diffuse frontal daylight, no harsh shadows. Background is a plain pure white seamless backdrop (#FFFFFF), perfectly uniform, with no shadow, no gradient and no vignette.
-REALISM: Photorealistic, natural skin texture with visible pores, natural colours, sharp focus on the eyes. Plain document-photo look.
-
-AVOID: no stage costume, no theatrical make-up, no props or accessories of any profession, no brooches, no pins, no earrings, no necklaces, pendants or crosses, no hat, no glasses, no text, no watermark, no logos, no props in hands, no tilted head, no wide smile, no glamour retouching or skin smoothing, no beauty filter, no grey or coloured background, no shadows on the background, no illustration or cartoon look.
-```
-
-Чек-лист: обычное живое лицо, не «модель» и не похожа на известную актрису; около 30; никаких украшений (особенно брошей: брошь — улика этапа 2); белый фон, кадрирование как у остальных портретов.
-
-### 4.2. Два видео в соцсеть: `VD-1`, `VD-3`
+### 4.1. Два видео в соцсеть: `VD-1`, `VD-3`
 
 **Решение автора 23.10: каждый ролик ≈ 5 секунд, одна генерация Kling, без склеек.** Губы двигаются только у одного человека (он в кадре, лицо — по готовому портрету), второй — голос за кадром или стоит спиной. Голос за кадром синхронизировать с губами не надо: это готовая дорожка ElevenLabs, которую режиссёр кладёт поверх. Голосов Лёвина и Артёма в роликах нет. В кадрах нет таблеток, таблетниц, ингаляторов, лекарств, сумок, телефонов с экранами, чашек на столах гримёрок, номеров на дверях, часов, надписей и логотипов; гримёрка № 4 не показывается. Улик в роликах нет.
 
@@ -152,11 +129,11 @@ Handheld selfie video with slight sway. The young woman looks at the apple in he
 
 ## 5. Сделано
 
-Все позиции ниже приняты (✅), файлы лежат в `media/`. Промпты убраны, оригиналы есть в истории git (`git log -p -- docs/PRODUCTION.md`). **Готово 122 из 133, отменено 8 (❌), осталось 3 (раздел 2).**
+Все позиции ниже приняты (✅), файлы лежат в `media/`. Промпты убраны, оригиналы есть в истории git (`git log -p -- docs/PRODUCTION.md`). **Готово 123 из 133, отменено 8 (❌), осталось 2 (раздел 2).**
 
 | Раздел | Коды и пути | ✅ |
 |---|---|---|
-| Портреты | `P01`–`P14`: `media/portraits/*.jpg` (voroncov, zavyalov, volkov, marina, kirill, stas, reznikova, gnedich, viktor, oleg, inna, dmitriy, volskaya, gromov); осталось только `X05` | 14 |
+| Портреты | `P01`–`P14`: `media/portraits/*.jpg` (voroncov, zavyalov, volkov, marina, kirill, stas, reznikova, gnedich, viktor, oleg, inna, dmitriy, volskaya, gromov); `X05` (`portraits/nina_actress.jpg`) | 14 |
 | Соцсети `gromov` | `AV-1`, `S03`, `S02` (совещание, улика), `GR-01`–`GR-03`: `media/gromov/` | 6 |
 | `krug-voroncov` | `AV-2`, `CV-2`, `VR-01`–`VR-05` (`VR-02`, `VR-03` — улики), `S01` (`media/news/voroncov_arbenin.jpg`) | 8 |
 | `krug-kirill` | `AV-3`, `CV-3`, `KR-01`–`KR-05` | 7 |
@@ -172,7 +149,7 @@ Handheld selfie video with slight sway. The young woman looks at the apple in he
 | Облако | `X03a`–`X03c`: `media/cloud/01.jpg`–`03.jpg` | 3 |
 | Аудио | `CALL` (`audio/anonymous_call.mp3`, улика, 0:42), `V1`–`V5`, `GV-1`, `GV-2`, `RV-1`, `RV-2`, `MV-1`, `KV-1`, `KV-2` | 13 |
 | Видео | `4-07` (`video/rehearsal.mp4`, улика) | 1 |
-| **Итого** | | **122** |
+| **Итого** | | **123** |
 
 **Отменено (❌), 8:** `S22`, `S25`–`S28` (пять фото Инны; посты перенесены текстом на `krug-ryabova`), `LV-V1` (голос Лёвина), `VD-2` (ролик про усы Звездича), `W-407` (рабочий кадр, в игру не идёт).
 

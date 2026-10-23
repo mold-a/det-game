@@ -72,9 +72,26 @@ def complete_copy(tmp_path: Path) -> tuple[Path, Path]:
     return cdir, media
 
 
+def todo_copy(tmp_path: Path) -> tuple[Path, Path]:
+    """Копия контента с подложенными заглушками (TODO-значение и TODO-комментарий) и пустой папкой media —
+    не зависит от того, сколько заглушек и медиа осталось в живом content."""
+    cdir = tmp_path / "content"
+    shutil.copytree(CONTENT, cdir)
+    page = cdir / "pages" / "video" / "page.yaml"
+    s = page.read_text(encoding="utf-8")
+    assert 'size: "' in s
+    s = re.sub(r'size: "[^"]*"', f'size: "{TODO}: размер"', s, count=1)
+    page.write_text(s + f"\n# {TODO}: комментарий-заглушка\n", encoding="utf-8")
+    media = tmp_path / "media-empty"
+    media.mkdir()
+    return cdir, media
+
+
 def test_release_fails_on_current_content(tmp_path):
+    cdir, media = todo_copy(tmp_path)
     with pytest.raises(ReleaseError) as exc:
-        release(dist=tmp_path / "dist", salts_path=tmp_path / "salts.json", out_dir=tmp_path / "print")
+        release(content_dir=cdir, media_dir=media, dist=tmp_path / "dist", salts_path=tmp_path / "salts.json",
+                out_dir=tmp_path / "print")
     e = exc.value
     assert e.stage == "build --release"
     text = str(e)
