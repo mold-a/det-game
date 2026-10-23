@@ -6,11 +6,11 @@ title: "{{ w.brands.system }}: изъятые файлы"
 source: "Изъято с телефона {{ c.volkov.full('gen') }}"
 file:
   name: "{{ w.devices.volkov_video_file }}"        # [Улика]
-  size: "TODO(content)"
+  size: "1,4 МБ"
   created: "{{ w.devices.volkov_video_created }}"  # [Улика] 08.11.2026 14:12:03
   device: "{{ w.devices.volkov_phone }}"
-  duration: "TODO(content)"
+  duration: "0:05"
   resolution: "1920×1080"
-video: "video/rehearsal.mp4"          # TODO(content): 5–6 с, две строки монолога Арбенина, днём у окна; ≤ 25 МБ
+video: "video/rehearsal.mp4"          # автор, Kling lip-sync 23.10; режиссёр: апскейл 832×480 → 1920×1080, H.264/AAC
 # Решение автора 23.10: одна генерация Kling, ≈ 5 с, без склеек. Фрагмент: «Без них нет у меня ни счастья, ни души, / Ни чувства, ни существованья!»
 # Текст с ударениями и режиссура кадра — docs/PRODUCTION.md §4.3. Размер и длительность впишет режиссёр по готовому файлу (ожидается 0:05–0:06).
