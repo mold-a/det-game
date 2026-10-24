@@ -306,8 +306,9 @@ def test_real_forensic_chart_and_cells():
     if bc is None:
         pytest.skip("у 1-04 нет meta.body_chart")
     text = " ".join((d["source"] + " " + d["meta"].get("subtitle", "")).split()).lower()
-    assert "задней поверхности тела" in text and [m["zone"] for m in bc["marks"]] == ["back"]
-    assert bc["note"] is None or "не обнаружено" in text
+    # решение автора 24.10: схема без отметок, под ней — только «Телесных повреждений не обнаружено»
+    assert bc["marks"] == [] and 'class="bc__zone"' not in str(bc["svg"])
+    assert bc["note"] == "Телесных повреждений не обнаружено" and "повреждений не обнаружено" in text
     # в ячейках нет новых сведений: каждое число и основа каждого длинного слова — из текста заключения
     for cell in d["meta"].get("cells") or []:
         value = str(cell["value"]).lower()
@@ -924,3 +925,11 @@ def test_protocol_cover_and_section_headline(root):
     parts = doc_parts(doc_data(c, "2-02", make_context(c)))
     assert parts[0]["headline"]["lines"] == ["ОПИСЬ", "ОБЪЯСНЕНИЙ"]
     assert [p["headline"]["lines"] for p in parts[1:]] == [["ОБЪЯСНЕНИЕ"], ["ОБЪЯСНЕНИЕ"]]
+    write_paper(root, "2-02", 'id: "2-02"\nform: protocol\ntitle: "Объяснения"\nmeta:\n  headline: "Объяснения"\n'
+                '  section_headline: "Объяснение"\n  count_label: "Объяснений"', body="## 1. А\n\nТекст.\n\n## 2. Б\n\nТ.\n")
+    c = load_content(root)
+    parts = doc_parts(doc_data(c, "2-02", make_context(c)))
+    assert parts[0]["headline"]["lines"] == ["ОПИСЬ", "ПРОТОКОЛОВ"] and parts[1]["headline"]["lines"] == ["ОБЪЯСНЕНИЕ"]
+    from engine.paper import paper_html
+
+    assert "<b>Объяснений: 2</b>" in paper_html(c, ["2-02"])["2-02"][0]

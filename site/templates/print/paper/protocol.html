@@ -10,12 +10,13 @@
    Несколько протоколов в документе (1-08) — разделы «## N. …» с меткой <!-- person: id -->; поля —
    из макроса head() в тексте (блок .proto__fields вынимается в шапку). Печать по частям
    (engine/paper.py: doc_parts): сводный лист «Опись протоколов» (part_kind summary: таблица
-   разделов и meta.note), затем каждый протокол с новой страницы со своей «Лист 1…». #}
+   разделов и meta.note; заголовок meta.cover_headline, счётчик meta.count_label — «Протоколов»),
+   затем каждый протокол с новой страницы со своей «Лист 1…» (заголовок meta.section_headline). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% if doc.part_kind == "summary" %}
-{{ m.hd(doc, w, "police", [m.case_row(w), "Протоколов: " ~ doc.sections|length, m.date_row(doc)]) }}
+{{ m.hd(doc, w, "police", [m.case_row(w), (doc.meta.get('count_label') or "Протоколов") ~ ": " ~ doc.sections|length, m.date_row(doc)]) }}
 <p class="subj">{{ doc.title }}{% if doc.meta.get('subtitle') %} {{ doc.meta.get('subtitle') }}{% endif %}</p>
 <table class="opis">
   <thead><tr><th>№</th><th>Опрошен(а)</th><th>Дата, время</th><th>Место</th></tr></thead>

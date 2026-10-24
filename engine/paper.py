@@ -971,14 +971,18 @@ def merge_pdfs(parts: list[Path], out: Path, *, title: str | None = None, verso:
 def doc_parts(d: dict[str, Any]) -> list[dict[str, Any]]:
     """Части документа для печати: протокол с разделами «## …» — по протоколу на часть, а перед ними
     (если разделов больше одного) — сводный лист «Опись протоколов» (``part_kind == "summary"``,
-    заголовок — ``meta.cover_headline``, раздел — ``meta.headline``:
+    заголовок — ``meta.cover_headline``, счётчик — ``meta.count_label``; заголовок раздела —
+    ``meta.section_headline`` или ``meta.headline``:
     №, ФИО, дата и время, место из полей разделов; внизу meta.note или вступление документа);
     остальное — одной частью. Копии ``d`` с ``part``/``parts``/``part_kind``/``headline``."""
     secs = d.get("sections") or []
     if d["form"] != "protocol" or not secs:
         return [dict(d)]
     title = re.sub(r"^Протоколы\b", "Протокол", d["title"])
-    sec_head = headline("protocol", title, d["meta"])
+    meta = d["meta"]
+    # заголовок листа раздела — в единственном числе: meta.section_headline → meta.headline → из названия
+    sec_meta = dict(meta, headline=meta.get("section_headline") or meta.get("headline"))
+    sec_head = headline("protocol", title, sec_meta)
     parts: list[dict[str, Any]] = []
     if len(secs) > 1:
         cover = d["meta"].get("cover_headline") or list(SUMMARY_HEADLINE)
@@ -990,9 +994,9 @@ def doc_parts(d: dict[str, Any]) -> list[dict[str, Any]]:
     return parts
 
 
-# Наименьшая ступень подгонки по бланку (решение автора 24.10): протокол и заключение СМЭ не ужимаются
+# Наименьшая ступень подгонки по бланку (решение автора 24.10): протоколы (и осмотра) и заключение СМЭ не ужимаются
 # сильнее 0,94 — два листа на опрос или заключение — норма, мелкий текст — нет.
-FIT_MIN_SCALE = {"protocol": 0.94, "forensic": 0.94}
+FIT_MIN_SCALE = {"protocol": 0.94, "inspection": 0.94, "forensic": 0.94}
 
 
 def fit_scales(pages: int, fit, min_scale: float = 0.0) -> list[float]:
