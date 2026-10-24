@@ -96,6 +96,23 @@ class Rank(Strict):
     name: str
 
 
+class PrintFitSettings(Strict):
+    """Подгонка документа, у которого на последнюю страницу ушло несколько строк (``engine/paper.py``)."""
+    # Последняя страница заполнена меньше этой доли — документ пересобирается мельче.
+    last_page_min: Annotated[float, Field(ge=0, le=1)] = 0.15
+    # Ступени масштаба печати (1 — как есть), по убыванию; последняя — разумный минимум.
+    scales: list[Annotated[float, Field(gt=0.5, le=1)]] = [0.97, 0.94, 0.91, 0.88]
+
+
+class PrintSettings(Strict):
+    """Печать бумаги конвертов (``python -m engine paper``)."""
+    # Двусторонняя печать: каждый документ (и каждый протокол опроса) — с нечётной страницы,
+    # оборот без текста — пустая страница с пометкой ``blank_back``; номера листов дела — на лицевых.
+    duplex: bool = False
+    blank_back: str = ""
+    fit: PrintFitSettings = PrintFitSettings()
+
+
 class Settings(Strict):
     game_id: Annotated[str, StringConstraints(pattern=r"^[a-z0-9_-]+$")]
     title: str
@@ -109,6 +126,7 @@ class Settings(Strict):
     leak_watchlist: list[str] = []
     # Фразы, которые законно стоят и в открытом тексте, и в закрытом (leak scan не считает их шинглы иголками)
     leak_public_ok: list[str] = []
+    print: PrintSettings = PrintSettings()
 
     @field_validator("domain", mode="after")
     @classmethod

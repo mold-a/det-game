@@ -56,13 +56,13 @@ export async function scrollThrough(page: Page) {
   });
 }
 
-/** Битые картинки: img с src, который не загрузился. → список. */
+/** Битые картинки: показанные img (не в скрытых разделах) с src, который не загрузился. → список. */
 export async function brokenImages(page: Page): Promise<string[]> {
   await scrollThrough(page);
   await page.waitForTimeout(400);
   return page.evaluate(() =>
     Array.from(document.querySelectorAll("img"))
-      .filter((i) => i.getAttribute("src") && (!i.complete || i.naturalWidth === 0))
+      .filter((i) => i.getAttribute("src") && i.getBoundingClientRect().width > 0 && (!i.complete || i.naturalWidth === 0))
       .map((i) => (i.getAttribute("src") || "").slice(0, 80) + " alt=" + i.alt),
   );
 }

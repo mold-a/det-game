@@ -9,7 +9,7 @@ export default defineConfig({
   timeout: 600_000,
   workers: 1,
   reporter: [["list"]],
-  use: { baseURL: process.env.E2E_BASE_URL || "http://127.0.0.1:8000" },
+  use: { baseURL: process.env.E2E_BASE_URL || "http://127.0.0.1:8000", actionTimeout: 20_000, navigationTimeout: 30_000 },
   projects: [
     {
       name: "chromium",

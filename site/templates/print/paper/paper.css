@@ -1,19 +1,51 @@
-/* Бумажные документы дела (A4) — подключается в _base.html через include.
-   Чёрно-белая печать читаема: цвет только в акцентах (синие печати и штампы, фиолетовая метка
-   дела, бордовые украшения программки). Поля листа не меньше 12 мм. Без внешних ресурсов. */
+/* Бумажные документы дела (A4) — подключается в _base.html через include (это шаблон Jinja:
+   {{ assets }} и {{ page_margin }} подставляются). Дизайн — docs/05 §4 «Бумага».
 
-@page { size: A4; margin: 16mm 16mm 18mm 22mm; }
-/* Метка дела и колонтитулы бланков — @page doc-<id> из _macros.html (page_rule). */
+   Лист прошёл через руки: четыре слоя, у каждого свой цвет и шрифт.
+     печать бланка   — чёрный: PT Serif (текст), PT Sans (графы, подписи граф), PT Mono (машинопись рапорта);
+     ручка           — синяя шариковая (--pen), Caveat: графы бланков, подписи-росчерки, записки, номер листа дела;
+     штемпель        — сине-фиолетовая краска (--seal): круглые печати, угловые и входящие штампы;
+     карандаш        — красный (--pencil): резолюция «К делу», галочки (только оформление, без сюжета).
+   Без сплошных тёмных заливок: в Ч/Б всё читается (цвет — акцент, а не носитель смысла).
+   Поля листа не меньше 12 мм. Шрифты — локальные OFL (site/assets/fonts), без внешних ресурсов. */
+
+@page { size: A4; margin: {{ page_margin }}; }
+/* Метка дела и колонтитулы бланков — @page doc-<id> из _macros.html (page_rule);
+   номер листа дела — _base.html. */
+
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 400; font-display: block;
+  src: url("{{ assets }}/fonts/caveat-cyrillic-400-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 400; font-display: block;
+  src: url("{{ assets }}/fonts/caveat-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 600; font-display: block;
+  src: url("{{ assets }}/fonts/caveat-cyrillic-600-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Caveat"; font-style: normal; font-weight: 600; font-display: block;
+  src: url("{{ assets }}/fonts/caveat-latin-600-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "PT Mono"; font-style: normal; font-weight: 400; font-display: block;
+  src: url("{{ assets }}/fonts/pt-mono-cyrillic-400-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "PT Mono"; font-style: normal; font-weight: 400; font-display: block;
+  src: url("{{ assets }}/fonts/pt-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
   --ink: #141414;
   --muted: #555;
   --rule: #8a9bb0;          /* линовка бланков — серо-синяя, в Ч/Б серая */
   --rule-soft: #c9d3de;
-  --seal: #1f3f9a;          /* синие чернила печатей */
+  --pen: #1c3f99;           /* шариковая ручка: графы, подписи, записки */
+  --seal: #33409e;          /* штемпельная краска: печати и штампы */
+  --pencil: #b5332b;        /* красный карандаш: резолюции, галочки */
   --mark: #5b3fa3;          /* фиолетовый штамп материалов дела (как на сайте) */
   --accent: #7a1d2a;        /* бордовый — только программка */
+  --med: #2c6e52;           /* зелёная краска медицинского бланка */
   --fill: #efefef;
+  --font-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
+  --font-type: "PT Mono", "Courier New", monospace;
 }
 
 * { box-sizing: border-box; }
@@ -21,7 +53,8 @@ html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; font-family: var(--font-serif); font-size: 11pt; line-height: 1.4; color: var(--ink);
   font-variant-numeric: lining-nums; }
 h1, h2, h3, h4 { font-family: var(--font-sans); line-height: 1.2; break-after: avoid; }
-p { margin: 0 0 2.2mm; text-align: justify; hyphens: auto; orphans: 2; widows: 2; }
+p { margin: 0 0 2.2mm; text-align: justify; hyphens: auto; orphans: 3; widows: 3; }
+li { orphans: 2; widows: 2; }
 ul, ol { margin: 0 0 2.2mm; padding-left: 6mm; }
 table { border-collapse: collapse; width: 100%; margin: 0 0 3mm; font-size: 10pt; break-inside: auto; }
 th, td { border: 0.2mm solid #555; padding: 1mm 2mm; vertical-align: top; text-align: left; }
@@ -32,6 +65,14 @@ img { max-width: 100%; }
 hr { border: 0; border-top: 0.2mm solid #888; margin: 4mm 0; }
 blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid #bbb; }
 .page-break { break-before: page; height: 0; }
+/* Шрифт «ручки» подгружается до печати: номер листа дела в поле листа берёт его из документа. */
+.font-load { position: absolute; left: 0; top: 0; visibility: hidden; font-family: var(--font-hand); font-weight: 600; }
+.font-load::after { content: "0"; font-weight: 400; }
+
+/* Утилиты для текста документа (content/paper, сырой HTML) — только оформление, без новых фактов:
+   <span class="pen">…</span> — дописано ручкой; <u class="pencil">…</u> — подчёркнуто карандашом. */
+.pen { font-family: var(--font-hand); color: var(--pen); font-size: 1.25em; line-height: 1; }
+u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-underline-offset: 0.8mm; text-decoration-skip-ink: none; }
 
 /* ------------------------------------------------------------ общий каркас */
 /* SVG и img только inline-block: блочный <svg>/<img> внутри элемента с именованной страницей (page: doc-<id>)
@@ -39,14 +80,21 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper svg { display: inline-block; }
 .paper { position: relative; display: flow-root; }
 .paper + .paper { break-before: page; }
-.paper__qr { position: absolute; top: 0; right: 0; width: 30mm; margin: 0; text-align: center; z-index: 2;
-  font-family: var(--font-sans); font-size: 7pt; line-height: 1.2; color: #333; background: #fff; }
-.paper__qr svg { display: inline-block; vertical-align: top; width: 26mm; height: 26mm; margin: 0 auto 1mm; }
-.paper--qr .paper__head { padding-right: 34mm; min-height: 32mm; }
+/* QR-код не меньше 25 мм даже на последней ступени подгонки (30 мм × 0,88 = 26,4 мм), рядом — подпись. */
+.paper__qr { position: absolute; top: 0; right: 0; width: 34mm; margin: 0; padding: 1.5mm 1.5mm 1.2mm; text-align: center; z-index: 2;
+  font-family: var(--font-sans); font-size: 7pt; line-height: 1.2; color: #333; background: #fff;
+  border: 0.25mm solid #9aa3ad; border-radius: 1mm; }
+.paper__qr svg { display: inline-block; vertical-align: top; width: 30mm; height: 30mm; margin: 0 auto 1mm; }
+.paper--qr .paper__head { padding-right: 38mm; min-height: 40mm; }
 .paper__head { margin-bottom: 5mm; }
 .paper__org { font-family: var(--font-sans); font-size: 9.5pt; font-weight: 700; text-transform: uppercase;
   letter-spacing: .04em; padding-bottom: 1.5mm; border-bottom: 0.4mm solid var(--ink); margin-bottom: 1.5mm; }
 .paper__case, .paper__number { font-family: var(--font-sans); font-size: 9pt; color: #333; }
+.paper__case { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; }
+/* Штрихкод дела — наклейка регистрации: полосы и строка под ними. */
+.barcode { flex: none; display: inline-flex; flex-direction: column; align-items: center; width: 40mm; margin-top: .5mm; }
+.barcode__bars { display: inline-block; width: 40mm; height: 7mm; fill: var(--ink); }
+.barcode__text { font-family: var(--font-type); font-size: 6.5pt; letter-spacing: .22em; line-height: 1; margin-top: .6mm; color: #222; }
 .paper__to, .paper__from { margin: 4mm 0 0 auto; width: 74mm; font-size: 10.5pt; line-height: 1.35; text-align: left; }
 .paper__from { margin-top: 1.5mm; }
 .paper__title { font-size: 14pt; text-align: center; margin: 6mm 0 1.5mm; }
@@ -67,22 +115,53 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 /* Метка материалов дела: в печати — верхнее поле листа (@page), на экране — так же над текстом. */
 .paper__docmark { display: none; }
 
-/* Подписи */
-.paper__signatures { position: relative; margin-top: 8mm; break-inside: avoid; }
+/* Подписи: блок не рвётся и не уходит на лист один — тянет за собой последний абзац. */
+.paper__body > :last-child { break-after: avoid; }
+.paper__signatures { position: relative; margin-top: 8mm; break-inside: avoid; break-before: avoid; }
 .paper__sign { display: grid; grid-template-columns: 1fr 40mm 48mm; gap: 4mm; align-items: end; margin-top: 6mm; font-size: 10.5pt; }
 .paper__sign .line { position: relative; border-bottom: 0.2mm solid var(--ink); height: 6mm; }
 .paper__sign .hint { position: absolute; left: 0; right: 0; top: 100%; text-align: center; font-family: var(--font-sans);
   font-size: 6.5pt; color: #777; padding-top: .3mm; }
 .paper__sign .name { text-align: right; }
+/* Росчерк над линией подписи (engine/paper.py: add_autographs) — первые буквы фамилии и хвост. */
+.autograph { position: absolute; left: 2.5mm; bottom: -1.2mm; display: inline-flex; align-items: flex-end; white-space: nowrap;
+  color: var(--pen); font-family: var(--font-hand); font-weight: 600; font-size: 19pt; line-height: 1;
+  transform: rotate(var(--rot, -4deg)); transform-origin: left bottom; pointer-events: none; }
+.autograph__text { letter-spacing: -.02em; }
+.autograph__tail { display: inline-block; width: 12mm; height: 6.3mm; margin: 0 0 -0.9mm -0.6mm; overflow: visible; }
+.autograph__tail path { fill: none; stroke: currentColor; stroke-width: 1.05; stroke-linecap: round; stroke-linejoin: round; }
 .paper__seal { position: absolute; right: 50mm; top: -10mm; width: 38mm; pointer-events: none; }
 .paper__signatures:has(.paper__seal) { min-height: 30mm; }
 .paper__seal--solo { position: relative; left: auto; top: auto; margin-left: auto; margin-right: 20mm; }
-.seal { display: inline-block; vertical-align: top; width: 38mm; height: 38mm; color: var(--seal); opacity: .86; transform: rotate(-11deg); }
+.seal { display: inline-block; vertical-align: top; width: 38mm; height: 38mm; color: var(--seal); opacity: .82; transform: rotate(-11deg);
+  mix-blend-mode: multiply; }
 
 /* Прямоугольный штамп */
 .rstamp { display: inline-block; border: 0.45mm solid var(--seal); color: var(--seal); border-radius: 1mm;
   padding: 1.2mm 2.5mm; font-family: var(--font-sans); font-size: 8.5pt; font-weight: 700; line-height: 1.3;
   text-transform: uppercase; letter-spacing: .04em; transform: rotate(-3deg); opacity: .88; text-align: center; }
+
+/* Красный карандаш: резолюция «К делу» с датой и росчерком; галочка. Только оформление. */
+.resol { position: absolute; z-index: 3; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0;
+  color: var(--pencil); font-family: var(--font-hand); line-height: .95; transform: rotate(-7deg); transform-origin: left top; pointer-events: none; }
+.resol__text { font-size: 20pt; font-weight: 600; text-decoration: underline 0.35mm; text-underline-offset: 1.2mm; }
+.resol__date { font-size: 14pt; margin: 1.4mm 0 0 6mm; }
+.resol__sign { width: 17mm; height: 5mm; margin: -1mm 0 0 18mm; overflow: visible; }
+.resol__sign path, .tick path { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.tick { display: inline-block; width: 6mm; height: 5mm; color: var(--pencil); overflow: visible; }
+
+/* Фото опрашиваемого 3×4 на скрепке: справа в шапке протокола. */
+.mugshot { position: relative; flex: none; width: 31mm; margin: 0; text-align: center; break-inside: avoid; }
+.mugshot__photo { width: 31mm; height: 41mm; padding: 1.3mm; background: #fff; border: 0.25mm solid #a9b0b8;
+  box-shadow: 0.5mm 0.7mm 0 #d8dbdf; transform: rotate(1.6deg); }
+.mugshot__photo img { display: inline-block; vertical-align: top; width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
+.mugshot__clip { position: absolute; z-index: 2; top: -4.5mm; left: 5mm; width: 6.5mm; height: 17.7mm; overflow: visible; }
+.mugshot__clip path { fill: none; stroke: #6e7780; stroke-width: 1.9; stroke-linecap: round; }
+.mugshot figcaption { font-family: var(--font-sans); font-size: 8pt; line-height: 1.2; margin-top: 2mm; color: #222; }
+
+/* Пустой оборот (duplex) */
+.verso { height: 258mm; display: flex; align-items: flex-end; justify-content: center; }
+.verso__note { font-family: var(--font-sans); font-size: 8pt; letter-spacing: .04em; color: #8a8f96; }
 
 /* Поля бланка */
 .fld { display: flex; align-items: baseline; gap: 2mm; margin: 0 0 1.6mm; font-size: 10.5pt; }
@@ -97,7 +176,13 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .corner__org { font-weight: 700; font-size: 9.5pt; text-transform: uppercase; letter-spacing: .03em; }
 .corner__addr { margin-top: 1mm; color: #333; }
 .corner__no { display: flex; gap: 2mm; align-items: baseline; justify-content: center; margin-top: 2mm; font-size: 9pt; }
-.corner__cell { display: inline-block; min-width: 24mm; border-bottom: 0.2mm solid var(--ink); font-family: var(--font-serif); font-size: 10pt; }
+.corner__cell { display: inline-block; min-width: 24mm; border-bottom: 0.2mm solid var(--ink); font-family: var(--font-hand); font-size: 13.5pt;
+  line-height: 1.05; color: var(--pen); }
+.paper--certificate .corner { color: var(--seal); padding: 2mm 2.5mm; transform: rotate(-1.2deg); opacity: .9; }
+.paper--certificate .corner__addr { color: inherit; }
+.paper--certificate .corner__cell { border-bottom-color: var(--seal); }
+.paper--certificate .resol { top: 38mm; right: 8mm; }
+.paper--certificate.paper--qr .resol { top: 46mm; }
 .letterrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
 .letterrow .paper__to { margin: 0; }
 
@@ -128,6 +213,29 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--protocol .paper__body > h2:first-child, .paper--inspection .paper__body > h2:first-child { border-top: 0; padding-top: 0; }
 .paper--protocol .paper__body h3 { font-size: 10pt; text-transform: uppercase; letter-spacing: .04em; color: #333; }
 .paper--protocol .paper__sign, .paper--inspection .paper__sign { grid-template-columns: 1fr 44mm 46mm; }
+/* Графы протокола заполнены ручкой. */
+/* Строка графы — линия бланка под каждой строкой рукописного значения (фон с шагом в строку). */
+.hand-fill, .paper--protocol .fld__value, .paper--inspection .fld__value, .paper--ambulance .fld__value,
+.paper--protocol .uline__value, .paper--inspection .uline__value {
+  --lh: 6.4mm; font-family: var(--font-hand); font-size: 14.5pt; line-height: var(--lh); color: var(--pen);
+  min-height: var(--lh); padding: 0 1.5mm; border-bottom: 0;
+  background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--lh) - 0.22mm), var(--rule) calc(var(--lh) - 0.22mm) var(--lh)); }
+.paper--protocol .fld, .paper--inspection .fld { align-items: baseline; margin-bottom: 0.6mm; }
+.proto__card { display: flex; gap: 6mm; align-items: flex-start; }
+.proto__card-fields { flex: 1; min-width: 0; }
+.proto__card--photo .proto__times { margin-top: 2mm; }
+.proto__card .mugshot { margin-top: 4mm; }
+/* Протокол из сборника (1-08): каждый — своя часть; шапка документа — у первой, у остальных — строка. */
+.proto__running { font-family: var(--font-sans); font-size: 8.5pt; color: #444; margin-top: 1.5mm; }
+.proto__intro { margin-bottom: 3mm; }
+.proto-sec { display: flow-root; }
+.proto-sec__head h2 { font-size: 13pt; text-align: center; text-transform: uppercase; letter-spacing: .08em; margin: 4mm 0 3mm; }
+.proto-sec .mugshot { float: right; margin: 1mm 0 3mm 6mm; }
+.proto-sec .paper__body > .proto__fields { display: flow-root; }
+.proto-sec--photo .paper__body > .proto__fields:first-of-type { min-height: 46mm; }
+.paper--protocol .paper__signatures { padding-left: 7mm; }
+.paper--protocol .paper__signatures::before { content: ""; position: absolute; left: 0; top: 4.5mm; width: 5.5mm; height: 4.5mm;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16'%3E%3Cpath d='M2 8 C4 9 6 11 7.5 14 C10 8 14 4 19 1.5' fill='none' stroke='%23b5332b' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain; }
 
 /* ------------------------------------------------------------ рапорт */
 .paper--report .paper__head { margin-bottom: 8mm; }
@@ -136,6 +244,15 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--report .paper__body { line-height: 1.55; }
 .paper--report .paper__body p { text-indent: 12.5mm; }
 .report__date { margin-top: 3mm; font-size: 10.5pt; }
+/* Рапорт отпечатан на машинке: моноширинный, без выключки и переносов, разрядка заголовка пробелами. */
+.paper--report .paper__body, .paper--report .paper__to, .paper--report .paper__from, .paper--report .paper__title,
+.paper--report .paper__sign, .paper--report .report__date { font-family: var(--font-type); }
+.paper--report .paper__body { font-size: 10.5pt; line-height: 1.62; }
+.paper--report .paper__body p { text-align: left; hyphens: none; margin-bottom: 1.2mm; }
+.paper--report .paper__to, .paper--report .paper__from { font-size: 10pt; line-height: 1.5; }
+.paper--report .paper__title { font-weight: 400; font-size: 13pt; letter-spacing: .45em; }
+.paper--report .paper__sign { font-size: 10pt; }
+.paper--report .resol { top: 20mm; left: 2mm; }
 
 /* ------------------------------------------------------------ карта вызова скорой помощи */
 .amb__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
@@ -163,6 +280,18 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .amb__box { border: 0.4mm solid #222; padding: 2mm 3mm; margin: 3mm 0; break-inside: avoid; }
 .amb__box-label { font-family: var(--font-sans); font-size: 8pt; text-transform: uppercase; letter-spacing: .05em; color: #333; margin-bottom: 1mm; }
 .amb__box-value { font-size: 11pt; font-weight: 700; }
+/* Медицинский бланк отпечатан зелёной краской; заполнен фельдшером от руки. */
+.paper--ambulance { --rule: #6f9c86; }
+.paper--ambulance .amb__title, .paper--ambulance .amb__org, .paper--ambulance .amb__formno,
+.paper--ambulance .amb__time-label, .paper--ambulance .amb__box-label, .paper--ambulance .fld__label { color: var(--med); }
+.paper--ambulance .amb__formno, .paper--ambulance .amb__box { border-color: var(--med); }
+.paper--ambulance .amb__times { border-color: var(--med); }
+.paper--ambulance .amb__time { border-color: #9cbfae; }
+.paper--ambulance .cells i { border-color: var(--med); font-family: var(--font-hand); font-weight: 600; font-size: 14pt; color: var(--pen); }
+.paper--ambulance .cells b { color: var(--med); }
+.paper--ambulance .cells--text i { font-size: 12pt; font-weight: 400; }
+.paper--ambulance .paper__body h2 { background: #eaf3ee; border-top-color: var(--med); color: var(--med); }
+.paper--ambulance .amb__box-value { font-family: var(--font-hand); font-size: 16pt; font-weight: 600; color: var(--pen); line-height: 1.15; }
 
 /* ------------------------------------------------------------ заключение эксперта */
 .forensic__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; }
@@ -174,6 +303,7 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--forensic .paper__body p { text-indent: 10mm; }
 .paper--forensic .paper__body h2 { counter-increment: sec; font-size: 11pt; text-transform: uppercase; letter-spacing: .05em; margin: 5mm 0 2mm; }
 .paper--forensic .paper__body h2::before { content: counter(sec, upper-roman) ". "; }
+.paper--forensic .resol { top: 24mm; right: 40mm; }
 
 /* ------------------------------------------------------------ план здания */
 .plan__frame { position: relative; border: 0.5mm solid var(--ink); padding: 1mm; margin: 2mm 0 0; }
@@ -247,6 +377,10 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .photo__frame { position: relative; aspect-ratio: var(--aspect, 4 / 3); border: 0.3mm solid #333; background: #ddd; overflow: hidden; }
 .photo__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: inline-block; }
 .photo__frame .paper__missing { position: absolute; inset: 0; min-height: 0; border: 0; }
+/* Снимок вклеен в фотоуголки (два по диагонали). */
+.photo__frame::before, .photo__frame::after { content: ""; position: absolute; z-index: 1; width: 7mm; height: 7mm; background: #8d949c; opacity: .92; }
+.photo__frame::before { left: -0.3mm; top: -0.3mm; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.photo__frame::after { right: -0.3mm; bottom: -0.3mm; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
 .photo figcaption { font-size: 9.5pt; line-height: 1.3; margin-top: 1.5mm; text-align: left; }
 .photo figcaption b { font-family: var(--font-sans); font-size: 9pt; }
 .paper--phototable .paper__body { font-size: 10pt; }
@@ -267,6 +401,9 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .paper--journal td:first-child { border-left: 0.25mm solid var(--rule-soft); }
 .paper--journal td:last-child { border-right: 0.25mm solid var(--rule-soft); }
 .paper--journal .paper__body > p { font-family: var(--font-sans); font-size: 9pt; color: #333; margin: 2mm 0; }
+/* Записи в журнал — от руки дежурного (графы шапки — типографские). */
+.paper--journal td { font-family: var(--font-hand); font-size: 13pt; line-height: 1.05; color: var(--pen); padding-bottom: .8mm; }
+.paper--journal td strong { font-weight: 600; }
 .journal__filler { flex: 1; min-height: 16mm; border-left: 0.25mm solid var(--rule-soft); border-right: 0.25mm solid var(--rule-soft);
   background: repeating-linear-gradient(to bottom, transparent 0 7.75mm, var(--rule) 7.75mm 8mm); }
 
@@ -296,6 +433,8 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
   border: 0.3mm solid var(--ink); padding: .8mm 2.5mm; margin-top: 6mm; }
 .paper--press .paper__title { font-size: 14pt; margin-top: 3mm; }
 .paper--press .paper__body { line-height: 1.55; }
+.paper--press .resol { top: 30mm; left: 2mm; }
+.paper--registry .resol { top: 12mm; left: 60mm; }
 
 /* ------------------------------------------------------------ билет */
 .ticket { position: relative; display: grid; grid-template-columns: 1fr 44mm; width: 100%; margin-top: 4mm;
@@ -390,6 +529,8 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
 .rx .seal { position: absolute; right: 5mm; bottom: 4mm; width: 24mm; height: 24mm; }
 .rx__certified { flex: 1; padding-top: 6mm; }
 .paper--pharmacy .paper__media { grid-template-columns: 1fr; }
+.paper--pharmacy .resol { top: 40mm; right: 6mm; }
+.rx__rp { font-family: var(--font-hand); font-style: normal; font-size: 14pt; color: var(--pen); }
 
 /* ------------------------------------------------------------ записка от руки */
 .note { position: relative; width: 132mm; margin: 14mm auto 0; transform: rotate(-1.4deg);
@@ -399,13 +540,21 @@ blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid 
     repeating-linear-gradient(to bottom, #fff 0 6.55mm, #b9cbe0 6.55mm 6.8mm, #fff 6.8mm 8mm); }
 .note::before { content: ""; position: absolute; left: 0; right: 0; top: -1.2mm; height: 3mm;
   background: radial-gradient(circle at 1.5mm 0, #fff 1.2mm, transparent 1.3mm) 0 0 / 6mm 3mm repeat-x; }
-.note__inner { padding: 8mm 9mm 9mm 19mm; font-family: var(--font-serif); font-style: italic; font-size: 13.5pt; line-height: 8mm; color: #1d2c66; }
+.note__inner { position: relative; padding: 8mm 9mm 9mm 19mm; font-family: var(--font-hand); font-size: 17.5pt; line-height: 8mm; color: var(--pen); }
+/* Листок приклеен к листу дела двумя полосками скотча. */
+.note__inner::before, .note__inner::after { content: ""; position: absolute; top: -5mm; width: 30mm; height: 9mm;
+  background: rgba(214, 206, 178, .5); border: 0.15mm solid rgba(160, 150, 120, .35);
+  clip-path: polygon(0 8%, 4% 0, 9% 10%, 14% 2%, 100% 0, 97% 50%, 100% 100%, 6% 94%, 0 100%, 3% 50%); }
+.note__inner::before { left: -8mm; transform: rotate(-24deg); }
+.note__inner::after { right: -8mm; transform: rotate(21deg); }
 .note__inner p { margin: 0; text-align: left; hyphens: manual; }
-.note__inner .paper__body h2, .note__inner .paper__body h3 { font-family: var(--font-serif); font-size: 14pt; font-weight: 700; margin: 0; line-height: 8mm; }
+.note__inner .paper__body h2, .note__inner .paper__body h3 { font-family: var(--font-hand); font-size: 19pt; font-weight: 600; margin: 0; line-height: 8mm; }
+.note__inner em { font-style: normal; text-decoration: underline 0.3mm; text-underline-offset: 1mm; }
+.note__inner strong { font-weight: 600; }
 .note__inner .paper__sign { display: block; text-align: right; margin: 0; font-size: inherit; }
 .note__inner .paper__sign .role, .note__inner .paper__sign .line { display: none; }
 .note__inner .paper__signatures { margin: 0; }
-.note__head { font-size: 10pt; color: #6b778b; line-height: 8mm; }
+.note__head { font-size: 14pt; color: #4a5b86; line-height: 8mm; }
 .paper--note.paper--qr .note { margin-top: 38mm; }
 .note__caption { width: 132mm; margin: 6mm auto 0; font-family: var(--font-sans); font-size: 8.5pt; color: #555; text-align: center; }
 

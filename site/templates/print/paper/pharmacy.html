@@ -6,6 +6,7 @@
    meta.certified — текст штампа заверения (по умолчанию «Копия верна»). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 {% set rx = doc.meta.get('recipe') %}
 <header class="paper__head">

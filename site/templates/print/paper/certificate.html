@@ -3,6 +3,8 @@
    или false). QR-код страницы (если есть) — в правом верхнем углу. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{# Резолюция «К делу» — только на входящей справке (чужая организация), не на справке самого отдела. #}
+{% block docmark %}{{ super() }}{% if m.org_text(doc, w, "none")|trim != w.police.department %}{{ m.resolution(doc) }}{% endif %}{% endblock %}
 {% block sheet %}
 <header class="paper__head">
   <div class="letterrow">

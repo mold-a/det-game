@@ -24,8 +24,34 @@
 {%- endif -%}
 {%- endmacro %}
 
+{# № дела и штрихкод дела (Code 39, engine/paper.py: barcode_svg) справа. #}
 {% macro case(w) -%}
-<div class="paper__case">Дело № {{ w.police.case_no }}</div>
+<div class="paper__case"><span>Дело № {{ w.police.case_no }}</span>{% if case_barcode is defined %}<span class="barcode" aria-hidden="true">{{ case_barcode }}<span class="barcode__text">*{{ w.police.case_no }}*</span></span>{% endif %}</div>
+{%- endmacro %}
+
+{# Фото опрашиваемого 3×4 в шапке протокола (метка <!-- person: id -->): на скрепке, подпись —
+   фамилия и инициалы. Нет файла — ничего. #}
+{% macro mugshot(p) -%}
+{% if p and p.exists %}
+<figure class="mugshot" data-person="{{ p.id }}">
+  <div class="mugshot__photo"><img src="{{ p.src }}" alt=""></div>
+  <svg class="mugshot__clip" viewBox="0 0 22 60" aria-hidden="true"><path d="M7 20 V48 a5 5 0 0 0 10 0 V9 a7.5 7.5 0 0 0 -15 0 V44"/></svg>
+  <figcaption>{{ p.name }}</figcaption>
+</figure>
+{% endif %}
+{%- endmacro %}
+
+{# Резолюция красным карандашом на входящем документе: «К делу», дата документа, росчерк.
+   meta.resolution: false — без неё. Только нейтральные слова: никаких сюжетных пометок. #}
+{% macro resolution(doc) -%}
+{% if doc.meta.get('resolution', true) is not false %}
+<div class="resol" aria-hidden="true"><span class="resol__text">К делу</span>{% if doc.date %}<span class="resol__date">{{ doc.date|dt('date') }}</span>{% endif %}<svg class="resol__sign" viewBox="0 0 60 18"><path d="M2 12 C6 2 10 2 11 9 S15 16 18 7 S24 3 26 10 C30 16 40 6 58 4"/></svg></div>
+{% endif %}
+{%- endmacro %}
+
+{# Галочка красным карандашом (проверено) — только оформление. #}
+{% macro tick(cls="") -%}
+<svg class="tick {{ cls }}" viewBox="0 0 20 16" aria-hidden="true"><path d="M2 8 C4 9 6 11 7.5 14 C10 8 14 4 19 1.5"/></svg>
 {%- endmacro %}
 
 {# Метка материалов дела (номер документа в игре, как в списке «Документы дела» на сайте).

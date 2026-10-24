@@ -1,8 +1,10 @@
 {# Рапорт: короткий служебный документ. Шапка следственного отдела (или meta.org), № дела,
    адресат meta.to справа («Начальнику …»), от кого meta.from, заголовок разрядкой, текст с красной
-   строки, подпись и дата под ней (длинная форма: «10» ноября 2026 г.). #}
+   строки, подпись и дата под ней (длинная форма: «10» ноября 2026 г.). Текст — машинопись (PT Mono);
+   резолюция «К делу» красным карандашом (meta.resolution: false — без неё). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block requisites %}{% if doc.place %}<div class="paper__requisites"><span class="paper__place">{{ doc.place }}</span></div>{% endif %}{% endblock %}
 {% block signatures %}
 {{ m.signatures(doc) }}

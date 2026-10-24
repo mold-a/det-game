@@ -60,9 +60,11 @@ def _with_tmp_html(html: str, near: Path):
     return Path(name)
 
 
-def html_to_pdf(b: object, html: str, out: Path, *, landscape: bool = False, footer: str | None = None) -> Path:
+def html_to_pdf(b: object, html: str, out: Path, *, landscape: bool = False, footer: str | None = None,
+                scale: float = 1) -> Path:
     """A4, поля задаёт CSS (``@page``), фоны печатаются. ``footer`` — HTML нижнего колонтитула
-    Chromium (классы ``pageNumber``, ``totalPages``); нужен нижний отступ ``@page`` под него."""
+    Chromium (классы ``pageNumber``, ``totalPages``); нужен нижний отступ ``@page`` под него.
+    ``scale`` — масштаб содержимого (поля листа и колонтитулы ``@page`` не меняются)."""
     out = Path(out)
     tmp = _with_tmp_html(html, out)
     try:
@@ -72,7 +74,7 @@ def html_to_pdf(b: object, html: str, out: Path, *, landscape: bool = False, foo
         extra = {"display_header_footer": True, "header_template": "<span></span>",
                  "footer_template": footer} if footer else {}
         page.pdf(path=str(out), format="A4", landscape=landscape, print_background=True,
-                 prefer_css_page_size=True, **extra)
+                 prefer_css_page_size=True, scale=scale, **extra)
         page.close()
     finally:
         tmp.unlink(missing_ok=True)

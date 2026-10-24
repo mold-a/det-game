@@ -4,6 +4,7 @@
    заголовок, текст, подпись и печать (meta.seal). Никаких гербов: только текст и линии. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">

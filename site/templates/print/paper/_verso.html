@@ -1,0 +1,10 @@
+{# Пустой оборот листа (duplex): вставляется после документа или протокола с нечётным числом
+   страниц (engine/paper.py). Текст — settings.print.blank_back; пусто — совсем чистая страница. #}
+{% extends "print/_print_base.html" %}
+{% block title %}Оборот{% endblock %}
+{% block style %}
+{% include "print/paper/paper.css" %}
+{% endblock %}
+{% block body %}
+<div class="verso">{% if print_cfg.blank_back %}<span class="verso__note">{{ print_cfg.blank_back }}</span>{% endif %}</div>
+{% endblock %}

@@ -78,13 +78,27 @@ for (const [w, h] of VIEWS) {
         if (sw > iw) issues.push(`${p.slug}: горизонтальная прокрутка ${sw} > ${iw}`);
         issues.push(...(await checkLinks(page, p.slug, seen)));
         await shot(page, `pages-${w}-${p.slug}`);
+        // сайты с разделами (fund, theater, лаборатория…): остальные разделы скрыты — открыть каждый
+        const sections: string[] = await page.evaluate(() => Array.from(document.querySelectorAll("section[data-section]")).map((x) => x.id));
+        for (const id of sections.slice(1)) {
+          await page.evaluate((h) => (location.hash = h), id);
+          await page.waitForTimeout(150);
+          const si = await brokenImages(page);
+          if (si.length) issues.push(`${p.slug}#${id}: битые картинки ${si.join(" | ")}`);
+          const [sw2, iw2] = await page.evaluate(() => [document.documentElement.scrollWidth, innerWidth]);
+          if (sw2 > iw2) issues.push(`${p.slug}#${id}: горизонтальная прокрутка ${sw2} > ${iw2}`);
+          const ph2 = await placeholders(page);
+          if (ph2.length) issues.push(`${p.slug}#${id}: заглушки/мусор ${ph2.join(" | ")}`);
+          await shot(page, `pages-${w}-${p.slug}-${id}`);
+        }
         let b = 0;
         for (const [u, n] of wt.bytes) if (!startBytes.has(u)) b += n;
         weights.push(`${p.slug}: ${(b / 1024).toFixed(0)} КБ`);
       }
       console.log(`RC ${w}px страницы (докачано, без кэша между страницами): ${weights.join("; ")}`);
       expect(issues).toEqual([]);
-      expect(wt.problems).toEqual([]);
+      // ERR_ABORTED — браузер оборвал загрузку медиа при уходе со страницы, не дефект
+      expect(wt.problems.filter((x) => !/^requestfailed: .*ERR_ABORTED/.test(x))).toEqual([]);
     });
 
     test("голосовые играют (все страницы с .kr-voice и call)", async ({ page }) => {
@@ -123,8 +137,13 @@ for (const [w, h] of VIEWS) {
       expect(wt.problems.filter((x) => !x.startsWith("requestfailed"))).toEqual([]);
     });
 
-    test("видео: VD-1 (krug-levin) и VD-3 (krug-marina) играют", async ({ page }) => {
+    test("видео: VD-1 (krug-levin) и VD-3 (krug-marina) играют; файлы отдаются и декодируются", async ({ page }) => {
       const wt = watch(page);
+      // Chromium из Playwright — без H.264 (проприетарные кодеки): тогда воспроизведение проверить нельзя,
+      // проверяем отдачу файла (200/206, video/mp4, ftyp). На Chrome/Safari/Edge — играет по-настоящему.
+      await page.goto("/");
+      const h264 = await page.evaluate(() => !!document.createElement("video").canPlayType('video/mp4; codecs="avc1.64001F, mp4a.40.2"'));
+      test.info().annotations.push({ type: "h264", description: String(h264) });
       for (const slug of ["krug-levin", "krug-marina"]) {
         await openPage(page, BY[slug]);
         const video = page.locator("video.kr-video__el").first();
@@ -132,17 +151,32 @@ for (const [w, h] of VIEWS) {
         await expect(page.getByText("Видео недоступно")).toHaveCount(0);
         await video.scrollIntoViewIfNeeded();
         await shot(page, `video-${w}-${slug}-closed`, false);
+        const src = (await video.getAttribute("src"))!;
+        const r = await page.request.get(src, { headers: { Range: "bytes=0-1023" } });
+        expect([200, 206], `${slug}: ${src}`).toContain(r.status());
+        expect(r.headers()["content-type"]).toContain("video/mp4");
+        expect((await r.body()).subarray(4, 8).toString("latin1"), "ftyp").toBe("ftyp");
+        if (!h264) continue;
         await video.focus();
         await page.keyboard.press("Space");
         await expect
           .poll(() => video.evaluate((v: HTMLVideoElement) => (!v.paused || v.ended) && v.currentTime > 0), { timeout: 15000, message: `${slug}: видео не играет` })
           .toBe(true);
-        const info = await video.evaluate((v: HTMLVideoElement) => ({ err: v.error?.code ?? null, dur: v.duration, w: v.videoWidth, h: v.videoHeight, rs: v.readyState }));
+        const info = await video.evaluate((v: HTMLVideoElement) => ({ err: v.error?.code ?? null, dur: v.duration, w: v.videoWidth, h: v.videoHeight }));
         expect(info.err, `${slug} video.error`).toBeNull();
         expect(info.w).toBeGreaterThan(0);
-        console.log(`RC ${w}px ${slug}: ${JSON.stringify(info)}`);
         await shot(page, `video-${w}-${slug}-playing`, false);
         await noHScroll(page);
+      }
+      // закрытая страница video: «Загрузить видео» → расшифровка → файл готов (играет — только при H.264)
+      await openPage(page, BY["video"]);
+      const pv = page.locator("video.ev-player__video");
+      await page.getByRole("button", { name: /^Загрузить видео/ }).click();
+      await expect.poll(() => pv.getAttribute("src"), { timeout: 20000 }).toMatch(/^blob:/);
+      await shot(page, `video-${w}-video-page-loaded`, false);
+      if (h264) {
+        await pv.evaluate((v: HTMLVideoElement) => v.play());
+        await expect.poll(() => pv.evaluate((v: HTMLVideoElement) => v.currentTime > 0), { timeout: 15000 }).toBe(true);
       }
       expect(wt.problems.filter((x) => !x.startsWith("requestfailed"))).toEqual([]);
     });
@@ -165,8 +199,8 @@ for (const [w, h] of VIEWS) {
       await page.getByRole("button", { name: "Сбросить" }).click();
       await expect(items).toHaveCount(0);
       // Переходы: каждая карточка человека ведёт на открывающуюся страницу
-      await q.fill("а");
-      const hrefs = await page.locator(".kr-person:not([hidden]) a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
+      // список людей скрыт, пока нет запроса: адреса берём из всех карточек
+      const hrefs = await page.locator(".kr-person a").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
       expect(hrefs.length).toBeGreaterThan(5);
       for (const href of hrefs) {
         const r = await page.goto(href!);
@@ -194,8 +228,10 @@ for (const [w, h] of VIEWS) {
       await expect(page.locator("body")).toHaveAttribute("data-ready", "1", { timeout: 20000 });
       expect(await brokenImages(page)).toEqual([]);
       await shot(page, `cloud-${w}-open`);
+      // ссылка на сайт клуба — в письме «Если вы это читаете»
+      await page.locator("[data-folder-link]", { hasText: "Если вы это читаете" }).click();
       const link = page.locator('a[href*="/p/auction/"]').first();
-      await expect(link).toHaveCount(1);
+      await expect(link).toBeVisible();
       await link.scrollIntoViewIfNeeded();
       await shot(page, `cloud-${w}-auction-link`, false);
       await link.click();

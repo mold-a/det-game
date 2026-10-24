@@ -4,6 +4,7 @@
    «Лист N» внизу листа. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 <header class="paper__head">
   <div class="forensic__head">

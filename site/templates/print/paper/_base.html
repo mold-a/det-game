@@ -26,6 +26,17 @@
       doc.chats       [file:// PNG] — «скриншоты» телефона для form: chat
       doc.pages_hint  ожидаемое число страниц или None
 
+      doc.person      портрет опрашиваемого (протокол, метка <!-- person: id --> до первого «## »):
+                      {id, known, exists, src, name, path} или None
+      doc.sections    разделы протокола «## …»: [{n, heading_html, body_html, person}]
+      doc.intro_html  текст протокола до первого «## »
+      doc.part, doc.parts, doc.part_sections — печатаемая часть (протокол с разделами печатается по
+                      разделу: part_sections — один раздел; part == 0 — с шапкой документа)
+      doc.sheet_start номер листа дела первой страницы (None — без номера, --only)
+    print_cfg    settings.print (duplex, blank_back, fit)
+    page_margin  поля листа для @page («16mm 16mm 18mm 22mm», engine/paper.py PAGE_MARGIN_MM)
+    case_barcode SVG штрихкода дела (Code 39 номера дела)
+
   ОБЩИЕ КЛЮЧИ meta (понимает _doc.html, для всех бланков)
     org      шапка организации вместо умолчания бланка (строка или список строк)
     number   номер документа («№ 123»)
@@ -33,6 +44,7 @@
     from     от кого (строка или список строк)
     subtitle подзаголовок под заголовком
     captions подписи к изображениям media (список строк, по порядку)
+    resolution false — без резолюции «К делу» красным карандашом (входящие: рапорт, справка, заключение…)
 
   БЛАНК: print/paper/<form>.html — {% extends "print/paper/_doc.html" %} и переопределение блоков
     org, case, heading, requisites, before_body, body, media, after_body, signatures.
@@ -51,6 +63,18 @@
 {% include "print/paper/paper.css" %}
 {% endblock %}
 {% block body %}
+{# Номер листа дела «от руки» в правом верхнем углу лицевой страницы (duplex — только нечётные):
+   сквозной по конверту, начиная с doc.sheet_start (engine/paper.py; без --only). #}
+{% set first = docs[0] if docs else none %}
+{% if first and first.sheet_start is not none %}
+<style>
+html { counter-reset: sheet {{ first.sheet_start - 1 }}; }
+@page{% if print_cfg.duplex %} :right{% endif %} { counter-increment: sheet;
+  @top-right { content: counter(sheet); font-family: "Caveat", cursive; font-weight: 600; font-size: 19pt; color: #1c3f99;
+    vertical-align: bottom; padding-bottom: 2.5mm; } }
+</style>
+{% endif %}
+<span class="font-load" aria-hidden="true">0123456789 Лист</span>
 {% for doc in docs %}
 {% if doc.stub %}
 {% include "print/paper/_stub.html" %}
