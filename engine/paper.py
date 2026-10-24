@@ -14,9 +14,10 @@ front matter и тело — шаблоны контента (``c``, ``w``), т�
 
 Печать (``settings.print``, docs/05 §4):
 
-- **подгонка** — если на последнюю страницу ушло меньше ``fit.last_page_min`` высоты листа (подпись,
-  пара строк), документ печатается заново с масштабом ``fit.scales`` (по ступеням) — пока лишняя
-  страница не исчезнет; не исчезла и на последней ступени — остаётся как был;
+- **подгонка** — если на последнюю страницу ушло меньше ``fit.last_page_min`` полосы (подпись,
+  пара строк), документ печатается с масштабом из ``fit.scales`` — самым крупным, при котором лишняя
+  страница исчезает (``fit_scales``: доля оценивается по масштабу, без разбора PDF); не исчезла —
+  документ остаётся как был;
 - **протоколы по одному** — документ ``form: protocol`` с разделами ``## N. …`` печатается
   по разделу: каждый протокол — своя «Лист 1…» и с новой страницы; метка
   ``<!-- person: <id> -->`` после заголовка (или в начале текста одиночного протокола) — портрет
@@ -61,9 +62,8 @@ PREVIEW_W, PREVIEW_H, PREVIEW_SCALE = 794, 1123, 1.5
 QR_SVG_SCALE = 10
 STATUS_OK = "готов"
 VERSO_TEMPLATE = "print/paper/_verso.html"
-# Поля листа A4, мм (CSS @page берёт их отсюда; по ним же меряется заполнение последней страницы).
+# Поля листа A4, мм (CSS @page берёт их отсюда).
 PAGE_MARGIN_MM = {"top": 16, "right": 16, "bottom": 18, "left": 22}
-PT_PER_MM = 72 / 25.4
 # Раздел протокола — заголовок второго уровня; метка опрашиваемого — HTML-комментарий.
 SECTION_RE = re.compile(r"^## ")
 FENCE_RE = re.compile(r"^(```|~~~)")
@@ -218,41 +218,31 @@ def autograph(name: str) -> str:
     h = zlib.crc32(name.encode("utf-8"))
     r = lambda lo, hi, sh: lo + (h >> sh) % (hi - lo + 1)  # noqa: E731
     # Хвост уходит вправо волной и возвращается росчерком под буквы.
-    # Координаты: 0…38 по ширине хвоста, y = 14 — линия букв; обратный росчерк идёт ниже букв (y 16…19).
-    path = (f"M0,{r(11, 13, 0)} C{r(4, 8, 3)},{r(3, 6, 6)} {r(9, 13, 9)},{r(14, 17, 12)} {r(16, 20, 15)},{r(6, 10, 18)} "
-            f"S{r(26, 32, 21)},{r(2, 6, 24)} {r(30, 36, 27)},{r(12, 15, 2)} "
-            f"C{r(20, 26, 5)},{r(17, 19, 8)} -{r(20, 32, 11)},{r(18, 20, 14)} -{r(40, 52, 17)},{r(16, 18, 20)}")
+    # Координаты: 0…38 по ширине хвоста, y = 14 — линия букв; росчерк под буквами уходит в минус по x.
+    tails = [
+        # волна вправо и петля обратно под буквы
+        f"M0,{r(11, 13, 0)} C{r(4, 8, 3)},{r(3, 6, 6)} {r(9, 13, 9)},{r(14, 17, 12)} {r(16, 20, 15)},{r(6, 10, 18)} "
+        f"S{r(26, 32, 21)},{r(2, 6, 24)} {r(30, 36, 27)},{r(12, 15, 2)} "
+        f"C{r(20, 26, 5)},{r(17, 19, 8)} -{r(20, 32, 11)},{r(18, 20, 14)} -{r(40, 52, 17)},{r(16, 18, 20)}",
+        # пила и подчёркивание
+        f"M0,13 L{r(3, 5, 1)},{r(5, 8, 4)} L{r(7, 9, 7)},14 L{r(11, 13, 10)},{r(4, 7, 13)} L{r(15, 17, 16)},14 "
+        f"C{r(20, 24, 19)},{r(16, 19, 22)} {r(28, 32, 25)},{r(6, 9, 3)} {r(34, 38, 6)},{r(9, 12, 9)} "
+        f"M-{r(44, 54, 12)},{r(17, 19, 15)} C-{r(20, 28, 18)},{r(19, 21, 21)} {r(4, 10, 24)},{r(19, 21, 27)} {r(30, 36, 2)},{r(15, 17, 5)}",
+        # подъём вверх и длинный хвост вниз-влево
+        f"M0,12 C{r(5, 8, 2)},{r(14, 16, 5)} {r(10, 13, 8)},{r(2, 5, 11)} {r(15, 18, 14)},{r(8, 11, 17)} "
+        f"S{r(22, 26, 20)},{r(16, 18, 23)} {r(28, 32, 26)},{r(4, 7, 1)} "
+        f"C{r(30, 34, 4)},{r(16, 19, 7)} {r(6, 10, 10)},{r(20, 22, 13)} -{r(36, 48, 16)},{r(17, 19, 19)}",
+    ]
+    path = tails[(h >> 28) % len(tails)]
     rot = -2 - (h >> 23) % 6
     return (f'<span class="autograph" style="--rot:{rot}deg" aria-hidden="true">'
             f'<span class="autograph__text">{escape(sur[:k])}</span>'
-            f'<svg class="autograph__tail" viewBox="0 0 38 20"><path d="{path}"/></svg></span>')
+            f'<svg class="autograph__tail" viewBox="0 0 38 22"><path d="{path}"/></svg></span>')
 
 
 def add_autographs(html: str) -> str:
     """Каждой подписи бланка (``.paper__sign``: линия «(подпись)» и фамилия) — росчерк над линией."""
     return _SIGN_RE.sub(lambda m: m[1] + autograph(m[4]) + m[2] + m[3] + m[4] + m[5], html)
-
-
-# ---------------------------------------------------------------- PDF: заполнение последней страницы
-
-
-def last_page_fill(path: Path, margins: dict[str, float] = PAGE_MARGIN_MM) -> float:
-    """Доля высоты полосы набора, занятая текстом на последней странице PDF (0…1): от верхнего поля
-    до самой нижней строки текста. Колонтитулы (в полях листа) не считаются; страница без текста — 0."""
-    page = _pypdf().PdfReader(Path(path)).pages[-1]
-    height = float(page.mediabox.height)
-    top = height - margins["top"] * PT_PER_MM
-    bottom = margins["bottom"] * PT_PER_MM
-    ys: list[float] = []
-
-    def visit(text, cm, tm, _font, _size):
-        if text.strip():
-            y = tm[4] * cm[1] + tm[5] * cm[3] + cm[5]
-            if bottom < y < top:
-                ys.append(y)
-
-    page.extract_text(visitor_text=visit)
-    return 0.0 if not ys else min(1.0, (top - min(ys)) / (top - bottom))
 
 
 # ---------------------------------------------------------------- данные документов
@@ -443,26 +433,45 @@ def doc_parts(d: dict[str, Any]) -> list[dict[str, Any]]:
     return [dict(d, part=k, parts=len(secs), part_sections=[s]) for k, s in enumerate(secs)]
 
 
+def fit_scales(pages: int, fit) -> list[float]:
+    """Ступени масштаба, которые можно пробовать для документа в ``pages`` страниц: при масштабе
+    ``s`` в ``pages − 1`` страниц помещается не больше ``(pages − 1)·(1/s − 1)`` страницы «лишнего»
+    текста — это и есть оценка заполнения последней страницы. Берём только ступени, где она не больше
+    ``fit.last_page_min``: ужимается документ, у которого на последней странице несколько строк."""
+    if pages < 2:
+        return []
+    return sorted((x for x in fit.scales if x < 1 and (pages - 1) * (1 / x - 1) <= fit.last_page_min + 1e-9),
+                  reverse=True)
+
+
 def fit_pdf(b: object, html: str, out: Path, fit, to_pdf) -> tuple[Path, int, float]:
-    """Напечатать ``html`` в ``out``; если на последнюю страницу ушло меньше ``fit.last_page_min``
-    полосы — перепечатать с масштабом ``fit.scales`` по ступеням, пока страниц не станет меньше.
-    Не вышло и на последней ступени — остаётся исходный PDF. → (путь, страниц, масштаб)."""
+    """Напечатать ``html`` в ``out``; если документ на ступени ``fit_scales`` становится на страницу
+    короче — оставить самый крупный такой масштаб. Сначала пробуется самая мелкая допустимая ступень:
+    не помогла она — не помогут и остальные (одна лишняя печать). → (путь, страниц, масштаб)."""
     out = Path(out)
     to_pdf(b, html, out)
     pages = pdf_pages(out)
-    if pages < 2 or not fit.scales or last_page_fill(out) >= fit.last_page_min:
+    scales = fit_scales(pages, fit)
+    if not scales:
         return out, pages, 1.0
-    trial = out.with_name(f".{out.stem}.fit.pdf")
+    best = out.with_name(f".{out.stem}.fit.pdf")
+    trial = out.with_name(f".{out.stem}.try.pdf")
     try:
-        for scale in fit.scales:
+        to_pdf(b, html, best, scale=scales[-1])
+        if pdf_pages(best) >= pages:
+            return out, pages, 1.0
+        chosen = scales[-1]
+        for scale in scales[:-1]:  # от крупной к мелкой: первая подходящая — самая крупная
             to_pdf(b, html, trial, scale=scale)
-            n = pdf_pages(trial)
-            if n < pages:
-                trial.replace(out)
-                return out, n, scale
+            if pdf_pages(trial) < pages:
+                trial.replace(best)
+                chosen = scale
+                break
+        best.replace(out)
+        return out, pdf_pages(out), chosen
     finally:
+        best.unlink(missing_ok=True)
         trial.unlink(missing_ok=True)
-    return out, pages, 1.0
 
 
 

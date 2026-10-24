@@ -252,6 +252,85 @@ def test_markdown_tables_and_html():
     assert "<table>" in html and "<td>1</td>" in html and '<div class="x">сырой</div>' in html
 
 
+def test_split_sections():
+    from engine.paper import split_sections
+
+    intro, secs = split_sections("Вступление\n\n## 1. А\nтекст\n```\n## не раздел\n```\n## 2. Б\nещё\n")
+    assert intro == "Вступление\n\n"
+    assert secs == ["## 1. А\nтекст\n```\n## не раздел\n```\n", "## 2. Б\nещё\n"]
+    assert split_sections("Без разделов\n") == ("Без разделов\n", [])
+
+
+def test_person_marks_and_portrait(content):
+    from engine.paper import person_marks, portrait
+
+    assert person_marks("x <!-- person: marina -->\n<!--person:kirill-->") == ["marina", "kirill"]
+    ctx = make_context(content)
+    p = portrait(content, ctx, "zavyalov", ROOT / "media")
+    assert p["known"] and p["path"] == (content.characters_by_id["zavyalov"].photo or "portraits/zavyalov.jpg")
+    assert p["name"] == ctx["c"].zavyalov.short()
+    assert p["exists"] == (ROOT / "media" / p["path"]).is_file()
+    assert not portrait(content, ctx, "nobody_x")["known"]
+
+
+def test_barcode_code39():
+    from engine.paper import _CODE39, barcode_svg
+
+    assert all(len(v) == 9 and v.count("1") == 3 for v in _CODE39.values())
+    svg = str(barcode_svg("47/2026"))
+    assert svg.count("<rect") == 5 * (len("47/2026") + 2)  # 5 полос на знак, со стоп-знаками *…*
+    assert str(barcode_svg("47/2026 ДЕЛО")).count("<rect") == 5 * (len("47/2026 ") + 2)  # кириллица — мимо
+
+
+def test_autographs():
+    from engine.paper import add_autographs, autograph
+
+    sign = ('<div class="paper__sign"><span class="role">Опросил</span><span class="line"><span class="hint">(подпись)'
+            '</span></span><span class="name">Ковалёв Д. О.</span></div>')
+    out = add_autographs(sign + sign)
+    assert out.count('class="autograph"') == 2 and out.count("Ковалёв Д. О.") == 2
+    assert '<span class="autograph__text">Кова</span>' in out  # первые 55 % букв фамилии, не меньше трёх
+    assert autograph("Ковалёв Д. О.") == autograph("Ковалёв Д. О.")  # детерминированно
+    assert autograph("") == ""
+
+
+def test_fit_scales_and_fit_pdf(tmp_path):
+    """Подгонка: ступени допустимы, только если «втягивается» не больше last_page_min страницы;
+    выбирается самый крупный масштаб, при котором страниц становится меньше."""
+    from pypdf import PdfWriter
+
+    from engine.models import PrintFitSettings
+    from engine.paper import fit_pdf, fit_scales
+
+    fit = PrintFitSettings(last_page_min=0.15, scales=[0.97, 0.94, 0.91, 0.88])
+    assert fit_scales(1, fit) == []
+    assert fit_scales(2, fit) == [0.97, 0.94, 0.91, 0.88]
+    assert fit_scales(3, fit) == [0.97, 0.94]          # 2·(1/0,91 − 1) ≈ 0,198 > 0,15
+    assert fit_scales(9, fit) == []
+
+    calls: list[float] = []
+
+    def fake(pages_at):
+        def to_pdf(_b, _html, out, scale=1):
+            calls.append(scale)
+            w = PdfWriter()
+            for _ in range(pages_at(scale)):
+                w.add_blank_page(595, 842)
+            with open(out, "wb") as fh:
+                w.write(fh)
+            return out
+        return to_pdf
+
+    out = tmp_path / "doc.pdf"
+    assert fit_pdf(None, "", out, fit, fake(lambda s: 1 if s <= 0.94 else 2))[1:] == (1, 0.94)
+    assert calls == [1, 0.88, 0.97, 0.94] and not list(tmp_path.glob(".doc.*"))
+    calls.clear()
+    assert fit_pdf(None, "", out, fit, fake(lambda s: 2))[1:] == (2, 1.0)
+    assert calls == [1, 0.88]  # мельчайшая ступень не помогла — дальше не пробуем
+    calls.clear()
+    assert fit_pdf(None, "", out, fit, fake(lambda s: 1))[1:] == (1, 1.0) and calls == [1]
+
+
 def test_doc_data_examples(content, salts):
     ctx = make_context(content)
     w = content.world
@@ -350,12 +429,22 @@ def _has_sheet(text: str, n: int) -> bool:
     return re.search(rf"Лист {n}(?!\d)", text) is not None
 
 
-def test_render_envelopes_and_stubs(chromium, root, salts, tmp_path):
-    """Сборник конверта = склейка отдельных PDF по порядку documents.yaml (заглушки тоже): страниц —
-    сумма, у каждого документа своя нумерация «Лист 1…» (протокол 2-04 после двухлистового 2-02)."""
+def _two_protocols(root: Path) -> None:
     write_paper(root, "2-02", 'id: "2-02"\nform: protocol', body='Первый лист.\n\n<div class="page-break"></div>\n\nВторой лист.\n')
     write_paper(root, "2-04", 'id: "2-04"\nform: protocol', body="Единственный лист.\n")
+
+
+def _set_duplex(c, duplex: bool) -> None:
+    c.settings.print.duplex = duplex
+
+
+def test_render_envelopes_and_stubs(chromium, root, salts, tmp_path):
+    """Односторонняя печать: сборник конверта = склейка отдельных PDF по порядку documents.yaml
+    (заглушки тоже): страниц — сумма, у каждого документа своя нумерация «Лист 1…» (протокол 2-04
+    после двухлистового 2-02)."""
+    _two_protocols(root)
     c = load_content(root)
+    _set_duplex(c, False)
     out = tmp_path / "out"
     rep = render_paper(c, out, salts=salts, preview=False)
     ids = paper_ids(c)
@@ -379,6 +468,82 @@ def test_render_envelopes_and_stubs(chromium, root, salts, tmp_path):
     stub = next(r for r in rep.rows if r.id == "2-05")
     assert stub.form == "stub" and stub.pages == 1 and "заглушка" in stub.status
     assert "2-05" in rep.table() and "бланк" in rep.table()
+
+
+def _sheet_no(path: Path, page: int) -> str | None:
+    """Номер листа дела «от руки» (поле @top-right) на странице PDF: отдельная строка из цифр."""
+    from pypdf import PdfReader
+
+    text = PdfReader(path).pages[page].extract_text() or ""
+    # pypdf ставит его в строку метки дела «Дело № … · документ 1-02» (то же поле листа) или отдельно
+    m = re.search(r"документ\s+\d+-\d+\s+(\d+)\s*$", text.splitlines()[0]) if text else None
+    if m:
+        return m[1]
+    return next((x.strip() for x in text.splitlines() if x.strip().isdigit()), None)
+
+
+def test_render_envelopes_duplex(chromium, root, salts, tmp_path):
+    """Двусторонняя печать: каждый документ сборника — с нечётной страницы (после документа
+    с нечётным числом страниц — пустой оборот с пометкой blank_back), номер листа дела — на лицевых
+    страницах, сквозной по конверту; отдельные PDF без оборотов в конце."""
+    _two_protocols(root)
+    c = load_content(root)
+    _set_duplex(c, True)
+    note = c.settings.print.blank_back
+    assert note, "settings.print.blank_back"
+    out = tmp_path / "out"
+    rep = render_paper(c, out, salts=salts, preview=False)
+    for n, env in enumerate(rep.envelopes, 1):
+        rows = [r for r in rep.rows if r.stage == n]
+        expected: list[str] = []
+        starts = []
+        for k, r in enumerate(rows):
+            starts.append(len(expected))
+            expected += _page_texts(r.pdf)
+            if k < len(rows) - 1 and r.pages % 2:
+                expected.append(note)
+        got = _page_texts(env)
+        assert got == expected, env
+        assert all(x % 2 == 0 for x in starts)  # документ — с лицевой стороны листа
+        # лист дела: k-й документ начинается с листа starts/2 + 1
+        for k, r in enumerate(rows):
+            assert _sheet_no(env, starts[k]) == str(starts[k] // 2 + 1), (env, r.id)
+    by_id = {r.id: r for r in rep.rows}
+    assert by_id["2-02"].pages == 2 and by_id["2-04"].pages == 1 and by_id["2-04"].blanks == 0
+
+
+def test_render_protocol_sections_duplex(chromium, root, salts, tmp_path):
+    """Протокол с разделами «## …»: каждый раздел — отдельная часть со своей «Лист 1» и с лицевой
+    страницы (duplex); метка <!-- person: id --> даёт фото из media/portraits, если файл есть."""
+    from engine.paper import doc_data
+
+    body = ("Вступление.\n\n## 1. Первый\n<!-- person: zavyalov -->\n\nТекст первого.\n\n"
+            "<div class=\"page-break\"></div>\n\nПродолжение первого.\n\n"
+            "## 2. Второй\n<!-- person: nobody_x -->\n\nТекст второго.\n\n"
+            "## 3. Третий\n\nТекст третьего.\n")
+    write_paper(root, "2-02", 'id: "2-02"\nform: protocol', body=body)
+    c = load_content(root)
+    _set_duplex(c, True)
+    d = doc_data(c, "2-02", make_context(c), media_dir=ROOT / "media")
+    assert [s["n"] for s in d["sections"]] == [1, 2, 3]
+    assert d["sections"][0]["person"]["id"] == "zavyalov" and d["sections"][2]["person"] is None
+    assert d["persons_unknown"] == ["nobody_x"] and "Вступление" in d["intro_html"]
+    rep = render_paper(c, tmp_path, salts=salts, only=["2-02"], preview=False, media_dir=ROOT / "media")
+    row = rep.rows[0]
+    texts = _page_texts(row.pdf)
+    # 1-й протокол — 2 страницы, 2-й — 1 + оборот, 3-й — 1 (в конце оборот не нужен)
+    assert row.pages == 5 and row.blanks == 1, texts
+    assert "Вступление" in texts[0] and "Продолжение первого" in texts[1] and "Текст второго" in texts[2]
+    assert texts[3] == c.settings.print.blank_back and "Текст третьего" in texts[4]
+    assert _has_sheet(texts[2], 1) and _has_sheet(texts[4], 1)  # у каждого протокола свой «Лист 1»
+    assert "Вступление" not in texts[2]
+    assert "нет персонажа: person: nobody_x" in row.status
+    with pytest.raises(PaperError) as exc:
+        render_paper(c, tmp_path, salts=salts, only=["2-02"], release=True, media_dir=ROOT / "media")
+    assert any("person: nobody_x" in p for p in exc.value.problems)
+    if (ROOT / "media" / "portraits" / "zavyalov.jpg").is_file():
+        html = (ROOT / "media" / "portraits" / "zavyalov.jpg").as_uri()
+        assert d["sections"][0]["person"]["src"] == html
 
 
 def test_render_chat_form(chromium, root, salts, tmp_path):

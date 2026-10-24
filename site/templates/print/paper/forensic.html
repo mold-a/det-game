@@ -4,12 +4,11 @@
    «Лист N» внизу листа. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 <header class="paper__head">
   <div class="forensic__head">
     {{ m.corner(doc, w, "none") }}
-    <div class="forensic__copy">{{ m.case(w) }}{% if doc.place %}<div>{{ doc.place }}</div>{% endif %}</div>
+    <div class="forensic__copy">{{ m.case(w) }}{% if doc.place %}<div>{{ doc.place }}</div>{% endif %}{{ m.resolution(doc) }}</div>
   </div>
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}

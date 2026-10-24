@@ -4,7 +4,6 @@
    заголовок, текст, подпись и печать (meta.seal). Никаких гербов: только текст и линии. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">
@@ -15,7 +14,7 @@
   </div>
   <div class="letterrow letter__ref">
     <div class="corner__no" style="justify-content:flex-start;margin:0"><span class="corner__cell">{% if doc.date %}{{ doc.date|dt('date') }}{% endif %}</span><span>№</span><span class="corner__cell">{{ (doc.meta.get('number') or '')|replace('№', '')|trim }}</span></div>
-    {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
+    <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{{ m.resolution(doc) }}</div>
   </div>
   {% if doc.meta.get('tag') %}<div class="press__tag">{{ doc.meta.get('tag') }}</div>{% endif %}
   <h1 class="paper__title">{{ doc.title }}</h1>

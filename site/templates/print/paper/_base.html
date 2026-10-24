@@ -75,6 +75,11 @@ html { counter-reset: sheet {{ first.sheet_start - 1 }}; }
 </style>
 {% endif %}
 <span class="font-load" aria-hidden="true">0123456789 Лист</span>
+{# Неровный оттиск штемпельной краски: пятнистая маска поверх печатей и штампов (.seal, .rstamp). #}
+<svg class="defs" width="0" height="0" aria-hidden="true"><filter id="ink" x="-5%" y="-5%" width="110%" height="110%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="7" result="noise"/>
+  <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.5 1.6" result="mask"/>
+  <feComposite in="SourceGraphic" in2="mask" operator="in"/></filter></svg>
 {% for doc in docs %}
 {% if doc.stub %}
 {% include "print/paper/_stub.html" %}

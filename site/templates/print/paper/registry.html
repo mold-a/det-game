@@ -4,7 +4,6 @@
    внизу — рамка электронной подписи (meta.esign — строки) и «Страница N» на каждом листе. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 <header class="paper__head">
   <div class="reg__top"><span class="reg__org">{{ m.org_text(doc, w, "none") }}</span><span>{% if doc.date %}Сформировано {{ doc.date|dt }}{% endif %}{% if doc.meta.get('number') %} · № {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}</span></div>

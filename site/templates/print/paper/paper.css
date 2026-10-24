@@ -126,15 +126,17 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 /* Росчерк над линией подписи (engine/paper.py: add_autographs) — первые буквы фамилии и хвост. */
 .autograph { position: absolute; left: 2.5mm; bottom: -1.2mm; display: inline-flex; align-items: flex-end; white-space: nowrap;
   color: var(--pen); font-family: var(--font-hand); font-weight: 600; font-size: 19pt; line-height: 1;
-  transform: rotate(var(--rot, -4deg)); transform-origin: left bottom; pointer-events: none; }
+  transform: rotate(var(--rot, -4deg)) skewX(-6deg); transform-origin: left bottom; pointer-events: none; }
 .autograph__text { letter-spacing: -.02em; }
-.autograph__tail { display: inline-block; width: 12mm; height: 6.3mm; margin: 0 0 -0.9mm -0.6mm; overflow: visible; }
+.autograph__tail { display: inline-block; width: 12mm; height: 6.9mm; margin: 0 0 -1.4mm -0.6mm; overflow: visible; }
 .autograph__tail path { fill: none; stroke: currentColor; stroke-width: 1.05; stroke-linecap: round; stroke-linejoin: round; }
 .paper__seal { position: absolute; right: 50mm; top: -10mm; width: 38mm; pointer-events: none; }
 .paper__signatures:has(.paper__seal) { min-height: 30mm; }
 .paper__seal--solo { position: relative; left: auto; top: auto; margin-left: auto; margin-right: 20mm; }
 .seal { display: inline-block; vertical-align: top; width: 38mm; height: 38mm; color: var(--seal); opacity: .82; transform: rotate(-11deg);
-  mix-blend-mode: multiply; }
+  mix-blend-mode: multiply; filter: url(#ink); }
+.rstamp { filter: url(#ink); }
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* Прямоугольный штамп */
 .rstamp { display: inline-block; border: 0.45mm solid var(--seal); color: var(--seal); border-radius: 1mm;
@@ -142,11 +144,12 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
   text-transform: uppercase; letter-spacing: .04em; transform: rotate(-3deg); opacity: .88; text-align: center; }
 
 /* Красный карандаш: резолюция «К делу» с датой и росчерком; галочка. Только оформление. */
-.resol { position: absolute; z-index: 3; display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0;
-  color: var(--pencil); font-family: var(--font-hand); line-height: .95; transform: rotate(-7deg); transform-origin: left top; pointer-events: none; }
-.resol__text { font-size: 20pt; font-weight: 600; text-decoration: underline 0.35mm; text-underline-offset: 1.2mm; }
-.resol__date { font-size: 14pt; margin: 1.4mm 0 0 6mm; }
-.resol__sign { width: 17mm; height: 5mm; margin: -1mm 0 0 18mm; overflow: visible; }
+/* Одна строка, не занимает места в потоке: под адресатом (справка, ответ), у рапорта — слева вверху. */
+.resol { position: absolute; z-index: 3; display: inline-flex; align-items: baseline; gap: 2.5mm; white-space: nowrap;
+  color: var(--pencil); font-family: var(--font-hand); line-height: 1; transform: rotate(-4deg); transform-origin: left top; pointer-events: none; }
+.resol__text { font-size: 19pt; font-weight: 600; text-decoration: underline 0.35mm; text-underline-offset: 1.2mm; }
+.resol__date { font-size: 14pt; }
+.resol__sign { width: 15mm; height: 4.5mm; overflow: visible; align-self: center; }
 .resol__sign path, .tick path { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .tick { display: inline-block; width: 6mm; height: 5mm; color: var(--pencil); overflow: visible; }
 
@@ -181,8 +184,8 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .paper--certificate .corner { color: var(--seal); padding: 2mm 2.5mm; transform: rotate(-1.2deg); opacity: .9; }
 .paper--certificate .corner__addr { color: inherit; }
 .paper--certificate .corner__cell { border-bottom-color: var(--seal); }
-.paper--certificate .resol { top: 38mm; right: 8mm; }
-.paper--certificate.paper--qr .resol { top: 46mm; }
+.letterrow__to { position: relative; }
+.letterrow__to .resol { top: calc(100% + 2.5mm); left: 4mm; }
 .letterrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
 .letterrow .paper__to { margin: 0; }
 
@@ -234,7 +237,7 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .proto-sec .paper__body > .proto__fields { display: flow-root; }
 .proto-sec--photo .paper__body > .proto__fields:first-of-type { min-height: 46mm; }
 .paper--protocol .paper__signatures { padding-left: 7mm; }
-.paper--protocol .paper__signatures::before { content: ""; position: absolute; left: 0; top: 4.5mm; width: 5.5mm; height: 4.5mm;
+.paper--protocol .paper__signatures::before { content: ""; position: absolute; left: 0; top: 1.4mm; width: 5.5mm; height: 4.5mm;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16'%3E%3Cpath d='M2 8 C4 9 6 11 7.5 14 C10 8 14 4 19 1.5' fill='none' stroke='%23b5332b' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain; }
 
 /* ------------------------------------------------------------ рапорт */
@@ -252,7 +255,7 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .paper--report .paper__to, .paper--report .paper__from { font-size: 10pt; line-height: 1.5; }
 .paper--report .paper__title { font-weight: 400; font-size: 13pt; letter-spacing: .45em; }
 .paper--report .paper__sign { font-size: 10pt; }
-.paper--report .resol { top: 20mm; left: 2mm; }
+.paper--report .resol { top: 22mm; left: 2mm; }
 
 /* ------------------------------------------------------------ карта вызова скорой помощи */
 .amb__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
@@ -303,7 +306,8 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .paper--forensic .paper__body p { text-indent: 10mm; }
 .paper--forensic .paper__body h2 { counter-increment: sec; font-size: 11pt; text-transform: uppercase; letter-spacing: .05em; margin: 5mm 0 2mm; }
 .paper--forensic .paper__body h2::before { content: counter(sec, upper-roman) ". "; }
-.paper--forensic .resol { top: 24mm; right: 40mm; }
+.forensic__copy { position: relative; }
+.forensic__copy .resol { top: calc(100% + 2mm); right: 4mm; }
 
 /* ------------------------------------------------------------ план здания */
 .plan__frame { position: relative; border: 0.5mm solid var(--ink); padding: 1mm; margin: 2mm 0 0; }
@@ -378,7 +382,7 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .photo__frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: inline-block; }
 .photo__frame .paper__missing { position: absolute; inset: 0; min-height: 0; border: 0; }
 /* Снимок вклеен в фотоуголки (два по диагонали). */
-.photo__frame::before, .photo__frame::after { content: ""; position: absolute; z-index: 1; width: 7mm; height: 7mm; background: #8d949c; opacity: .92; }
+.photo__frame::before, .photo__frame::after { content: ""; position: absolute; z-index: 1; width: 7mm; height: 7mm; background: #e3e6ea; opacity: .95; }
 .photo__frame::before { left: -0.3mm; top: -0.3mm; clip-path: polygon(0 0, 100% 0, 0 100%); }
 .photo__frame::after { right: -0.3mm; bottom: -0.3mm; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
 .photo figcaption { font-size: 9.5pt; line-height: 1.3; margin-top: 1.5mm; text-align: left; }
@@ -433,8 +437,7 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
   border: 0.3mm solid var(--ink); padding: .8mm 2.5mm; margin-top: 6mm; }
 .paper--press .paper__title { font-size: 14pt; margin-top: 3mm; }
 .paper--press .paper__body { line-height: 1.55; }
-.paper--press .resol { top: 30mm; left: 2mm; }
-.paper--registry .resol { top: 12mm; left: 60mm; }
+
 
 /* ------------------------------------------------------------ билет */
 .ticket { position: relative; display: grid; grid-template-columns: 1fr 44mm; width: 100%; margin-top: 4mm;
@@ -529,7 +532,6 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .rx .seal { position: absolute; right: 5mm; bottom: 4mm; width: 24mm; height: 24mm; }
 .rx__certified { flex: 1; padding-top: 6mm; }
 .paper--pharmacy .paper__media { grid-template-columns: 1fr; }
-.paper--pharmacy .resol { top: 40mm; right: 6mm; }
 .rx__rp { font-family: var(--font-hand); font-style: normal; font-size: 14pt; color: var(--pen); }
 
 /* ------------------------------------------------------------ записка от руки */
@@ -577,7 +579,7 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 @media screen {
   html { background: #8a8a8a; }
   body { width: 210mm; }
-  .paper { background: #fff; width: 210mm; min-height: 297mm; padding: 16mm 16mm 18mm 22mm; margin-bottom: 6mm; }
+  .paper { background: #fff; width: 210mm; min-height: 297mm; padding: {{ page_margin }}; margin-bottom: 6mm; }
   .paper__qr { top: 16mm; right: 16mm; }
   .paper__docmark { display: block; position: absolute; left: 22mm; top: 8mm; font-family: var(--font-sans); font-size: 7.5pt;
     font-weight: 700; letter-spacing: .03em; color: var(--mark); line-height: 1; }

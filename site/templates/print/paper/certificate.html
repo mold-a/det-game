@@ -1,15 +1,14 @@
 {# Справка: угловой штамп организации (meta.org, meta.address, № и дата), адресат meta.to справа,
    крупный заголовок разрядкой, текст, подпись и печать организации (meta.seal: текст в центре
-   или false). QR-код страницы (если есть) — в правом верхнем углу. #}
+   или false). QR-код страницы (если есть) — в правом верхнем углу. Входящая справка (чужая организация)
+   — с резолюцией «К делу» красным карандашом под адресатом (meta.resolution: false — без неё). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{# Резолюция «К делу» — только на входящей справке (чужая организация), не на справке самого отдела. #}
-{% block docmark %}{{ super() }}{% if m.org_text(doc, w, "none")|trim != w.police.department %}{{ m.resolution(doc) }}{% endif %}{% endblock %}
 {% block sheet %}
 <header class="paper__head">
   <div class="letterrow">
     {{ m.corner(doc, w, "none") }}
-    {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
+    <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{% if m.org_text(doc, w, "none")|trim != w.police.department %}{{ m.resolution(doc) }}{% endif %}</div>
   </div>
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}

@@ -6,13 +6,12 @@
    meta.certified — текст штампа заверения (по умолчанию «Копия верна»). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
 {% block sheet %}
 {% set rx = doc.meta.get('recipe') %}
 <header class="paper__head">
   <div class="letterrow">
     {{ m.corner(doc, w, "none") }}
-    {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
+    <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{{ m.resolution(doc) }}</div>
   </div>
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
