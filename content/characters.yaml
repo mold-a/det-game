@@ -222,6 +222,8 @@ characters:
   - { id: usher, working: "Капельдинер бельэтажа", role: "Капельдинер бельэтажа (ложи № 1 и № 2)", importance: background, last: "Котова", first: "Зинаида", middle: "Петровна", gender: f, in_pool: false }
   - { id: prod_manager, working: "Заведующий постановочной частью", role: "Заведующий постановочной частью (смета 4-02)", importance: background, last: "Ярцев", first: "Борис", middle: "Глебович", gender: m, in_pool: false }
   - { id: kovalev_partner, working: "Напарник Ковалёва", cast: false, role: "Младший сержант полиции, напарник {{ c.kovalev.last('gen') }}", importance: background, last: "Сабиров", first: "Ринат", middle: "Альбертович", gender: m, in_pool: false }
+  # Оперуполномоченный СОГ (решение автора 24.10, вечер): 10.11 объяснения в театре (1-08) берёт он, а не патрульный наряд.
+  - { id: operative, working: "Оперуполномоченный СОГ", cast: false, role: "Старший лейтенант полиции, оперуполномоченный уголовного розыска ОП «Центральный»", importance: background, last: "Мещеряков", first: "Илья", middle: "Романович", gender: m, in_pool: false }
   - { id: duty_officer, working: "Дежурный дежурной части", cast: false, role: "Оперативный дежурный (принял анонимный звонок)", importance: background, last: "Дронова", first: "Олеся", middle: "Игоревна", gender: f, in_pool: false }
   - { id: witness1, working: "Понятой 1", cast: false, role: "Понятая", importance: background, last: "Гусева", first: "Нина", middle: "Алексеевна", gender: f, in_pool: false }
   - { id: witness2, working: "Понятой 2", cast: false, role: "Понятой", importance: background, last: "Лапин", first: "Константин", middle: "Ефимович", gender: m, in_pool: false }
