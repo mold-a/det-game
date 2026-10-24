@@ -273,6 +273,107 @@ def test_person_marks_and_portrait(content):
     assert not portrait(content, ctx, "nobody_x")["known"]
 
 
+def test_body_chart_marks_only_from_spec():
+    """Схема тела СМЭ: штриховка — только в зонах из meta.body_chart, номер у каждой отметки;
+    неизвестная зона — ошибка; без разметки схемы нет."""
+    from engine.paper import BODY_ZONES, BodyChartError, body_chart, body_outline
+
+    assert body_chart(None) is None and body_chart({}) is None
+    bc = body_chart({"marks": [{"zone": "back", "label": "Трупные пятна"}], "note": "Повреждений нет"}, "t")
+    svg = str(bc["svg"])
+    assert svg.count('class="bc__zone"') == 1 and 'data-zone="back"' in svg
+    assert 'bc__fig--front' in svg and 'bc__fig--back' in svg and "Спереди" in svg and "Сзади" in svg
+    assert bc["marks"] == [{"n": 1, "zone": "back", "label": "Трупные пятна"}] and bc["note"] == "Повреждений нет"
+    # штриховка — в фигуре «сзади» (вторая группа), не «спереди»
+    front, back = svg.split('bc__fig--back', 1)
+    assert "bc__zone" not in front and "bc__zone" in back
+    assert body_outline().startswith("M") and body_outline().endswith("Z")
+    assert body_chart({"marks": []}, "e")["marks"] == []
+    with pytest.raises(BodyChartError, match="zone"):
+        body_chart({"marks": [{"zone": "spleen"}]})
+    assert {"front", "back"} <= set(BODY_ZONES)
+
+
+def test_real_forensic_chart_and_cells():
+    """1-04: ячейки и схема тела — только сведения из текста заключения (зона трупных пятен сзади,
+    «повреждений не обнаружено»)."""
+    c = load_content(CONTENT)
+    if "1-04" not in c.paper:
+        pytest.skip("нет content/paper/1-04.md")
+    d = doc_data(c, "1-04", make_context(c))
+    assert d["brand"] == "sme" and d["problems"] == []
+    bc = d["body_chart"]
+    if bc is None:
+        pytest.skip("у 1-04 нет meta.body_chart")
+    text = " ".join((d["source"] + " " + d["meta"].get("subtitle", "")).split()).lower()
+    assert "задней поверхности тела" in text and [m["zone"] for m in bc["marks"]] == ["back"]
+    assert bc["note"] is None or "не обнаружено" in text
+    # в ячейках нет новых сведений: каждое число и основа каждого длинного слова — из текста заключения
+    for cell in d["meta"].get("cells") or []:
+        value = str(cell["value"]).lower()
+        assert all(n in text for n in re.findall(r"\d+", value)), cell
+        if cell["label"] != "Пол":  # «мужской» — из «труп мужчины»
+            assert all(wd[:6] in text for wd in re.findall(r"[а-яё]{6,}", value)), cell
+
+
+def test_org_brand(content):
+    from engine.paper import BRANDS, org_brand
+
+    w = content.world
+    assert org_brand(None, "protocol", w) == "so" and org_brand(None, "forensic", w) == "sme"
+    assert org_brand(None, "plan", w) == "theater" and org_brand(None, "note", w) == "none"
+    assert org_brand(w["police"]["department"], "certificate", w) == "so"
+    assert org_brand([w["police"]["duty"], "г. X"], "certificate", w) == "police"
+    assert org_brand("ОП «Центральный» г. X", "report", w) == "police"
+    assert org_brand(["Бюро судебно-медицинской экспертизы", "г. X"], "forensic", w) == "sme"
+    assert org_brand([w["theater"]["full"], "Костюмерный цех"], "inventory", w) == "theater"
+    assert org_brand("Частное лицо, эксперт", "letter", w) == "private"
+    assert org_brand("Что угодно", "letter", w, "fund") == "fund"
+    assert org_brand(None, "letter", w, "нет-такого") == "so"
+    assert {"so", "police", "sme", "smp", "theater", "private", "none"} <= set(BRANDS)
+
+
+def test_interviewee_role_and_protocol_people():
+    from engine.paper import interviewee_role, protocol_people
+
+    assert interviewee_role("Иванов Иван Иванович, 1980 г. р., охранник театра") == "охранник театра"
+    assert interviewee_role(["Иванов И. И., 1980 г. р.", "буфетчица театра (ВОДТ)"]) == "буфетчица театра (ВОДТ)"
+    assert interviewee_role(["Иванов Иван Иванович", "водитель; анкетные данные — в протоколе"]) == \
+        "водитель; анкетные данные — в протоколе"
+    assert interviewee_role("Иванов Иван Иванович") == ""
+    sec = ('<div class="proto__fields"><div class="fld"><span class="fld__label">Опросил</span>'
+           '<span class="fld__value">сержант</span></div><div class="fld"><span class="fld__label">Опрошена</span>'
+           '<span class="fld__value">Петрова Анна, 1990 г. р., артистка &laquo;театра&raquo;</span></div></div>')
+    d = {"form": "protocol", "stub": False, "person": None, "meta": {}, "intro_html": "",
+         "sections": [{"person": {"id": "anna"}, "body_html": sec}, {"person": None, "body_html": ""}]}
+    assert protocol_people(d) == [("anna", "Петрова Анна, 1990 г. р., артистка «театра»")]
+    single = {"form": "protocol", "stub": False, "person": {"id": "ivan"}, "intro_html": "", "sections": [],
+              "meta": {"person": ["Иван, 1980 г. р.", "охранник"]}}
+    assert protocol_people(single) == [("ivan", ["Иван, 1980 г. р.", "охранник"])]
+    assert protocol_people({"form": "report", "stub": False}) == []
+
+
+def test_cast_cards_real_content():
+    """Карточки: человек — в конверте, где впервые появился в протоколе (метка person), роль — из его
+    строки «Опрошен(а)»; повторные опросы новых карточек не дают."""
+    from engine.paper import cast_cards, interviewee_role, protocol_people
+
+    c = load_content(CONTENT)
+    ctx = make_context(c)
+    docs = {i: doc_data(c, i, ctx, media_dir=ROOT / "media") for i in paper_ids(c)}
+    cards = cast_cards(c, docs, ctx, ROOT / "media")
+    ids = [x["id"] for n in sorted(cards) for x in cards[n]]
+    assert len(ids) == len(set(ids))
+    first: dict[str, tuple[int, str]] = {}
+    for i in paper_ids(c):
+        for cid, who in protocol_people(docs[i]):
+            first.setdefault(cid, (docs[i]["stage"], interviewee_role(who)))
+    for n, cast in cards.items():
+        for x in cast:
+            assert first[x["id"]] == (n, x["role"]), x
+            assert x["name"] == ctx["c"][x["id"]].full() and x["role"]
+
+
 def test_barcode_code39():
     from engine.paper import _CODE39, barcode_svg
 
@@ -544,6 +645,29 @@ def test_render_protocol_sections_duplex(chromium, root, salts, tmp_path):
     if (ROOT / "media" / "portraits" / "zavyalov.jpg").is_file():
         html = (ROOT / "media" / "portraits" / "zavyalov.jpg").as_uri()
         assert d["sections"][0]["person"]["src"] == html
+
+
+def test_render_cast_cards(chromium, root, salts, tmp_path):
+    """Полная сборка: cards-<N>.pdf — полароиды персонажей, впервые появившихся в протоколах конверта N;
+    повторный протокол того же человека в другом конверте карточки не даёт; с --only карточек нет."""
+    write_paper(root, "2-02", 'id: "2-02"\nform: protocol\nmeta:\n  person: ["{{ c.marina.full() }}, 2000 г. р.", '
+                '"преподаватель английского языка"]', body="<!-- person: marina -->\n\nТекст.\n")
+    write_paper(root, "2-04", 'id: "2-04"\nform: protocol',
+                body=('## 1. Первый\n<!-- person: oleg -->\n\n<div class="proto__fields"><div class="fld">'
+                      '<span class="fld__label">Опрошен</span><span class="fld__value">{{ c.oleg.full() }}, 1970 г. р., '
+                      'охранник служебного входа</span></div></div>\n\nТекст.\n\n'
+                      '## 2. Второй\n<!-- person: marina -->\n\nТекст.\n'))
+    c = load_content(root)
+    rep = render_paper(c, tmp_path, salts=salts, preview=False, media_dir=ROOT / "media")
+    assert [cr.stage for cr in rep.cards] == [2]
+    cr = rep.cards[0]
+    assert cr.people == ["marina", "oleg"] and cr.pages == 1 and cr.pdf.name == "cards-2.pdf"
+    text = _page_texts(cr.pdf)[0]
+    assert "преподаватель английского языка" in text.lower() and "охранник служебного входа" in text.lower()
+    if not (ROOT / "media" / "portraits" / "marina.jpg").is_file():
+        assert "marina" in cr.no_photo
+    rep2 = render_paper(c, tmp_path / "only", salts=salts, only=["2-04"], preview=False, media_dir=ROOT / "media")
+    assert rep2.cards == []
 
 
 def test_render_chat_form(chromium, root, salts, tmp_path):

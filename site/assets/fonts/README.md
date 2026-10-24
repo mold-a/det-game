@@ -38,3 +38,14 @@ https://fonts.google.com/specimen/PT+Serif (TTF, перевести в woff2 л�
 
 Если файлов нет, CSS откатывается на системные шрифты из `--font-sans` и
 `--font-serif` (Segoe UI / Roboto / Arial и Georgia / Times New Roman).
+
+## Шрифты бумаги конвертов
+
+Только для печати (`python -m engine paper`, `site/templates/print/paper/paper.css`), сайт их не
+подключает. Все — SIL Open Font License 1.1, из npm-пакетов Fontsource:
+
+| Шрифт | Пакет | Файлы | Лицензия | Где |
+|---|---|---|---|---|
+| Caveat | `@fontsource/caveat` 5.3.0 | `caveat-<subset>-400/600-normal.woff2` | `OFL-Caveat.txt` | «ручка»: графы, подписи, записки |
+| PT Mono | `@fontsource/pt-mono` 5.3.0 | `pt-mono-<subset>-400-normal.woff2` | `OFL-PT-Mono.txt` | рапорт «на машинке» |
+| Oswald | `@fontsource/oswald` 5.1.0 | `oswald-<subset>-500/600/700-normal.woff2` | `OFL-Oswald.txt` | шапки организаций и заголовки документов |

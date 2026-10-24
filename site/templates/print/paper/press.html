@@ -7,13 +7,9 @@
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">
-  <div class="lhead">
-    {% if org is string %}<div class="lhead__org">{{ org }}</div>
-    {% elif org %}<div class="lhead__org">{{ org[0] }}</div>{% for x in org[1:] %}<div class="lhead__sub">{{ x }}</div>{% endfor %}{% endif %}
-    {% if doc.meta.get('address') %}<div class="lhead__addr">{{ m.lines(doc.meta.get('address')) }}</div>{% endif %}
-  </div>
+  {{ m.masthead(doc, w, "none", "", doc.meta.get('address')) }}
   <div class="letterrow letter__ref">
-    <div class="corner__no" style="justify-content:flex-start;margin:0"><span class="corner__cell">{% if doc.date %}{{ doc.date|dt('date') }}{% endif %}</span><span>№</span><span class="corner__cell">{{ (doc.meta.get('number') or '')|replace('№', '')|trim }}</span></div>
+    {{ m.refno(doc) }}
     <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{{ m.resolution(doc) }}</div>
   </div>
   {% if doc.meta.get('tag') %}<div class="press__tag">{{ doc.meta.get('tag') }}</div>{% endif %}

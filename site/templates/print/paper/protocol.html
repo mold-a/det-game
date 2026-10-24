@@ -1,33 +1,32 @@
-{# Протокол (опроса, допроса, повторного опроса), объяснение, расшифровка: шапка следственного отдела,
-   № дела и штрихкод, город и дата, время начала и окончания, кто составил и кого опросили — графы
-   бланка заполнены «от руки»; фото опрашиваемого 3×4 на скрепке справа (метка
-   <!-- person: <id> --> в начале текста — doc.person); подписи с росчерком;
-   внизу каждого листа — «Лист N» и место для подписи опрошенного (@page sheeted).
+{# Протокол (опроса, допроса, повторного опроса), объяснение: шапка следственного отдела с эмблемой,
+   № дела и штрихкод, крупный заголовок; ячейки бланка (дата, время начала и окончания, место, кто
+   составил, кого опросили) заполнены «от руки»; фото опрашиваемого полароидом на скотче справа (метка
+   <!-- person: <id> --> в начале текста — doc.person); вопросы и ответы — плотным текстом с метками
+   «Вопрос:» / «Ответ:»; подписи с росчерком; внизу каждого листа — «Лист N» и место для подписи
+   опрошенного (@page sheeted).
    meta: start, end — «22:05» (если не заданы, start берётся из времени в date «…T22:05»);
          by — кто составил (должность, ФИО); person — кого опросили (строка или список строк:
          ФИО, год рождения, место работы…); person_label — подпись поля (по умолчанию «Опрошен(а)»).
    Несколько протоколов в одном документе (1-08) — разделы «## N. …»; сразу после заголовка —
    метка <!-- person: <id> -->. Каждый раздел печатается отдельно (engine/paper.py: doc_parts):
-   с новой страницы (при duplex — с нового листа), со своей «Лист 1…» и фото; первая часть — с шапкой
-   документа и вступлением. Вопросы и ответы — абзацы, начинающиеся с **Вопрос:** / **Ответ:**. #}
+   с новой страницы (при duplex — с нового листа), со своей «Лист 1…» и фото; заголовок раздела
+   («1. Громова Ю. С.») — «от руки» рядом с заголовком документа; первая часть — с подзаголовком и
+   вступлением документа. Вопросы и ответы — абзацы, начинающиеся с **Вопрос:** / **Ответ:**. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 {% if doc.part_sections %}
 {% set s = doc.part_sections[0] %}
 <header class="paper__head">
-  {{ m.org(doc, w, "police") }}
-  {{ m.case(w) }}
-  {% if doc.part == 0 %}
-  <h1 class="proto__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="proto__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-  {% else %}
-  <div class="proto__running">{{ doc.title }}{% if doc.meta.get('subtitle') %} {{ doc.meta.get('subtitle') }}{% endif %}</div>
-  {% endif %}
+  {{ m.masthead(doc, w, "police", m.case(w)) }}
+  <div class="proto__titlerow">
+    <h1 class="paper__title proto__title">{{ doc.title }}</h1>
+    <div class="proto__hand">{{ s.heading_html|striptags }}</div>
+  </div>
+  {% if doc.part == 0 and doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
 </header>
 {% if doc.part == 0 and doc.intro_html %}<div class="paper__body proto__intro">{{ doc.intro_html }}</div>{% endif %}
 <section class="proto-sec{% if s.person and s.person.exists %} proto-sec--photo{% endif %}">
-  <div class="proto-sec__head">{{ s.heading_html }}</div>
   {{ m.mugshot(s.person) }}
   <div class="paper__body">{{ s.body_html }}</div>
 </section>
@@ -36,33 +35,25 @@
 {% set start = doc.meta.get('start') or m.iso_time(doc.date)|trim %}
 {% set end = doc.meta.get('end') %}
 <header class="paper__head">
-  {{ m.org(doc, w, "police") }}
-  {{ m.case(w) }}
-  {% if doc.meta.get('number') %}<div class="paper__number">{{ doc.meta.get('number') }}</div>{% endif %}
-  <h1 class="proto__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="proto__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-  <div class="proto__line">
-    {{ m.uline("г. " ~ w.city, "(место составления)") }}
-    {{ m.uline(m.longdate(doc.date) if doc.date else "", "(дата)") }}
+  {{ m.masthead(doc, w, "police", m.case(w)) }}
+  <div class="proto__titlerow">
+    <h1 class="paper__title proto__title">{{ doc.title }}</h1>
+    {% if doc.meta.get('number') %}<div class="proto__hand">№ {{ (doc.meta.get('number')|string).replace('№', '')|trim }}</div>{% endif %}
   </div>
-  <div class="proto__card{% if doc.person and doc.person.exists %} proto__card--photo{% endif %}">
-    <div class="proto__card-fields">
-      {% if start or end %}
-      <div class="proto__times">
-        {{ m.field("Начато в", m.hm(start) if start else "") }}
-        {{ m.field("Окончено в", m.hm(end) if end else "") }}
-      </div>
-      {% endif %}
-      <div class="proto__fields">
-        {% if doc.place %}{{ m.field("Место проведения", doc.place) }}{% endif %}
-        {% if doc.meta.get('by') %}{{ m.field("Составил(а)", doc.meta.get('by')) }}{% endif %}
-        {% if doc.meta.get('person') %}{{ m.field(doc.meta.get('person_label') or "Опрошен(а)", doc.meta.get('person')) }}{% endif %}
-      </div>
-    </div>
-    {{ m.mugshot(doc.person) }}
-  </div>
+  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
 </header>
-<div class="paper__body">{{ doc.body_html }}</div>
+<section class="proto-sec{% if doc.person and doc.person.exists %} proto-sec--photo{% endif %}">
+  {{ m.mugshot(doc.person) }}
+  <div class="proto__fields proto__fields--form">
+    <div class="fld fld--date"><span class="fld__label">Место и дата составления</span><span class="fld__value">г. {{ w.city }}{% if doc.date %}, {{ m.longdate(doc.date) }}{% endif %}</span></div>
+    {% if start %}<div class="fld fld--time"><span class="fld__label">Начато в</span><span class="fld__value">{{ m.hm(start) }}</span></div>{% endif %}
+    {% if end %}<div class="fld fld--time"><span class="fld__label">Окончено в</span><span class="fld__value">{{ m.hm(end) }}</span></div>{% endif %}
+    {% if doc.place %}<div class="fld fld--wide"><span class="fld__label">Место проведения</span><span class="fld__value">{{ doc.place }}</span></div>{% endif %}
+    {% if doc.meta.get('by') %}<div class="fld fld--wide"><span class="fld__label">Составил(а)</span><span class="fld__value">{{ m.lines(doc.meta.get('by')) }}</span></div>{% endif %}
+    {% if doc.meta.get('person') %}<div class="fld fld--wide"><span class="fld__label">{{ doc.meta.get('person_label') or "Опрошен(а)" }}</span><span class="fld__value">{{ m.lines(doc.meta.get('person')) }}</span></div>{% endif %}
+  </div>
+  <div class="paper__body">{{ doc.body_html }}</div>
+</section>
 {{ m.media(doc) }}
 {{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "", "") if doc.meta.get('seal') else "") }}
 {% endif %}

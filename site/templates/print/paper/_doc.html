@@ -2,15 +2,14 @@
 {% import "print/paper/_macros.html" as m with context %}
 {% set footer = {"protocol": "sheeted", "inspection": "sheeted", "forensic": "sheeted", "registry": "numbered"}.get(doc.form) %}
 {{ m.page_rule(doc, w, footer) }}
-<article class="paper paper--{{ doc.form }}{% if doc.qr %} paper--qr{% endif %}" style="page: doc-{{ doc.id }}" id="doc-{{ doc.id }}" data-doc="{{ doc.id }}" data-form="{{ doc.form }}">
+<article class="paper paper--{{ doc.form }} brand--{{ doc.brand }}{% if doc.qr %} paper--qr{% endif %}" style="page: doc-{{ doc.id }}" id="doc-{{ doc.id }}" data-doc="{{ doc.id }}" data-form="{{ doc.form }}">
   {% if doc.qr %}
   <figure class="paper__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>
   {% endif %}
   {% block docmark %}{{ m.docmark(doc, w) }}{% endblock %}
   {% block sheet %}
   <header class="paper__head">
-    {% block org %}{{ m.org(doc, w, "police") }}{% endblock %}
-    {% block case %}{{ m.case(w) }}{% endblock %}
+    {% block org %}{{ m.masthead(doc, w, "police", m.case(w)) }}{% endblock %}
     {% block number %}{% if doc.meta.get('number') %}<div class="paper__number">{{ doc.meta.get('number') }}</div>{% endif %}{% endblock %}
     {% block address %}{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
     {% if doc.meta.get('from') %}<div class="paper__from">{{ m.lines(doc.meta.get('from')) }}</div>{% endif %}{% endblock %}

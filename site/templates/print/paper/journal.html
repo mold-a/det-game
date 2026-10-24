@@ -6,11 +6,9 @@
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="journal__head">
+  {{ m.masthead(doc, w, "theater", m.case(w)) }}
   <div class="journal__top">
-    <div>
-      <div class="journal__org">{{ m.org_text(doc, w, "theater") }}</div>
-      <h1 class="journal__title">{{ doc.title }}</h1>
-    </div>
+    <h1 class="journal__title">{{ doc.title }}</h1>
     <div class="journal__sheet">{% if doc.meta.get('sheet') %}Лист <b>{{ doc.meta.get('sheet') }}</b>{% endif %}</div>
   </div>
   <div class="journal__meta">

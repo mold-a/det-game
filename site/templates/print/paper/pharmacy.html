@@ -9,8 +9,9 @@
 {% block sheet %}
 {% set rx = doc.meta.get('recipe') %}
 <header class="paper__head">
+  {{ m.masthead(doc, w, "none", "", doc.meta.get('address')) }}
   <div class="letterrow">
-    {{ m.corner(doc, w, "none") }}
+    {{ m.refno(doc) }}
     <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{{ m.resolution(doc) }}</div>
   </div>
   <h1 class="paper__title">{{ doc.title }}</h1>

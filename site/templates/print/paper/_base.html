@@ -33,6 +33,10 @@
       doc.part, doc.parts, doc.part_sections — печатаемая часть (протокол с разделами печатается по
                       разделу: part_sections — один раздел; part == 0 — с шапкой документа)
       doc.sheet_start номер листа дела первой страницы (None — без номера, --only)
+      doc.brand       айдентика организации (engine/paper.py: org_brand): so, police, sme, smp, theater,
+                      admin, pharmacy, registry, railway, llc, fund, lab, private, none — цвет и эмблема
+                      в _brand.html, класс .brand--<key> (--brand, --brand-soft)
+      doc.body_chart  схема тела заключения СМЭ (meta.body_chart): {svg, marks: [{n, zone, label}], note} или None
     print_cfg    settings.print (duplex, blank_back, fit)
     page_margin  поля листа для @page («16mm 16mm 18mm 22mm», engine/paper.py PAGE_MARGIN_MM)
     case_barcode SVG штрихкода дела (Code 39 номера дела)
@@ -46,11 +50,15 @@
     captions подписи к изображениям media (список строк, по порядку)
     resolution false — без резолюции «К делу» красным карандашом (входящие: рапорт, справка, заключение…)
 
+  ОБЩИЕ МАКРОСЫ (_macros.html): masthead (шапка с эмблемой), cellgrid (ячейки), mugshot (полароид),
+    emblem, case, refno, seal, signatures, resolution …
+
   БЛАНК: print/paper/<form>.html — {% extends "print/paper/_doc.html" %} и переопределение блоков
     org, case, heading, requisites, before_body, body, media, after_body, signatures.
   Новый бланк = новый файл <form>.html (список бланков проверяется по наличию шаблона).
 
-  КЛАССЫ (для дизайна): .paper (документ), .paper--<form>, .paper--stub, .paper--qr,
+  КЛАССЫ (для дизайна): .paper (документ), .paper--<form>, .brand--<key>, .paper--stub, .paper--qr,
+    .mast (шапка: __emblem, __name, __sub, __addr, __side), .cellgrid/.cell, .polaroid, .bodychart,
     .paper__qr, .paper__head, .paper__org, .paper__case, .paper__number, .paper__to, .paper__from,
     .paper__title, .paper__subtitle, .paper__requisites (.paper__place, .paper__date), .paper__body,
     .paper__media (.paper__figure), .paper__chats, .paper__signatures (.paper__sign),
@@ -58,6 +66,7 @@
   Только вымышленные организации из world.yaml и meta.org — никаких реальных гербов и символики.
 #}
 {% extends "print/_print_base.html" %}
+{% import "print/paper/_brand.html" as br %}
 {% block title %}{{ title }}{% endblock %}
 {% block style %}
 {% include "print/paper/paper.css" %}

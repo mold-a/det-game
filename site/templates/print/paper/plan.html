@@ -16,7 +16,7 @@
 {% set grid = doc.meta.get('grid') or {} %}
 {% set gw = grid.get('w', 100) %}{% set gh = grid.get('h', 70) %}
 <header class="paper__head">
-  {{ m.org(doc, w, "theater") }}
+  {{ m.masthead(doc, w, "theater", m.case(w)) }}
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
 </header>

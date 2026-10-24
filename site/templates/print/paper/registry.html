@@ -6,7 +6,8 @@
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="paper__head">
-  <div class="reg__top"><span class="reg__org">{{ m.org_text(doc, w, "none") }}</span><span>{% if doc.date %}Сформировано {{ doc.date|dt }}{% endif %}{% if doc.meta.get('number') %} · № {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}</span></div>
+  {{ m.masthead(doc, w, "none") }}
+  <div class="reg__meta"><span>{% if doc.date %}Сформировано {{ doc.date|dt }}{% endif %}{% if doc.meta.get('number') %} · № {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}</span></div>
   <div class="reg__h">Выписка</div>
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}

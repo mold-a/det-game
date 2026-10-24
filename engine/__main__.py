@@ -272,6 +272,9 @@ def cmd_paper(only: list[str] | None, release: bool) -> int:
         print(f"Бумажные документы: {len(rep.rows)} PDF в {out}; превью — {out / 'preview' if out else '—'}")
         for p in rep.envelopes:
             print(f"  сборник: {p} (страниц: {pdf_pages(p)})")
+        for cr in rep.cards:
+            miss = f"; нет фото: {', '.join(cr.no_photo)}" if cr.no_photo else ""
+            print(f"  карточки: {cr.pdf} (персонажей: {len(cr.people)}, листов: {cr.pages}{miss})")
         stubs = sum(1 for r in rep.rows if r.form == "stub")
         if stubs:
             print(f"Нет текста у {stubs} документов — напечатаны заглушки; с --release это ошибка.")

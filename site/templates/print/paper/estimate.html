@@ -8,12 +8,10 @@
 {% block sheet %}
 {% set org = doc.meta.get('org') %}
 <header class="paper__head">
-  <div class="est__top">
-    <div class="est__org">{% if org is string %}<b>{{ org }}</b>{% elif org %}<b>{{ org[0] }}</b>{% for x in org[1:] %}{{ x }}<br>{% endfor %}{% endif %}{% if doc.meta.get('address') %}{{ m.lines(doc.meta.get('address')) }}{% endif %}</div>
-    {% if doc.meta.get('approve') %}
-    <div class="est__approve"><div class="est__approve-h">Утверждаю</div>{{ m.lines(doc.meta.get('approve')) }}{{ m.uline("", "(подпись)") }}</div>
-    {% endif %}
-  </div>
+  {{ m.masthead(doc, w, "none", "", doc.meta.get('address')) }}
+  {% if doc.meta.get('approve') %}
+  <div class="est__approve"><div class="est__approve-h">Утверждаю</div>{{ m.lines(doc.meta.get('approve')) }}{{ m.uline("", "(подпись)") }}</div>
+  {% endif %}
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('number') or doc.date %}<div class="memo__no">{% if doc.meta.get('number') %}№ {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}{% if doc.date %} от {{ doc.date|dt('date') }}{% endif %}</div>{% endif %}
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}

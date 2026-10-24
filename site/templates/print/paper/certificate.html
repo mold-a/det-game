@@ -6,8 +6,10 @@
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="paper__head">
+  {% set side %}{% if m.org_text(doc, w, "none")|trim == w.police.department %}{{ m.case(w) }}{% endif %}{% endset %}
+  {{ m.masthead(doc, w, "none", side, doc.meta.get('address')) }}
   <div class="letterrow">
-    {{ m.corner(doc, w, "none") }}
+    {{ m.refno(doc) }}
     <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{% if m.org_text(doc, w, "none")|trim != w.police.department %}{{ m.resolution(doc) }}{% endif %}</div>
   </div>
   <h1 class="paper__title">{{ doc.title }}</h1>

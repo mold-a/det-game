@@ -1,13 +1,16 @@
 /* Бумажные документы дела (A4) — подключается в _base.html через include (это шаблон Jinja:
-   {{ assets }} и {{ page_margin }} подставляются). Дизайн — docs/05 §4 «Бумага».
+   {{ assets }} и {{ page_margin }} подставляются). Дизайн — docs/05 §4 «Бумага конвертов».
 
-   Лист прошёл через руки: четыре слоя, у каждого свой цвет и шрифт.
-     печать бланка   — чёрный: PT Serif (текст), PT Sans (графы, подписи граф), PT Mono (машинопись рапорта);
-     ручка           — синяя шариковая (--pen), Caveat: графы бланков, подписи-росчерки, записки, номер листа дела;
+   «Дизайнерски собранный реквизит»: у каждой вымышленной организации своя айдентика — эмблема,
+   цвет и шапка (_brand.html, класс .brand--<key> на документе: --brand, --brand-soft); крупный
+   заголовок узким гротеском (Oswald), плотный текст PT Sans 9,8 pt с выключкой влево (Chromium
+   не переносит русские слова — hyphens: auto не работает, поэтому без выключки по ширине), узкие поля.
+   Поверх бланка — слои «живой» бумаги:
+     ручка           — синяя шариковая (--pen), Caveat: ячейки и графы, подписи-росчерки, записки, № листа;
      штемпель        — сине-фиолетовая краска (--seal): круглые печати, угловые и входящие штампы;
      карандаш        — красный (--pencil): резолюция «К делу», галочки (только оформление, без сюжета).
-   Без сплошных тёмных заливок: в Ч/Б всё читается (цвет — акцент, а не носитель смысла).
-   Поля листа не меньше 12 мм. Шрифты — локальные OFL (site/assets/fonts), без внешних ресурсов. */
+   Печать на обычном цветном принтере: фон листа белый, цвет — в шапках, плашках, эмблемах; заливки
+   только светлые (--brand-soft) и узкие. В Ч/Б всё читается. Шрифты — локальные OFL. */
 
 @page { size: A4; margin: {{ page_margin }}; }
 /* Метка дела и колонтитулы бланков — @page doc-<id> из _macros.html (page_rule);
@@ -31,47 +34,62 @@
 @font-face { font-family: "PT Mono"; font-style: normal; font-weight: 400; font-display: block;
   src: url("{{ assets }}/fonts/pt-mono-latin-400-normal.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+{% for wt in (500, 600, 700) %}
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: {{ wt }}; font-display: block;
+  src: url("{{ assets }}/fonts/oswald-cyrillic-{{ wt }}-normal.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: "Oswald"; font-style: normal; font-weight: {{ wt }}; font-display: block;
+  src: url("{{ assets }}/fonts/oswald-latin-{{ wt }}-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+{% endfor %}
 
 :root {
-  --ink: #141414;
-  --muted: #555;
-  --rule: #8a9bb0;          /* линовка бланков — серо-синяя, в Ч/Б серая */
-  --rule-soft: #c9d3de;
+  --ink: #16181d;
+  --muted: #5a5f68;
+  --rule: #9aa5b3;          /* линовка бланков — серо-синяя, в Ч/Б серая */
+  --rule-soft: #d3d9e0;
   --pen: #1c3f99;           /* шариковая ручка: графы, подписи, записки */
   --seal: #33409e;          /* штемпельная краска: печати и штампы */
   --pencil: #b5332b;        /* красный карандаш: резолюции, галочки */
   --mark: #5b3fa3;          /* фиолетовый штамп материалов дела (как на сайте) */
-  --accent: #7a1d2a;        /* бордовый — только программка */
-  --med: #2c6e52;           /* зелёная краска медицинского бланка */
-  --fill: #efefef;
+  --brand: #333;            /* цвет организации — .brand--<key> (_brand.html) */
+  --brand-soft: #f2f2f2;
+  --fill: #f1f2f4;
   --font-hand: "Caveat", "Segoe Print", "Comic Sans MS", cursive;
   --font-type: "PT Mono", "Courier New", monospace;
+  --font-head: "Oswald", "PT Sans Narrow", "Arial Narrow", var(--font-sans);
+  --fs: 9.8pt;              /* кегль текста документов */
 }
+{{ br.brand_css() }}
 
 * { box-sizing: border-box; }
 html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-body { margin: 0; font-family: var(--font-serif); font-size: 11pt; line-height: 1.4; color: var(--ink);
+body { margin: 0; font-family: var(--font-sans); font-size: var(--fs); line-height: 1.4; color: var(--ink);
   font-variant-numeric: lining-nums; }
-h1, h2, h3, h4 { font-family: var(--font-sans); line-height: 1.2; break-after: avoid; }
-p { margin: 0 0 2.2mm; text-align: justify; hyphens: auto; orphans: 3; widows: 3; }
-li { orphans: 2; widows: 2; }
-ul, ol { margin: 0 0 2.2mm; padding-left: 6mm; }
-table { border-collapse: collapse; width: 100%; margin: 0 0 3mm; font-size: 10pt; break-inside: auto; }
-th, td { border: 0.2mm solid #555; padding: 1mm 2mm; vertical-align: top; text-align: left; }
-th { font-family: var(--font-sans); font-weight: 700; background: var(--fill); }
+h1, h2, h3, h4 { font-family: var(--font-head); font-weight: 600; line-height: 1.15; break-after: avoid; }
+/* Выключка влево, без переносов: никаких «дыр» между словами. */
+p { margin: 0 0 1.7mm; text-align: left; hyphens: manual; orphans: 3; widows: 3; }
+li { orphans: 2; widows: 2; margin-bottom: .6mm; }
+ul, ol { margin: 0 0 2mm; padding-left: 5.5mm; }
+table { border-collapse: collapse; width: 100%; margin: 0 0 3mm; font-size: 8.9pt; line-height: 1.3; break-inside: auto; }
+th, td { border: 0.2mm solid var(--rule); padding: 1mm 1.8mm; vertical-align: top; text-align: left; }
+th { font-family: var(--font-head); font-weight: 500; font-size: 7.8pt; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--brand); background: var(--brand-soft); vertical-align: bottom; }
 thead { display: table-header-group; }
 tr { break-inside: avoid; }
 img { max-width: 100%; }
-hr { border: 0; border-top: 0.2mm solid #888; margin: 4mm 0; }
-blockquote { margin: 2mm 0 3mm 8mm; padding-left: 3mm; border-left: 0.5mm solid #bbb; }
+hr { border: 0; border-top: 0.2mm solid var(--rule); margin: 3mm 0; }
+blockquote { margin: 2mm 0 3mm 6mm; padding-left: 3mm; border-left: 0.6mm solid var(--brand-soft); }
+strong, b { font-weight: 700; }
 .page-break { break-before: page; height: 0; }
-/* Шрифт «ручки» подгружается до печати: номер листа дела в поле листа берёт его из документа. */
+/* Шрифты «ручки» и заголовков подгружаются до печати: номер листа и «Лист N» в полях листа берут их из документа. */
 .font-load { position: absolute; left: 0; top: 0; visibility: hidden; font-family: var(--font-hand); font-weight: 600; }
 .font-load::after { content: "0"; font-weight: 400; }
+.font-load::before { content: "Лист"; font-family: var(--font-head); font-weight: 600; }
 
 /* Утилиты для текста документа (content/paper, сырой HTML) — только оформление, без новых фактов:
    <span class="pen">…</span> — дописано ручкой; <u class="pencil">…</u> — подчёркнуто карандашом. */
-.pen { font-family: var(--font-hand); color: var(--pen); font-size: 1.25em; line-height: 1; }
+.pen { font-family: var(--font-hand); color: var(--pen); font-size: 1.3em; line-height: 1; }
 u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-underline-offset: 0.8mm; text-decoration-skip-ink: none; }
 
 /* ------------------------------------------------------------ общий каркас */
@@ -83,45 +101,78 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 /* QR-код не меньше 25 мм даже на последней ступени подгонки (30 мм × 0,88 = 26,4 мм), рядом — подпись. */
 .paper__qr { position: absolute; top: 0; right: 0; width: 34mm; margin: 0; padding: 1.5mm 1.5mm 1.2mm; text-align: center; z-index: 2;
   font-family: var(--font-sans); font-size: 7pt; line-height: 1.2; color: #333; background: #fff;
-  border: 0.25mm solid #9aa3ad; border-radius: 1mm; }
+  border: 0.3mm solid var(--brand); border-radius: 1.2mm; }
 .paper__qr svg { display: inline-block; vertical-align: top; width: 30mm; height: 30mm; margin: 0 auto 1mm; }
 .paper--qr .paper__head { padding-right: 38mm; min-height: 40mm; }
-.paper__head { margin-bottom: 5mm; }
-.paper__org { font-family: var(--font-sans); font-size: 9.5pt; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .04em; padding-bottom: 1.5mm; border-bottom: 0.4mm solid var(--ink); margin-bottom: 1.5mm; }
-.paper__case, .paper__number { font-family: var(--font-sans); font-size: 9pt; color: #333; }
-.paper__case { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; }
+.paper__head { position: relative; margin-bottom: 4mm; }
+
+/* Шапка организации: эмблема, название цветом бренда, справа — № дела / штамп; снизу — полоса бренда. */
+.mast { display: flex; align-items: center; gap: 3.5mm; padding-bottom: 2.2mm; margin-bottom: 1mm; position: relative;
+  border-bottom: 1.1mm solid var(--brand); }
+.mast::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2mm; border-bottom: 0.25mm solid var(--brand); }
+.mast__emblem { flex: none; width: 15mm; height: 15mm; color: var(--brand); }
+.emblem { display: inline-block; vertical-align: top; width: 100%; height: 100%; }
+.mast__org { flex: 1; min-width: 0; }
+.mast__name { font-family: var(--font-head); font-weight: 600; font-size: 12.5pt; line-height: 1.1; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--brand); }
+.mast__sub { font-family: var(--font-head); font-weight: 500; font-size: 9pt; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--ink); margin-top: .6mm; line-height: 1.15; }
+.mast__addr { font-size: 7.8pt; color: var(--muted); margin-top: .8mm; line-height: 1.3; }
+.mast__side { flex: none; position: relative; text-align: right; font-size: 8pt; color: var(--muted); }
+.mast__place { margin-top: .8mm; }
+.paper--qr .mast__side { display: none; }
+
+.paper__case, .paper__number { font-family: var(--font-sans); font-size: 8pt; color: #333; }
+.paper__case { display: flex; flex-direction: column; align-items: flex-end; gap: .6mm; }
+.paper__case-no { font-family: var(--font-head); font-weight: 600; font-size: 9.5pt; letter-spacing: .06em; text-transform: uppercase; color: var(--ink); }
 /* Штрихкод дела — наклейка регистрации: полосы и строка под ними. */
-.barcode { flex: none; display: inline-flex; flex-direction: column; align-items: center; width: 40mm; margin-top: .5mm; }
-.barcode__bars { display: inline-block; width: 40mm; height: 7mm; fill: var(--ink); }
-.barcode__text { font-family: var(--font-type); font-size: 6.5pt; letter-spacing: .22em; line-height: 1; margin-top: .6mm; color: #222; }
-.paper__to, .paper__from { margin: 4mm 0 0 auto; width: 74mm; font-size: 10.5pt; line-height: 1.35; text-align: left; }
+.barcode { flex: none; display: inline-flex; flex-direction: column; align-items: center; width: 36mm; }
+.barcode__bars { display: inline-block; width: 36mm; height: 6.5mm; fill: var(--ink); }
+.barcode__text { font-family: var(--font-type); font-size: 6pt; letter-spacing: .22em; line-height: 1; margin-top: .5mm; color: #222; }
+.paper__number { margin-top: 3mm; }
+.paper__to, .paper__from { margin: 4mm 0 0 auto; width: 76mm; font-size: 9.6pt; line-height: 1.35; text-align: left; }
 .paper__from { margin-top: 1.5mm; }
-.paper__title { font-size: 14pt; text-align: center; margin: 6mm 0 1.5mm; }
-.paper__subtitle { text-align: center; font-size: 10.5pt; margin: 0 0 2mm; }
-.paper__requisites { display: flex; justify-content: space-between; gap: 6mm; font-size: 10.5pt;
-  margin: 3mm 0 0; padding-bottom: 1.5mm; border-bottom: 0.2mm solid #999; }
+
+/* Заголовок документа: крупно, узкий гротеск, влево. */
+.paper__title { font-family: var(--font-head); font-weight: 600; font-size: 21pt; line-height: 1.05; letter-spacing: .01em;
+  text-transform: uppercase; color: var(--ink); text-align: left; margin: 6mm 0 1.2mm; }
+.paper__subtitle { text-align: left; font-size: 9.6pt; color: #333; margin: 0 0 2mm; max-width: 150mm; }
+.paper__requisites { display: flex; justify-content: space-between; gap: 6mm; font-size: 9pt;
+  margin: 2mm 0 0; padding-bottom: 1.2mm; border-bottom: 0.2mm solid var(--rule); }
 .paper__requisites:empty { display: none; }
-.paper__body h2 { font-size: 11.5pt; margin: 5mm 0 2mm; }
-.paper__body h3 { font-size: 10.5pt; margin: 4mm 0 1.5mm; }
+
+/* Разделы текста: узкая плашка цвета бренда. */
+.paper__body h2 { font-size: 10pt; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--brand);
+  margin: 4mm 0 1.6mm; padding: .9mm 2mm .7mm; background: var(--brand-soft); border-left: 1.1mm solid var(--brand); }
+.paper__body h3 { font-size: 9.2pt; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink); margin: 3mm 0 1.2mm; }
 .paper__body > :first-child { margin-top: 0; }
 .paper__media { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5mm; margin: 4mm 0; }
 .paper__figure { margin: 0; break-inside: avoid; }
 .paper__figure img { display: inline-block; vertical-align: top; width: 100%; border: 0.2mm solid #999; }
-.paper__figure figcaption { font-size: 9pt; text-align: center; margin-top: 1mm; }
+.paper__figure figcaption { font-size: 8.5pt; text-align: center; margin-top: 1mm; }
 .paper__missing { display: flex; align-items: center; justify-content: center; min-height: 50mm;
   border: 0.4mm dashed #888; font-family: var(--font-sans); font-size: 9pt; color: #666; text-align: center; padding: 3mm; }
 
 /* Метка материалов дела: в печати — верхнее поле листа (@page), на экране — так же над текстом. */
 .paper__docmark { display: none; }
 
+/* Ячейки бланка: подпись мелко сверху, значение «от руки». */
+.cellgrid { display: grid; grid-template-columns: repeat(4, 1fr); border: 0.35mm solid var(--brand); margin: 0 0 3mm; break-inside: avoid; }
+.cell { padding: 1mm 2mm 1.2mm; border-right: 0.2mm solid var(--rule); border-bottom: 0.2mm solid var(--rule); min-width: 0; margin-bottom: -0.2mm; }
+.cell--wide { grid-column: span 2; }
+.cellgrid { overflow: hidden; }
+.cell__l, .fld__label { display: block; font-family: var(--font-head); font-weight: 500; font-size: 6.8pt; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--brand); line-height: 1.2; }
+.cell__v { display: block; font-family: var(--font-hand); font-size: 14pt; line-height: 1.05; color: var(--pen); min-height: 5mm; margin-top: .3mm; }
+
 /* Подписи: блок не рвётся и не уходит на лист один — тянет за собой последний абзац. */
 .paper__body > :last-child { break-after: avoid; }
-.paper__signatures { position: relative; margin-top: 8mm; break-inside: avoid; break-before: avoid; }
-.paper__sign { display: grid; grid-template-columns: 1fr 40mm 48mm; gap: 4mm; align-items: end; margin-top: 6mm; font-size: 10.5pt; }
+.paper__signatures { position: relative; margin-top: 6mm; break-inside: avoid; break-before: avoid; }
+.paper__body .paper__signatures { margin-bottom: 5mm; }
+.paper__sign { display: grid; grid-template-columns: 1fr 40mm 46mm; gap: 4mm; align-items: end; margin-top: 5mm; font-size: 9.4pt; }
 .paper__sign .line { position: relative; border-bottom: 0.2mm solid var(--ink); height: 6mm; }
 .paper__sign .hint { position: absolute; left: 0; right: 0; top: 100%; text-align: center; font-family: var(--font-sans);
-  font-size: 6.5pt; color: #777; padding-top: .3mm; }
+  font-size: 6.3pt; color: #777; padding-top: .3mm; }
 .paper__sign .name { text-align: right; }
 /* Росчерк над линией подписи (engine/paper.py: add_autographs) — первые буквы фамилии и хвост. */
 .autograph { position: absolute; left: 2.5mm; bottom: -1.2mm; display: inline-flex; align-items: flex-end; white-space: nowrap;
@@ -130,21 +181,19 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .autograph__text { letter-spacing: -.02em; }
 .autograph__tail { display: inline-block; width: 12mm; height: 6.9mm; margin: 0 0 -1.4mm -0.6mm; overflow: visible; }
 .autograph__tail path { fill: none; stroke: currentColor; stroke-width: 1.05; stroke-linecap: round; stroke-linejoin: round; }
-.paper__seal { position: absolute; right: 50mm; top: -10mm; width: 38mm; pointer-events: none; }
-.paper__signatures:has(.paper__seal) { min-height: 30mm; }
+.paper__seal { position: absolute; right: 50mm; top: -10mm; width: 36mm; pointer-events: none; }
+.paper__signatures:has(.paper__seal) { min-height: 28mm; }
 .paper__seal--solo { position: relative; left: auto; top: auto; margin-left: auto; margin-right: 20mm; }
-.seal { display: inline-block; vertical-align: top; width: 38mm; height: 38mm; color: var(--seal); opacity: .82; transform: rotate(-11deg);
+.seal { display: inline-block; vertical-align: top; width: 36mm; height: 36mm; color: var(--seal); opacity: .82; transform: rotate(-11deg);
   mix-blend-mode: multiply; filter: url(#ink); }
-.rstamp { filter: url(#ink); }
 .defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* Прямоугольный штамп */
 .rstamp { display: inline-block; border: 0.45mm solid var(--seal); color: var(--seal); border-radius: 1mm;
-  padding: 1.2mm 2.5mm; font-family: var(--font-sans); font-size: 8.5pt; font-weight: 700; line-height: 1.3;
-  text-transform: uppercase; letter-spacing: .04em; transform: rotate(-3deg); opacity: .88; text-align: center; }
+  padding: 1.2mm 2.5mm; font-family: var(--font-sans); font-size: 8.2pt; font-weight: 700; line-height: 1.3;
+  text-transform: uppercase; letter-spacing: .04em; transform: rotate(-3deg); opacity: .88; text-align: center; filter: url(#ink); }
 
 /* Красный карандаш: резолюция «К делу» с датой и росчерком; галочка. Только оформление. */
-/* Одна строка, не занимает места в потоке: под адресатом (справка, ответ), у рапорта — слева вверху. */
 .resol { position: absolute; z-index: 3; display: inline-flex; align-items: baseline; gap: 2.5mm; white-space: nowrap;
   color: var(--pencil); font-family: var(--font-hand); line-height: 1; transform: rotate(-4deg); transform-origin: left top; pointer-events: none; }
 .resol__text { font-size: 19pt; font-weight: 600; text-decoration: underline 0.35mm; text-underline-offset: 1.2mm; }
@@ -152,162 +201,154 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .resol__sign { width: 15mm; height: 4.5mm; overflow: visible; align-self: center; }
 .resol__sign path, .tick path { fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
 .tick { display: inline-block; width: 6mm; height: 5mm; color: var(--pencil); overflow: visible; }
+.mast__side .resol { top: calc(100% + 4mm); right: 2mm; }
+.paper__head > .resol { top: auto; bottom: -2mm; right: 3mm; }
 
-/* Фото опрашиваемого 3×4 на скрепке: справа в шапке протокола. */
-.mugshot { position: relative; flex: none; width: 31mm; margin: 0; text-align: center; break-inside: avoid; }
-.mugshot__photo { width: 31mm; height: 41mm; padding: 1.3mm; background: #fff; border: 0.25mm solid #a9b0b8;
-  box-shadow: 0.5mm 0.7mm 0 #d8dbdf; transform: rotate(1.6deg); }
-.mugshot__photo img { display: inline-block; vertical-align: top; width: 100%; height: 100%; object-fit: cover; object-position: 50% 28%; }
-.mugshot__clip { position: absolute; z-index: 2; top: -4.5mm; left: 5mm; width: 6.5mm; height: 17.7mm; overflow: visible; }
-.mugshot__clip path { fill: none; stroke: #6e7780; stroke-width: 1.9; stroke-linecap: round; }
-.mugshot figcaption { font-family: var(--font-sans); font-size: 8pt; line-height: 1.2; margin-top: 2mm; color: #222; }
+/* Полароид: белая рамка с широким низом, полоска скотча, подпись от руки (протокол, карточки). */
+.polaroid { position: relative; margin: 0; background: #fff; border: 0.25mm solid #c9ced4; padding: 2mm 2mm 0;
+  box-shadow: 0.6mm 0.9mm 0 #dfe2e6; break-inside: avoid; text-align: center; }
+.polaroid__photo { aspect-ratio: 1 / 1.08; overflow: hidden; background: #e9ebee; border: 0.15mm solid #d6d9dd; }
+.polaroid__photo img { display: inline-block; vertical-align: top; width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
+.polaroid__name { font-family: var(--font-hand); font-weight: 600; font-size: 15pt; line-height: 1.05; color: var(--pen); padding: 1.6mm 0 2.4mm; }
+.polaroid__tape { position: absolute; z-index: 2; left: 50%; top: -3.6mm; width: 20mm; height: 7mm; margin-left: -10mm;
+  background: rgba(214, 206, 178, .55); border: 0.15mm solid rgba(160, 150, 120, .35); transform: rotate(-4deg);
+  clip-path: polygon(0 10%, 5% 0, 10% 12%, 15% 2%, 100% 0, 96% 50%, 100% 100%, 6% 92%, 0 100%, 4% 50%); }
+.polaroid--proto { float: right; width: 40mm; margin: 2.5mm 1.5mm 3mm 5mm; transform: rotate(2deg); }
 
 /* Пустой оборот (duplex) */
-.verso { height: 258mm; display: flex; align-items: flex-end; justify-content: center; }
+.verso { height: 262mm; display: flex; align-items: flex-end; justify-content: center; }
 .verso__note { font-family: var(--font-sans); font-size: 8pt; letter-spacing: .04em; color: #8a8f96; }
 
-/* Поля бланка */
-.fld { display: flex; align-items: baseline; gap: 2mm; margin: 0 0 1.6mm; font-size: 10.5pt; }
-.fld__label { flex: none; font-family: var(--font-sans); font-size: 9pt; color: #333; }
-.fld__value { flex: 1; min-height: 5.4mm; border-bottom: 0.2mm solid var(--rule); padding: 0 1mm; }
+/* Поля бланка (линия) */
+.fld { display: flex; align-items: baseline; gap: 2mm; margin: 0 0 1.4mm; font-size: 9.6pt; }
+.fld > .fld__label { flex: none; }
+.fld__value { flex: 1; min-height: 5.2mm; border-bottom: 0.2mm solid var(--rule); padding: 0 1mm; }
 .uline { margin: 0 0 1.4mm; }
-.uline__value { border-bottom: 0.2mm solid var(--ink); min-height: 5.6mm; padding: 0 1mm; }
-.uline__hint { font-family: var(--font-sans); font-size: 6.5pt; color: #777; text-align: center; margin-top: .3mm; }
+.uline__value { border-bottom: 0.2mm solid var(--ink); min-height: 5.4mm; padding: 0 1mm; }
+.uline__hint { font-family: var(--font-sans); font-size: 6.3pt; color: #777; text-align: center; margin-top: .3mm; }
+.hand-fill { font-family: var(--font-hand); font-size: 14pt; line-height: 1.1; color: var(--pen); }
 
 /* Угловой штамп письма: организация, адрес, дата и номер */
-.corner { width: 78mm; text-align: center; font-family: var(--font-sans); font-size: 8.5pt; line-height: 1.3; }
-.corner__org { font-weight: 700; font-size: 9.5pt; text-transform: uppercase; letter-spacing: .03em; }
+.corner { width: 78mm; text-align: center; font-family: var(--font-sans); font-size: 8.2pt; line-height: 1.3; }
+.corner__org { font-weight: 700; font-size: 9pt; text-transform: uppercase; letter-spacing: .03em; }
 .corner__addr { margin-top: 1mm; color: #333; }
-.corner__no { display: flex; gap: 2mm; align-items: baseline; justify-content: center; margin-top: 2mm; font-size: 9pt; }
+.corner__no, .refno { display: flex; gap: 2mm; align-items: baseline; justify-content: center; margin-top: 2mm; font-size: 8.6pt; }
+.refno { justify-content: flex-start; margin: 0; }
 .corner__cell { display: inline-block; min-width: 24mm; border-bottom: 0.2mm solid var(--ink); font-family: var(--font-hand); font-size: 13.5pt;
-  line-height: 1.05; color: var(--pen); }
-.paper--certificate .corner { color: var(--seal); padding: 2mm 2.5mm; transform: rotate(-1.2deg); opacity: .9; }
-.paper--certificate .corner__addr { color: inherit; }
-.paper--certificate .corner__cell { border-bottom-color: var(--seal); }
+  line-height: 1.05; color: var(--pen); text-align: center; }
 .letterrow__to { position: relative; }
 .letterrow__to .resol { top: calc(100% + 2.5mm); left: 4mm; }
-.letterrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
+.letterrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; margin-top: 4mm; }
 .letterrow .paper__to { margin: 0; }
-
-/* Шапка-бланк по центру (письма, пресс-служба) */
-.lhead { text-align: center; padding-bottom: 2mm; border-bottom: 0.3mm solid var(--ink); position: relative; }
-.lhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1.2mm; border-bottom: 0.8mm solid var(--ink); }
-.lhead__org { font-family: var(--font-sans); font-weight: 700; font-size: 12pt; letter-spacing: .06em; text-transform: uppercase; line-height: 1.25; }
-.lhead__sub { font-family: var(--font-sans); font-size: 10pt; letter-spacing: .12em; text-transform: uppercase; margin-top: 1mm; }
-.lhead__addr { font-family: var(--font-sans); font-size: 8pt; color: #333; margin-top: 1.5mm; }
-
-/* Красная строка в служебных текстах */
-.indent .paper__body p { text-indent: 12.5mm; }
+/* Под адресатом — резолюция карандашом: место под неё до заголовка. */
+.letterrow:has(.resol) { margin-bottom: 9mm; }
 
 /* ------------------------------------------------------------ протокол, осмотр, объяснение */
-.proto__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .08em; text-align: center; margin: 5mm 0 1mm; }
-.proto__subtitle { text-align: center; font-size: 10.5pt; margin: 0 0 3mm; }
-.proto__line { display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; margin-top: 4mm; }
-.proto__line .uline { flex: 0 0 62mm; }
-.proto__times { margin: 3mm 0 3mm auto; width: 78mm; font-size: 10.5pt; }
-.proto__times .fld__label { width: 28mm; }
-.proto__fields { margin-top: 1mm; }
-.proto__fields .fld__label { width: 42mm; }
-.paper--protocol .paper__body, .paper--inspection .paper__body { line-height: 1.5; }
-.paper--protocol .paper__body p, .paper--inspection .paper__body p { text-indent: 10mm; }
-.paper--protocol .paper__body p > strong:first-child { font-family: var(--font-sans); font-size: 10pt; }
-.paper--protocol .paper__body h2, .paper--inspection .paper__body h2 { font-size: 11pt; text-align: center; text-transform: uppercase;
-  letter-spacing: .06em; margin: 7mm 0 3mm; padding-top: 3mm; border-top: 0.2mm solid #999; }
-.paper--protocol .paper__body > h2:first-child, .paper--inspection .paper__body > h2:first-child { border-top: 0; padding-top: 0; }
-.paper--protocol .paper__body h3 { font-size: 10pt; text-transform: uppercase; letter-spacing: .04em; color: #333; }
-.paper--protocol .paper__sign, .paper--inspection .paper__sign { grid-template-columns: 1fr 44mm 46mm; }
-/* Графы протокола заполнены ручкой. */
-/* Строка графы — линия бланка под каждой строкой рукописного значения (фон с шагом в строку). */
-.hand-fill, .paper--protocol .fld__value, .paper--inspection .fld__value, .paper--ambulance .fld__value,
-.paper--protocol .uline__value, .paper--inspection .uline__value {
-  --lh: 6.4mm; font-family: var(--font-hand); font-size: 14.5pt; line-height: var(--lh); color: var(--pen);
-  min-height: var(--lh); padding: 0 1.5mm; border-bottom: 0;
-  background: repeating-linear-gradient(to bottom, transparent 0 calc(var(--lh) - 0.22mm), var(--rule) calc(var(--lh) - 0.22mm) var(--lh)); }
-.paper--protocol .fld, .paper--inspection .fld { align-items: baseline; margin-bottom: 0.6mm; }
-.proto__card { display: flex; gap: 6mm; align-items: flex-start; }
-.proto__card-fields { flex: 1; min-width: 0; }
-.proto__card--photo .proto__times { margin-top: 2mm; }
-.proto__card .mugshot { margin-top: 4mm; }
-/* Протокол из сборника (1-08): каждый — своя часть; шапка документа — у первой, у остальных — строка. */
-.proto__running { font-family: var(--font-sans); font-size: 8.5pt; color: #444; margin-top: 1.5mm; }
-.proto__intro { margin-bottom: 3mm; }
-.proto-sec { display: flow-root; }
-.proto-sec__head h2 { font-size: 13pt; text-align: center; text-transform: uppercase; letter-spacing: .08em; margin: 4mm 0 3mm; }
-.proto-sec .mugshot { float: right; margin: 1mm 0 3mm 6mm; }
-.proto-sec .paper__body > .proto__fields { display: flow-root; }
-.proto-sec--photo .paper__body > .proto__fields:first-of-type { min-height: 46mm; }
+.proto__titlerow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2mm 6mm; margin: 6mm 0 1.2mm; }
+.proto__titlerow .paper__title { margin: 0; font-size: 24pt; }
+.proto__hand { font-family: var(--font-hand); font-weight: 600; font-size: 21pt; line-height: 1; color: var(--pen); transform: rotate(-2deg); }
+.paper--protocol .paper__body, .paper--inspection .paper__body { line-height: 1.42; }
+.proto-sec { display: flow-root; margin-top: 3mm; }
+.proto__intro { margin-top: 2mm; padding: 2mm 3mm; border: 0.2mm solid var(--rule); background: #fff; font-size: 9.2pt; }
+/* Ячейки протокола (1-08 — разметка в тексте, одиночные — бланк): дата и место, кто опросил, кого. */
+.proto__fields { display: grid; grid-template-columns: 52mm 1fr; border: 0.35mm solid var(--brand); margin: 0 0 3.5mm; overflow: hidden; break-inside: avoid; }
+.proto__fields--form { grid-template-columns: 1fr 30mm 30mm; }
+.proto__fields .fld { display: block; margin: 0 0 -0.2mm; padding: 1mm 2mm 1.2mm; border-right: 0.2mm solid var(--rule); border-bottom: 0.2mm solid var(--rule); min-width: 0; }
+.proto__fields .fld:nth-child(n+3), .proto__fields .fld--wide { grid-column: 1 / -1; }
+.proto__fields--form .fld:nth-child(n+3):not(.fld--wide) { grid-column: auto; }
+.proto__fields .fld__value { display: block; border: 0; padding: 0; min-height: 5mm; margin-top: .3mm;
+  font-family: var(--font-hand); font-size: 13.5pt; line-height: 1.08; color: var(--pen); }
+/* Вопрос/ответ — метки цвета бренда. */
+.paper--protocol .paper__body p > strong:first-child { font-family: var(--font-head); font-weight: 600; font-size: 8.4pt;
+  letter-spacing: .07em; text-transform: uppercase; color: var(--brand); margin-right: .6mm; }
+.paper--protocol .paper__body p > em:only-child { color: #333; }
+.paper--protocol .paper__body h2, .paper--inspection .paper__body h2 { margin-top: 4mm; }
+.paper--protocol .paper__sign, .paper--inspection .paper__sign { grid-template-columns: 1fr 44mm 44mm; }
 .paper--protocol .paper__signatures { padding-left: 7mm; }
 .paper--protocol .paper__signatures::before { content: ""; position: absolute; left: 0; top: 1.4mm; width: 5.5mm; height: 4.5mm;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16'%3E%3Cpath d='M2 8 C4 9 6 11 7.5 14 C10 8 14 4 19 1.5' fill='none' stroke='%23b5332b' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / contain; }
+/* Осмотр: графы бланка ячейками. */
+.insp__fields { grid-template-columns: 1fr 1fr; }
+.insp__fields .fld:nth-child(n+3) { grid-column: 1 / -1; }
 
-/* ------------------------------------------------------------ рапорт */
-.paper--report .paper__head { margin-bottom: 8mm; }
-.paper--report .paper__to { margin-top: 8mm; width: 82mm; font-size: 11pt; }
-.paper--report .paper__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .3em; margin-top: 14mm; font-weight: 700; }
-.paper--report .paper__body { line-height: 1.55; }
-.paper--report .paper__body p { text-indent: 12.5mm; }
-.report__date { margin-top: 3mm; font-size: 10.5pt; }
-/* Рапорт отпечатан на машинке: моноширинный, без выключки и переносов, разрядка заголовка пробелами. */
-.paper--report .paper__body, .paper--report .paper__to, .paper--report .paper__from, .paper--report .paper__title,
+/* ------------------------------------------------------------ рапорт (машинопись) */
+.paper--report .paper__head { margin-bottom: 6mm; }
+.paper--report .paper__to { margin-top: 7mm; width: 82mm; }
+.paper--report .paper__title { font-family: var(--font-type); font-weight: 400; font-size: 13pt; letter-spacing: .45em; text-align: center; margin-top: 12mm; color: var(--ink); }
+.report__date { margin-top: 3mm; font-size: 10pt; }
+.paper--report .paper__body, .paper--report .paper__to, .paper--report .paper__from,
 .paper--report .paper__sign, .paper--report .report__date { font-family: var(--font-type); }
-.paper--report .paper__body { font-size: 10.5pt; line-height: 1.62; }
-.paper--report .paper__body p { text-align: left; hyphens: none; margin-bottom: 1.2mm; }
-.paper--report .paper__to, .paper--report .paper__from { font-size: 10pt; line-height: 1.5; }
-.paper--report .paper__title { font-weight: 400; font-size: 13pt; letter-spacing: .45em; }
-.paper--report .paper__sign { font-size: 10pt; }
-.paper--report .resol { top: 22mm; left: 2mm; }
+.paper--report .paper__body { font-size: 10pt; line-height: 1.6; }
+.paper--report .paper__body p { text-indent: 12.5mm; margin-bottom: 1.2mm; }
+.paper--report .paper__to, .paper--report .paper__from { font-size: 9.6pt; line-height: 1.5; }
+.paper--report .paper__sign { font-size: 9.6pt; }
+.paper--report .resol { top: 30mm; left: 2mm; }
 
 /* ------------------------------------------------------------ карта вызова скорой помощи */
-.amb__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
-.amb__org { font-family: var(--font-sans); font-weight: 700; font-size: 9.5pt; text-transform: uppercase; letter-spacing: .03em; line-height: 1.3; max-width: 100mm; }
-.amb__formno { font-family: var(--font-sans); font-size: 8pt; text-align: right; color: #333; border: 0.25mm solid #333; padding: 1mm 2mm; }
-.amb__title { display: flex; align-items: center; justify-content: center; gap: 3mm; margin: 6mm 0 1mm; font-size: 13pt; text-transform: uppercase; letter-spacing: .04em; }
-.amb__date { text-align: center; font-size: 10.5pt; margin-bottom: 3mm; }
+.amb__formno { font-family: var(--font-head); font-weight: 500; font-size: 7.5pt; letter-spacing: .05em; text-transform: uppercase;
+  text-align: right; color: var(--brand); border: 0.3mm solid var(--brand); padding: 1mm 2mm; line-height: 1.3; }
+.amb__title { display: flex; align-items: center; flex-wrap: wrap; gap: 2mm 3mm; margin: 5mm 0 1mm; font-size: 16.5pt; text-transform: uppercase; letter-spacing: .01em; }
+.amb__title > span:first-child { margin-right: 2mm; }
+.amb__date { font-size: 9.6pt; margin-bottom: 3mm; color: #333; }
 .cells { display: inline-flex; vertical-align: middle; }
-.cells i { display: inline-flex; align-items: center; justify-content: center; width: 5.2mm; height: 6.4mm; border: 0.25mm solid #222;
-  margin-left: -0.25mm; font-style: normal; font-family: var(--font-sans); font-weight: 700; font-size: 11pt; }
-.cells b { display: inline-flex; align-items: center; padding: 0 0.8mm; font-family: var(--font-sans); }
-.cells--text i { width: auto; min-width: 14mm; padding: 0 1.5mm; font-weight: 400; font-size: 9pt; }
-.amb__times { display: grid; grid-template-columns: repeat(4, 1fr); border: 0.3mm solid #222; margin: 2mm 0 3mm; overflow: hidden; }
+.cells i { display: inline-flex; align-items: center; justify-content: center; width: 5.2mm; height: 6.4mm; border: 0.25mm solid var(--brand);
+  margin-left: -0.25mm; font-style: normal; font-family: var(--font-hand); font-weight: 600; font-size: 14pt; color: var(--pen); }
+.cells b { display: inline-flex; align-items: center; padding: 0 0.8mm; font-family: var(--font-sans); color: var(--brand); }
+.cells--text i { width: auto; min-width: 14mm; padding: 0 1.5mm; font-weight: 400; font-size: 12pt; }
+.amb__title .cells i { width: 6mm; height: 7.6mm; font-size: 16pt; }
+.amb__times { display: grid; grid-template-columns: repeat(6, 1fr); border: 0.35mm solid var(--brand); margin: 2mm 0 3mm; overflow: hidden; }
 .amb__times > .amb__time { margin-bottom: -0.2mm; }
-.amb__time { padding: 1.5mm 2mm 2mm; border-right: 0.2mm solid #888; border-bottom: 0.2mm solid #888; break-inside: avoid; }
-.amb__time:nth-child(4n) { border-right: 0; }
-.amb__time-label { font-family: var(--font-sans); font-size: 7.5pt; color: #333; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 1.2mm; min-height: 6mm; line-height: 1.15; }
-.amb__grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 8mm; margin-bottom: 2mm; }
-.amb__grid .fld__label { width: 30mm; }
+.amb__time { padding: 1.2mm 1.5mm 1.6mm; border-right: 0.2mm solid var(--rule); border-bottom: 0.2mm solid var(--rule); break-inside: avoid; }
+.amb__time-label { font-family: var(--font-head); font-weight: 500; font-size: 6.6pt; color: var(--brand); text-transform: uppercase; letter-spacing: .05em;
+  margin-bottom: 1mm; min-height: 5.4mm; line-height: 1.15; }
+.amb__time .cells i { width: 4.4mm; height: 5.8mm; font-size: 12.5pt; }
+.amb__grid { display: grid; grid-template-columns: 1fr 1fr; border: 0.35mm solid var(--brand); margin-bottom: 3mm; overflow: hidden; }
+.amb__grid .fld { display: block; margin: 0 0 -0.2mm; padding: 1mm 2mm 1.2mm; border-right: 0.2mm solid var(--rule); border-bottom: 0.2mm solid var(--rule); }
 .amb__grid .fld--wide { grid-column: 1 / -1; }
-.paper--ambulance .paper__body { font-size: 10.5pt; }
-.paper--ambulance .paper__body h2 { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em; background: var(--fill);
-  border-top: 0.3mm solid #222; padding: 1mm 2mm; margin: 3mm 0 1.5mm; }
-.paper--ambulance .paper__body table { font-size: 9.5pt; }
-.amb__box { border: 0.4mm solid #222; padding: 2mm 3mm; margin: 3mm 0; break-inside: avoid; }
-.amb__box-label { font-family: var(--font-sans); font-size: 8pt; text-transform: uppercase; letter-spacing: .05em; color: #333; margin-bottom: 1mm; }
-.amb__box-value { font-size: 11pt; font-weight: 700; }
-/* Медицинский бланк отпечатан зелёной краской; заполнен фельдшером от руки. */
-.paper--ambulance { --rule: #6f9c86; }
-.paper--ambulance .amb__title, .paper--ambulance .amb__org, .paper--ambulance .amb__formno,
-.paper--ambulance .amb__time-label, .paper--ambulance .amb__box-label, .paper--ambulance .fld__label { color: var(--med); }
-.paper--ambulance .amb__formno, .paper--ambulance .amb__box { border-color: var(--med); }
-.paper--ambulance .amb__times { border-color: var(--med); }
-.paper--ambulance .amb__time { border-color: #9cbfae; }
-.paper--ambulance .cells i { border-color: var(--med); font-family: var(--font-hand); font-weight: 600; font-size: 14pt; color: var(--pen); }
-.paper--ambulance .cells b { color: var(--med); }
-.paper--ambulance .cells--text i { font-size: 12pt; font-weight: 400; }
-.paper--ambulance .paper__body h2 { background: #eaf3ee; border-top-color: var(--med); color: var(--med); }
-.paper--ambulance .amb__box-value { font-family: var(--font-hand); font-size: 16pt; font-weight: 600; color: var(--pen); line-height: 1.15; }
+.amb__grid .fld__value { display: block; border: 0; padding: 0; margin-top: .3mm; min-height: 5mm; font-family: var(--font-hand); font-size: 13.5pt; line-height: 1.08; color: var(--pen); }
+.paper--ambulance .paper__body table { font-size: 8.8pt; }
+.amb__box { border: 0.45mm solid var(--brand); padding: 1.6mm 3mm 2mm; margin: 3mm 0; break-inside: avoid; background: linear-gradient(to right, var(--brand-soft) 0 2mm, transparent 2mm); }
+.amb__box-label { font-family: var(--font-head); font-weight: 500; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .07em; color: var(--brand); margin-bottom: .6mm; }
+.amb__box-value { font-family: var(--font-hand); font-size: 16pt; font-weight: 600; color: var(--pen); line-height: 1.15; }
+.amb__result { border: 0.35mm solid var(--brand); padding: 1mm 2mm 1.2mm; margin: 0 0 3mm; }
+.amb__result .fld__value { display: block; border: 0; padding: 0; font-family: var(--font-hand); font-size: 13.5pt; color: var(--pen); line-height: 1.1; }
 
-/* ------------------------------------------------------------ заключение эксперта */
-.forensic__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; }
-.forensic__copy { font-family: var(--font-sans); font-size: 8.5pt; text-align: right; color: #333; }
-.paper--forensic .paper__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .06em; margin-top: 8mm; }
-.forensic__expert { border: 0.25mm solid #444; padding: 2mm 3mm; margin: 3mm 0 4mm; font-size: 10pt; line-height: 1.4; break-inside: avoid; }
-.forensic__expert-label { font-family: var(--font-sans); font-size: 7.5pt; text-transform: uppercase; letter-spacing: .06em; color: #444; margin-bottom: .8mm; }
-.paper--forensic .paper__body { counter-reset: sec; line-height: 1.5; }
-.paper--forensic .paper__body p { text-indent: 10mm; }
-.paper--forensic .paper__body h2 { counter-increment: sec; font-size: 11pt; text-transform: uppercase; letter-spacing: .05em; margin: 5mm 0 2mm; }
-.paper--forensic .paper__body h2::before { content: counter(sec, upper-roman) ". "; }
-.forensic__copy { position: relative; }
-.forensic__copy .resol { top: calc(100% + 2mm); right: 4mm; }
+/* ------------------------------------------------------------ заключение эксперта (СМЭ) */
+.fx__titlerow { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; margin: 6mm 0 1.2mm; }
+.fx__titlerow .paper__title { margin: 0; font-size: 19pt; max-width: 125mm; }
+.fx__no { flex: none; display: flex; align-items: baseline; gap: 2mm; font-family: var(--font-head); font-weight: 500; font-size: 9pt;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--brand); padding-bottom: 1mm; }
+.fx__pen { font-family: var(--font-hand); font-weight: 600; font-size: 16pt; text-transform: none; letter-spacing: 0; color: var(--pen);
+  border-bottom: 0.2mm solid var(--ink); min-width: 18mm; text-align: center; line-height: 1; }
+.fx__cells { margin-top: 3mm; }
+.fx__expert { display: flex; gap: 3mm; align-items: baseline; border: 0.2mm solid var(--rule); border-left: 1.1mm solid var(--brand);
+  padding: 1.2mm 2.5mm; margin: 0 0 3.5mm; font-size: 9pt; line-height: 1.35; break-inside: avoid; }
+.fx__expert .cell__l { flex: none; width: 23mm; }
+.fx__main { display: flow-root; }
+.paper--forensic .paper__body { counter-reset: sec; line-height: 1.42; }
+.paper--forensic .paper__body h2 { counter-increment: sec; }
+.paper--forensic .paper__body h2::before { content: counter(sec, upper-roman); display: inline-block; min-width: 6mm; margin-right: 1.5mm;
+  color: var(--brand); }
+/* Схема тела: силуэты спереди и сзади, отметки — штриховкой и номером, легенда «от руки». */
+.bodychart { float: right; width: 64mm; margin: 0 0 3mm 5mm; border: 0.35mm solid var(--brand); padding: 1.5mm 2.5mm 2.5mm; break-inside: avoid; background: #fff; }
+.bodychart__h { font-family: var(--font-head); font-weight: 500; font-size: 7.4pt; text-transform: uppercase; letter-spacing: .08em; color: var(--brand);
+  border-bottom: 0.2mm solid var(--rule); padding-bottom: .8mm; margin-bottom: 1.5mm; }
+.bodychart__svg { display: inline-block; vertical-align: top; width: 100%; height: auto; }
+.bc__line { fill: none; stroke: #2a2e35; stroke-width: .75; stroke-linejoin: round; }
+.bc__detail { fill: none; stroke: #7d848e; stroke-width: .45; }
+.bc__spine { stroke-dasharray: 1.6 1.2; }
+.bc__hatchline { stroke: var(--brand); stroke-width: .7; }
+.bc__pin circle { fill: #fff; stroke: var(--pencil); stroke-width: .7; }
+.bc__pin text { font-family: var(--font-hand); font-weight: 600; font-size: 5.4px; fill: var(--pencil); }
+.bc__cap { font-family: "Oswald", sans-serif; font-weight: 500; font-size: 4.6px; letter-spacing: .4px; text-transform: uppercase; fill: var(--brand); }
+.bodychart__legend { list-style: none; padding: 0; margin: 1.5mm 0 0; font-size: 8pt; line-height: 1.2; }
+.bodychart__legend li { display: flex; align-items: center; gap: 1.5mm; margin: 0 0 1mm; }
+.bodychart__n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 4.4mm; height: 4.4mm; border: 0.25mm solid var(--pencil);
+  border-radius: 50%; font-family: var(--font-hand); font-weight: 600; font-size: 10pt; color: var(--pencil); }
+.bodychart__sw { flex: none; width: 5mm; height: 3.4mm; border: 0.2mm solid var(--brand);
+  background: repeating-linear-gradient(45deg, transparent 0 .5mm, var(--brand) .5mm .75mm); }
+.bodychart__t { font-family: var(--font-hand); font-size: 12.5pt; line-height: 1; color: var(--pen); }
+.bodychart__note { margin-top: 1.2mm; padding-top: 1mm; border-top: 0.2mm dashed var(--rule); font-family: var(--font-hand); font-size: 12.5pt; line-height: 1.05; color: var(--pen); }
 
 /* ------------------------------------------------------------ план здания */
 .plan__frame { position: relative; border: 0.5mm solid var(--ink); padding: 1mm; margin: 2mm 0 0; }
@@ -315,47 +356,48 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .plan__svg { display: inline-block; vertical-align: top; width: 100%; height: auto; }
 .plan__north { float: right; width: 9mm; height: 12.6mm; margin: 0 0 1mm 3mm; }
 .plan__bottom { display: grid; grid-template-columns: 1fr 86mm; border: 0.5mm solid var(--ink); border-top: 0; break-inside: avoid; }
-.plan__legend { padding: 2mm 3mm; font-size: 9.5pt; border-right: 0.5mm solid var(--ink); }
-.plan__legend-title { font-family: var(--font-sans); font-weight: 700; font-size: 8pt; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1.5mm; }
+.plan__legend { padding: 2mm 3mm; font-size: 8.8pt; border-right: 0.5mm solid var(--ink); }
+.plan__legend-title { font-family: var(--font-head); font-weight: 500; font-size: 8pt; text-transform: uppercase; letter-spacing: .08em; color: var(--brand); margin-bottom: 1.5mm; }
 .plan__legend ol { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 5mm; }
 .plan__legend li { display: flex; gap: 1.5mm; break-inside: avoid; margin-bottom: .6mm; line-height: 1.25; }
 .plan__legend li b { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 4.4mm; height: 4.4mm;
   border: 0.25mm solid var(--ink); border-radius: 50%; font-family: var(--font-sans); font-size: 7pt; }
-.plan__legend .paper__body { font-size: 9.5pt; margin-top: 1.5mm; }
-.plan__legend .paper__body p { text-align: left; margin-bottom: 1mm; }
+.plan__legend .paper__body { font-size: 8.8pt; margin-top: 1.5mm; }
+.plan__legend .paper__body p { margin-bottom: 1mm; }
 .plan__stamp { border-collapse: collapse; width: 100%; margin: 0; font-family: var(--font-sans); font-size: 8pt; }
 .plan__stamp td { border: 0; border-bottom: 0.25mm solid var(--ink); padding: 1mm 2mm; vertical-align: middle; }
 .plan__stamp tr:last-child td { border-bottom: 0; }
 .plan__stamp td:first-child { width: 24mm; color: #333; border-right: 0.25mm solid var(--ink); }
 .plan__stamp .big { font-size: 10pt; font-weight: 700; }
-.paper--plan .paper__head { margin-bottom: 3mm; }
+.paper--plan .paper__head { margin-bottom: 2mm; }
 .paper--plan .paper__title { margin-top: 3mm; }
 
 /* ------------------------------------------------------------ программка */
-.paper--program { min-height: 262mm; display: block; }
-.prog { position: relative; min-height: 262mm; padding: 13mm 14mm 12mm; text-align: center; font-family: var(--font-serif);
+.paper--program { min-height: 262mm; display: block; --accent: var(--brand); }
+.prog { position: relative; min-height: 262mm; padding: 12mm 13mm 12mm; text-align: center; font-family: var(--font-serif);
   border: 0.9mm solid var(--accent); outline: 0.25mm solid var(--accent); outline-offset: -2.6mm; break-inside: avoid; }
 .prog__corner { position: absolute; width: 15mm; height: 15mm; color: var(--accent); }
 .prog__corner--tl { top: 3.4mm; left: 3.4mm; }
 .prog__corner--tr { top: 3.4mm; right: 3.4mm; transform: scaleX(-1); }
 .prog__corner--bl { bottom: 3.4mm; left: 3.4mm; transform: scaleY(-1); }
 .prog__corner--br { bottom: 3.4mm; right: 3.4mm; transform: scale(-1, -1); }
-.prog__theater { font-family: var(--font-sans); font-size: 9pt; letter-spacing: .22em; text-transform: uppercase; line-height: 1.5; }
+.prog__emblem { display: inline-block; width: 13mm; height: 13mm; color: var(--accent); margin-bottom: 2mm; }
+.prog__theater { font-family: var(--font-head); font-weight: 500; font-size: 10pt; letter-spacing: .2em; text-transform: uppercase; line-height: 1.4; color: var(--accent); }
 .prog__season { font-size: 9.5pt; font-style: italic; color: #444; margin-top: 1mm; }
-.prog__mask { display: inline-block; vertical-align: top; width: 46mm; height: auto; margin: 8mm auto 2mm; color: var(--accent); }
+.prog__mask { display: inline-block; vertical-align: top; width: 46mm; height: auto; margin: 6mm auto 2mm; color: var(--accent); }
 .prog__author { font-size: 13pt; letter-spacing: .18em; text-transform: uppercase; margin: 4mm 0 0; text-align: center; }
 .prog__title { font-family: var(--font-serif); font-weight: 400; font-size: 46pt; letter-spacing: .06em; line-height: 1.05;
-  color: var(--accent); margin: 1mm 0 1mm; }
+  color: var(--accent); margin: 1mm 0 1mm; text-transform: none; }
 .prog__subtitle { font-size: 12pt; font-style: italic; margin: 0; text-align: center; }
-.prog__rule { display: inline-block; vertical-align: top; width: 70mm; height: 5mm; margin: 4mm auto; color: var(--accent); }
-.prog__when { font-family: var(--font-sans); font-size: 10pt; letter-spacing: .08em; text-transform: uppercase; line-height: 1.5; }
-.prog__when b { font-size: 12pt; letter-spacing: .1em; }
-.prog .paper__body { margin: 7mm 0 0; text-align: left; columns: 2; column-gap: 12mm; column-rule: 0.2mm solid #c9b3b6; font-size: 10.5pt; }
-.prog .paper__body h2 { column-span: none; font-family: var(--font-sans); font-weight: 700; font-size: 8.5pt; letter-spacing: .18em; text-transform: uppercase;
-  text-align: center; color: var(--accent); margin: 0 0 2.5mm; break-after: avoid; }
+.prog__rule { display: inline-block; vertical-align: top; width: 70mm; height: 5mm; margin: 4mm auto; color: var(--brand-gold, var(--accent)); }
+.prog__when { font-family: var(--font-head); font-weight: 500; font-size: 10.5pt; letter-spacing: .12em; text-transform: uppercase; line-height: 1.5; }
+.prog__when b { font-size: 13pt; letter-spacing: .1em; font-weight: 600; }
+.prog .paper__body { margin: 7mm 0 0; text-align: left; columns: 2; column-gap: 12mm; column-rule: 0.2mm solid #c9b3b6; font-size: 10pt; font-family: var(--font-serif); }
+.prog .paper__body h2 { column-span: none; font-family: var(--font-head); font-weight: 500; font-size: 8.5pt; letter-spacing: .18em; text-transform: uppercase;
+  text-align: center; color: var(--accent); margin: 0 0 2.5mm; padding: 0; background: none; border: 0; break-after: avoid; }
 .prog .paper__body * + h2 { margin-top: 5mm; }
-.prog .paper__body p { text-align: center; font-size: 10pt; margin-bottom: 2mm; hyphens: manual; }
-.prog table { width: 100%; margin: 0 0 3mm; font-size: 10.5pt; border: 0; }
+.prog .paper__body p { text-align: center; font-size: 9.6pt; margin-bottom: 2mm; }
+.prog table { width: 100%; margin: 0 0 3mm; font-size: 10pt; border: 0; }
 .prog thead { display: none; }
 .prog tr { display: flex; align-items: baseline; break-inside: avoid; }
 .prog th, .prog td { border: 0; padding: 0.5mm 0; background: none; }
@@ -366,16 +408,13 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .prog:has(.prog__foot) { padding-bottom: 20mm; }
 
 /* ------------------------------------------------------------ опись, реестр, смета, журнал: таблицы */
-.paper--inventory table, .paper--registry table, .paper--estimate table { font-family: var(--font-sans); font-size: 9.5pt; }
-.paper--inventory th, .paper--estimate th, .paper--registry th { font-size: 8.5pt; text-transform: uppercase; letter-spacing: .03em; vertical-align: middle; }
 .paper--inventory td:first-child, .paper--inventory th:first-child,
-.paper--estimate td:first-child, .paper--estimate th:first-child { width: 10mm; text-align: center; font-variant-numeric: tabular-nums; }
-.paper--inventory tbody tr:nth-child(even) td { background: #f6f6f6; }
-.inv__total { font-family: var(--font-sans); font-size: 9.5pt; margin-top: 1mm; }
+.paper--estimate td:first-child, .paper--estimate th:first-child { width: 9mm; text-align: center; font-variant-numeric: tabular-nums; }
+.paper--inventory tbody tr:nth-child(even) td { background: #f7f8f9; }
+.inv__total { font-size: 9.2pt; margin-top: 1mm; padding: 1.5mm 2.5mm; border-left: 1.1mm solid var(--brand); background: var(--brand-soft); }
 
 /* фототаблица */
-.paper--phototable .paper__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .08em; }
-.photos { display: grid; grid-template-columns: repeat(var(--cols, 2), 1fr); gap: 6mm 6mm; margin: 4mm 0 2mm; }
+.photos { display: grid; grid-template-columns: repeat(var(--cols, 2), 1fr); gap: 5mm 6mm; margin: 4mm 0 2mm; }
 .photo { margin: 0; break-inside: avoid; }
 .photos--1 { max-width: 140mm; margin-left: auto; margin-right: auto; }
 .photo__frame { position: relative; aspect-ratio: var(--aspect, 4 / 3); border: 0.3mm solid #333; background: #ddd; overflow: hidden; }
@@ -385,89 +424,90 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .photo__frame::before, .photo__frame::after { content: ""; position: absolute; z-index: 1; width: 7mm; height: 7mm; background: #e3e6ea; opacity: .95; }
 .photo__frame::before { left: -0.3mm; top: -0.3mm; clip-path: polygon(0 0, 100% 0, 0 100%); }
 .photo__frame::after { right: -0.3mm; bottom: -0.3mm; clip-path: polygon(100% 0, 100% 100%, 0 100%); }
-.photo figcaption { font-size: 9.5pt; line-height: 1.3; margin-top: 1.5mm; text-align: left; }
-.photo figcaption b { font-family: var(--font-sans); font-size: 9pt; }
-.paper--phototable .paper__body { font-size: 10pt; }
+.photo figcaption { font-size: 8.8pt; line-height: 1.3; margin-top: 1.5mm; text-align: left; }
+.photo figcaption b { font-family: var(--font-head); font-weight: 600; font-size: 8.6pt; letter-spacing: .05em; text-transform: uppercase; color: var(--brand); }
+.paper--phototable .paper__body { font-size: 9.2pt; }
 
 /* журнал: разлинованная страница */
-.paper--journal { display: flex; flex-direction: column; min-height: 259mm; }
-.journal__top { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; border-bottom: 0.6mm solid var(--ink); padding-bottom: 1.5mm; }
-.journal__org { font-family: var(--font-sans); font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em; color: #333; }
-.journal__title { font-family: var(--font-sans); font-size: 14pt; font-weight: 700; margin: 1mm 0 0; }
-.journal__sheet { font-family: var(--font-sans); font-size: 9pt; text-align: right; white-space: nowrap; }
-.journal__sheet b { display: inline-block; min-width: 12mm; border-bottom: 0.25mm solid var(--ink); text-align: center; font-size: 11pt; }
-.journal__meta { display: flex; gap: 8mm; font-family: var(--font-sans); font-size: 8.5pt; color: #333; margin: 1.5mm 0 3mm; }
+.paper--journal { display: flex; flex-direction: column; min-height: 262mm; }
+.journal__head .mast { margin-bottom: 1mm; }
+.journal__top { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; margin-top: 4mm; }
+.journal__title { font-size: 19pt; margin: 0; text-transform: uppercase; }
+.journal__sheet { font-family: var(--font-head); font-weight: 500; font-size: 8.5pt; letter-spacing: .06em; text-transform: uppercase; color: var(--brand); text-align: right; white-space: nowrap; }
+.journal__sheet b { display: inline-block; min-width: 12mm; border-bottom: 0.25mm solid var(--ink); text-align: center; font-family: var(--font-hand); font-size: 16pt; color: var(--pen); text-transform: none; }
+.journal__meta { display: flex; flex-wrap: wrap; gap: 1mm 8mm; font-size: 8.4pt; color: #333; margin: 1.5mm 0 3mm; padding: 1.2mm 2.5mm; border-left: 1.1mm solid var(--brand); background: var(--brand-soft); }
 .journal__page { position: relative; flex: 1; display: flex; flex-direction: column; }
 .paper--journal .paper__body { flex: none; }
-.paper--journal table { font-family: var(--font-sans); font-size: 9.5pt; margin: 0; }
-.paper--journal th { background: #e9eef4; border: 0.25mm solid var(--rule); font-size: 8pt; text-transform: uppercase; letter-spacing: .03em; vertical-align: bottom; }
-.paper--journal td { border: 0; border-bottom: 0.25mm solid var(--rule); border-right: 0.25mm solid var(--rule-soft); height: 8mm; padding: 1.3mm 2mm; vertical-align: bottom; }
+.paper--journal table { font-size: 9pt; margin: 0; }
+.paper--journal th { border: 0.25mm solid var(--rule); }
+.paper--journal td { border: 0; border-bottom: 0.25mm solid var(--rule); border-right: 0.25mm solid var(--rule-soft); height: 7.6mm; padding: 1.2mm 2mm; vertical-align: bottom; }
 .paper--journal td:first-child { border-left: 0.25mm solid var(--rule-soft); }
 .paper--journal td:last-child { border-right: 0.25mm solid var(--rule-soft); }
-.paper--journal .paper__body > p { font-family: var(--font-sans); font-size: 9pt; color: #333; margin: 2mm 0; }
-/* Записи в журнал — от руки дежурного (графы шапки — типографские). */
+.paper--journal .paper__body > p { font-size: 8.6pt; color: #333; margin: 2mm 0; }
+/* Записи в журнал — от руки (графы шапки — типографские). */
 .paper--journal td { font-family: var(--font-hand); font-size: 13pt; line-height: 1.05; color: var(--pen); padding-bottom: .8mm; }
 .paper--journal td strong { font-weight: 600; }
 .journal__filler { flex: 1; min-height: 16mm; border-left: 0.25mm solid var(--rule-soft); border-right: 0.25mm solid var(--rule-soft);
-  background: repeating-linear-gradient(to bottom, transparent 0 7.75mm, var(--rule) 7.75mm 8mm); }
+  background: repeating-linear-gradient(to bottom, transparent 0 7.35mm, var(--rule) 7.35mm 7.6mm); }
 
 /* ------------------------------------------------------------ служебная записка */
-.memo__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6mm; }
-.memo__org { font-family: var(--font-sans); font-size: 9pt; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; max-width: 80mm; line-height: 1.3; }
-.memo__org small { display: block; font-weight: 400; text-transform: none; letter-spacing: 0; color: #444; margin-top: .5mm; font-size: 8.5pt; }
-.memo__addr { width: 76mm; font-size: 10.5pt; line-height: 1.35; }
+.memo__addr { width: 78mm; margin: 5mm 0 0 auto; font-size: 9.6pt; line-height: 1.35; }
 .memo__addr .paper__from { width: auto; margin-top: 2mm; }
 .memo__addr .paper__to { width: auto; margin: 0; }
-.paper--memo .paper__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .12em; margin-top: 12mm; }
-.memo__no { text-align: center; font-size: 10.5pt; }
-.memo__subject { font-style: italic; text-align: left; margin: 5mm 0 4mm; font-size: 10.5pt; }
-.paper--memo .paper__body p, .paper--certificate .paper__body p, .paper--press .paper__body p,
-.paper--letter .paper__body p, .paper--pharmacy .paper__body p, .paper--estimate .paper__body p { text-indent: 12.5mm; }
-.memo__incoming { margin-top: 12mm; }
+.memo__no { font-size: 9.4pt; color: #333; }
+.memo__subject { font-style: italic; text-align: left; margin: 3mm 0 4mm; font-size: 9.6pt; max-width: 120mm; }
+.memo__incoming { margin-top: 10mm; }
 
 /* ------------------------------------------------------------ справка, письмо, пресс-служба */
-.paper--certificate .paper__title { font-size: 16pt; letter-spacing: .32em; text-transform: uppercase; margin-top: 12mm; }
-.paper--certificate .paper__body { line-height: 1.6; margin-top: 5mm; }
-.letter__ref { font-size: 10pt; margin-top: 4mm; }
-.letter__ref .corner__cell { min-width: 26mm; text-align: center; }
-.letter__subject { font-style: italic; font-size: 10.5pt; margin: 4mm 0 0; max-width: 85mm; text-align: left; }
-.paper--letter .paper__body { margin-top: 7mm; line-height: 1.55; }
-.paper--letter .paper__title { margin-top: 8mm; }
-.paper--press .press__tag { display: inline-block; font-family: var(--font-sans); font-size: 8pt; letter-spacing: .14em; text-transform: uppercase;
-  border: 0.3mm solid var(--ink); padding: .8mm 2.5mm; margin-top: 6mm; }
-.paper--press .paper__title { font-size: 14pt; margin-top: 3mm; }
-.paper--press .paper__body { line-height: 1.55; }
-
+.paper--certificate .paper__title { font-size: 26pt; letter-spacing: .06em; margin-top: 7mm; }
+.paper--certificate .paper__body { line-height: 1.5; margin-top: 4mm; }
+.letter__subject { font-style: italic; font-size: 9.6pt; margin: 3mm 0 0; max-width: 85mm; text-align: left; }
+.paper--letter .paper__body { margin-top: 6mm; line-height: 1.5; }
+/* Письмо — бланк с шапкой по центру; текст антиквой (деловое письмо, не протокол). */
+.lhead { text-align: center; padding: 0 0 2.5mm; border-bottom: 1.1mm solid var(--brand); position: relative; }
+.lhead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2mm; border-bottom: 0.25mm solid var(--brand); }
+.lhead__emblem { display: inline-block; width: 14mm; height: 14mm; color: var(--brand); margin-bottom: 1.5mm; }
+.lhead__org { font-family: var(--font-head); font-weight: 600; font-size: 14pt; letter-spacing: .05em; text-transform: uppercase; line-height: 1.15; color: var(--brand); }
+.lhead__sub { font-size: 8.8pt; letter-spacing: .02em; margin-top: .8mm; color: #333; }
+.lhead__addr { font-size: 7.8pt; color: var(--muted); margin-top: 1.2mm; }
+.paper--letter.brand--private .paper__body, .paper--press .paper__body { font-family: var(--font-serif); font-size: 10pt; line-height: 1.5; }
+.paper--letter .paper__body p, .paper--press .paper__body p, .paper--memo .paper__body p, .paper--certificate .paper__body p,
+.paper--pharmacy .paper__body p, .paper--estimate .paper__body p { text-indent: 10mm; }
+.press__tag { display: inline-block; font-family: var(--font-head); font-weight: 500; font-size: 8pt; letter-spacing: .14em; text-transform: uppercase;
+  color: #fff; background: var(--brand); padding: .8mm 2.5mm; margin-top: 6mm; }
+.paper--press .paper__title { margin-top: 2mm; }
 
 /* ------------------------------------------------------------ билет */
 .ticket { position: relative; display: grid; grid-template-columns: 1fr 44mm; width: 100%; margin-top: 4mm;
   border: 0.4mm solid #222; border-radius: 2.5mm; overflow: hidden; font-family: var(--font-sans); break-inside: avoid;
   background:
-    repeating-linear-gradient(60deg, transparent 0 1.6mm, #dfe9e6 1.6mm 1.8mm),
-    repeating-linear-gradient(-60deg, transparent 0 1.6mm, #e6eef0 1.6mm 1.8mm), #fbfcfc; }
-.ticket__main { padding: 4mm 5mm 4mm; background: rgba(255,255,255,.55); }
-.ticket__stub { position: relative; padding: 4mm 4mm; border-left: 0.5mm dashed #333; background: rgba(255,255,255,.7); font-size: 8.5pt; }
+    repeating-linear-gradient(60deg, transparent 0 1.6mm, #f3dfdd 1.6mm 1.8mm),
+    repeating-linear-gradient(-60deg, transparent 0 1.6mm, #efe6e5 1.6mm 1.8mm), #fdfbfb; }
+.ticket::before { content: ""; position: absolute; left: 0; right: 44mm; top: 0; height: 2.2mm; background: var(--brand); }
+.ticket__main { padding: 5mm 5mm 4mm; background: rgba(255,255,255,.6); }
+.ticket__stub { position: relative; padding: 5mm 4mm 4mm; border-left: 0.5mm dashed #333; background: rgba(255,255,255,.75); font-size: 8.5pt; }
 .ticket__stub::before, .ticket__stub::after { content: ""; position: absolute; left: -3.2mm; width: 6mm; height: 6mm; border-radius: 50%;
   background: #fff; border: 0.4mm solid #222; }
 .ticket__stub::before { top: -3.4mm; }
 .ticket__stub::after { bottom: -3.4mm; }
-.ticket__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 4mm; border-bottom: 0.5mm solid #222; padding-bottom: 2mm; }
-.ticket__carrier { font-weight: 700; font-size: 11pt; letter-spacing: .03em; }
+.ticket__head { display: flex; justify-content: space-between; align-items: center; gap: 4mm; border-bottom: 0.5mm solid var(--brand); padding-bottom: 2mm; }
+.ticket__brand { display: flex; align-items: center; gap: 2.5mm; }
+.ticket__logo { flex: none; width: 10mm; height: 10mm; color: var(--brand); }
+.ticket__carrier { font-family: var(--font-head); font-weight: 600; font-size: 12pt; letter-spacing: .04em; text-transform: uppercase; color: var(--brand); line-height: 1.1; }
 .ticket__kind { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .1em; color: #333; margin-top: .5mm; }
 .ticket__no { font-size: 8pt; text-align: right; white-space: nowrap; }
 .ticket__no b { display: block; font-size: 11pt; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
-.ticket__route { font-size: 15pt; font-weight: 700; margin: 3mm 0 2.5mm; letter-spacing: .01em; }
-.ticket__grid { display: grid; grid-template-columns: repeat(4, auto); gap: 0; border: 0.3mm solid #222; background: #fff; }
+.ticket__route { font-family: var(--font-head); font-size: 18pt; font-weight: 600; margin: 3mm 0 2.5mm; letter-spacing: .01em; text-transform: uppercase; }
+.ticket__grid { display: grid; grid-template-columns: repeat(4, auto); gap: 0; border: 0.3mm solid #222; background: #fff; overflow: hidden; }
 .tcell { padding: 1.2mm 2mm 1.5mm; border-right: 0.25mm solid #777; border-bottom: 0.25mm solid #777; }
 .ticket__grid .tcell:nth-child(4n) { border-right: 0; }
-.ticket__grid { overflow: hidden; }
 .ticket__grid .tcell { margin-bottom: -0.25mm; }
 .tcell__l { display: block; font-size: 6.8pt; text-transform: uppercase; letter-spacing: .06em; color: #444; }
 .tcell__v { display: block; font-size: 11pt; font-weight: 700; font-variant-numeric: tabular-nums; }
-.tcell--big .tcell__v { font-size: 15pt; }
+.tcell--big .tcell__v { font-family: var(--font-head); font-size: 17pt; font-weight: 600; }
 .ticket__rows { margin-top: 2.5mm; font-size: 9pt; line-height: 1.45; }
-.ticket__rows .fld { margin-bottom: .6mm; font-size: 9.5pt; }
-.ticket__rows .fld__label { width: 30mm; font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; }
+.ticket__rows .fld { margin-bottom: .6mm; font-size: 9.2pt; }
+.ticket__rows .fld__label { width: 30mm; }
 .ticket__rows .fld__value { border-bottom-color: #aaa; }
 .ticket__issued { margin-top: 2mm; font-size: 7.5pt; color: #333; }
 .ticket__stub-title { font-size: 7pt; text-transform: uppercase; letter-spacing: .1em; color: #333; border-bottom: 0.3mm solid #222; padding-bottom: 1mm; margin-bottom: 1.5mm; }
@@ -476,63 +516,55 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .ticket__bars { height: 13mm; margin-top: 2.5mm;
   background: repeating-linear-gradient(90deg, #111 0 .35mm, transparent .35mm .8mm, #111 .8mm 1.6mm, transparent 1.6mm 2mm, #111 2mm 2.25mm, transparent 2.25mm 3.1mm, #111 3.1mm 3.6mm, transparent 3.6mm 3.9mm); }
 .ticket__price { font-size: 13pt; font-weight: 700; }
-.paper--ticket .paper__body { margin-top: 6mm; font-size: 10.5pt; }
-.ticket-sheet__note { font-family: var(--font-sans); font-size: 8.5pt; color: #444; margin-top: 2mm; }
+.paper--ticket .paper__body { margin-top: 6mm; }
+.ticket-sheet__note { font-size: 8.5pt; color: #444; margin-top: 2mm; }
 
 /* ------------------------------------------------------------ смета и договор */
-.est__top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; }
-.est__org { font-family: var(--font-sans); font-size: 9pt; line-height: 1.35; max-width: 92mm; }
-.est__org b { display: block; font-size: 10.5pt; }
-.est__approve { width: 66mm; font-size: 10pt; line-height: 1.4; }
-.est__approve-h { font-family: var(--font-sans); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 1mm; }
+.est__approve { width: 70mm; margin: 4mm 0 0 auto; font-size: 9.2pt; line-height: 1.4; padding: 2mm 3mm; border: 0.25mm solid var(--rule); position: relative; }
+.est__approve-h { display: flex; align-items: center; gap: 2mm; font-family: var(--font-head); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-size: 9.5pt; margin-bottom: 1mm; }
 .est__approve .uline { margin-top: 4mm; }
-.paper--estimate .paper__title { font-size: 13pt; text-transform: uppercase; letter-spacing: .08em; margin-top: 9mm; }
+.paper--estimate .paper__title { font-size: 17pt; }
 .paper--estimate td:last-child, .paper--estimate th:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.paper--estimate tr:has(strong) td { font-weight: 700; border-top: 0.6mm double #222; background: #f3f3f3; }
-.paper--estimate .paper__body h2 { text-align: center; text-transform: uppercase; letter-spacing: .06em; font-size: 11.5pt; margin-top: 7mm; }
-.mp { font-family: var(--font-sans); font-size: 8pt; color: #555; }
+.paper--estimate tr:has(strong) td { font-weight: 700; border-top: 0.6mm double #222; background: var(--brand-soft); }
+.mp { font-size: 8pt; color: #555; }
 
 /* ------------------------------------------------------------ выписка из реестра */
-.reg__top { display: flex; justify-content: space-between; gap: 6mm; font-family: var(--font-sans); font-size: 8.5pt; color: #333;
-  border-bottom: 0.25mm solid #333; padding-bottom: 1.5mm; }
-.reg__org { font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink); }
-.reg__h { text-align: center; margin: 9mm 0 0; font-family: var(--font-sans); font-size: 18pt; letter-spacing: .3em; text-transform: uppercase; }
-.paper--registry .paper__title { font-size: 12pt; font-weight: 400; margin-top: 1mm; font-family: var(--font-serif); }
-.reg__asof { text-align: center; font-size: 10pt; margin-bottom: 4mm; }
-.reg__asof span { display: inline-block; border-bottom: 0.25mm solid var(--ink); min-width: 30mm; }
-.paper--registry td:first-child, .paper--registry th:first-child { width: 10mm; text-align: center; font-variant-numeric: tabular-nums; color: #333; }
+.reg__meta { display: flex; justify-content: space-between; gap: 6mm; font-size: 8.2pt; color: #333; margin-top: 3mm; }
+.reg__h { margin: 6mm 0 0; font-family: var(--font-head); font-weight: 600; font-size: 26pt; letter-spacing: .3em; text-transform: uppercase; color: var(--brand); }
+.paper--registry .paper__title { font-family: var(--font-sans); font-weight: 700; font-size: 11.5pt; text-transform: none; letter-spacing: 0; margin-top: 1mm; }
+.reg__asof { font-size: 9.4pt; margin-bottom: 3mm; }
+.reg__asof span { display: inline-block; border-bottom: 0.25mm solid var(--ink); min-width: 30mm; text-align: center; }
+.paper--registry td:first-child, .paper--registry th:first-child { width: 9mm; text-align: center; font-variant-numeric: tabular-nums; color: #333; }
 .paper--registry td:nth-child(2) { width: 45%; }
-.paper--registry tr:has(> td:first-child:empty) td { background: #e9e9e9; font-weight: 700; text-align: center; text-transform: uppercase; font-size: 8.5pt; letter-spacing: .04em; }
-.paper--registry .paper__body h2, .paper--registry .paper__body h3 { font-size: 9.5pt; text-transform: uppercase; letter-spacing: .04em; text-align: center;
-  background: #e9e9e9; border: 0.2mm solid #555; padding: 1.2mm; margin: 4mm 0 0; }
-.paper--registry .paper__body h2 + table, .paper--registry .paper__body h3 + table { border-top: 0; }
-.esign { display: flex; gap: 4mm; align-items: center; max-width: 110mm; margin: 8mm 0 0 auto; border: 0.5mm solid var(--seal); border-radius: 2mm;
-  padding: 2.5mm 4mm; color: var(--seal); font-family: var(--font-sans); font-size: 8pt; line-height: 1.35; break-inside: avoid; }
+.paper--registry tr:has(> td:first-child:empty) td { background: var(--brand-soft); color: var(--brand); font-family: var(--font-head); font-weight: 500;
+  text-align: center; text-transform: uppercase; font-size: 7.8pt; letter-spacing: .06em; }
+.paper--registry .paper__body h2, .paper--registry .paper__body h3 { margin: 4mm 0 0; }
+.esign { display: flex; gap: 4mm; align-items: center; max-width: 110mm; margin: 8mm 0 0 auto; border: 0.5mm solid var(--brand); border-radius: 2mm;
+  padding: 2.5mm 4mm; color: var(--brand); font-size: 8pt; line-height: 1.35; break-inside: avoid; }
 .esign__h { font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 7.5pt; margin-bottom: 1mm; }
 .esign__mark { flex: none; width: 11mm; height: 11mm; }
 
 /* ------------------------------------------------------------ аптека и рецепт */
-.paper--pharmacy .paper__title { margin-top: 7mm; font-size: 13pt; }
 .rx-wrap { margin-top: 6mm; padding-top: 4mm; border-top: 0.3mm dashed #777; break-inside: avoid; }
-.rx-wrap__label { font-family: var(--font-sans); font-size: 8pt; text-transform: uppercase; letter-spacing: .1em; color: #444; margin-bottom: 3mm; }
+.rx-wrap__label { font-family: var(--font-head); font-weight: 500; font-size: 8pt; text-transform: uppercase; letter-spacing: .1em; color: var(--brand); margin-bottom: 3mm; }
 .rx-row { display: flex; gap: 8mm; align-items: flex-start; }
-.rx { position: relative; width: 104mm; flex: none; border: 0.3mm solid #222; padding: 3mm 4mm 4mm; font-size: 9.5pt; background: #fcfcfa; }
+.rx { position: relative; width: 104mm; flex: none; border: 0.3mm solid #222; padding: 3mm 4mm 4mm; font-size: 9pt; background: #fff; }
 .rx__top { display: flex; justify-content: space-between; gap: 3mm; margin-bottom: 2mm; }
-.rx__clinic { width: 50mm; border: 0.25mm solid #555; padding: 1.2mm 1.5mm; font-family: var(--font-sans); font-size: 7pt; line-height: 1.25; text-align: center; min-height: 13mm; }
+.rx__clinic { width: 50mm; border: 0.25mm solid #555; padding: 1.2mm 1.5mm; font-size: 7pt; line-height: 1.25; text-align: center; min-height: 13mm; }
 .rx__clinic small { display: block; font-size: 5.8pt; color: #666; margin-bottom: .5mm; }
-.rx__kind { text-align: right; font-family: var(--font-sans); }
-.rx__kind b { display: block; font-size: 14pt; letter-spacing: .1em; text-transform: uppercase; }
-.rx .fld { font-size: 9.5pt; margin-bottom: 1.2mm; }
-.rx .fld__label { font-size: 7.5pt; width: 26mm; }
-.rx__rp { margin: 2mm 0 1mm; min-height: 22mm; font-style: italic; font-size: 10.5pt; line-height: 1.5;
+.rx__kind { text-align: right; }
+.rx__kind b { display: block; font-family: var(--font-head); font-weight: 600; font-size: 15pt; letter-spacing: .1em; text-transform: uppercase; }
+.rx .fld { font-size: 9pt; margin-bottom: 1.2mm; }
+.rx .fld__label { width: 24mm; color: #444; }
+.rx .fld__value { font-family: var(--font-hand); font-size: 13pt; color: var(--pen); line-height: 1.05; }
+.rx__rp { margin: 2mm 0 1mm; min-height: 22mm; font-family: var(--font-hand); font-size: 14pt; color: var(--pen); line-height: 1.5;
   background: repeating-linear-gradient(to bottom, transparent 0 5.8mm, var(--rule-soft) 5.8mm 6mm); }
-.rx__rp b { font-style: normal; font-family: var(--font-sans); margin-right: 1.5mm; }
-.rx__sign { display: flex; justify-content: space-between; align-items: flex-end; gap: 3mm; font-family: var(--font-sans); font-size: 7pt; color: #444; margin-top: 3mm; }
+.rx__rp b { font-family: var(--font-sans); font-size: 10pt; color: var(--ink); margin-right: 1.5mm; }
+.rx__sign { display: flex; justify-content: space-between; align-items: flex-end; gap: 3mm; font-size: 7pt; color: #444; margin-top: 3mm; }
 .rx__sign span { flex: 1; border-top: 0.2mm solid #333; padding-top: .4mm; }
 .rx .seal { position: absolute; right: 5mm; bottom: 4mm; width: 24mm; height: 24mm; }
 .rx__certified { flex: 1; padding-top: 6mm; }
 .paper--pharmacy .paper__media { grid-template-columns: 1fr; }
-.rx__rp { font-family: var(--font-hand); font-style: normal; font-size: 14pt; color: var(--pen); }
 
 /* ------------------------------------------------------------ записка от руки */
 .note { position: relative; width: 132mm; margin: 14mm auto 0; transform: rotate(-1.4deg);
@@ -549,8 +581,9 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
   clip-path: polygon(0 8%, 4% 0, 9% 10%, 14% 2%, 100% 0, 97% 50%, 100% 100%, 6% 94%, 0 100%, 3% 50%); }
 .note__inner::before { left: -8mm; transform: rotate(-24deg); }
 .note__inner::after { right: -8mm; transform: rotate(21deg); }
-.note__inner p { margin: 0; text-align: left; hyphens: manual; }
-.note__inner .paper__body h2, .note__inner .paper__body h3 { font-family: var(--font-hand); font-size: 19pt; font-weight: 600; margin: 0; line-height: 8mm; }
+.note__inner p { margin: 0; }
+.note__inner .paper__body h2, .note__inner .paper__body h3 { font-family: var(--font-hand); font-size: 19pt; font-weight: 600; margin: 0; line-height: 8mm;
+  color: inherit; background: none; border: 0; padding: 0; text-transform: none; letter-spacing: 0; }
 .note__inner em { font-style: normal; text-decoration: underline 0.3mm; text-underline-offset: 1mm; }
 .note__inner strong { font-weight: 600; }
 .note__inner .paper__sign { display: block; text-align: right; margin: 0; font-size: inherit; }
@@ -558,15 +591,28 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
 .note__inner .paper__signatures { margin: 0; }
 .note__head { font-size: 14pt; color: #4a5b86; line-height: 8mm; }
 .paper--note.paper--qr .note { margin-top: 38mm; }
-.note__caption { width: 132mm; margin: 6mm auto 0; font-family: var(--font-sans); font-size: 8.5pt; color: #555; text-align: center; }
+.note__caption { width: 132mm; margin: 6mm auto 0; font-size: 8.5pt; color: #555; text-align: center; }
 
 /* ------------------------------------------------------------ снимки экрана телефона */
 .paper__chats { display: grid; grid-template-columns: repeat(2, 76mm); justify-content: center; gap: 8mm; margin: 2mm 0 4mm; }
 .paper__chats figure { margin: 0; break-inside: avoid; }
 .paper__chats .phone { border: 0.6mm solid #222; border-radius: 5mm; padding: 2.2mm; background: #fff; }
 .paper__chats img { display: inline-block; vertical-align: top; width: 100%; border-radius: 2.5mm; }
-.paper__chats figcaption { font-family: var(--font-sans); font-size: 8.5pt; text-align: center; color: #333; margin-top: 1.5mm; }
-.paper--chat .paper__title { text-transform: uppercase; letter-spacing: .06em; font-size: 12.5pt; }
+.paper__chats figcaption { font-size: 8.5pt; text-align: center; color: #333; margin-top: 1.5mm; }
+.paper--chat .paper__title { font-size: 18pt; }
+
+/* ------------------------------------------------------------ фото-карточки персонажей (cards-N.pdf) */
+.cards-sheet + .cards-sheet { break-before: page; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: 87mm; border-left: 0.2mm dashed #9aa0a8; border-top: 0.2mm dashed #9aa0a8; }
+.card { position: relative; display: flex; align-items: center; justify-content: center; border-right: 0.2mm dashed #9aa0a8; border-bottom: 0.2mm dashed #9aa0a8; break-inside: avoid; }
+.card .polaroid { width: 54mm; padding: 2.6mm 2.6mm 0; box-shadow: none; border-color: #b9bfc6; }
+.card .polaroid__photo { aspect-ratio: 1 / 1.02; }
+.card .polaroid__name { font-size: 15.5pt; padding: 1.8mm 0 .4mm; }
+.card__role { font-size: 7.6pt; line-height: 1.25; color: #333; padding: 0 1mm 2.4mm; min-height: 9mm; }
+.card__role::first-letter { text-transform: uppercase; }
+.card__cut { position: absolute; left: 1.5mm; top: .8mm; font-size: 6.5pt; color: #9aa0a8; }
+.cards-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-head); font-weight: 500; font-size: 8.5pt;
+  letter-spacing: .08em; text-transform: uppercase; color: #5a5f68; margin: 0 0 2mm; }
 
 /* ------------------------------------------------------------ заглушка */
 .paper--stub { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 240mm;
@@ -580,8 +626,8 @@ u.pencil, .pencil-u { text-decoration: underline 0.45mm var(--pencil); text-unde
   html { background: #8a8a8a; }
   body { width: 210mm; }
   .paper { background: #fff; width: 210mm; min-height: 297mm; padding: {{ page_margin }}; margin-bottom: 6mm; }
-  .paper__qr { top: 16mm; right: 16mm; }
-  .paper__docmark { display: block; position: absolute; left: 22mm; top: 8mm; font-family: var(--font-sans); font-size: 7.5pt;
+  .paper__qr { top: {{ page_margin.split(' ')[0] }}; right: {{ page_margin.split(' ')[1] }}; }
+  .paper__docmark { display: block; position: absolute; left: {{ page_margin.split(' ')[3] }}; top: 7mm; font-family: var(--font-sans); font-size: 7.5pt;
     font-weight: 700; letter-spacing: .03em; color: var(--mark); line-height: 1; }
   .paper--stub { border-width: 0; outline: 0.6mm dashed #888; outline-offset: -16mm; }
   .paper--journal { min-height: 297mm; }

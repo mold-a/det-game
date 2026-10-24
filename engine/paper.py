@@ -10,7 +10,10 @@ front matter и тело — шаблоны контента (``c``, ``w``), т�
 - ``envelope-<N>.pdf`` — все бумажные документы конверта N по порядку ``documents.yaml`` (заглушки
   тоже): склейка готовых ``<id>.pdf`` через ``pypdf``, поэтому у каждого документа своя нумерация
   «Лист 1…» (один общий HTML дал бы сквозной счётчик страниц Chromium); без ``--only``;
-- ``preview/<id>.png`` — первая страница для просмотра.
+- ``preview/<id>.png`` — первая страница для просмотра;
+- ``cards-<N>.pdf`` — фото-карточки (полароиды, 3 × 3 на лист A4 с линиями реза) персонажей, впервые
+  появившихся в протоколах конверта N (метки ``<!-- person -->``): ФИО и роль из строки «Опрошен(а)»
+  этого протокола; без ``--only``.
 
 Печать (``settings.print``, docs/05 §4):
 
@@ -63,7 +66,7 @@ QR_SVG_SCALE = 10
 STATUS_OK = "готов"
 VERSO_TEMPLATE = "print/paper/_verso.html"
 # Поля листа A4, мм (CSS @page берёт их отсюда).
-PAGE_MARGIN_MM = {"top": 16, "right": 16, "bottom": 18, "left": 22}
+PAGE_MARGIN_MM = {"top": 14, "right": 12, "bottom": 15, "left": 18}
 # Раздел протокола — заголовок второго уровня; метка опрашиваемого — HTML-комментарий.
 SECTION_RE = re.compile(r"^## ")
 FENCE_RE = re.compile(r"^(```|~~~)")
@@ -97,9 +100,20 @@ class PaperRow:
 
 
 @dataclass
+class CardsRow:
+    """Сборник фото-карточек конверта: ``cards-<N>.pdf``."""
+    stage: int
+    pdf: Path
+    people: list[str]
+    pages: int
+    no_photo: list[str] = field(default_factory=list)
+
+
+@dataclass
 class PaperReport:
     rows: list[PaperRow] = field(default_factory=list)
     envelopes: list[Path] = field(default_factory=list)
+    cards: list[CardsRow] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
     def table(self) -> str:
@@ -162,6 +176,218 @@ def portrait(content: Content, ctx: dict, cid: str, media_dir: Path = MEDIA_DIR)
     p = Path(media_dir) / rel
     return {"id": cid, "known": True, "exists": p.is_file(), "src": p.as_uri() if p.is_file() else None,
             "name": ctx["c"][cid].short(), "path": rel}
+
+
+# ---------------------------------------------------------------- айдентика организаций
+
+# Бренд бланка — у каждой вымышленной организации своя эмблема, цвет и шапка (docs/05 §4; цвета и
+# эмблемы — site/templates/print/paper/_brand.html). Бренд выбирается: ``meta.brand`` → первое правило,
+# чей признак есть в названии организации (``meta.org``; ``{путь}`` — значение из world.yaml) →
+# умолчание бланка. Организация, которой нет в правилах (частный эксперт), — ``private``.
+BRAND_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("police", ("{police.duty}", "ОП «")),                     # отдел полиции, дежурная часть
+    ("so", ("{police.department}", "Следственн")),             # следственный отдел
+    ("sme", ("судебно-медицинской",)),                         # бюро СМЭ
+    ("smp", ("скорой медицинской",)),                          # станция скорой помощи
+    ("theater", ("{theater.full}", "{theater.short}")),
+    ("admin", ("Администрация",)),                             # администрация города, пресс-служба
+    ("pharmacy", ("{brands.pharmacy}", "Аптека")),
+    ("registry", ("реестр", "регистрации")),
+    ("railway", ("{brands.railway}",)),
+    ("llc", ("{money.llc}",)),
+    ("fund", ("{money.fund}",)),
+    ("lab", ("{brands.lab}",)),
+)
+# Умолчание бланка без meta.org (как шапка в _macros.html: org(doc, w, default)).
+FORM_BRAND = {"plan": "theater", "program": "theater", "journal": "theater", "memo": "theater",
+              "inventory": "theater", "ambulance": "smp", "forensic": "sme", "note": "none"}
+BRANDS = ("so", "police", "sme", "smp", "theater", "admin", "pharmacy", "registry", "railway", "llc", "fund",
+          "lab", "private", "none")
+
+
+def _world_value(world: dict, path: str) -> str:
+    cur: Any = world
+    for k in path.split("."):
+        cur = cur.get(k) if isinstance(cur, dict) else None
+    return cur if isinstance(cur, str) else ""
+
+
+def org_brand(org: Any, form: str, world: dict, override: Any = None) -> str:
+    """Бренд бланка по ``meta.brand`` / названию организации / бланку (см. ``BRAND_RULES``)."""
+    if isinstance(override, str) and override in BRANDS:
+        return override
+    text = " ".join(org) if isinstance(org, list) else (org or "")
+    if text:
+        for brand, marks in BRAND_RULES:
+            for mark in marks:
+                needle = _world_value(world, mark[1:-1]) if mark.startswith("{") else mark
+                if needle and needle in text:
+                    return brand
+        return "private"
+    return FORM_BRAND.get(form, "so")
+
+
+# ---------------------------------------------------------------- схема тела (заключение СМЭ)
+
+# Силуэт для схемы тела — правая половина контура (x от оси 30, y вниз, рост ≈ 147), левая — зеркально;
+# кривая Catmull-Rom через точки. Голова — эллипс. Нарисовано для игры, без чужих изображений.
+_BODY_RIGHT = [
+    (33.2, 20.6), (33.8, 24.0), (39.0, 25.9), (44.6, 27.9), (46.7, 31.6), (47.6, 42.0), (48.8, 55.0),
+    (50.0, 67.0), (51.4, 78.0), (52.8, 84.5), (53.7, 90.5), (52.3, 95.0), (50.1, 94.6), (49.0, 89.0),
+    (47.6, 83.5), (46.1, 70.0), (44.6, 57.0), (43.0, 45.0), (41.3, 38.8), (40.4, 47.0), (39.3, 57.0),
+    (40.8, 67.0), (41.4, 76.0), (40.9, 92.0), (39.2, 108.0), (38.7, 116.0), (38.0, 128.0), (36.9, 139.0),
+    (38.0, 143.5), (39.6, 146.6), (32.3, 147.2), (32.0, 141.0), (32.4, 128.0), (32.7, 116.0), (32.3, 104.0),
+    (31.4, 90.0), (30.0, 81.5),
+]
+BODY_W, BODY_H, BODY_GAP = 60.0, 150.0, 14.0
+# Зоны отметок: вид (front | back) и полоса по высоте (y от, y до); отметка — штриховка силуэта в полосе.
+BODY_ZONES: dict[str, tuple[str, float, float]] = {
+    "front": ("front", 0, 150), "back": ("back", 0, 150),
+    "head-front": ("front", 0, 20.5), "head-back": ("back", 0, 20.5),
+    "neck-front": ("front", 18, 25), "neck-back": ("back", 18, 25),
+    "chest": ("front", 25, 52), "abdomen": ("front", 52, 80),
+    "back-upper": ("back", 25, 55), "back-lower": ("back", 55, 82),
+    "legs-front": ("front", 82, 150), "legs-back": ("back", 82, 150),
+}
+
+
+def _catmull(pts: list[tuple[float, float]]) -> str:
+    n = len(pts)
+    d = [f"M{pts[0][0]:.2f},{pts[0][1]:.2f}"]
+    for i in range(n):
+        p0, p1, p2, p3 = pts[(i - 1) % n], pts[i], pts[(i + 1) % n], pts[(i + 2) % n]
+        c1 = (p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6)
+        c2 = (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6)
+        d.append(f"C{c1[0]:.2f},{c1[1]:.2f} {c2[0]:.2f},{c2[1]:.2f} {p2[0]:.2f},{p2[1]:.2f}")
+    return " ".join(d) + " Z"
+
+
+def body_outline() -> str:
+    """Контур силуэта (без головы) — путь SVG в координатах одной фигуры ``BODY_W × BODY_H``."""
+    left = [(BODY_W - x, y) for x, y in reversed(_BODY_RIGHT[:-1])]
+    return _catmull(_BODY_RIGHT + left)
+
+
+class BodyChartError(ValueError):
+    """Неверная разметка ``meta.body_chart`` (неизвестная зона)."""
+
+
+def body_chart(spec: Any, uid: str = "bc") -> dict[str, Any] | None:
+    """Схема тела спереди и сзади для заключения СМЭ: ``meta.body_chart`` →
+    ``{"svg": Markup, "marks": [{n, zone, label}], "note": str|None}``.
+
+    ``spec``: ``{marks: [{zone, label}], note}``; ``zone`` — из ``BODY_ZONES``. Отметка — штриховка
+    силуэта в зоне и номер в кружке; подписи — в легенде бланка. Только то, что есть в тексте заключения:
+    шаблон ничего не добавляет."""
+    if not spec:
+        return None
+    if not isinstance(spec, dict):
+        raise BodyChartError("meta.body_chart: ожидается словарь {marks, note}")
+    marks = []
+    for i, mk in enumerate(spec.get("marks") or []):
+        zone = (mk or {}).get("zone") if isinstance(mk, dict) else None
+        if zone not in BODY_ZONES:
+            raise BodyChartError(f"meta.body_chart.marks[{i}].zone = {zone!r}: допустимо {', '.join(BODY_ZONES)}")
+        marks.append({"n": i + 1, "zone": zone, "label": str(mk.get("label") or "")})
+    outline = body_outline()
+    head = '<ellipse cx="30" cy="11.4" rx="6.6" ry="8.4"/>'
+    details = {
+        # спереди — ключицы и пупок; сзади — позвоночник и лопатки (только форма бланка)
+        "front": '<path class="bc__detail" d="M25.5 26.3 Q28 27.4 30 27 Q32 27.4 34.5 26.3"/>'
+                 '<circle class="bc__detail" cx="30" cy="63" r=".5"/>',
+        "back": '<path class="bc__detail bc__spine" d="M30 23.5 V78"/>'
+                '<path class="bc__detail" d="M24 31 Q22.5 37 25.5 42 M36 31 Q37.5 37 34.5 42"/>',
+    }
+    parts = [f'<svg class="bodychart__svg" viewBox="0 0 {2 * BODY_W + BODY_GAP:g} {BODY_H + 8:g}" aria-hidden="true">',
+             f'<defs><pattern id="{uid}-hatch" width="2.2" height="2.2" patternUnits="userSpaceOnUse" '
+             'patternTransform="rotate(45)"><path d="M0 0 V2.2" class="bc__hatchline"/></pattern>',
+             f'<clipPath id="{uid}-clip">{head}<path d="{outline}"/></clipPath></defs>']
+    for k, view in enumerate(("front", "back")):
+        x0 = k * (BODY_W + BODY_GAP)
+        parts.append(f'<g transform="translate({x0:g},0)" class="bc__fig bc__fig--{view}">')
+        for mk in marks:
+            v, y1, y2 = BODY_ZONES[mk["zone"]]
+            if v == view:
+                parts.append(f'<rect class="bc__zone" x="0" y="{y1:g}" width="{BODY_W:g}" height="{y2 - y1:g}" '
+                             f'fill="url(#{uid}-hatch)" clip-path="url(#{uid}-clip)" data-zone="{mk["zone"]}"/>')
+        parts.append(f'<g class="bc__line">{head}<path d="{outline}"/>{details[view]}</g>')
+        for mk in marks:
+            v, y1, y2 = BODY_ZONES[mk["zone"]]
+            if v == view:
+                cy = y1 + (y2 - y1) * (0.32 if y2 - y1 > 60 else 0.5)
+                parts.append(f'<g class="bc__pin"><circle cx="{BODY_W - 3:g}" cy="{cy:.1f}" r="3.6"/>'
+                             f'<text x="{BODY_W - 3:g}" y="{cy + 1.45:.1f}" text-anchor="middle">{mk["n"]}</text></g>')
+        label = "Спереди" if view == "front" else "Сзади"
+        parts.append(f'<text class="bc__cap" x="30" y="{BODY_H + 6:g}" text-anchor="middle">{label}</text></g>')
+    parts.append("</svg>")
+    note = spec.get("note")
+    return {"svg": Markup("".join(parts)), "marks": marks, "note": str(note) if note else None}
+
+
+# ---------------------------------------------------------------- фото-карточки персонажей
+
+CARDS_TEMPLATE = "print/paper/_cards.html"
+CARDS_PER_SHEET = 9   # 3 × 3 полароида на лист A4
+_WHO_LABEL_RE = re.compile(r'<span class="fld__label">\s*((?:Опрош|Объяснени)[^<]*)</span>\s*'
+                           r'<span class="fld__value">(.*?)</span>', re.S)
+_TAG_RE = re.compile(r"<[^>]+>")
+BIRTH_MARK = "г. р., "
+
+
+def _plain(html: str) -> str:
+    from html import unescape
+
+    return " ".join(unescape(_TAG_RE.sub(" ", html.replace("<br>", ", "))).split()).replace(" ,", ",")
+
+
+def interviewee_role(who: Any) -> str:
+    """Роль опрошенного из строки «Опрошен(а)» его протокола — как записано, без новых сведений:
+    после «… г. р., »; список строк без года — вторая строка; иначе — пусто."""
+    lines = who if isinstance(who, list) else [who or ""]
+    text = ", ".join(str(x).strip() for x in lines if str(x).strip())
+    if BIRTH_MARK in text:
+        return text.split(BIRTH_MARK, 1)[1].strip()
+    return str(lines[1]).strip() if len(lines) > 1 else ""
+
+
+def protocol_people(d: dict[str, Any]) -> list[tuple[str, str]]:
+    """[(id персонажа, строка «Опрошен(а)»)] протокола по меткам ``<!-- person -->`` по порядку."""
+    if d.get("form") != "protocol" or d.get("stub"):
+        return []
+    out: list[tuple[str, str]] = []
+    if d.get("person"):
+        who = d["meta"].get("person") if isinstance(d.get("meta"), dict) else None
+        if not who:
+            m = _WHO_LABEL_RE.search(str(d["intro_html"]))
+            who = _plain(m[2]) if m else ""
+        out.append((d["person"]["id"], who))
+    for s in d.get("sections") or []:
+        if s["person"]:
+            m = _WHO_LABEL_RE.search(str(s["body_html"]))
+            out.append((s["person"]["id"], _plain(m[2]) if m else ""))
+    return out
+
+
+def cast_cards(content: Content, docs: dict[str, dict[str, Any]], ctx: dict,
+               media_dir: Path = MEDIA_DIR) -> dict[int, list[dict[str, Any]]]:
+    """Конверт → карточки персонажей, впервые появившихся в протоколах этого конверта (порядок
+    documents.yaml, затем разделов): ``{id, name (ФИО), role, src, exists}``. Роль — из строки
+    «Опрошен(а)» первого протокола человека (``interviewee_role``)."""
+    seen: set[str] = set()
+    out: dict[int, list[dict[str, Any]]] = {}
+    for doc_id in paper_ids(content):
+        d = docs.get(doc_id)
+        if d is None:
+            continue
+        for cid, who in protocol_people(d):
+            if cid in seen or cid not in content.characters_by_id:
+                continue
+            seen.add(cid)
+            p = portrait(content, ctx, cid, media_dir)
+            out.setdefault(d["stage"], []).append({
+                "id": cid, "name": ctx["c"][cid].full(), "role": interviewee_role(who),
+                "src": p["src"], "exists": p["exists"], "path": p["path"], "doc": doc_id})
+    return out
 
 
 # ---------------------------------------------------------------- оформление: штрихкод, подписи
@@ -302,6 +528,7 @@ def doc_data(content: Content, doc_id: str, ctx: dict, *, cards: dict[str, Any] 
         "body_html": Markup(""), "source": "", "qr": None, "chats": [], "pages_hint": None,
         "person": None, "intro_html": Markup(""), "sections": [], "persons_unknown": [],
         "part": 0, "parts": 1, "part_sections": [], "sheet_start": None,
+        "brand": org_brand(None, "stub", content.world), "body_chart": None, "problems": [],
     }
     if wants_qr(content, doc_id) and cards is not None:
         card = cards[d.page]
@@ -330,7 +557,13 @@ def doc_data(content: Content, doc_id: str, ctx: dict, *, cards: dict[str, Any] 
         "source": source,
         "chats": [p.as_uri() for p in (chat_pngs or {}).get(doc_id, [])],
         "pages_hint": m.pages_hint,
+        "brand": None,
     })
+    data["brand"] = org_brand(data["meta"].get("org"), m.form, content.world, data["meta"].get("brand"))
+    try:
+        data["body_chart"] = body_chart(data["meta"].get("body_chart"), f"bc-{doc_id}")
+    except BodyChartError as e:
+        data["problems"].append(f"{doc_id}: {e}")
     if m.form == "protocol":
         intro, secs = split_sections(source)
         lead = person_marks(intro)
@@ -379,6 +612,7 @@ def release_problems(content: Content, ids: list[str], docs: dict[str, dict], qr
         problems += [f"{i}: нет медиафайла media/{m['path']}" for m in d["media"] if not m["exists"]]
         problems += [f"{i}: метка <!-- person: {x} --> — нет такого персонажа в characters.yaml"
                      for x in d.get("persons_unknown", [])]
+        problems += d.get("problems", [])
     problems += qr_warnings
     return problems
 
@@ -571,10 +805,19 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
                     row.notes.append("нет медиа: " + ", ".join(missing_media))
                 if d["persons_unknown"]:
                     row.notes.append("нет персонажа: " + ", ".join(f"person: {x}" for x in d["persons_unknown"]))
+                row.notes += [x.split(": ", 1)[-1] for x in d.get("problems", [])]
                 printed = row.pages - row.blanks
                 if row.pages_hint is not None and printed != row.pages_hint:
                     row.notes.append(f"страниц {printed}, ожидалось {row.pages_hint} (pages_hint)")
                 rep.rows.append(row)
+            if not only:
+                # Фото-карточки персонажей (полароиды) — отдельный сборник cards-<N>.pdf на конверт.
+                cards_tpl = env.get_template(CARDS_TEMPLATE)
+                for n, cast in sorted(cast_cards(content, docs, ctx, media_dir).items()):
+                    sheets_ = [cast[k:k + CARDS_PER_SHEET] for k in range(0, len(cast), CARDS_PER_SHEET)]
+                    pdf = html_to_pdf(b, cards_tpl.render(sheets=sheets_, stage=n, **common), out / f"cards-{n}.pdf")
+                    rep.cards.append(CardsRow(n, pdf, [x["id"] for x in cast], pdf_pages(pdf),
+                                              [x["id"] for x in cast if not x["exists"]]))
         if not only:
             # Сборник = склейка отдельных PDF (своя нумерация «Лист N» у каждого документа); при duplex
             # каждый документ — с лицевой стороны листа.

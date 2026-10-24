@@ -14,16 +14,16 @@
 {% set cells = doc.meta.get('cells') or {} %}
 {% set stub = doc.meta.get('stub') or cells %}
 <div class="paper__head">
-  <h1 class="paper__title proto__title" style="text-align:left;margin-top:0">{{ doc.title }}</h1>
+  <h1 class="paper__title" style="margin-top:0">{{ doc.title }}</h1>
   {% if doc.meta.get('subtitle') %}<p class="ticket-sheet__note">{{ doc.meta.get('subtitle') }}</p>{% endif %}
 </div>
 <div class="ticket">
   <div class="ticket__main">
     <div class="ticket__head">
-      <div>
+      <div class="ticket__brand">{% if doc.brand != "none" %}<span class="ticket__logo">{{ m.emblem(doc.brand) }}</span>{% endif %}<div>
         <div class="ticket__carrier">{% if doc.meta.get('org') %}{{ m.lines(doc.meta.get('org')) }}{% endif %}</div>
         <div class="ticket__kind">{{ doc.meta.get('kind') or "Проездной документ" }}</div>
-      </div>
+      </div></div>
       {% if doc.meta.get('number') %}<div class="ticket__no">Серия, номер<b>{{ doc.meta.get('number') }}</b></div>{% endif %}
     </div>
     {% if doc.meta.get('route') %}<div class="ticket__route">{{ doc.meta.get('route') }}</div>{% endif %}

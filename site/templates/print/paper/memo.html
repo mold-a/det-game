@@ -5,12 +5,10 @@
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
 <header class="paper__head">
-  <div class="memo__top">
-    <div class="memo__org">{{ m.org_text(doc, w, "theater") }}{% if doc.place %}<small>{{ doc.place }}</small>{% endif %}</div>
-    <div class="memo__addr">
+  {{ m.masthead(doc, w, "theater", "", doc.place) }}
+  <div class="memo__addr">
       {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
       {% if doc.meta.get('from') %}<div class="paper__from">{{ m.lines(doc.meta.get('from')) }}</div>{% endif %}
-    </div>
   </div>
   <h1 class="paper__title">{{ doc.title }}</h1>
   {% if doc.meta.get('number') or doc.date %}

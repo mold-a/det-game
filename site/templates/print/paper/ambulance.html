@@ -16,11 +16,9 @@
 {%- endmacro %}
 {% block sheet %}
 <header class="paper__head">
-  <div class="amb__top">
-    <div class="amb__org">{% if doc.meta.get('org') %}{{ m.lines(doc.meta.get('org')) }}{% endif %}</div>
-    {% if doc.meta.get('form_no') %}<div class="amb__formno">{{ m.lines(doc.meta.get('form_no')) }}</div>{% endif %}
-  </div>
-  <h1 class="amb__title"><span>{{ doc.title }}</span>{% if doc.meta.get('number') %}<span>№</span>{{ cells((doc.meta.get('number')|string).replace('№', '')|trim) }}{% endif %}</h1>
+  {% set side %}{% if doc.meta.get('form_no') %}<div class="amb__formno">{{ m.lines(doc.meta.get('form_no')) }}</div>{% endif %}{% endset %}
+  {{ m.masthead(doc, w, "none", side) }}
+  <h1 class="paper__title amb__title"><span>{{ doc.title }}</span>{% if doc.meta.get('number') %}<span>№</span>{{ cells((doc.meta.get('number')|string).replace('№', '')|trim) }}{% endif %}</h1>
   {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
   {% if doc.date %}<div class="amb__date">{{ m.longdate(doc.date) }}</div>{% endif %}
 </header>
@@ -36,7 +34,7 @@
 </div>
 <div class="paper__body">{{ doc.body_html }}</div>
 {% if doc.meta.get('diagnosis') %}<div class="amb__box"><div class="amb__box-label">Диагноз</div><div class="amb__box-value">{{ m.lines(doc.meta.get('diagnosis')) }}</div></div>{% endif %}
-{% if doc.meta.get('result') %}{{ m.field("Результат выезда", doc.meta.get('result')) }}{% endif %}
+{% if doc.meta.get('result') %}<div class="amb__result">{{ m.field("Результат выезда", doc.meta.get('result')) }}</div>{% endif %}
 {{ m.media(doc) }}
 {{ m.signatures(doc) }}
 {% endblock %}
