@@ -519,7 +519,9 @@ async function onCheck(pack, q, inputs) {
     if (game.state.stage > pack.n && S.pendingEnvelope(game.state) === pack.n + 1 && !pendingBonuses(pack, game.state).length) {
       holdStage = pack.n;
       rerender(pack, null);
-      await showPendingEnvelope({ note: text });
+      // В заголовке окна уже «Ответ принят. …» — не повторяем его в тексте окна, оставляем только баллы.
+      const modalText = ok ? T.result.bonusPoints(ctx.pub.points.bonus) : text;
+      await showPendingEnvelope({ note: modalText });
       return;
     }
     rerender(pack, stageFlow(pack, game.state.units).current);

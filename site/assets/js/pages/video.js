@@ -4,7 +4,7 @@
 // по кнопке «Загрузить видео», с прогрессом по ref.size (FORMATS §5); потом — обычный
 // <video controls playsinline> из Blob URL. Открытый файл (без key) подключается сразу.
 
-import { mediaUrl } from "../core/media.js";
+import { mediaUrl, formatSize } from "../core/media.js";
 
 const TEXT = {
   load: "Загрузить видео",
@@ -13,15 +13,6 @@ const TEXT = {
   failed: "Видео не загрузилось. Проверьте подключение и попробуйте ещё раз.",
   retry: "Повторить загрузку",
 };
-
-/** 24117248 → «23 МБ», 512000 → «500 КБ». */
-export function formatSize(bytes) {
-  if (!(bytes > 0)) return "";
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${Math.round(kb)} КБ`;
-  const mb = kb / 1024;
-  return `${mb < 10 ? mb.toFixed(1).replace(".", ",") : Math.round(mb)} МБ`;
-}
 
 function setupProps(root) {
   const btn = root.querySelector('[data-act="props"]');

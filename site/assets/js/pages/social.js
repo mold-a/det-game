@@ -9,7 +9,7 @@
 // Подключается из open.js (init(document)) и из shell.js (init(root, payload)) до hydrateMedia.
 
 import { init as initAudio } from "./audio-player.js";
-import { mediaUrl, whenNear } from "../core/media.js";
+import { mediaUrl, whenNear, formatSize } from "../core/media.js";
 
 const TEXT = {
   watch: "Смотреть видео",
@@ -19,14 +19,6 @@ const TEXT = {
   retry: "Повторить",
 };
 
-/** 24117248 → «23 МБ», 512000 → «500 КБ». */
-export function formatSize(bytes) {
-  if (!(bytes > 0)) return "";
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${Math.round(kb)} КБ`;
-  const mb = kb / 1024;
-  return `${mb < 10 ? mb.toFixed(1).replace(".", ",") : Math.round(mb)} МБ`;
-}
 
 function fitToPoster(box, url) {
   const probe = new Image();

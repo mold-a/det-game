@@ -5,6 +5,15 @@
 
 import { b64uDecode, openMedia } from "./crypto.js";
 
+/** Размер файла по-русски, десятичные единицы (1 МБ = 1 000 000 байт): 24000000 → «24 МБ», 512000 → «512 КБ». */
+export function formatSize(bytes) {
+  if (!(bytes > 0)) return "";
+  const kb = bytes / 1000;
+  if (kb < 1000) return `${Math.round(kb)} КБ`;
+  const mb = kb / 1000;
+  return `${mb < 10 ? mb.toFixed(1).replace(".", ",") : Math.round(mb)} МБ`;
+}
+
 const blobUrls = new Map(); // src → Promise<string> (один файл расшифровывается один раз)
 
 /**

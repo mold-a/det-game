@@ -1,8 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { hydrateMedia, mediaUrl, whenNear, revokeAll } from "../../site/assets/js/core/media.js";
+import { hydrateMedia, mediaUrl, formatSize, whenNear, revokeAll } from "../../site/assets/js/core/media.js";
 import { sealMedia, b64uEncode, randomBytes } from "../../site/assets/js/core/crypto.js";
-import { formatSize } from "../../site/assets/js/pages/social.js";
 
 function fakeNode(tag, attrs = {}) {
   const a = { ...attrs };
@@ -117,7 +116,9 @@ test("hydrateMedia: зашифрованные lazy-фото ждут экран
 
 test("formatSize: КБ и МБ по-русски", () => {
   assert.equal(formatSize(0), "");
-  assert.equal(formatSize(512000), "500 КБ");
-  assert.equal(formatSize(5.5 * 1024 * 1024), "5,5 МБ");
-  assert.equal(formatSize(24 * 1024 * 1024), "24 МБ");
+  assert.equal(formatSize(512000), "512 КБ");
+  assert.equal(formatSize(5_500_000), "5,5 МБ");
+  assert.equal(formatSize(24_000_000), "24 МБ");
+  // видео из content/pages/video: 1 376 492 Б → «1,4 МБ» (как в «Свойствах файла»)
+  assert.equal(formatSize(1_376_492), "1,4 МБ");
 });

@@ -400,6 +400,7 @@ body.page--social {
 .kr-post__time,
 .kr-post__geo {
   white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .kr-post__geo {
@@ -879,9 +880,16 @@ body.page--social {
   display: flex;
   align-items: center;
   min-height: 44px;
-  color: var(--kr-brand);
+  /* на плашке --kr-brand-soft чистый --kr-brand даёт 4,18:1; тёмная тема — отдельно ниже */
+  color: color-mix(in srgb, var(--kr-brand) 80%, #000);
   font-weight: 700;
   cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .kr-voice__tr-summary {
+    color: var(--kr-brand);
+  }
 }
 
 .kr-voice__tr-text {

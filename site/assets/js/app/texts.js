@@ -162,7 +162,9 @@ export const T = Object.freeze({
     acceptedEnvelope: (n) => `Ответ принят. Откройте конверт №${n}.`,
     wrong: "Ответ не подтверждается материалами дела.",
     repeat: "Этот ответ уже проверяли.",
-    bonusRight: (points) => `Ответ принят. ${signed(Math.abs(points))} ${pointsWord(points)}.`,
+    // «Ответ принят.» вынесено: в окне конверта оно уже есть в заголовке (on_complete), там — только баллы
+    bonusPoints: (points) => `${signed(Math.abs(points))} ${pointsWord(points)}.`,
+    bonusRight: (points) => `${T.result.accepted} ${T.result.bonusPoints(points)}`,
     bonusWrong: "Ответ не подтверждается материалами дела. Бонусный вопрос закрыт.",
     autoHint: "Открыта подсказка 1 уровня — бесплатно.",
   },

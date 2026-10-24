@@ -760,6 +760,7 @@ th[aria-sort="descending"] .tc-sort {
 }
 
 /* Плитка папки сжимается в своей колонке сетки; длинные названия переносятся (QA). */
+.tc-folders,
 .tc-folders__list > *,
 .tc-folder {
   min-width: 0;
