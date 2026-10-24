@@ -1,32 +1,21 @@
-{# Протокол осмотра (места, предмета, автомобиля): шапка следственного отдела с эмблемой, № дела,
-   крупный заголовок; ячейки бланка «от руки» — место и дата, время начала и окончания, объект,
-   кто осмотрел, участники, условия; текст, подписи; «Лист N» внизу листа.
-   meta: start, end — «22:05»; by — кто составил; object — что осмотрено; participants — участвующие
-   лица (строка или список); conditions — условия осмотра (освещение, погода). #}
+{# Протокол осмотра (места, предмета, автомобиля) — стиль «Департамент»: «ПРОТОКОЛ / ОСМОТРА»,
+   мини-блок следственного отдела; поля «МЕТКА: значение» — дата и время (date, meta.start, meta.end),
+   место (place), объект (meta.object), кто осмотрел (meta.by), участвующие лица (meta.participants),
+   условия (meta.conditions); подзаголовок meta.subtitle — строкой под шапкой; текст, подписи;
+   «Лист N» внизу листа. QR-код страницы (если есть) — справа под шапкой. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
+{% block fields %}
 {% set start = doc.meta.get('start') or m.iso_time(doc.date)|trim %}
 {% set end = doc.meta.get('end') %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "police", m.case(w)) }}
-  <div class="proto__titlerow">
-    <h1 class="paper__title proto__title">{{ doc.title }}</h1>
-    {% if doc.meta.get('number') %}<div class="proto__hand">№ {{ (doc.meta.get('number')|string).replace('№', '')|trim }}</div>{% endif %}
-  </div>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-</header>
-<div class="proto__fields proto__fields--form">
-  <div class="fld fld--date"><span class="fld__label">Место и дата составления</span><span class="fld__value">г. {{ w.city }}{% if doc.date %}, {{ m.longdate(doc.date) }}{% endif %}</span></div>
-  {% if start %}<div class="fld fld--time"><span class="fld__label">Осмотр начат в</span><span class="fld__value">{{ m.hm(start) }}</span></div>{% endif %}
-  {% if end %}<div class="fld fld--time"><span class="fld__label">Осмотр окончен в</span><span class="fld__value">{{ m.hm(end) }}</span></div>{% endif %}
-  {% if doc.place %}<div class="fld fld--wide"><span class="fld__label">Место осмотра</span><span class="fld__value">{{ doc.place }}</span></div>{% endif %}
-  {% if doc.meta.get('object') %}<div class="fld fld--wide"><span class="fld__label">Объект осмотра</span><span class="fld__value">{{ doc.meta.get('object') }}</span></div>{% endif %}
-  {% if doc.meta.get('by') %}<div class="fld fld--wide"><span class="fld__label">Осмотр произвёл</span><span class="fld__value">{{ m.lines(doc.meta.get('by')) }}</span></div>{% endif %}
-  {% if doc.meta.get('participants') %}<div class="fld fld--wide"><span class="fld__label">Участвующие лица</span><span class="fld__value">{{ m.lines(doc.meta.get('participants')) }}</span></div>{% endif %}
-  {% if doc.meta.get('conditions') %}<div class="fld fld--wide"><span class="fld__label">Условия осмотра</span><span class="fld__value">{{ doc.meta.get('conditions') }}</span></div>{% endif %}
-</div>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
-{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "", "") if doc.meta.get('seal') else "") }}
+{% set when = (doc.date|dt('date') if doc.date else '') ~ ((', ' ~ start ~ ('–' ~ end if end else '')) if start else '') %}
+{{ m.kv([
+  {'label': 'Дата, время', 'value': when},
+  {'label': 'Место осмотра', 'value': doc.place},
+  {'label': 'Объект осмотра', 'value': doc.meta.get('object')},
+  {'label': 'Осмотр произвёл', 'value': doc.meta.get('by')},
+  {'label': 'Участвующие лица', 'value': doc.meta.get('participants')},
+  {'label': 'Условия осмотра', 'value': doc.meta.get('conditions')},
+]) }}
 {% endblock %}
+{% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "", "") if doc.meta.get('seal') else "") }}{% endblock %}

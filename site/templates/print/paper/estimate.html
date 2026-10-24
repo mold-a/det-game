@@ -1,24 +1,14 @@
-{# Смета и договор: шапка организации-исполнителя (meta.org, реквизиты meta.address — ИНН, адрес,
-   счёт… вымышленные), справа гриф «Утверждаю» (meta.approve — строки: должность, ФИО, дата),
-   заголовок, «№ … от …», таблицы в тексте (суммы вправо; строка с **жирным** — итог, двойная
-   линия сверху), договор — разделом «## …» (с нового листа — <div class="page-break"></div>),
-   подписи и печать организации (meta.seal), пометка «М. П.». #}
+{# Смета и договор — стиль «Департамент»: «СМЕТА», мини-блок организации-исполнителя (meta.org,
+   реквизиты meta.address — вымышленные), № и дата; справа под шапкой — гриф «Утверждаю» (meta.approve —
+   строки: должность, ФИО, дата); тема meta.subtitle; таблицы в тексте (суммы вправо; строка с **жирным**
+   — итог), договор — разделом «## …» (с нового листа — <div class="page-break"></div>); подписи
+   и печать организации (meta.seal), пометка «М. П.». #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-{% set org = doc.meta.get('org') %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "none", "", doc.meta.get('address')) }}
-  {% if doc.meta.get('approve') %}
-  <div class="est__approve"><div class="est__approve-h">Утверждаю</div>{{ m.lines(doc.meta.get('approve')) }}{{ m.uline("", "(подпись)") }}</div>
-  {% endif %}
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('number') or doc.date %}<div class="memo__no">{% if doc.meta.get('number') %}№ {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}{% if doc.date %} от {{ doc.date|dt('date') }}{% endif %}</div>{% endif %}
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-  {% if doc.place %}<div class="paper__requisites"><span class="paper__place">{{ doc.place }}</span></div>{% endif %}
-</header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
+{% block header %}{{ m.hd(doc, w, "none", [m.no_row(doc), m.date_row(doc)], extra=doc.meta.get('address')) }}{% endblock %}
+{% block qr %}{% if doc.meta.get('approve') %}<div class="approve"><div class="approve__h">Утверждаю</div>{{ m.lines(doc.meta.get('approve')) }}{{ m.uline("", "(подпись)") }}</div>{% endif %}{% endblock %}
+{% block fields %}{{ m.kv([{'label': 'Место', 'value': doc.place}]) }}{% endblock %}
+{% block signatures %}
 {{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для документов")) }}
 {% if doc.signed %}<div class="mp">М. П.</div>{% endif %}
 {% endblock %}

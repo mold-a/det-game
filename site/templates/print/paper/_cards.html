@@ -1,10 +1,10 @@
-{# Фото-карточки персонажей конверта (engine/paper.py: cast_cards → print/paper/cards-<N>.pdf):
-   полароид — фото (как в протоколе: photo персонажа или portraits/<id>.jpg), ФИО «от руки» и роль
-   печатью — ровно как в строке «Опрошен(а)» первого протокола человека. 3 × 3 на лист A4, пунктир —
-   линии реза. Контекст: sheets — [[{id, name, role, src, exists}]], stage, w, print_cfg, page_margin. #}
+{# Фото-карточки персонажей конверта (engine/paper.py: cast_cards → print/paper/cards-<N>.pdf): полароид —
+   фото (как в протоколе: photo персонажа или portraits/<id>.jpg), под ним ФИО «машинописью» (PT Mono)
+   и роль (PT Sans) — ровно как в строке «Опрошен(а)» первого протокола человека. 3 × 3 на лист A4,
+   пунктир — линии реза. Контекст: sheets — [[{id, name, role, src, exists}]], stage, w, print_cfg, page_margin. #}
 {% extends "print/_print_base.html" %}
 {% import "print/paper/_brand.html" as br %}
-{% block title %}Фото-карточки · конверт {{ stage }}{% endblock %}
+{% block title %}Фото-карточки, конверт {{ stage }}{% endblock %}
 {% block style %}
 {% include "print/paper/paper.css" %}
 @page { margin: 10mm 12mm 10mm 12mm; }
@@ -14,7 +14,7 @@
 <span class="font-load" aria-hidden="true">0123456789</span>
 {% for sheet in sheets %}
 <section class="cards-sheet" data-stage="{{ stage }}">
-  <div class="cards-head"><span>Дело № {{ w.police.case_no }} · конверт {{ stage }} · фото-карточки</span><span>✂ вырезать по пунктиру</span></div>
+  <div class="cards-head"><span>Дело № {{ w.police.case_no }}, конверт {{ stage }}: фото-карточки</span><span>✂ вырезать по пунктиру</span></div>
   <div class="cards">
     {% for p in sheet %}
     <div class="card" data-person="{{ p.id }}">

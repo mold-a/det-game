@@ -1,21 +1,9 @@
-{# Справка: угловой штамп организации (meta.org, meta.address, № и дата), адресат meta.to справа,
-   крупный заголовок разрядкой, текст, подпись и печать организации (meta.seal: текст в центре
-   или false). QR-код страницы (если есть) — в правом верхнем углу. Входящая справка (чужая организация)
-   — с резолюцией «К делу» красным карандашом под адресатом (meta.resolution: false — без неё). #}
+{# Справка — стиль «Департамент»: «СПРАВКА» (или заголовок из короткого названия: «СВЕДЕНИЯ / О ВХОДЯЩЕМ
+   ВЫЗОВЕ»), мини-блок организации (meta.org, meta.address), «Дело № …» (у следствия и полиции), № и дата;
+   поле «Кому:» (meta.to); тема meta.subtitle — строкой под шапкой; QR-код страницы (если есть) — справа
+   под шапкой; текст, подпись и печать организации (meta.seal: текст в центре или false). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-<header class="paper__head">
-  {% set side %}{% if m.org_text(doc, w, "none")|trim == w.police.department %}{{ m.case(w) }}{% endif %}{% endset %}
-  {{ m.masthead(doc, w, "none", side, doc.meta.get('address')) }}
-  <div class="letterrow">
-    {{ m.refno(doc) }}
-    <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{% if m.org_text(doc, w, "none")|trim != w.police.department %}{{ m.resolution(doc) }}{% endif %}</div>
-  </div>
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-</header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
-{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для справок")) }}
-{% endblock %}
+{% block header %}{{ m.hd(doc, w, "none", [m.case_row(w) if doc.brand in ("so", "police") else "", m.no_row(doc), m.date_row(doc)], extra=doc.meta.get('address')) }}{% endblock %}
+{% block fields %}{{ m.kv([{'label': 'Кому', 'value': doc.meta.get('to')}]) }}{% endblock %}
+{% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для справок")) }}{% endblock %}

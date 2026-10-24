@@ -1,0 +1,11 @@
+{# Шапка документов театра в айдентике его сайта (site/assets/css/pages/site-theater.css): PT Serif,
+   бордо и золото, знак-маска в круге. План здания, программка. #}
+{% import "print/paper/_brand.html" as br %}
+{% macro th_head(doc, w) -%}
+<header class="th">
+  <div class="th__mark">{{ br.roundel("theater") }}</div>
+  <div class="th__org">{{ (doc.meta.get('org') if doc.meta.get('org') is string else (doc.meta.get('org') or [w.theater.full])|join(', ')) }}</div>
+  <h1 class="th__title">{{ doc.title }}</h1>
+  {% if doc.meta.get('subtitle') %}<p class="th__sub">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+</header>
+{%- endmacro %}

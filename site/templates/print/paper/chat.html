@@ -1,14 +1,17 @@
-{# Снимки экрана телефона: шапка следственного отдела, № дела, заголовок, «скриншоты» из
-   content/chats/<id>.yaml (doc.chats) по два в ряд в рамке телефона (два снимка — один лист),
-   подписи «Снимок N» (или meta.captions), затем текст (если есть) и подписи. #}
+{# Снимки экрана телефона — альбомный лист A4 (docs/05 §4, по ref-64): «скриншоты» из content/chats/<id>.yaml
+   (doc.chats, engine/chatshot.py в варианте для бумаги — светлый экран) экранами в ряд, до 4 в ряду,
+   в тонкой скруглённой рамке; подписи «Снимок N» (или meta.captions). Вымышленный мессенджер — без
+   логотипов реальных сервисов. Сверху — компактная шапка «СНИМКИ ЭКРАНА», снизу — текст (если есть). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% block header %}{{ m.hd(doc, w, "police", [m.case_row(w), m.date_row(doc)], cls="hd--compact") }}{% endblock %}
 {% block before_body %}
 {% if doc.chats %}
 {% set caps = doc.meta.get('captions') or [] %}
-<div class="paper__chats">
+{% set n = doc.chats|length %}
+<div class="phones phones--{{ [n, 4]|min }}">
   {% for src in doc.chats %}
-  <figure><div class="phone"><img src="{{ src }}" alt=""></div><figcaption>Снимок {{ loop.index }}{% if caps[loop.index0] is defined %}. {{ caps[loop.index0] }}{% endif %}</figcaption></figure>
+  <figure class="phones__item"><div class="phones__screen"><img src="{{ src }}" alt=""></div><figcaption>Снимок {{ loop.index }}{% if caps[loop.index0] is defined %}. {{ caps[loop.index0] }}{% endif %}</figcaption></figure>
   {% endfor %}
 </div>
 {% endif %}

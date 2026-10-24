@@ -1,10 +1,12 @@
-{# Фототаблица: шапка следственного отдела, № дела, место и дата; снимки media в сетке
-   (meta.columns: 1–3, по умолчанию 2, при 5 и более снимках — 3; meta.aspect — пропорции кадра, «4 / 3» по умолчанию,
-   для камер — «16 / 9»), подписи «Фото N. …» из meta.captions; текст — под снимками;
-   подписи и печать отдела «Для пакетов» (meta.seal: false — без печати). #}
+{# Фототаблица — стиль «Департамент»: «ФОТОТАБЛИЦА», мини-блок следственного отдела, «Дело № …», дата;
+   meta.subtitle («к протоколу осмотра …») — строкой под шапкой; поле «Место:» (place); снимки media
+   в сетке (meta.columns: 1–3, по умолчанию 2, при 5 и более снимках — 3; meta.aspect — пропорции кадра,
+   «4 / 3» по умолчанию, для камер — «16 / 9») в тонкой рамке, подписи «ФОТО N.» из meta.captions;
+   текст — под снимками; подписи и печать отдела «Для пакетов» (meta.seal: false — без печати). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% macro photos() %}
+{% block fields %}{{ m.kv([{'label': 'Место', 'value': doc.place}]) }}{% endblock %}
+{% block before_body %}
 {% if doc.media %}
 {% set caps = doc.meta.get('captions') or [] %}
 {% set cols = doc.meta.get('columns') or (3 if doc.media|length > 4 else 2) %}
@@ -17,8 +19,6 @@
   {% endfor %}
 </div>
 {% endif %}
-{% endmacro %}
-{% block before_body %}{{ photos() }}{% endblock %}
+{% endblock %}
 {% block media %}{% endblock %}
-{% block body %}{{ doc.body_html }}{% endblock %}
 {% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), "Для пакетов")) }}{% endblock %}

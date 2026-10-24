@@ -1,12 +1,13 @@
-{# Рапорт: короткий служебный документ. Шапка следственного отдела (или meta.org), № дела,
-   адресат meta.to справа («Начальнику …»), от кого meta.from, заголовок разрядкой, текст с красной
-   строки, подпись и дата под ней (длинная форма: «10» ноября 2026 г.). Текст — машинопись (PT Mono);
-   резолюция «К делу» красным карандашом (meta.resolution: false — без неё). #}
+{# Рапорт — стиль «Департамент»: «РАПОРТ», мини-блок отдела полиции (meta.org), «Дело № …», дата и время
+   (date «…T23:30»); поля «Кому:» (meta.to) и «От кого:» (meta.from; начальное «от » опускается — его
+   заменяет метка); текст во всю ширину; подпись с росчерком. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block docmark %}{{ super() }}{{ m.resolution(doc) }}{% endblock %}
-{% block requisites %}{% if doc.place %}<div class="paper__requisites"><span class="paper__place">{{ doc.place }}</span></div>{% endif %}{% endblock %}
-{% block signatures %}
-{{ m.signatures(doc) }}
-{% if doc.date %}<div class="report__date">{{ m.longdate(doc.date) }}{% set t = m.iso_time(doc.date)|trim %}{% if t %}, {{ t }}{% endif %}</div>{% endif %}
+{% block header %}{{ m.hd(doc, w, "police", [m.case_row(w), m.no_row(doc), ("Дата: " ~ doc.date|dt) if doc.date else ""]) }}{% endblock %}
+{% block fields %}
+{% set to = doc.meta.get('to') %}{% set fr = doc.meta.get('from') %}
+{% set to = to if to is string else (to or [])|join(' ') %}
+{% set fr = fr if fr is string else (fr or [])|join(' ') %}
+{% set fr = fr[3:] if fr.startswith('от ') else fr %}
+{{ m.kv([{'label': 'Кому', 'value': to}, {'label': 'От кого', 'value': fr.rstrip(',')}, {'label': 'Место', 'value': doc.place}]) }}
 {% endblock %}

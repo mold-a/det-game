@@ -1,22 +1,17 @@
-{# Общий каркас документа; бланки <form>.html его расширяют. Контекст — в _base.html. #}
+{# Общий каркас документа в стиле «Департамент» (docs/05 §4); бланки <form>.html его расширяют.
+   Контекст — в _base.html. Блоки: header (шапка m.hd), qr (QR справа под шапкой), subject (meta.subtitle
+   отдельной строкой под шапкой), fields (поля «МЕТКА: значение»), before_body, body, media, after_body,
+   signatures. Весь лист — блок sheet. #}
 {% import "print/paper/_macros.html" as m with context %}
 {% set footer = {"protocol": "sheeted", "inspection": "sheeted", "forensic": "sheeted", "registry": "numbered"}.get(doc.form) %}
-{{ m.page_rule(doc, w, footer) }}
-<article class="paper paper--{{ doc.form }} brand--{{ doc.brand }}{% if doc.qr %} paper--qr{% endif %}" style="page: doc-{{ doc.id }}" id="doc-{{ doc.id }}" data-doc="{{ doc.id }}" data-form="{{ doc.form }}">
-  {% if doc.qr %}
-  <figure class="paper__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>
-  {% endif %}
+{{ m.page_rule(doc, w, footer, "A4 landscape" if doc.form == "chat" else None) }}
+<article class="paper paper--{{ doc.form }} brand--{{ doc.brand }}{% if doc.qr %} paper--qr{% endif %}{% if doc.part_kind != 'whole' %} paper--{{ doc.part_kind }}{% endif %}" style="page: doc-{{ doc.id }}" id="doc-{{ doc.id }}" data-doc="{{ doc.id }}" data-form="{{ doc.form }}">
   {% block docmark %}{{ m.docmark(doc, w) }}{% endblock %}
   {% block sheet %}
-  <header class="paper__head">
-    {% block org %}{{ m.masthead(doc, w, "police", m.case(w)) }}{% endblock %}
-    {% block number %}{% if doc.meta.get('number') %}<div class="paper__number">{{ doc.meta.get('number') }}</div>{% endif %}{% endblock %}
-    {% block address %}{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
-    {% if doc.meta.get('from') %}<div class="paper__from">{{ m.lines(doc.meta.get('from')) }}</div>{% endif %}{% endblock %}
-    {% block heading %}<h1 class="paper__title">{{ doc.title }}</h1>{% endblock %}
-    {% block subtitle %}{% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}{% endblock %}
-    {% block requisites %}{{ m.requisites(doc) }}{% endblock %}
-  </header>
+  {% block header %}{{ m.hd(doc, w, "police", [m.case_row(w), m.no_row(doc), m.date_row(doc)]) }}{% endblock %}
+  {% block qr %}{% if doc.qr %}<figure class="paper__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>{% endif %}{% endblock %}
+  {% block subject %}{% if doc.meta.get('subtitle') %}<p class="subj">{{ doc.meta.get('subtitle') }}</p>{% endif %}{% endblock %}
+  {% block fields %}{% endblock %}
   {% block before_body %}{% endblock %}
   <div class="paper__body">{% block body %}{{ doc.body_html }}{% endblock %}</div>
   {% block media %}{{ m.media(doc) }}{% endblock %}

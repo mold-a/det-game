@@ -1,4 +1,4 @@
-{# Программка спектакля: лист A4 в театральной рамке. Название театра, сезон (meta.season), маска,
+{# Программка спектакля в айдентике театра (как сайт театра: PT Serif, бордо и золото): лист A4 в рамке. Название театра, сезон (meta.season), маска,
    автор (meta.author), крупное название (title), жанр (meta.subtitle), дата и место, текст
    в две колонки: «## Действующие лица и исполнители» — таблица «роль | исполнитель» с отточием,
    «## Порядок спектакля» и т. д. Внизу — meta.footer (строка, необязательно).
@@ -30,7 +30,7 @@
   {% if doc.meta.get('subtitle') %}<p class="prog__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
   <svg class="prog__rule" viewBox="0 0 140 10" aria-hidden="true"><path d="M2 5 H58 M82 5 H138" stroke="currentColor" stroke-width=".6"/><path d="M70 1 L74 5 L70 9 L66 5 Z" fill="currentColor"/><circle cx="62" cy="5" r="1.2" fill="currentColor"/><circle cx="78" cy="5" r="1.2" fill="currentColor"/></svg>
   {% if doc.date or doc.place %}
-  <div class="prog__when">{% if doc.date %}<b>{{ m.longdate(doc.date)|replace('«', '')|replace('»', '')|replace(' г.', ' года') }}</b>{% set t = m.iso_time(doc.date)|trim %}{% if t %} · начало в {{ t }}{% endif %}{% endif %}{% if doc.place %}<br>{{ doc.place }}{% endif %}</div>
+  <div class="prog__when">{% if doc.date %}<b>{{ m.longdate(doc.date)|replace('«', '')|replace('»', '')|replace(' г.', ' года') }}</b>{% set t = m.iso_time(doc.date)|trim %}{% if t %}, начало в {{ t }}{% endif %}{% endif %}{% if doc.place %}<br>{{ doc.place }}{% endif %}</div>
   {% endif %}
   <div class="paper__body">{{ doc.body_html }}</div>
   {% if doc.meta.get('footer') %}<div class="prog__foot">{{ m.lines(doc.meta.get('footer')) }}</div>{% endif %}

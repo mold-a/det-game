@@ -41,28 +41,33 @@
     page_margin  поля листа для @page («16mm 16mm 18mm 22mm», engine/paper.py PAGE_MARGIN_MM)
     case_barcode SVG штрихкода дела (Code 39 номера дела)
 
-  ОБЩИЕ КЛЮЧИ meta (понимает _doc.html, для всех бланков)
-    org      шапка организации вместо умолчания бланка (строка или список строк)
-    number   номер документа («№ 123»)
-    to       адресат (строка или список строк) — блок справа над заголовком
-    from     от кого (строка или список строк)
-    subtitle подзаголовок под заголовком
-    captions подписи к изображениям media (список строк, по порядку)
-    resolution false — без резолюции «К делу» красным карандашом (входящие: рапорт, справка, заключение…)
+  СТИЛЬ «ДЕПАРТАМЕНТ» (docs/05 §4): белый лист; doc.headline — {lines, official, size} крупного заголовка
+    (engine/paper.py: headline; meta.headline — свой заголовок); m.hd — шапка (заголовок, мини-блок,
+    круглый знак br.roundel); m.kv — поля «МЕТКА: значение»; m.photo — крупное фото; подписи в строку.
+    Протокол: doc.proto / раздел.proto — {rows, asker, answerer, who, when, where, date, body}
+    (engine/paper.py: interview); doc.part_kind — whole | summary (сводный лист «Опись протоколов»,
+    doc.summary: {rows, note}) | section. Средняя точка как разделитель запрещена (no_middot).
 
-  ОБЩИЕ МАКРОСЫ (_macros.html): masthead (шапка с эмблемой), cellgrid (ячейки), mugshot (полароид),
-    emblem, case, refno, seal, signatures, resolution …
+  ОБЩИЕ КЛЮЧИ meta (понимают _doc.html и бланки)
+    org      организация вместо умолчания бланка (строка или список строк) — мелко в мини-блоке
+    number   номер документа («№ 123»)
+    headline свой крупный заголовок: строка («Протокол / допроса») или список строк
+    to       адресат — поле «Кому:» (письмо — блоком справа)
+    from     от кого — поле «От кого:»
+    subtitle тема документа — строкой под шапкой
+    captions подписи к изображениям media (список строк, по порядку)
+
+  ОБЩИЕ МАКРОСЫ (_macros.html): hd, kv, photo, signatures, seal, rstamp, media, lines, no, longdate …
 
   БЛАНК: print/paper/<form>.html — {% extends "print/paper/_doc.html" %} и переопределение блоков
-    org, case, heading, requisites, before_body, body, media, after_body, signatures.
+    header, qr, subject, fields, before_body, body, media, after_body, signatures (или всего sheet).
   Новый бланк = новый файл <form>.html (список бланков проверяется по наличию шаблона).
 
-  КЛАССЫ (для дизайна): .paper (документ), .paper--<form>, .brand--<key>, .paper--stub, .paper--qr,
-    .mast (шапка: __emblem, __name, __sub, __addr, __side), .cellgrid/.cell, .polaroid, .bodychart,
-    .paper__qr, .paper__head, .paper__org, .paper__case, .paper__number, .paper__to, .paper__from,
-    .paper__title, .paper__subtitle, .paper__requisites (.paper__place, .paper__date), .paper__body,
-    .paper__media (.paper__figure), .paper__chats, .paper__signatures (.paper__sign),
-    .paper__missing (нет файла — видно при печати).
+  КЛАССЫ (для дизайна): .paper, .paper--<form>, .paper--summary/.paper--section, .brand--<key>, .paper--qr,
+    .hd (__title, __right, __meta, __org, __official, __roundel), .subj, .kv (__row, __l, __v, __gap),
+    .top/.idphoto, .qa/.who--q/.who--a, .proto__note, .opis, .bodychart, .times, .lh (письмо),
+    .photos, .cutout (вырезаемые билет и записка), .phones (снимки экрана), .th (театр), .paper__qr,
+    .paper__body, .paper__signatures (.paper__sign), .paper__missing (нет файла — видно при печати).
   Только вымышленные организации из world.yaml и meta.org — никаких реальных гербов и символики.
 #}
 {% extends "print/_print_base.html" %}
@@ -72,14 +77,14 @@
 {% include "print/paper/paper.css" %}
 {% endblock %}
 {% block body %}
-{# Номер листа дела «от руки» в правом верхнем углу лицевой страницы (duplex — только нечётные):
+{# Номер листа дела «от руки» (графитом) в правом верхнем углу лицевой страницы (duplex — только нечётные):
    сквозной по конверту, начиная с doc.sheet_start (engine/paper.py; без --only). #}
 {% set first = docs[0] if docs else none %}
 {% if first and first.sheet_start is not none %}
 <style>
 html { counter-reset: sheet {{ first.sheet_start - 1 }}; }
 @page{% if print_cfg.duplex %} :right{% endif %} { counter-increment: sheet;
-  @top-right { content: counter(sheet); font-family: "Caveat", cursive; font-weight: 600; font-size: 19pt; color: #1c3f99;
+  @top-right { content: counter(sheet); font-family: "Caveat", cursive; font-weight: 600; font-size: 19pt; color: #77736d;
     vertical-align: bottom; padding-bottom: 2.5mm; } }
 </style>
 {% endif %}

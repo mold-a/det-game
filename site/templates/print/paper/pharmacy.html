@@ -1,45 +1,41 @@
-{# Ответ аптеки и копия рецепта: угловой штамп аптеки (meta.org — вымышленная аптека, meta.address,
-   № и дата), адресат meta.to, заголовок, текст, подпись и печать аптеки (meta.seal);
-   ниже линии отреза — «копия рецепта»: бланк по meta.recipe и/или сканы media, штамп «Копия верна».
-   meta.recipe: {clinic — медорганизация (штамп), kind — вид рецепта (по умолчанию «Рецепт»),
+{# Ответ аптеки и копия рецепта — стиль «Департамент»: «ОТВЕТ / НА ЗАПРОС», мини-блок аптеки (meta.org —
+   вымышленная аптека, meta.address), № и дата, круглый знак; «Кому:» (meta.to); тема meta.subtitle;
+   текст, подпись и печать аптеки (meta.seal); ниже — «Приложение: копия рецепта»: бланк по meta.recipe
+   и/или сканы media, штамп «Копия верна».
+   meta.recipe: {clinic — медорганизация (штамп), kind — вид рецепта (по умолчанию «Рецепт»), series,
      date, patient, age, doctor, rp — назначение (строка или список строк), note — пометка аптеки}.
    meta.certified — текст штампа заверения (по умолчанию «Копия верна»). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% block header %}{{ m.hd(doc, w, "none", [m.no_row(doc, "Исх. №"), m.date_row(doc)], extra=doc.meta.get('address')) }}{% endblock %}
+{% block fields %}{{ m.kv([{'label': 'Кому', 'value': doc.meta.get('to')}]) }}{% endblock %}
+{% block media %}{% endblock %}
+{% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для рецептов")) }}{% endblock %}
+{% block after_body %}{% endblock %}
 {% block sheet %}
+{{ super() }}
 {% set rx = doc.meta.get('recipe') %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "none", "", doc.meta.get('address')) }}
-  <div class="letterrow">
-    {{ m.refno(doc) }}
-    <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{{ m.resolution(doc) }}</div>
-  </div>
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-</header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для рецептов")) }}
 {% if rx or doc.media %}
 <section class="rx-wrap">
-  <div class="rx-wrap__label">Приложение · копия рецепта</div>
+  <div class="rx-wrap__label">Приложение: копия рецепта</div>
   <div class="rx-row">
     {% if rx %}
     <div class="rx">
       <div class="rx__top">
         <div class="rx__clinic"><small>штамп медицинской организации</small>{{ m.lines(rx.get('clinic') or '') }}</div>
-        <div class="rx__kind"><b>{{ rx.get('kind') or "Рецепт" }}</b>{% if rx.get('series') %}{{ rx.get('series') }}{% endif %}</div>
+        <div class="rx__kind"><b>{{ rx.get('kind') or "Рецепт" }}</b>{% if rx.get('series') %}<span>{{ rx.get('series') }}</span>{% endif %}</div>
       </div>
       {{ m.field("Дата выписки", rx.get('date')|dt('date') if rx.get('date') else "") }}
       {{ m.field("Пациент", rx.get('patient') or "") }}
       {% if rx.get('age') %}{{ m.field("Возраст", rx.get('age')) }}{% endif %}
       {{ m.field("Врач", rx.get('doctor') or "") }}
       <div class="rx__rp"><b>Rp.:</b>{{ m.lines(rx.get('rp') or '') }}</div>
-      {% if rx.get('note') %}<div class="ticket-sheet__note">{{ m.lines(rx.get('note')) }}</div>{% endif %}
       <div class="rx__sign"><span>подпись врача</span><span>личная печать врача</span></div>
       {% if rx.get('clinic') %}{{ m.seal(doc, rx.get('clinic') if rx.get('clinic') is string else rx.get('clinic')|join(' '), "Для рецептов", "rx-seal") }}{% endif %}
     </div>
     {% endif %}
-    <div class="rx__certified">
+    <div class="rx__side">
+      {% if rx and rx.get('note') %}<p class="rx__note">{{ m.lines(rx.get('note')) }}</p>{% endif %}
       {{ m.rstamp([doc.meta.get('certified') or "Копия верна"] + ([doc.date|dt('date')] if doc.date else [])) }}
     </div>
   </div>

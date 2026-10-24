@@ -1,22 +1,9 @@
-{# Справка пресс-службы администрации: официальный бланк вымышленной администрации — шапка по центру
-   (meta.org: строки, например «Администрация города …», «Пресс-служба»), адрес и контакты
-   (meta.address), двойная линия; ниже — «дата № …», плашка meta.tag («Информация для СМИ»),
-   заголовок, текст, подпись и печать (meta.seal). Никаких гербов: только текст и линии. #}
+{# Ответ пресс-службы администрации на запрос — стиль «Департамент»: заголовок из meta.tag («ОТВЕТ /
+   НА ЗАПРОС»; без него — из названия), мини-блок администрации (meta.org: «Администрация города …»,
+   «Пресс-служба»; meta.address), № и дата, круглый знак (мост над рекой — не герб); поле «Кому:»
+   (meta.to); тема meta.subtitle строкой под шапкой; текст, подпись и печать (meta.seal). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-{% set org = doc.meta.get('org') %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "none", "", doc.meta.get('address')) }}
-  <div class="letterrow letter__ref">
-    {{ m.refno(doc) }}
-    <div class="letterrow__to">{% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}{{ m.resolution(doc) }}</div>
-  </div>
-  {% if doc.meta.get('tag') %}<div class="press__tag">{{ doc.meta.get('tag') }}</div>{% endif %}
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-</header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
-{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для документов")) }}
-{% endblock %}
+{% block header %}{{ m.hd(doc, w, "none", [m.no_row(doc), m.date_row(doc)], extra=doc.meta.get('address')) }}{% endblock %}
+{% block fields %}{{ m.kv([{'label': 'Кому', 'value': doc.meta.get('to')}]) }}{% endblock %}
+{% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для документов")) }}{% endblock %}

@@ -1,91 +1,73 @@
-{# Общие части бланков бумажных документов (см. контекст в _base.html). #}
+{# Общие части бланков бумажных документов (см. контекст в _base.html). Стиль «Департамент» (docs/05 §4):
+   белый лист; крупный заголовок слева (doc.headline, Tektur 800); справа — мини-блок (организация, № дела,
+   № документа, дата) и круглый знак организации; поля «МЕТКА: значение»; крупное фото; текст во всю ширину.
+   Средняя точка (U+00B7) как разделитель запрещена — только запятая, точка, тире или перенос строки. #}
 {% import "print/paper/_brand.html" as br %}
 {% macro emblem(key, cls="") -%}{{ br.emblem(key, cls) }}{%- endmacro %}
-{% macro lines(v) -%}
-{% if v is string %}{{ v }}{% else %}{% for x in v %}{{ x }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% endif %}
+{% macro lines(v, sep="<br>") -%}
+{% if v is string %}{{ v }}{% elif v %}{% for x in v %}{{ x }}{% if not loop.last %}{{ sep|safe }}{% endif %}{% endfor %}{% endif %}
 {%- endmacro %}
 
-{# Шапка организации: meta.org важнее умолчания бланка (police | theater | none). #}
-{% macro org(doc, w, default) -%}
-{% set custom = doc.meta.get('org') %}
-{% if custom %}
-<div class="paper__org">{{ lines(custom) }}</div>
-{% elif default == "police" %}
-<div class="paper__org">{{ w.police.department }}</div>
-{% elif default == "theater" %}
-<div class="paper__org">{{ w.theater.full }}</div>
-{% endif %}
-{%- endmacro %}
-
-{# Название организации одной строкой (для печати-кружка). #}
+{# Название организации одной строкой (печать-кружок, штамп чертежа): meta.org или умолчание бланка. #}
 {% macro org_text(doc, w, default) -%}
 {% set custom = doc.meta.get('org') %}
-{%- if custom -%}{% if custom is string %}{{ custom }}{% else %}{{ custom|join(' · ') }}{% endif %}
+{%- if custom -%}{% if custom is string %}{{ custom }}{% else %}{{ custom|join(', ') }}{% endif %}
 {%- elif default == "police" %}{{ w.police.department }}
 {%- elif default == "theater" %}{{ w.theater.full }}
 {%- endif -%}
 {%- endmacro %}
 
-{# № дела и штрихкод дела (Code 39, engine/paper.py: barcode_svg) справа. #}
-{% macro case(w) -%}
-<div class="paper__case"><span class="paper__case-no">Дело № {{ w.police.case_no }}</span>{% if case_barcode is defined %}<span class="barcode" aria-hidden="true">{{ case_barcode }}<span class="barcode__text">*{{ w.police.case_no }}*</span></span>{% endif %}</div>
-{%- endmacro %}
+{# Номер документа без «№»: «№ 112» → «112». #}
+{% macro no(v) -%}{{ (v or '')|string|replace('№', '')|trim }}{%- endmacro %}
 
-{# Фото опрашиваемого полароидом на полоске скотча (метка <!-- person: id -->): белая рамка с широким
-   низом, подпись от руки — фамилия и инициалы. Нет файла — ничего. #}
-{% macro mugshot(p) -%}
-{% if p and p.exists %}
-<figure class="polaroid polaroid--proto" data-person="{{ p.id }}">
-  <span class="polaroid__tape" aria-hidden="true"></span>
-  <div class="polaroid__photo"><img src="{{ p.src }}" alt=""></div>
-  <figcaption class="polaroid__name">{{ p.name }}</figcaption>
-</figure>
-{% endif %}
-{%- endmacro %}
-
-{# Шапка бланка: эмблема и название организации цветом бренда (doc.brand, _brand.html), справа —
-   side (№ дела со штрихкодом, угловой штамп…); снизу — полоса цвета бренда.
-   Название: meta.org (строка или список: первая строка — организация, дальше — подразделение);
-   без него — умолчание бланка (police — следственный отдел, theater — театр, none — без названия). #}
-{% macro masthead(doc, w, default="police", side="", addr=None) -%}
+{# Шапка «Департамент»: заголовок в 1–2 строки слева (doc.headline: lines, size — engine/paper.py: headline),
+   справа мини-блок и круглый знак (doc.brand). default — организация без meta.org: police — следственный
+   отдел, theater — театр, none — без названия. rows — жирные строки мини-блока («Дело № …», «№ …», «Дата: …»);
+   official=true — полное официальное название (если заголовок не из него) мелко в мини-блоке;
+   extra — строки под названием организации (подразделение, адрес). #}
+{% macro hd(doc, w, default="police", rows=[], official=true, cls="", extra=none) -%}
+{% set hl = doc.headline %}
 {% set custom = doc.meta.get('org') %}
 {% if custom %}{% set ls = [custom] if custom is string else custom %}
 {% elif default == "police" %}{% set ls = [w.police.department] %}
 {% elif default == "theater" %}{% set ls = [w.theater.full] %}
 {% else %}{% set ls = [] %}{% endif %}
-<div class="mast">
-  {% if doc.brand != "none" %}<div class="mast__emblem">{{ br.emblem(doc.brand) }}</div>{% endif %}
-  <div class="mast__org">
-    {% if ls %}<div class="mast__name">{{ ls[0] }}</div>{% endif %}
-    {% for x in ls[1:] %}<div class="mast__sub">{{ x }}</div>{% endfor %}
-    {% if addr %}<div class="mast__addr">{{ lines(addr) }}</div>{% endif %}
+{% if extra %}{% set ls = ls + ([extra] if extra is string else extra) %}{% endif %}
+<header class="hd {{ cls }}">
+  <h1 class="hd__title" style="font-size: {{ hl.size }}pt">{% for x in hl.lines %}<span>{{ x }}</span>{% endfor %}</h1>
+  <div class="hd__right">
+    <div class="hd__meta">
+      {% if ls %}<span class="hd__org">{{ ls|join('<br>'|safe) }}</span>{% endif %}
+      {% if official and hl.official %}<span class="hd__official">{{ hl.official }}</span>{% endif %}
+      {% for r in rows %}{% if r|trim %}<b>{{ r }}</b>{% endif %}{% endfor %}
+    </div>
+    {% if doc.brand != "none" %}<div class="hd__roundel">{{ br.roundel(doc.brand) }}</div>{% endif %}
   </div>
-  {% if side|trim %}<div class="mast__side">{{ side }}</div>{% endif %}
-</div>
+</header>
 {%- endmacro %}
 
-{# Сетка ячеек бланка: [{label, value, wide}] — подпись мелко сверху, значение «от руки». #}
-{% macro cellgrid(items, cls="") -%}
-{% if items %}
-<div class="cellgrid {{ cls }}">
-  {% for it in items %}{% if it is mapping %}
-  <div class="cell{% if it.get('wide') %} cell--wide{% endif %}"><span class="cell__l">{{ it.get('label', '') }}</span><span class="cell__v">{{ lines(it.get('value', '')) }}</span></div>
-  {% endif %}{% endfor %}
+{# Строки мини-блока по умолчанию: «Дело № …» (case=true), «№ …» (meta.number), «Дата: …». #}
+{% macro case_row(w) -%}Дело № {{ w.police.case_no }}{%- endmacro %}
+{% macro date_row(doc) -%}{% if doc.date %}Дата: {{ doc.date|dt('date') }}{% endif %}{%- endmacro %}
+{% macro no_row(doc, prefix="№") -%}{% if doc.meta.get('number') %}{{ prefix }} {{ no(doc.meta.get('number')) }}{% endif %}{%- endmacro %}
+
+{# Поля «МЕТКА: значение»: [{label, value}], {items: [{label, value}, …]} — несколько пар в строку,
+   {gap: true} — пробел между группами; пустые значения не печатаются. Значение-список — через запятую. #}
+{% macro kv(rows, cls="") -%}
+{% set ns = namespace(any=false) %}
+{% for r in rows %}{% if r and (r.get('value') or r.get('items')) %}{% set ns.any = true %}{% endif %}{% endfor %}
+{% if ns.any %}
+<div class="kv {{ cls }}">
+  {% for r in rows %}{% if r and r.get('gap') %}<div class="kv__gap"></div>
+  {%- elif r and r.get('items') %}<p class="kv__row">{% for x in r.get('items') if x.get('value') %}<span class="kv__pair"><b class="kv__l">{{ x.get('label') }}:</b> <span class="kv__v">{{ lines(x.get('value'), ', ') }}</span></span>{% endfor %}</p>
+  {%- elif r and r.get('value') %}<p class="kv__row"><b class="kv__l">{{ r.get('label') }}:</b> <span class="kv__v">{{ lines(r.get('value'), ', ') }}</span></p>{% endif %}{% endfor %}
 </div>
 {% endif %}
 {%- endmacro %}
 
-{# Резолюция красным карандашом на входящем документе: «К делу», дата документа, росчерк.
-   meta.resolution: false — без неё. Только нейтральные слова: никаких сюжетных пометок. #}
-{% macro resolution(doc) -%}
-{% if doc.meta.get('resolution', true) is not false %}
-<div class="resol" aria-hidden="true"><span class="resol__text">К делу</span>{% if doc.date %}<span class="resol__date">{{ doc.date|dt('date') }}</span>{% endif %}<svg class="resol__sign" viewBox="0 0 60 18"><path d="M2 12 C6 2 10 2 11 9 S15 16 18 7 S24 3 26 10 C30 16 40 6 58 4"/></svg></div>
-{% endif %}
-{%- endmacro %}
-
-{# Галочка красным карандашом (проверено) — только оформление. #}
-{% macro tick(cls="") -%}
-<svg class="tick {{ cls }}" viewBox="0 0 20 16" aria-hidden="true"><path d="M2 8 C4 9 6 11 7.5 14 C10 8 14 4 19 1.5"/></svg>
+{# Крупное фото человека (метка <!-- person: id -->): белая рамка, тонкий контур. Нет файла — ничего. #}
+{% macro photo(p, cls="") -%}
+{% if p and p.exists %}<figure class="idphoto {{ cls }}" data-person="{{ p.id }}"><img src="{{ p.src }}" alt=""></figure>{% endif %}
 {%- endmacro %}
 
 {# Метка материалов дела (номер документа в игре, как в списке «Документы дела» на сайте).
@@ -93,35 +75,32 @@
    meta.docmark: false — не печатать. #}
 {% macro docmark(doc, w) -%}
 {% if doc.meta.get('docmark', true) is not false %}
-<div class="paper__docmark" aria-hidden="true">Дело № {{ w.police.case_no }} · документ {{ doc.id }}</div>
+<div class="paper__docmark" aria-hidden="true">Дело № {{ w.police.case_no }}, документ {{ doc.id }}</div>
 {% endif %}
 {%- endmacro %}
 
 {# Своя именованная страница документа (@page doc-<id>): метка дела в верхнем поле каждого листа
    (meta.docmark: false — без неё) и колонтитул бланка: sheeted — «Подпись …» и «Лист N»
-   (протоколы, осмотры, заключения), numbered — «Страница N» (выписки). Счёт страниц — свой у
-   каждого документа: envelope-N.pdf склеивается из отдельных <id>.pdf (engine/paper.py, pypdf). #}
-{% macro page_rule(doc, w, footer=None) -%}
-{% set bc = br.color(doc.brand) %}
+   (протоколы, осмотры, заключения), numbered — «Страница N» (выписки). size — «A4 landscape» для
+   альбомного листа (снимки экрана). Счёт страниц — свой у каждого документа: envelope-N.pdf
+   склеивается из отдельных <id>.pdf (engine/paper.py, pypdf). #}
+{% macro page_rule(doc, w, footer=None, size=None) -%}
 <style>
 @page doc-{{ doc.id }} {
+{% if size %}  size: {{ size }};{% endif %}
 {% if doc.meta.get('docmark', true) is not false %}
-  @top-left { content: "Дело № {{ w.police.case_no }} · документ {{ doc.id }}"; font-family: "PT Sans", sans-serif; font-size: 7.5pt;
-    font-weight: 700; letter-spacing: .03em; color: #5b3fa3; vertical-align: bottom; padding-bottom: 4mm; }
+  @top-left { content: "Дело № {{ w.police.case_no }}, документ {{ doc.id }}"; font-family: "PT Sans", sans-serif; font-size: 7.5pt;
+    letter-spacing: .02em; color: #6b6f76; vertical-align: bottom; padding-bottom: 3.5mm; }
 {% endif %}
 {% if footer == "sheeted" %}
-  @bottom-left { content: "Подпись ____________________"; font-family: "PT Sans", sans-serif; font-size: 7.5pt; color: #666; }
-  @bottom-right { content: "Лист " counter(page); font-family: "Oswald", "PT Sans", sans-serif; font-weight: 600; font-size: 9pt;
-    letter-spacing: .04em; color: {{ bc }}; }
+  @bottom-left { content: "Подпись ____________________"; font-family: "PT Sans", sans-serif; font-size: 7.5pt; color: #8a8e95; }
+  @bottom-right { content: "Лист " counter(page); font-family: "PT Sans", sans-serif; font-weight: 700; font-size: 7.5pt;
+    letter-spacing: .04em; color: #3b3e44; }
 {% elif footer == "numbered" %}
-  @bottom-right { content: "Страница " counter(page); font-family: "PT Sans", sans-serif; font-size: 8pt; color: {{ bc }}; }
+  @bottom-right { content: "Страница " counter(page); font-family: "PT Sans", sans-serif; font-size: 7.5pt; color: #3b3e44; }
 {% endif %}
 }
 </style>
-{%- endmacro %}
-
-{% macro requisites(doc) -%}
-<div class="paper__requisites">{% if doc.place %}<span class="paper__place">{{ doc.place }}</span>{% endif %}{% if doc.date %}<time class="paper__date">{{ doc.date|dt('date') }}</time>{% endif %}</div>
 {%- endmacro %}
 
 {# ISO-дата «2026-11-10[T21:14]» → «10» ноября 2026 г.; не-ISO строка — как есть. #}
@@ -137,17 +116,12 @@
 {%- if s is string and s|length >= 16 and s[10] == 'T' %}{{ s[11:16] }}{% endif -%}
 {%- endmacro %}
 
-{# «21:14» → «21 ч 14 мин» (как в бланках протоколов); иное — как есть. #}
-{% macro hm(t) -%}
-{%- if t is string and t|length == 5 and t[2] == ':' -%}{{ t[0:2] }} ч {{ t[3:5] }} мин{%- else -%}{{ t }}{%- endif -%}
-{%- endmacro %}
-
-{# Поле бланка: подпись слева, значение на линии. #}
+{# Поле бланка на линии: подпись слева, значение на линии (рецепт, билет). #}
 {% macro field(label, value, cls="") -%}
 <div class="fld {{ cls }}"><span class="fld__label">{{ label }}</span><span class="fld__value">{{ lines(value) if value else "" }}</span></div>
 {%- endmacro %}
 
-{# Поле с подстрочной подсказкой под линией: «(фамилия, имя, отчество)». #}
+{# Поле с подстрочной подсказкой под линией: «(подпись)». #}
 {% macro uline(value, hint="", cls="") -%}
 <div class="uline {{ cls }}"><div class="uline__value">{{ lines(value) if value else "" }}</div>{% if hint %}<div class="uline__hint">{{ hint }}</div>{% endif %}</div>
 {%- endmacro %}
@@ -199,23 +173,6 @@
 {% if v %}<div class="rstamp {{ cls }}">{{ lines(v) }}</div>{% endif %}
 {%- endmacro %}
 
-{# Угловой штамп бланка письма: организация, адрес (meta.address), № и дата. #}
-{% macro corner(doc, w, default="none") -%}
-<div class="corner">
-  {% set custom = doc.meta.get('org') %}
-  <div class="corner__org">{% if custom %}{{ lines(custom) }}{% elif default == "police" %}{{ w.police.department }}{% elif default == "theater" %}{{ w.theater.full }}{% endif %}</div>
-  {% if doc.meta.get('address') %}<div class="corner__addr">{{ lines(doc.meta.get('address')) }}</div>{% endif %}
-  <div class="corner__no">
-    <span class="corner__cell">{% if doc.date %}{{ doc.date|dt('date') }}{% endif %}</span><span>№</span><span class="corner__cell">{{ (doc.meta.get('number') or '')|replace('№', '')|trim }}</span>
-  </div>
-</div>
-{%- endmacro %}
-
-{# Дата и № исходящего «от руки» на линиях бланка: «__.__.____ № ____». #}
-{% macro refno(doc) -%}
-<div class="refno"><span class="corner__cell">{% if doc.date %}{{ doc.date|dt('date') }}{% endif %}</span><span>№</span><span class="corner__cell">{{ (doc.meta.get('number') or '')|string|replace('№', '')|trim }}</span></div>
-{%- endmacro %}
-
 {% macro media(doc) -%}
 {% if doc.media %}
 {% set caps = doc.meta.get('captions') or [] %}
@@ -230,16 +187,17 @@
 {% endif %}
 {%- endmacro %}
 
-{# Подписи: должность — линия с пометкой «(подпись)» — фамилия. #}
+{# Подписи в строку: должность мелкими прописными, линия с росчерком (engine/paper.py: add_autographs),
+   фамилия под линией; печать — поверх подписей справа. Та же разметка — у макроса sign() в тексте 1-08. #}
 {% macro signatures(doc, seal_html="") -%}
 {% if doc.signed %}
-<div class="paper__signatures">
+<div class="paper__signatures{% if doc.signed|length == 1 %} paper__signatures--one{% endif %}">
   {% for s in doc.signed %}
   <div class="paper__sign"><span class="role">{{ s.role }}</span><span class="line"><span class="hint">(подпись)</span></span><span class="name">{{ s.name }}</span></div>
   {% endfor %}
-  {% if seal_html %}<div class="paper__seal">{{ seal_html }}</div>{% endif %}
+  {% if seal_html|trim %}<div class="paper__seal">{{ seal_html }}</div>{% endif %}
 </div>
-{% elif seal_html %}
+{% elif seal_html|trim %}
 <div class="paper__signatures"><div class="paper__seal paper__seal--solo">{{ seal_html }}</div></div>
 {% endif %}
 {%- endmacro %}

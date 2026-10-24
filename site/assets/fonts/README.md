@@ -47,5 +47,5 @@ https://fonts.google.com/specimen/PT+Serif (TTF, перевести в woff2 л�
 | Шрифт | Пакет | Файлы | Лицензия | Где |
 |---|---|---|---|---|
 | Caveat | `@fontsource/caveat` 5.3.0 | `caveat-<subset>-400/600-normal.woff2` | `OFL-Caveat.txt` | «ручка»: графы, подписи, записки |
-| PT Mono | `@fontsource/pt-mono` 5.3.0 | `pt-mono-<subset>-400-normal.woff2` | `OFL-PT-Mono.txt` | рапорт «на машинке» |
-| Oswald | `@fontsource/oswald` 5.1.0 | `oswald-<subset>-500/600/700-normal.woff2` | `OFL-Oswald.txt` | шапки организаций и заголовки документов |
+| PT Mono | `@fontsource/pt-mono` 5.3.0 | `pt-mono-<subset>-400-normal.woff2` | `OFL-PT-Mono.txt` | ФИО на фото-карточках («машинопись») |
+| Tektur | `@fontsource/tektur` 5.3.0 | `tektur-<subset>-600/800-normal.woff2` | `OFL-Tektur.txt` | крупные заголовки бланков (стиль «Департамент»), время в карте СМП, маршрут билета |

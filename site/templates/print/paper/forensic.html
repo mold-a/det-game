@@ -1,44 +1,40 @@
-{# Заключение судебно-медицинского эксперта — бланк бюро СМЭ: шапка с эмблемой (meta.org, meta.address),
-   справа № дела со штрихкодом, город и резолюция «К делу»; крупный заголовок, № и дата «от руки»;
-   ячейки бланка (meta.cells: [{label, value, wide}] — только сведения из текста заключения);
-   сведения об эксперте (meta.expert — строка или список строк); схема тела спереди и сзади
+{# Заключение судебно-медицинского эксперта — стиль «Департамент»: «ЗАКЛЮЧЕНИЕ / СУДМЕДЭКСПЕРТА»,
+   мини-блок бюро (meta.org, meta.address, «Дело № …», № meta.number, дата), круглый знак; подзаголовок
+   meta.subtitle строкой под шапкой; поля «МЕТКА: значение» из meta.cells ([{label, value}] — только
+   сведения из текста заключения) и «Эксперт» (meta.expert); справа — схема тела спереди и сзади
    (meta.body_chart: {marks: [{zone, label}], note} — engine/paper.py: body_chart; отметки — только то,
-   что есть в тексте); разделы «## …» с римской нумерацией; подпись эксперта и печать бюро
+   что есть в тексте); разделы «## …» — в строку с абзацем, с римским номером (engine/paper.py:
+   runin_sections); раздел со списком выводов — заголовком; подпись эксперта и печать бюро
    (meta.seal: текст в центре или false); «Лист N» внизу листа. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-{% set side %}{{ m.case(w) }}{% if doc.place %}<div class="mast__place">{{ doc.place }}</div>{% endif %}{% endset %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "none", side, doc.meta.get('address')) }}
-  <div class="fx__titlerow">
-    <h1 class="paper__title">{{ doc.title }}</h1>
-    {% if doc.meta.get('number') or doc.date %}
-    <div class="fx__no">{% if doc.meta.get('number') %}<span>№</span><span class="fx__pen">{{ (doc.meta.get('number')|string).replace('№', '')|trim }}</span>{% endif %}{% if doc.date %}<span>от</span><span class="fx__pen">{{ doc.date|dt('date') }}</span>{% endif %}</div>
-    {% endif %}
-  </div>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-  {{ m.resolution(doc) }}
-</header>
-{{ m.cellgrid(doc.meta.get('cells'), "fx__cells") }}
-{% if doc.meta.get('expert') %}
-<div class="fx__expert"><span class="cell__l">Сведения об эксперте</span><div>{{ m.lines(doc.meta.get('expert')) }}</div></div>
-{% endif %}
-<div class="fx__main">
+{% block header %}{{ m.hd(doc, w, "none", [m.case_row(w), m.no_row(doc), m.date_row(doc)], extra=doc.meta.get('address')) }}{% endblock %}
+{% block fields %}
+<div class="fx">
   {% if doc.body_chart %}
   <aside class="bodychart">
     <div class="bodychart__h">Схема тела</div>
     {{ doc.body_chart.svg }}
     {% if doc.body_chart.marks %}
     <ol class="bodychart__legend">
-      {% for mk in doc.body_chart.marks %}<li><span class="bodychart__n">{{ mk.n }}</span><span class="bodychart__sw"></span><span class="bodychart__t">{{ mk.label }}</span></li>{% endfor %}
+      {% for mk in doc.body_chart.marks %}<li><span class="bodychart__n">{{ mk.n }}</span><span class="bodychart__t">{{ mk.label }}</span></li>{% endfor %}
     </ol>
     {% endif %}
     {% if doc.body_chart.note %}<div class="bodychart__note">{{ doc.body_chart.note }}</div>{% endif %}
   </aside>
   {% endif %}
-  <div class="paper__body">{{ doc.body_html }}</div>
-</div>
-{{ m.media(doc) }}
-{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для заключений")) }}
+  {# ячейки: широкая — своей строкой, короткие — по несколько в строку (до ~48 знаков) #}
+  {% set rows = [] %}
+  {% set ns = namespace(line=[], n=0) %}
+  {% for c in doc.meta.get('cells') or [] %}{% if c is mapping %}
+    {% set len = (c.get('label', '')|string|length) + (c.get('value', '')|string|length) %}
+    {% if ns.line and (c.get('wide') or ns.n + len > 48) %}{% set _ = rows.append({'items': ns.line}) %}{% set ns.line = [] %}{% set ns.n = 0 %}{% endif %}
+    {% set ns.line = ns.line + [{'label': c.get('label'), 'value': c.get('value')}] %}{% set ns.n = ns.n + len %}
+    {% if c.get('wide') %}{% set _ = rows.append({'items': ns.line}) %}{% set ns.line = [] %}{% set ns.n = 0 %}{% endif %}
+  {% endif %}{% endfor %}
+  {% if ns.line %}{% set _ = rows.append({'items': ns.line}) %}{% endif %}
+  {% set _ = rows.append({'label': 'Эксперт', 'value': doc.meta.get('expert')|join('. ') if doc.meta.get('expert') is not string else doc.meta.get('expert')}) %}
+  {{ m.kv(rows, "fx__kv") }}
 {% endblock %}
+{% block after_body %}</div>{% endblock %}
+{% block signatures %}{{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "none"), "Для заключений")) }}{% endblock %}

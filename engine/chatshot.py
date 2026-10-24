@@ -119,7 +119,9 @@ def screens_data(content: Content, chat_id: str, media_dir: Path = MEDIA_DIR) ->
 
 
 def render_chats(content: Content, out: Path = PRINT_CHATS, *, media_dir: Path = MEDIA_DIR,
-                 only: list[str] | None = None) -> list[Path]:
+                 only: list[str] | None = None, paper: bool = False) -> list[Path]:
+    """``paper`` — вариант для бумаги конвертов (``engine paper``): светлый фон экранов и без чёрной рамки
+    корпуса (рамку рисует бланк), чтобы лист не «съедал» краску (docs/05 §4)."""
     from engine.printing import browser, html_to_png, print_env
 
     env = print_env()
@@ -133,7 +135,8 @@ def render_chats(content: Content, out: Path = PRINT_CHATS, *, media_dir: Path =
             if only and chat_id not in only:
                 continue
             for n, sc in enumerate(screens_data(content, chat_id, media_dir), 1):
-                html = tpl.render(title=f"{chat_id} — {n}", screen=sc, brand=brand, width=WIDTH, height=HEIGHT)
+                html = tpl.render(title=f"{chat_id} — {n}", screen=sc, brand=brand, width=WIDTH, height=HEIGHT,
+                                  paper=paper)
                 written.append(html_to_png(b, html, out / f"{chat_id}-{n}.png", width=WIDTH, height=HEIGHT))
     return written
 

@@ -1,25 +1,17 @@
-{# Выписка из реестра юридических лиц (вымышленный реестр — meta.org): служебная строка сверху
-   (реестр, дата формирования date), «ВЫПИСКА», название документа, «по состоянию на» (meta.as_of),
-   таблица «№ | показатель | значение» в тексте; строка с пустой первой ячейкой — заголовок раздела;
-   внизу — рамка электронной подписи (meta.esign — строки) и «Страница N» на каждом листе. #}
+{# Выписка из реестра юридических лиц (вымышленный реестр — meta.org) — стиль «Департамент»: «ВЫПИСКА /
+   ИЗ РЕЕСТРА», мини-блок реестра с полным названием документа, № (meta.number) и временем формирования
+   (date); организация meta.subtitle — строкой под шапкой; «По состоянию на:» (meta.as_of); таблица
+   «№ | показатель | значение» в тексте (строка с пустой первой ячейкой — заголовок раздела); внизу —
+   рамка электронной подписи (meta.esign — строки) и «Страница N» на каждом листе. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "none") }}
-  <div class="reg__meta"><span>{% if doc.date %}Сформировано {{ doc.date|dt }}{% endif %}{% if doc.meta.get('number') %} · № {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}</span></div>
-  <div class="reg__h">Выписка</div>
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-  {% if doc.meta.get('as_of') %}<div class="reg__asof">по состоянию на <span>{{ doc.meta.get('as_of')|dt('date') }}</span></div>{% endif %}
-</header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
+{% block header %}{{ m.hd(doc, w, "none", [m.no_row(doc), ("Сформировано: " ~ doc.date|dt) if doc.date else ""]) }}{% endblock %}
+{% block fields %}{{ m.kv([{'label': 'По состоянию на', 'value': doc.meta.get('as_of')|dt('date') if doc.meta.get('as_of') else ''}]) }}{% endblock %}
+{% block after_body %}
 {% if doc.meta.get('esign') %}
 <div class="esign">
   <svg class="esign__mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 12.5 L10 16.5 L18 7.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
   <div><div class="esign__h">Документ подписан электронной подписью</div>{{ m.lines(doc.meta.get('esign')) }}</div>
 </div>
 {% endif %}
-{{ m.signatures(doc) }}
 {% endblock %}

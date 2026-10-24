@@ -15,6 +15,9 @@ front matter и тело — шаблоны контента (``c``, ``w``), т�
   появившихся в протоколах конверта N (метки ``<!-- person -->``): ФИО и роль из строки «Опрошен(а)»
   этого протокола; без ``--only``.
 
+Оформление — стиль «Департамент» (docs/05 §4): заголовок ``headline``, круглый знак организации,
+поля «МЕТКА: значение»; средняя точка как разделитель заменяется запятой (``no_middot``).
+
 Печать (``settings.print``, docs/05 §4):
 
 - **подгонка** — если на последнюю страницу ушло меньше ``fit.last_page_min`` полосы (подпись,
@@ -22,9 +25,10 @@ front matter и тело — шаблоны контента (``c``, ``w``), т�
   страница исчезает (``fit_scales``: доля оценивается по масштабу, без разбора PDF); не исчезла —
   документ остаётся как был;
 - **протоколы по одному** — документ ``form: protocol`` с разделами ``## N. …`` печатается
-  по разделу: каждый протокол — своя «Лист 1…» и с новой страницы; метка
-  ``<!-- person: <id> -->`` после заголовка (или в начале текста одиночного протокола) — портрет
-  ``photo`` персонажа (по умолчанию ``media/portraits/<id>.jpg``) 3×4 в шапке, если файл есть;
+  по частям: сводный лист «Опись протоколов», затем каждый протокол — своя «Лист 1…» и с новой
+  страницы; метка ``<!-- person: <id> -->`` после заголовка (или в начале текста одиночного
+  протокола) — крупное фото ``photo`` персонажа (по умолчанию ``media/portraits/<id>.jpg``) справа
+  от полей, если файл есть; поля «МЕТКА: значение» и реплики с фамилиями — ``interview``;
 - **duplex** — каждый документ и каждый протокол начинается с нечётной страницы: после нечётного
   числа страниц вставляется пустой оборот с пометкой ``blank_back``; номер листа дела «от руки» —
   на лицевых страницах (сквозной по конверту, только при полной сборке — без ``--only``).
@@ -63,10 +67,11 @@ TEMPLATE = "print/paper/_base.html"
 # Превью: CSS-пиксели листа A4 при 96 dpi и масштаб снимка.
 PREVIEW_W, PREVIEW_H, PREVIEW_SCALE = 794, 1123, 1.5
 QR_SVG_SCALE = 10
+LANDSCAPE_FORMS = frozenset({"chat"})   # альбомный лист (page_rule в _doc.html)
 STATUS_OK = "готов"
 VERSO_TEMPLATE = "print/paper/_verso.html"
 # Поля листа A4, мм (CSS @page берёт их отсюда).
-PAGE_MARGIN_MM = {"top": 14, "right": 12, "bottom": 15, "left": 18}
+PAGE_MARGIN_MM = {"top": 13, "right": 12, "bottom": 14, "left": 16}
 # Раздел протокола — заголовок второго уровня; метка опрашиваемого — HTML-комментарий.
 SECTION_RE = re.compile(r"^## ")
 FENCE_RE = re.compile(r"^(```|~~~)")
@@ -229,15 +234,24 @@ def org_brand(org: Any, form: str, world: dict, override: Any = None) -> str:
 
 # ---------------------------------------------------------------- схема тела (заключение СМЭ)
 
-# Силуэт для схемы тела — правая половина контура (x от оси 30, y вниз, рост ≈ 147), левая — зеркально;
-# кривая Catmull-Rom через точки. Голова — эллипс. Нарисовано для игры, без чужих изображений.
+# Силуэт для схемы тела — правая половина контура взрослого мужчины в анатомической позиции (x от оси 30,
+# y вниз, рост 148, голова — эллипс, около 1/8 роста); левая — зеркально; кривая Catmull-Rom через
+# точки. Нарисовано для игры, без чужих изображений.
 _BODY_RIGHT = [
-    (33.2, 20.6), (33.8, 24.0), (39.0, 25.9), (44.6, 27.9), (46.7, 31.6), (47.6, 42.0), (48.8, 55.0),
-    (50.0, 67.0), (51.4, 78.0), (52.8, 84.5), (53.7, 90.5), (52.3, 95.0), (50.1, 94.6), (49.0, 89.0),
-    (47.6, 83.5), (46.1, 70.0), (44.6, 57.0), (43.0, 45.0), (41.3, 38.8), (40.4, 47.0), (39.3, 57.0),
-    (40.8, 67.0), (41.4, 76.0), (40.9, 92.0), (39.2, 108.0), (38.7, 116.0), (38.0, 128.0), (36.9, 139.0),
-    (38.0, 143.5), (39.6, 146.6), (32.3, 147.2), (32.0, 141.0), (32.4, 128.0), (32.7, 116.0), (32.3, 104.0),
-    (31.4, 90.0), (30.0, 81.5),
+    # шея и надплечье
+    (32.8, 14.0), (33.5, 18.8), (33.9, 23.0), (37.6, 25.0), (42.2, 26.4), (45.7, 28.4), (47.5, 32.3), (48.0, 37.5),
+    # рука снаружи: плечо, локоть, предплечье, кисть
+    (48.4, 44.0), (49.3, 52.5), (50.4, 60.0), (51.2, 67.5), (51.4, 74.0), (52.6, 78.4), (53.0, 83.0),
+    (52.1, 87.6), (50.2, 88.4), (48.9, 85.0), (48.5, 79.8), (48.3, 74.8),
+    # рука изнутри
+    (47.3, 67.0), (46.0, 59.5), (45.0, 52.5), (44.4, 45.0), (43.1, 38.6),
+    # корпус: грудная клетка, талия, таз
+    (41.8, 44.0), (41.1, 50.0), (39.7, 57.0), (40.1, 63.0), (41.4, 70.0), (42.0, 76.0),
+    # нога снаружи: бедро, колено, голень, стопа
+    (41.6, 84.0), (40.6, 92.0), (39.1, 100.5), (38.9, 106.0), (39.7, 113.0), (39.4, 120.0), (37.7, 130.0),
+    (36.3, 138.5), (37.5, 142.0), (39.5, 145.4), (39.1, 147.7), (32.7, 148.1), (32.0, 145.4), (32.2, 139.0),
+    # нога изнутри
+    (31.9, 130.0), (32.1, 117.0), (32.4, 104.0), (32.1, 98.5), (31.6, 90.0), (31.0, 83.0), (30.0, 80.4),
 ]
 BODY_W, BODY_H, BODY_GAP = 60.0, 150.0, 14.0
 # Зоны отметок: вид (front | back) и полоса по высоте (y от, y до); отметка — штриховка силуэта в полосе.
@@ -290,13 +304,19 @@ def body_chart(spec: Any, uid: str = "bc") -> dict[str, Any] | None:
             raise BodyChartError(f"meta.body_chart.marks[{i}].zone = {zone!r}: допустимо {', '.join(BODY_ZONES)}")
         marks.append({"n": i + 1, "zone": zone, "label": str(mk.get("label") or "")})
     outline = body_outline()
-    head = '<ellipse cx="30" cy="11.4" rx="6.6" ry="8.4"/>'
+    head = '<ellipse cx="30" cy="10" rx="6.6" ry="8.9"/>'
+    head_white = '<ellipse fill="#fff" cx="30" cy="10" rx="6.6" ry="8.9"/>'
     details = {
-        # спереди — ключицы и пупок; сзади — позвоночник и лопатки (только форма бланка)
-        "front": '<path class="bc__detail" d="M25.5 26.3 Q28 27.4 30 27 Q32 27.4 34.5 26.3"/>'
-                 '<circle class="bc__detail" cx="30" cy="63" r=".5"/>',
-        "back": '<path class="bc__detail bc__spine" d="M30 23.5 V78"/>'
-                '<path class="bc__detail" d="M24 31 Q22.5 37 25.5 42 M36 31 Q37.5 37 34.5 42"/>',
+        # спереди — ключицы, грудь, пупок, колени; сзади — позвоночник, лопатки, ягодичная складка, подколенные
+        # ямки (только форма бланка)
+        "front": '<path class="bc__detail" d="M24.3 25.6 Q27.2 27.2 29.6 26.6 M35.7 25.6 Q32.8 27.2 30.4 26.6 '
+                 'M24.6 38.6 Q27.4 40.6 29.6 39.4 M35.4 38.6 Q32.6 40.6 30.4 39.4 '
+                 'M26.4 101.5 Q27.6 103.4 29 101.8 M33.6 101.5 Q32.4 103.4 31 101.8"/>'
+                 '<circle class="bc__detail" cx="30" cy="58" r=".55"/>',
+        "back": '<path class="bc__detail bc__spine" d="M30 21 V74"/>'
+                '<path class="bc__detail" d="M24 30.5 Q22.6 36.5 25.6 41.5 M36 30.5 Q37.4 36.5 34.4 41.5 '
+                'M22.4 79.4 Q26 82.2 29.6 80.6 M37.6 79.4 Q34 82.2 30.4 80.6 '
+                'M26.2 104 Q27.6 102.6 29 104 M33.8 104 Q32.4 102.6 31 104"/>',
     }
     parts = [f'<svg class="bodychart__svg" viewBox="0 0 {2 * BODY_W + BODY_GAP:g} {BODY_H + 8:g}" aria-hidden="true">',
              f'<defs><pattern id="{uid}-hatch" width="2.2" height="2.2" patternUnits="userSpaceOnUse" '
@@ -305,18 +325,19 @@ def body_chart(spec: Any, uid: str = "bc") -> dict[str, Any] | None:
     for k, view in enumerate(("front", "back")):
         x0 = k * (BODY_W + BODY_GAP)
         parts.append(f'<g transform="translate({x0:g},0)" class="bc__fig bc__fig--{view}">')
+        # голова поверх шеи (белая заливка закрывает стык контура), штриховка отметок — поверх контура
+        parts.append(f'<g class="bc__line"><path d="{outline}"/>{head_white}{details[view]}</g>')
         for mk in marks:
             v, y1, y2 = BODY_ZONES[mk["zone"]]
             if v == view:
                 parts.append(f'<rect class="bc__zone" x="0" y="{y1:g}" width="{BODY_W:g}" height="{y2 - y1:g}" '
                              f'fill="url(#{uid}-hatch)" clip-path="url(#{uid}-clip)" data-zone="{mk["zone"]}"/>')
-        parts.append(f'<g class="bc__line">{head}<path d="{outline}"/>{details[view]}</g>')
         for mk in marks:
             v, y1, y2 = BODY_ZONES[mk["zone"]]
             if v == view:
                 cy = y1 + (y2 - y1) * (0.32 if y2 - y1 > 60 else 0.5)
-                parts.append(f'<g class="bc__pin"><circle cx="{BODY_W - 3:g}" cy="{cy:.1f}" r="3.6"/>'
-                             f'<text x="{BODY_W - 3:g}" y="{cy + 1.45:.1f}" text-anchor="middle">{mk["n"]}</text></g>')
+                parts.append(f'<g class="bc__pin"><circle cx="{BODY_W - 4.5:g}" cy="{cy:.1f}" r="3.6"/>'
+                             f'<text x="{BODY_W - 4.5:g}" y="{cy + 1.45:.1f}" text-anchor="middle">{mk["n"]}</text></g>')
         label = "Спереди" if view == "front" else "Сзади"
         parts.append(f'<text class="bc__cap" x="30" y="{BODY_H + 6:g}" text-anchor="middle">{label}</text></g>')
     parts.append("</svg>")
@@ -388,6 +409,282 @@ def cast_cards(content: Content, docs: dict[str, dict[str, Any]], ctx: dict,
                 "id": cid, "name": ctx["c"][cid].full(), "role": interviewee_role(who),
                 "src": p["src"], "exists": p["exists"], "path": p["path"], "doc": doc_id})
     return out
+
+
+# ---------------------------------------------------------------- стиль «Департамент»: заголовок, средняя точка
+
+# Средняя точка (U+00B7) как разделитель запрещена везде (CLAUDE.md, решение автора 24.10.2026). Шаблоны
+# бумаги её не содержат; если она есть в тексте content/paper — при печати заменяется запятой
+# (в начале значения — убирается), а в отчёте `paper` — предупреждение: поправить текст.
+MIDDOT = "\u00b7"
+_MIDDOT_RE = re.compile("[ \t\u00a0]*\u00b7[ \t\u00a0]*")
+_LEAD_COMMA_RE = re.compile(r"(^|>|\n)([ \t ]*), ")
+
+
+def no_middot(text: str) -> str:
+    """Средняя точка с пробелами → «, »; разделитель в начале строки или элемента HTML — без запятой."""
+    if MIDDOT not in text:
+        return text
+    return _LEAD_COMMA_RE.sub(r"\1\2", _MIDDOT_RE.sub(", ", text))
+
+
+# Крупный заголовок бланка в стиле «Департамент» (docs/05 §4): 1–2 строки прописными, Tektur 800.
+# Порядок: meta.headline (строка — строки через «/» или перевод строки — или список) → из названия
+# документа, если оно короткое (первое слово — первая строка, остальное — вторая, не длиннее
+# HEADLINE_REST; хвост после «:» и «Фамилия И. О.» отбрасывается) → умолчание бланка HEADLINES.
+# Если заголовок не из названия, полное официальное название печатается мелко в правом мини-блоке.
+HEADLINES: dict[str, tuple[str, ...]] = {
+    "protocol": ("Протокол", "опроса"), "inspection": ("Протокол", "осмотра"), "report": ("Рапорт",),
+    "ambulance": ("Карта вызова", "скорой помощи"), "forensic": ("Заключение", "судмедэксперта"),
+    "certificate": ("Справка",), "phototable": ("Фототаблица",), "journal": ("Журнал",), "inventory": ("Опись",),
+    "press": ("Ответ", "на запрос"), "pharmacy": ("Ответ", "на запрос"), "memo": ("Служебная", "записка"),
+    "estimate": ("Смета",), "registry": ("Выписка", "из реестра"), "chat": ("Снимок", "экрана"),
+}
+HEADLINE_FROM_TITLE = frozenset(HEADLINES) - {"report"}   # рапорт — всегда «РАПОРТ»
+HEADLINE_REST = 20            # вторая строка из названия — не длиннее (знаков)
+SUMMARY_HEADLINE = ("Опись", "протоколов")   # сводный лист протокола с разделами (1-08)
+# Кегль заголовка: ширина колонки заголовка (мм) / (средняя ширина знака Tektur 800 на 1 pt × знаков).
+HEADLINE_PT, HEADLINE_MIN_PT, HEADLINE_COL_MM, HEADLINE_EM_MM = 30.0, 17.0, 106.0, 0.232
+_NAME_TAIL_RE = re.compile(r"\s+[А-ЯЁ][а-яё-]+\s+[А-ЯЁ]\.\s?[А-ЯЁ]\..*$")
+
+
+def headline(form: str, title: str, meta: dict | None = None) -> dict[str, Any]:
+    """Крупный заголовок бланка: ``{"lines": [...], "official": str | None, "size": pt}``."""
+    meta = meta or {}
+    raw = meta.get("headline")
+    official: str | None = None
+    if raw:
+        lines = [str(x).strip() for x in (raw if isinstance(raw, list) else re.split(r"\s*(?:\n|/)\s*", str(raw)))]
+        lines = [x for x in lines if x]
+    else:
+        base = str(meta.get("tag") or "") if form == "press" else ""
+        base = base or re.split(r"\s*(?::|\u00b7| — )\s*", title or "")[0]
+        words = _NAME_TAIL_RE.sub("", base).split()
+        rest = " ".join(words[1:])
+        if form in HEADLINE_FROM_TITLE and words and len(rest) <= HEADLINE_REST:
+            lines = [words[0]] + ([rest] if rest else [])
+        else:
+            lines = list(HEADLINES.get(form, ()))
+        if " ".join(lines).lower() != (title or "").strip().lower():
+            official = title or None
+    lines = [x.upper() for x in lines]
+    longest = max((len(x) for x in lines), default=1)
+    size = max(HEADLINE_MIN_PT, min(HEADLINE_PT, HEADLINE_COL_MM / (HEADLINE_EM_MM * longest)))
+    return {"lines": lines, "official": official, "size": round(size, 1)}
+
+
+# ---------------------------------------------------------------- протокол: поля, реплики, сводный лист
+
+# Поля протокола «МЕТКА: значение». Одиночный протокол — из front matter (meta.person, by, present, place,
+# date/start/end); протоколы 1-08 — из HTML макроса head() в тексте (классы proto__fields, fld, fld__label,
+# fld__value): блок вынимается из текста и печатается в шапке листа рядом с фото.
+_FIELDS_RE = re.compile(r'<div class="proto__fields[^"]*">\s*((?:<div class="fld[^"]*">\s*<span class="fld__label">'
+                        r'.*?</span>\s*<span class="fld__value">.*?</span>\s*</div>\s*)*)</div>\s*', re.S)
+_FIELD_RE = re.compile(r'<div class="fld[^"]*">\s*<span class="fld__label">(.*?)</span>\s*'
+                       r'<span class="fld__value">(.*?)</span>\s*</div>', re.S)
+_WHO_RE = re.compile(r"^(.*?),\s*(\d{4})\s*г\.\s*р\.\s*(?:,\s*(.*))?$", re.S)
+_SURNAME_RE = re.compile(r"([А-ЯЁ][а-яё\-]+)\s+[А-ЯЁ]\.\s?[А-ЯЁ]\.")
+_P_RE = re.compile(r"<p>(.*?)</p>", re.S)
+_QA_LABEL_RE = re.compile(r"\s*<strong>(Вопрос|Ответ):</strong>\s*")
+_NOTE_LABEL_RE = re.compile(r"((?:Служебная )?[Оо]тметка[^:<]{0,60}):\s*")
+_EM_ONLY_RE = re.compile(r"<em>((?:(?!</?em>).)*)</em>", re.S)
+PROTO_LABELS = {"year": "Год рождения", "info": "Сведения", "present": "При опросе", "by": "Опросил",
+                "when": "Дата, время", "where": "Место", "note": "Примечание опросившего"}
+
+
+def split_fields(html: str) -> tuple[list[tuple[str, str]], str]:
+    """Блок ``.proto__fields`` из HTML раздела → ([(подпись, значение HTML)], HTML без блока)."""
+    m = _FIELDS_RE.search(html)
+    if not m:
+        return [], html
+    return [(_plain(a), b.strip()) for a, b in _FIELD_RE.findall(m[1])], html[:m.start()] + html[m.end():]
+
+
+def _field_kind(label: str) -> str:
+    low = label.lower()
+    if low.startswith(("опрош", "объяснени", "допрош")):
+        return "who"
+    if low.startswith(("опросил", "составил", "допросил", "принял")):
+        return "by"
+    if low.startswith(("при опросе", "присутств")):
+        return "present"
+    if low.startswith("дата"):
+        return "when"
+    if low.startswith("место"):
+        return "where"
+    return "other"
+
+
+def _lines_html(v: Any) -> str:
+    from markupsafe import escape
+
+    if isinstance(v, list):
+        return ", ".join(str(escape(x)) for x in v if str(x).strip())
+    return str(escape(v or ""))
+
+
+def interview_rows(pairs: list[tuple[str, str]]) -> list[dict[str, Any]]:
+    """Поля протокола (подпись, значение HTML) → строки «МЕТКА: значение» в порядке бланка: кто (ФИО,
+    год рождения, сведения), пробел, дата и время, место, кто опросил, кто присутствовал, прочее.
+    Строка «Опрошен(а)» ``ФИО, 1981 г. р., должность`` делится на три поля; без года — как есть."""
+    by_kind: dict[str, list[tuple[str, str]]] = {}
+    for label, value in pairs:
+        if value and value.strip():
+            by_kind.setdefault(_field_kind(label), []).append((label, value))
+    rows: list[dict[str, Any]] = []
+    for label, value in by_kind.get("who", []):
+        m = _WHO_RE.match(value.strip())
+        if m:
+            rows.append({"label": label, "value": Markup(m[1].strip())})
+            rows.append({"label": PROTO_LABELS["year"], "value": Markup(m[2])})
+            if m[3] and m[3].strip():
+                rows.append({"label": PROTO_LABELS["info"], "value": Markup(m[3].strip())})
+        else:
+            rows.append({"label": label, "value": Markup(value)})
+    if rows:
+        rows.append({"gap": True})
+    for kind in ("when", "where", "by", "present", "other"):
+        for label, value in by_kind.get(kind, []):
+            rows.append({"label": PROTO_LABELS["present"] if kind == "present" else label, "value": Markup(value)})
+    return rows
+
+
+def surname_in(text: str) -> str | None:
+    """Фамилия из «сержант полиции Ковалёв Д. О.» (слово перед инициалами)."""
+    m = _SURNAME_RE.search(_plain(text))
+    return m[1] if m else None
+
+
+def dialog_html(html: str, asker: str | None, answerer: str | None) -> str:
+    """Реплики протокола: «**Вопрос:**» / «**Ответ:**» → фамилия опросившего / опрашиваемого
+    (``.who--q`` / ``.who--a``); абзац без метки после реплики — её продолжение (``.qa-cont``, без
+    повторной фамилии); курсивные абзацы после последней реплики (пояснение присутствовавшего, запись
+    опросившего) — блоком под одной меткой «Примечание опросившего:» обычным текстом; курсивные абзацы
+    между репликами — ``.rem`` без курсива. Без реплик (объяснение от первого лица) текст не меняется."""
+    from markupsafe import escape
+
+    paras = list(_P_RE.finditer(html))
+    kinds: list[tuple[str, re.Match | None]] = []
+    for m in paras:
+        q = _QA_LABEL_RE.match(m[1])
+        kinds.append(("qa", q) if q else ("em", None) if _EM_ONLY_RE.fullmatch(m[1].strip()) else ("p", None))
+    qa = [i for i, (k, _) in enumerate(kinds) if k == "qa"]
+    if not qa:
+        return html
+    last = qa[-1]
+    note = [i for i in range(last + 1, len(paras)) if kinds[i][0] == "em"]
+    # примечание — подряд идущие курсивные абзацы (между ними только пробелы)
+    run: list[int] = []
+    for i in note:
+        if run and (i != run[-1] + 1 or html[paras[run[-1]].end():paras[i].start()].strip()):
+            break
+        run.append(i)
+    # абзацы без метки — продолжение реплики, если стоят между репликами или перед примечанием; после
+    # последней реплики без примечания («С моих слов записано верно», объяснение от первого лица) — текст
+    cont_end = run[0] if run else last
+    out: list[str] = []
+    pos = 0
+    in_note = False
+    for i, m in enumerate(paras):
+        out.append(html[pos:m.start()])
+        pos = m.end()
+        kind, q = kinds[i]
+        if kind == "qa":
+            k = "q" if q[1] == "Вопрос" else "a"
+            name = (asker if k == "q" else answerer) or q[1]
+            out.append(f'<p class="qa qa--{k}"><span class="who who--{k}">{escape(name)}:</span> {m[1][q.end():]}</p>')
+        elif i in run:
+            inner = _EM_ONLY_RE.fullmatch(m[1].strip())[1]
+            own = _NOTE_LABEL_RE.match(inner)
+            if own or not in_note:
+                if in_note:
+                    out.append("</div>")
+                label = own[1] if own else PROTO_LABELS["note"]
+                out.append(f'<div class="proto__note"><div class="proto__note-label">{label}:</div>')
+                in_note = True
+                if own:
+                    inner = inner[own.end():]
+                    inner = inner[:1].upper() + inner[1:]
+            out.append(f"<p>{inner}</p>")
+            if i == run[-1]:
+                out.append("</div>")
+                in_note = False
+        elif kind == "em":
+            out.append(f'<p class="rem">{_EM_ONLY_RE.fullmatch(m[1].strip())[1]}</p>')
+        elif qa[0] < i < cont_end:
+            out.append(f'<p class="qa-cont">{m[1]}</p>')
+        else:
+            out.append(m[0])
+    out.append(html[pos:])
+    return "".join(out)
+
+
+ROMAN = ("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII")
+# Разделы «## …» в строку с первым абзацем (заключение СМЭ — с римским номером, карта СМП — без):
+# «I. ОСНОВАНИЕ. Направление …». Раздел, за которым идёт не абзац (список выводов), — отдельный
+# заголовок ``.sec-h`` без номера.
+RUNIN_FORMS = {"forensic": True, "ambulance": False}
+_H2_RE = re.compile(r"<h2>(.*?)</h2>\s*(<p>)?", re.S)
+
+
+def runin_sections(html: str, roman: bool = False) -> str:
+    n = 0
+
+    def rep(m: re.Match) -> str:
+        nonlocal n
+        head = m[1].strip()
+        if not m[2]:
+            return f'<h2 class="sec-h">{head}</h2>\n'
+        n += 1
+        num = f"{ROMAN[n - 1]}. " if roman and n <= len(ROMAN) else ""
+        dot = "" if head.endswith((".", "?", "!", ":")) else "."
+        return f'<p class="runin"><span class="rh">{num}{head}{dot}</span> '
+
+    return _H2_RE.sub(rep, html)
+
+
+def _ddmmyyyy(s: str | None) -> str:
+    m = re.match(r"(\d{4})-(\d{2})-(\d{2})", s or "")
+    return f"{m[3]}.{m[2]}.{m[1]}" if m else (s or "")
+
+
+def interview(d: dict[str, Any], body_html: str, person: dict | None, ctx: dict,
+              pairs: list[tuple[str, str]] | None = None) -> dict[str, Any]:
+    """Данные листа протокола: поля, фамилии для реплик, преобразованный текст. ``pairs`` — поля из
+    макроса head() (раздел 1-08); без них — из front matter одиночного протокола."""
+    meta = d.get("meta") or {}
+    if pairs is None:
+        pairs = []
+        who = meta.get("person")
+        if who:
+            pairs.append((meta.get("person_label") or "Опрошен(а)", _lines_html(who)))
+        iso = d.get("date") or ""
+        start = meta.get("start") or (iso[11:16] if len(iso) >= 16 and iso[10] == "T" else "")
+        end = meta.get("end") or ""
+        when = ", ".join(x for x in (_ddmmyyyy(iso), "–".join(x for x in (start, end) if x)) if x)
+        if when:
+            pairs.append((PROTO_LABELS["when"], when))
+        if d.get("place"):
+            pairs.append((PROTO_LABELS["where"], _lines_html(d["place"])))
+        if meta.get("by"):
+            pairs.append((meta.get("by_label") or PROTO_LABELS["by"], _lines_html(meta["by"])))
+        if meta.get("present"):
+            pairs.append((PROTO_LABELS["present"], _lines_html(meta["present"])))
+    by = next((v for k, v in pairs if _field_kind(k) == "by"), "")
+    who = next((v for k, v in pairs if _field_kind(k) == "who"), "")
+    when = next((_plain(v) for k, v in pairs if _field_kind(k) == "when"), "")
+    answerer = None
+    if person and person.get("known"):
+        answerer = ctx["c"][person["id"]].last()
+    if not answerer and who:
+        answerer = (_plain(who).split() or [None])[0]
+        answerer = answerer.rstrip(",") if answerer else None
+    asker = surname_in(by) if by else None
+    return {"rows": interview_rows(pairs), "asker": asker, "answerer": answerer,
+            "who": _WHO_RE.sub(r"\1", _plain(who)) if who else "", "when": when,
+            "where": next((_plain(v) for k, v in pairs if _field_kind(k) == "where"), ""),
+            "date": when[:10] if re.match(r"\d\d\.\d\d\.\d{4}", when) else "",
+            "body": Markup(dialog_html(body_html, asker, answerer))}
 
 
 # ---------------------------------------------------------------- оформление: штрихкод, подписи
@@ -529,6 +826,7 @@ def doc_data(content: Content, doc_id: str, ctx: dict, *, cards: dict[str, Any] 
         "person": None, "intro_html": Markup(""), "sections": [], "persons_unknown": [],
         "part": 0, "parts": 1, "part_sections": [], "sheet_start": None,
         "brand": org_brand(None, "stub", content.world), "body_chart": None, "problems": [],
+        "headline": headline("stub", doc_title), "proto": None, "part_kind": "whole", "summary": None,
     }
     if wants_qr(content, doc_id) and cards is not None:
         card = cards[d.page]
@@ -560,6 +858,9 @@ def doc_data(content: Content, doc_id: str, ctx: dict, *, cards: dict[str, Any] 
         "brand": None,
     })
     data["brand"] = org_brand(data["meta"].get("org"), m.form, content.world, data["meta"].get("brand"))
+    data["headline"] = headline(m.form, data["title"], data["meta"])
+    if m.form in RUNIN_FORMS:
+        data["body_html"] = Markup(runin_sections(str(data["body_html"]), RUNIN_FORMS[m.form]))
     try:
         data["body_chart"] = body_chart(data["meta"].get("body_chart"), f"bc-{doc_id}")
     except BodyChartError as e:
@@ -573,10 +874,19 @@ def doc_data(content: Content, doc_id: str, ctx: dict, *, cards: dict[str, Any] 
         for si, sec in enumerate(secs):
             head, _, rest = sec.partition("\n")
             marks = person_marks(rest)
-            sections.append({"n": si + 1, "heading_html": Markup(paper_markdown(head)),
-                             "body_html": Markup(paper_markdown(rest)),
-                             "person": portrait(content, ctx, marks[0], media_dir) if marks else None})
+            body = paper_markdown(rest)
+            person = portrait(content, ctx, marks[0], media_dir) if marks else None
+            pairs, body_wo = split_fields(body)
+            sections.append({"n": si + 1, "heading_html": Markup(paper_markdown(head)), "body_html": Markup(body),
+                             "person": person, "proto": interview(data, body_wo, person, ctx, pairs)})
         data["sections"] = sections
+        if not sections:
+            data["proto"] = interview(data, str(data["body_html"]), data["person"], ctx)
+        note = data["meta"].get("note")
+        data["summary"] = {
+            "note": Markup(paper_markdown(str(note))) if note else (data["intro_html"] if intro.strip() else None),
+            "rows": [{"n": x["n"], "who": x["proto"]["who"] or _plain(str(x["heading_html"])),
+                      "when": x["proto"]["when"], "where": x["proto"]["where"]} for x in sections]}
         people = [x for x in [data["person"], *(s["person"] for s in sections)] if x]
         data["persons_unknown"] = [x["id"] for x in people if not x["known"]]
     return data
@@ -659,33 +969,52 @@ def merge_pdfs(parts: list[Path], out: Path, *, title: str | None = None, verso:
 
 
 def doc_parts(d: dict[str, Any]) -> list[dict[str, Any]]:
-    """Части документа для печати: протокол с разделами «## …» — по протоколу на часть (первая —
-    с шапкой документа и вступлением), остальное — одной частью. Копии ``d`` с ``part``/``parts``."""
+    """Части документа для печати: протокол с разделами «## …» — по протоколу на часть, а перед ними
+    (если разделов больше одного) — сводный лист «Опись протоколов» (``part_kind == "summary"``,
+    заголовок — ``meta.cover_headline``, раздел — ``meta.headline``:
+    №, ФИО, дата и время, место из полей разделов; внизу meta.note или вступление документа);
+    остальное — одной частью. Копии ``d`` с ``part``/``parts``/``part_kind``/``headline``."""
     secs = d.get("sections") or []
     if d["form"] != "protocol" or not secs:
         return [dict(d)]
-    return [dict(d, part=k, parts=len(secs), part_sections=[s]) for k, s in enumerate(secs)]
+    title = re.sub(r"^Протоколы\b", "Протокол", d["title"])
+    sec_head = headline("protocol", title, d["meta"])
+    parts: list[dict[str, Any]] = []
+    if len(secs) > 1:
+        cover = d["meta"].get("cover_headline") or list(SUMMARY_HEADLINE)
+        parts.append(dict(d, part_kind="summary", part_sections=[],
+                          headline=headline("protocol", d["title"], {"headline": cover})))
+    parts += [dict(d, part_kind="section", part_sections=[s], headline=sec_head) for s in secs]
+    for k, x in enumerate(parts):
+        x.update(part=k, parts=len(parts))
+    return parts
 
 
-def fit_scales(pages: int, fit) -> list[float]:
+# Наименьшая ступень подгонки по бланку (решение автора 24.10): протокол и заключение СМЭ не ужимаются
+# сильнее 0,94 — два листа на опрос или заключение — норма, мелкий текст — нет.
+FIT_MIN_SCALE = {"protocol": 0.94, "forensic": 0.94}
+
+
+def fit_scales(pages: int, fit, min_scale: float = 0.0) -> list[float]:
     """Ступени масштаба, которые можно пробовать для документа в ``pages`` страниц: при масштабе
-    ``s`` в ``pages − 1`` страниц помещается не больше ``(pages − 1)·(1/s − 1)`` страницы «лишнего»
+    ``s`` в ``pages − 1`` страниц помещается не больше ``(pages − 1) × (1/s − 1)`` страницы «лишнего»
     текста — это и есть оценка заполнения последней страницы. Берём только ступени, где она не больше
     ``fit.last_page_min``: ужимается документ, у которого на последней странице несколько строк."""
     if pages < 2:
         return []
-    return sorted((x for x in fit.scales if x < 1 and (pages - 1) * (1 / x - 1) <= fit.last_page_min + 1e-9),
+    return sorted((x for x in fit.scales
+                   if min_scale - 1e-9 <= x < 1 and (pages - 1) * (1 / x - 1) <= fit.last_page_min + 1e-9),
                   reverse=True)
 
 
-def fit_pdf(b: object, html: str, out: Path, fit, to_pdf) -> tuple[Path, int, float]:
+def fit_pdf(b: object, html: str, out: Path, fit, to_pdf, min_scale: float = 0.0) -> tuple[Path, int, float]:
     """Напечатать ``html`` в ``out``; если документ на ступени ``fit_scales`` становится на страницу
     короче — оставить самый крупный такой масштаб. Сначала пробуется самая мелкая допустимая ступень:
     не помогла она — не помогут и остальные (одна лишняя печать). → (путь, страниц, масштаб)."""
     out = Path(out)
     to_pdf(b, html, out)
     pages = pdf_pages(out)
-    scales = fit_scales(pages, fit)
+    scales = fit_scales(pages, fit, min_scale)
     if not scales:
         return out, pages, 1.0
     best = out.with_name(f".{out.stem}.fit.pdf")
@@ -707,6 +1036,35 @@ def fit_pdf(b: object, html: str, out: Path, fit, to_pdf) -> tuple[Path, int, fl
         best.unlink(missing_ok=True)
         trial.unlink(missing_ok=True)
 
+
+
+def _common(content: Content, ctx: dict) -> dict[str, Any]:
+    """Общий контекст бланков (_base.html)."""
+    return {"w": ctx["w"], "c": ctx["c"], "game_title": content.settings.title, "print_cfg": content.settings.print,
+            "page_margin": " ".join(f"{PAGE_MARGIN_MM[k]}mm" for k in ("top", "right", "bottom", "left")),
+            "case_barcode": barcode_svg(str(ctx["w"].police.case_no))}
+
+
+def render_part(tpl, items: list[dict], title: str, common: dict) -> str:
+    """HTML печатаемой части: бланк, росчерки подписей, без средних точек."""
+    return no_middot(add_autographs(tpl.render(docs=items, title=title, **common)))
+
+
+def paper_html(content: Content, ids: list[str] | None = None, *, salts=None,
+               media_dir: Path = MEDIA_DIR) -> dict[str, list[str]]:
+    """HTML каждой печатаемой части документов без браузера (для проверок): id → [HTML части]."""
+    from engine.printing import print_env
+
+    ctx = make_context(content)
+    ids = ids or paper_ids(content)
+    cards = qr_cards(content, salts) if salts is not None else None
+    tpl = print_env().get_template(TEMPLATE)
+    common = _common(content, ctx)
+    out: dict[str, list[str]] = {}
+    for i in ids:
+        d = doc_data(content, i, ctx, cards=cards if wants_qr(content, i) else None, media_dir=media_dir)
+        out[i] = [render_part(tpl, [x], f"{i} — {d['title']}", common) for x in doc_parts(d)]
+    return out
 
 
 def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only: list[str] | None = None,
@@ -744,7 +1102,7 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
     with tempfile.TemporaryDirectory(prefix=".chats-", dir=out) as tmp:
         chat_pngs: dict[str, list[Path]] = {}
         if chat_ids:
-            for p in render_chats(content, Path(tmp), media_dir=media_dir, only=chat_ids):
+            for p in render_chats(content, Path(tmp), media_dir=media_dir, only=chat_ids, paper=True):
                 chat_pngs.setdefault(p.name.rsplit("-", 1)[0], []).append(p)
         docs = {i: doc_data(content, i, ctx, cards=cards, chat_pngs=chat_pngs, media_dir=media_dir) for i in ids}
         if release:
@@ -755,12 +1113,17 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
         env = print_env()
         tpl = env.get_template(TEMPLATE)
         pcfg = content.settings.print
-        common = {"w": ctx["w"], "c": ctx["c"], "game_title": content.settings.title, "print_cfg": pcfg,
-                  "page_margin": " ".join(f"{PAGE_MARGIN_MM[k]}mm" for k in ("top", "right", "bottom", "left")),
-                  "case_barcode": barcode_svg(str(ctx["w"].police.case_no))}
+        common = _common(content, ctx)
 
         def html(items: list[dict], title: str) -> str:
-            return add_autographs(tpl.render(docs=items, title=title, **common))
+            return render_part(tpl, items, title, common)
+
+        for i in ids:
+            d = docs[i]
+            if not d["stub"] and MIDDOT in "\n".join([d["source"], d["title"], repr(d["meta"]), repr(d["signed"]),
+                                                       d["date"] or "", d["place"] or ""]):
+                rep.warnings.append(f"content/paper/{i}.md: средняя точка «{MIDDOT}» как разделитель запрещена — при печати "
+                                    "заменена запятой; поправить текст")
 
         def sheets(pages: int) -> int:
             return math.ceil(pages / 2) if pcfg.duplex else pages
@@ -772,7 +1135,7 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
         next_sheet: dict[int, int] = {}
         with browser() as b:
             if pcfg.duplex:
-                verso = html_to_pdf(b, env.get_template(VERSO_TEMPLATE).render(**common), work / "verso.pdf")
+                verso = html_to_pdf(b, no_middot(env.get_template(VERSO_TEMPLATE).render(**common)), work / "verso.pdf")
             for i in ids:
                 d = docs[i]
                 row = PaperRow(i, d["form"], d["stage"], pages_hint=d["pages_hint"])
@@ -783,14 +1146,17 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
                         part["sheet_start"] = next_sheet.get(d["stage"], 1)
                     part_html = html([part], f"{i} — {d['title']}")
                     target = out / f"{i}.pdf" if len(parts) == 1 else work / f"{i}.part{k}.pdf"
-                    pdf, pages, scale = fit_pdf(b, part_html, target, pcfg.fit, html_to_pdf)
+                    pdf, pages, scale = fit_pdf(b, part_html, target, pcfg.fit, html_to_pdf,
+                                                FIT_MIN_SCALE.get(d["form"], 0.0))
                     pdfs.append(pdf)
                     row.scale = min(row.scale, scale)
                     if not only:
                         next_sheet[d["stage"]] = part["sheet_start"] + sheets(pages)
                     if k == 0 and preview:
+                        land = d["form"] in LANDSCAPE_FORMS
                         row.preview = html_to_png(b, part_html, out / "preview" / f"{i}.png",
-                                                  width=PREVIEW_W, height=PREVIEW_H, scale=PREVIEW_SCALE)
+                                                  width=PREVIEW_H if land else PREVIEW_W,
+                                                  height=PREVIEW_W if land else PREVIEW_H, scale=PREVIEW_SCALE)
                 if len(pdfs) > 1:
                     merge_pdfs(pdfs, out / f"{i}.pdf", title=d["title"], verso=verso)
                     row.blanks = sum(pdf_pages(x) % 2 for x in pdfs[:-1]) if verso else 0
@@ -815,7 +1181,8 @@ def render_paper(content: Content, out: Path = PRINT_PAPER, *, salts=None, only:
                 cards_tpl = env.get_template(CARDS_TEMPLATE)
                 for n, cast in sorted(cast_cards(content, docs, ctx, media_dir).items()):
                     sheets_ = [cast[k:k + CARDS_PER_SHEET] for k in range(0, len(cast), CARDS_PER_SHEET)]
-                    pdf = html_to_pdf(b, cards_tpl.render(sheets=sheets_, stage=n, **common), out / f"cards-{n}.pdf")
+                    pdf = html_to_pdf(b, no_middot(cards_tpl.render(sheets=sheets_, stage=n, **common)),
+                                      out / f"cards-{n}.pdf")
                     rep.cards.append(CardsRow(n, pdf, [x["id"] for x in cast], pdf_pages(pdf),
                                               [x["id"] for x in cast if not x["exists"]]))
         if not only:

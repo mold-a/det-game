@@ -73,6 +73,25 @@ body { font-family: var(--font-sans); color: var(--ink); }
 .call .num { font-size: 32px; color: var(--muted); margin-top: 4px; }
 .call .dir { font-size: 34px; color: var(--muted); }
 .call .t { margin-left: auto; font-size: 32px; color: var(--muted); text-align: right; }
+{% if paper %}
+/* --- вариант для бумаги конвертов (engine paper): светлый экран, без корпуса — рамку рисует бланк;
+   заливки на весь экран нет, чтобы лист не «съедал» краску (docs/05 §4). */
+html, body { background: #fff; }
+.phone { border: 0; border-radius: 0; background: #fff; }
+.chat .status, .bar { background: #fff; color: var(--ink); }
+.bar { border-bottom: 3px solid var(--line); }
+.bar .back, .bar .brand { color: var(--plum-2); }
+.bar .sub { color: var(--muted); }
+.feed { background: #fff; background-image: none; }
+.day { background: #f1edf3; }
+.msg { border: 2px solid #e6e0d8; box-shadow: none; }
+.msg.mine { background: #faf1de; border-color: #efe0bf; }
+.input .send { background: #fff; border: 4px solid var(--amber); color: var(--amber); }
+.lock .phone { background: linear-gradient(170deg, #f3eef6 0%, #f6f0f3 55%, #f8efe6 100%); color: var(--ink); }
+.status--light { color: var(--ink); }
+.note { background: #fff; border: 2px solid #e4dde6; }
+.tabs b { border-bottom-color: var(--plum-2); }
+{% endif %}
 {% endblock %}
 {% block body %}
 {% set s = screen %}

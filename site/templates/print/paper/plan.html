@@ -1,4 +1,5 @@
-{# План здания: шапка театра; чертёжная рамка со схемой, указатель «С», легенда и штамп чертежа.
+{# План здания — в айдентике театра (как сайт театра: PT Serif, бордо и золото, маска): шапка театра
+   (_theater.html: th_head); чертёжная рамка со схемой, указатель «С», легенда и штамп чертежа.
    Схема — изображения media (во всю ширину) или, если их нет, рисунок по meta.rooms:
    meta: grid — размер поля схемы в условных единицах {w: 100, h: 70, pad: 8} (pad — поле вокруг
                 для подписей улиц и т. п., координаты могут быть от −pad до w+pad);
@@ -11,15 +12,12 @@
    Текст документа — под легендой (примечания). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
+{% from "print/paper/_theater.html" import th_head with context %}
 {% block sheet %}
 {% set rooms = doc.meta.get('rooms') or [] %}
 {% set grid = doc.meta.get('grid') or {} %}
 {% set gw = grid.get('w', 100) %}{% set gh = grid.get('h', 70) %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "theater", m.case(w)) }}
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-</header>
+{{ th_head(doc, w) }}
 <div class="plan__frame">
   {% if doc.media %}
   {% for x in doc.media %}{% if x.exists %}<img src="{{ x.src }}" alt="">{% else %}<div class="paper__missing">нет файла media/{{ x.path }}</div>{% endif %}{% endfor %}
@@ -90,7 +88,8 @@
     <tr><td>Чертёж</td><td>{{ doc.meta.get('subtitle') or doc.title }}</td></tr>
     {% if doc.meta.get('floor') %}<tr><td>Уровень</td><td>{{ doc.meta.get('floor') }}</td></tr>{% endif %}
     <tr><td>Масштаб</td><td>{{ doc.meta.get('scale') or "без масштаба" }}</td></tr>
-    <tr><td>Лист</td><td>{{ doc.meta.get('sheet') or "1" }}{% if doc.date %} · {{ doc.date|dt('date') }}{% endif %}</td></tr>
+    <tr><td>Лист</td><td>{{ doc.meta.get('sheet') or "1" }}</td></tr>
+    {% if doc.date %}<tr><td>Дата</td><td>{{ doc.date|dt('date') }}</td></tr>{% endif %}
     {% for s in doc.signed %}<tr><td>{{ s.role }}</td><td>{{ s.name }}</td></tr>{% endfor %}
   </table>
 </div>

@@ -1,40 +1,24 @@
-{# Карта вызова скорой медицинской помощи: шапка — meta.org (станция), без № уголовного дела.
-   Табличная форма: номер карты клетками, время этапов вызова клетками, поля, разделы текста
-   («## Жалобы», «## Объективно» …), рамка с диагнозом, результат, подписи.
-   meta: number — номер карты; form_no — пометка формы в углу (вымышленная, необязательно);
-         times — время этапов: словарь {«Приём вызова»: «21:04», …} или список [{label, value}];
-         fields — поля карты: словарь {«Пациент»: «…», «Возраст»: «56 лет», …} (адрес — place);
-         diagnosis — диагноз (рамка); result — результат выезда. #}
+{# Карта вызова скорой медицинской помощи — стиль «Департамент»: «КАРТА ВЫЗОВА / СКОРОЙ ПОМОЩИ»,
+   мини-блок станции (meta.org), «Карта № …» (meta.number), дата; без № уголовного дела.
+   meta: times — время этапов вызова (словарь {«Приём вызова»: «21:04», …} или список [{label, value}]) —
+         строкой ячеек: метка мелко, время крупно; fields — поля карты «МЕТКА: значение» (адрес — place);
+         diagnosis — диагноз (в рамке); result — результат выезда; form_no — пометка формы (мелко в мини-блоке).
+   Разделы текста («## Жалобы и анамнез» …) — в строку с абзацем (engine/paper.py: runin_sections). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% macro cells(v) -%}
-{% set s = (v or '')|string|trim %}
-{% if s|length == 5 and s[2] == ':' %}<span class="cells">{% for ch in s %}{% if ch == ':' %}<b>:</b>{% else %}<i>{{ ch }}</i>{% endif %}{% endfor %}</span>
-{%- elif s and s|length <= 8 and s.replace(' ', '').isdigit() %}<span class="cells">{% for ch in s.replace(' ', '') %}<i>{{ ch }}</i>{% endfor %}</span>
-{%- elif s %}<span class="cells cells--text"><i>{{ s }}</i></span>
-{%- else %}<span class="cells"><i></i><i></i><b>:</b><i></i><i></i></span>{% endif %}
-{%- endmacro %}
-{% block sheet %}
-<header class="paper__head">
-  {% set side %}{% if doc.meta.get('form_no') %}<div class="amb__formno">{{ m.lines(doc.meta.get('form_no')) }}</div>{% endif %}{% endset %}
-  {{ m.masthead(doc, w, "none", side) }}
-  <h1 class="paper__title amb__title"><span>{{ doc.title }}</span>{% if doc.meta.get('number') %}<span>№</span>{{ cells((doc.meta.get('number')|string).replace('№', '')|trim) }}{% endif %}</h1>
-  {% if doc.meta.get('subtitle') %}<p class="paper__subtitle">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-  {% if doc.date %}<div class="amb__date">{{ m.longdate(doc.date) }}</div>{% endif %}
-</header>
+{% block header %}{{ m.hd(doc, w, "none", [m.no_row(doc, "Карта №"), m.date_row(doc)], extra=doc.meta.get('form_no')) }}{% endblock %}
+{% block fields %}
 {% set times = doc.meta.get('times') %}
 {% if times %}
-<div class="amb__times">
-  {% call(label, value) m.pairs(times) %}<div class="amb__time"><div class="amb__time-label">{{ label }}</div>{{ cells(value) }}</div>{% endcall %}
+<div class="times">
+  {% call(label, value) m.pairs(times) %}<div class="times__cell"><span class="times__l">{{ label }}</span><span class="times__v">{{ value }}</span></div>{% endcall %}
 </div>
 {% endif %}
-<div class="amb__grid">
-  {% if doc.place %}{{ m.field("Адрес вызова", doc.place, "fld--wide") }}{% endif %}
-  {% call(label, value) m.pairs(doc.meta.get('fields')) %}{{ m.field(label, value, "fld--wide" if (value|string|length) > 34 else "") }}{% endcall %}
-</div>
-<div class="paper__body">{{ doc.body_html }}</div>
-{% if doc.meta.get('diagnosis') %}<div class="amb__box"><div class="amb__box-label">Диагноз</div><div class="amb__box-value">{{ m.lines(doc.meta.get('diagnosis')) }}</div></div>{% endif %}
-{% if doc.meta.get('result') %}<div class="amb__result">{{ m.field("Результат выезда", doc.meta.get('result')) }}</div>{% endif %}
-{{ m.media(doc) }}
-{{ m.signatures(doc) }}
+{% set rows = [{'label': 'Адрес вызова', 'value': doc.place}] %}
+{% call(label, value) m.pairs(doc.meta.get('fields')) %}{% set _ = rows.append({'label': label, 'value': value}) %}{% endcall %}
+{{ m.kv(rows) }}
+{% endblock %}
+{% block after_body %}
+{% if doc.meta.get('diagnosis') %}<div class="box"><b class="kv__l">Диагноз:</b> {{ m.lines(doc.meta.get('diagnosis'), ' ') }}</div>{% endif %}
+{{ m.kv([{'label': 'Результат выезда', 'value': doc.meta.get('result')}]) }}
 {% endblock %}

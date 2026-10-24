@@ -1,30 +1,30 @@
-{# Письмо: бланк организации — шапка по центру (meta.org; по умолчанию следственный отдел),
-   адрес и контакты meta.address; «Исх. дата № …» слева, адресат meta.to справа, тема meta.subtitle
-   («О …»), текст с красной строки, подпись; без № дела. Заголовок печатается, только если он задан
-   в front matter (title), — у писем обычно нет заголовка. Печать — по meta.seal (текст в центре или true). #}
+{# Письмо — чистый бланк организации без бланковой «бюрократии» (docs/05 §4): слева круглый знак
+   и название (meta.org: первая строка — организация, дальше — подразделение), адрес meta.address;
+   справа — дата и исходящий № (meta.number); тонкая линия. Ниже — адресат meta.to справа, тема
+   meta.subtitle жирным, текст (частное лицо — антиквой), подпись. Заголовок печатается, только если
+   он задан в front matter (title), — у писем обычно нет заголовка. Печать — по meta.seal. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
+{% import "print/paper/_brand.html" as br %}
+{% block header %}
 {% set org = doc.meta.get('org') %}
-<header class="paper__head">
-  <div class="lhead">
-    {% if doc.brand != "none" %}<div class="lhead__emblem">{{ m.emblem(doc.brand) }}</div>{% endif %}
-    {% if org is string %}<div class="lhead__org">{{ org }}</div>
-    {% elif org %}<div class="lhead__org">{{ org[0] }}</div>{% for x in org[1:] %}<div class="lhead__sub">{{ x }}</div>{% endfor %}
-    {% else %}<div class="lhead__org">{{ w.police.department }}</div>{% endif %}
-    {% if doc.meta.get('address') %}<div class="lhead__addr">{{ m.lines(doc.meta.get('address')) }}</div>{% endif %}
+{% set ls = [org] if org is string else (org or [w.police.department]) %}
+<header class="lh">
+  {% if doc.brand != "none" %}<div class="lh__roundel">{{ br.roundel(doc.brand) }}</div>{% endif %}
+  <div class="lh__org">
+    <div class="lh__name">{{ ls[0] }}</div>
+    {% for x in ls[1:] %}<div class="lh__sub">{{ x }}</div>{% endfor %}
+    {% if doc.meta.get('address') %}<div class="lh__addr">{{ m.lines(doc.meta.get('address')) }}</div>{% endif %}
   </div>
-  <div class="letterrow letter__ref">
-    <div>
-      {{ m.refno(doc) }}
-      {% if doc.meta.get('subtitle') %}<p class="letter__subject">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-    </div>
-    {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
-  </div>
-  {% if doc.title != doc.doc_title %}<h1 class="paper__title">{{ doc.title }}</h1>{% endif %}
+  <div class="lh__ref">{% if doc.date %}<div>{{ doc.date|dt('date') }}</div>{% endif %}{% if doc.meta.get('number') %}<div>№ {{ m.no(doc.meta.get('number')) }}</div>{% endif %}</div>
 </header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
+{% endblock %}
+{% block subject %}
+{% if doc.meta.get('to') %}<div class="letter__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
+{% if doc.title != doc.doc_title %}<h2 class="letter__title">{{ doc.title }}</h2>{% endif %}
+{% if doc.meta.get('subtitle') %}<p class="letter__subject">{{ doc.meta.get('subtitle') }}</p>{% endif %}
+{% endblock %}
+{% block signatures %}
 {% set sv = doc.meta.get('seal') %}
 {{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "police"), sv if sv is string else "Для документов") if sv else "") }}
 {% endblock %}

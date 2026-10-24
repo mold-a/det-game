@@ -408,6 +408,7 @@ def test_fit_scales_and_fit_pdf(tmp_path):
     assert fit_scales(2, fit) == [0.97, 0.94, 0.91, 0.88]
     assert fit_scales(3, fit) == [0.97, 0.94]          # 2·(1/0,91 − 1) ≈ 0,198 > 0,15
     assert fit_scales(9, fit) == []
+    assert fit_scales(2, fit, 0.94) == [0.97, 0.94]    # протокол и заключение — не мельче 0,94
 
     calls: list[float] = []
 
@@ -632,12 +633,15 @@ def test_render_protocol_sections_duplex(chromium, root, salts, tmp_path):
     rep = render_paper(c, tmp_path, salts=salts, only=["2-02"], preview=False, media_dir=ROOT / "media")
     row = rep.rows[0]
     texts = _page_texts(row.pdf)
-    # 1-й протокол — 2 страницы, 2-й — 1 + оборот, 3-й — 1 (в конце оборот не нужен)
-    assert row.pages == 5 and row.blanks == 1, texts
-    assert "Вступление" in texts[0] and "Продолжение первого" in texts[1] and "Текст второго" in texts[2]
-    assert texts[3] == c.settings.print.blank_back and "Текст третьего" in texts[4]
-    assert _has_sheet(texts[2], 1) and _has_sheet(texts[4], 1)  # у каждого протокола свой «Лист 1»
-    assert "Вступление" not in texts[2]
+    # сводный лист «Опись протоколов» — 1 + оборот, 1-й протокол — 2 страницы, 2-й — 1 + оборот,
+    # 3-й — 1 (в конце оборот не нужен)
+    assert row.pages == 7 and row.blanks == 2, texts
+    blank = c.settings.print.blank_back
+    assert "ОПИСЬ" in texts[0] and "Вступление" in texts[0] and texts[1] == blank
+    assert "Текст первого" in texts[2] and "Продолжение первого" in texts[3] and "Текст второго" in texts[4]
+    assert texts[5] == blank and "Текст третьего" in texts[6]
+    assert _has_sheet(texts[2], 1) and _has_sheet(texts[4], 1) and _has_sheet(texts[6], 1)  # свой «Лист 1»
+    assert "Вступление" not in texts[2] and "ПРОТОКОЛ № 2" in texts[4]
     assert "нет персонажа: person: nobody_x" in row.status
     with pytest.raises(PaperError) as exc:
         render_paper(c, tmp_path, salts=salts, only=["2-02"], release=True, media_dir=ROOT / "media")
@@ -675,8 +679,12 @@ def test_render_chat_form(chromium, root, salts, tmp_path):
     c = load_content(root)
     rep = render_paper(c, tmp_path, salts=salts, only=["3-03"], preview=False)
     row = rep.rows[0]
-    assert row.form == "chat" and row.pages == 2  # 4 снимка экрана по 2 на страницу
-    assert "ожидалось 1 (pages_hint)" in row.status
+    assert row.form == "chat" and row.pages == 1  # 4 снимка экрана в ряд на альбомном листе
+    assert row.status == "готов"
+    from pypdf import PdfReader
+
+    box = PdfReader(row.pdf).pages[0].mediabox
+    assert float(box.width) > float(box.height)  # альбомный лист
 
 
 # ---------------------------------------------------------------- check: бумага не попадает в dist
@@ -781,3 +789,138 @@ def test_paper_may_quote_open_page(root, tmp_path):
     assert not rep.ok
     probs = [p for p in rep.problems if p.startswith("[7.")]
     assert probs and all("leak-paper.html" in p and "content/paper/3-07.md" in p for p in probs), probs
+
+
+# ---------------------------------------------------------------- стиль «Департамент» (docs/05 §4)
+
+
+def test_headline_rules():
+    from engine.paper import HEADLINE_MIN_PT, HEADLINE_PT, headline
+
+    h = headline("protocol", "Протокол повторного опроса: Резникова Н. С.")
+    assert h["lines"] == ["ПРОТОКОЛ", "ПОВТОРНОГО ОПРОСА"] and h["official"].startswith("Протокол повторного")
+    assert headline("protocol", "Протокол опроса") == {"lines": ["ПРОТОКОЛ", "ОПРОСА"], "official": None,
+                                                       "size": HEADLINE_PT}
+    assert headline("protocol", "Объяснение Громовой Ю. С.")["lines"] == ["ОБЪЯСНЕНИЕ"]
+    fx = headline("forensic", "Предварительное заключение судебно-медицинского эксперта")
+    assert fx["lines"] == ["ЗАКЛЮЧЕНИЕ", "СУДМЕДЭКСПЕРТА"] and fx["official"]
+    assert headline("report", "Рапорт сержанта полиции")["lines"] == ["РАПОРТ"]
+    assert headline("press", "Справка", {"tag": "Ответ на запрос"})["lines"] == ["ОТВЕТ", "НА ЗАПРОС"]
+    assert headline("x", "y", {"headline": "Протокол / допроса"})["lines"] == ["ПРОТОКОЛ", "ДОПРОСА"]
+    assert headline("x", "y", {"headline": ["Акт", "вскрытия"]})["lines"] == ["АКТ", "ВСКРЫТИЯ"]
+    long = headline("journal", "Журнал учёта входа и выхода")
+    assert HEADLINE_MIN_PT <= long["size"] < HEADLINE_PT  # длинная строка — кегль меньше
+
+
+def test_no_middot():
+    from engine.paper import no_middot
+
+    assert no_middot("Пост № 2 · служебный вход") == "Пост № 2, служебный вход"
+    assert no_middot("<b>Рецепт</b> · серия 36") == "<b>Рецепт</b>серия 36"
+    assert no_middot("без точек") == "без точек"
+
+
+def test_paper_html_has_no_middot(salts):
+    """Средняя точка как разделитель запрещена (CLAUDE.md): её нет ни в шаблонах бумаги, ни в HTML
+    напечатанных документов (реальный контент, все бланки и части), ни в подписях карточек."""
+    from engine.paper import paper_html
+
+    tpl_dir = ROOT / "site" / "templates" / "print" / "paper"
+    for f in [*tpl_dir.iterdir(), ROOT / "site" / "templates" / "print" / "chat.html"]:
+        assert "·" not in f.read_text(encoding="utf-8"), f
+    c = load_content(CONTENT)
+    lock = salts_mod.SALTS_LOCK
+    html = paper_html(c, salts=salts_mod.read(lock) if lock.is_file() else None, media_dir=ROOT / "media")
+    assert set(html) == set(paper_ids(c))
+    assert {p.meta.form for p in c.paper.values()} == FORMS  # в контенте есть все 20 бланков
+    for doc_id, parts in html.items():
+        for k, part in enumerate(parts):
+            assert "·" not in part, (doc_id, k)
+
+
+def test_dialog_html_names_and_notes():
+    from engine.paper import dialog_html
+
+    html = ("<p>Права разъяснены.</p>\n<p><strong>Вопрос:</strong> Где вы были?</p>\n"
+            "<p><strong>Ответ:</strong> Дома.</p>\n<p>И ещё абзац ответа.</p>\n"
+            "<p><em>(молчит)</em></p>\n<p><strong>Вопрос:</strong> Кто подтвердит?</p>\n"
+            "<p><strong>Ответ:</strong> Сосед.</p>\n<p><em>Присутствовавший пояснил: «да».</em></p>\n"
+            "<p><em>Отметка опросившего: нервничал.</em></p>\n<p>С моих слов записано верно.</p>\n"
+            '<div class="paper__signatures"></div>')
+    out = dialog_html(html, "Ковалёв", "Громова")
+    assert out.count('<span class="who who--q">Ковалёв:</span>') == 2
+    assert out.count('<span class="who who--a">Громова:</span>') == 2
+    assert '<p class="qa-cont">И ещё абзац ответа.</p>' in out and '<p class="rem">(молчит)</p>' in out
+    assert "<p>Права разъяснены.</p>" in out and "<p>С моих слов записано верно.</p>" in out
+    assert 'proto__note-label">Примечание опросившего:</div><p>Присутствовавший пояснил: «да».</p>' in out
+    assert 'proto__note-label">Отметка опросившего:</div><p>Нервничал.</p>' in out
+    assert "<em>" not in out.split("Сосед.")[1] and "Вопрос:" not in out
+    # без реплик (объяснение от первого лица) текст не меняется
+    assert dialog_html("<p>Я, Иванов, поясняю.</p>", "Беляев", "Иванов") == "<p>Я, Иванов, поясняю.</p>"
+
+
+def test_interview_rows_and_surname():
+    from engine.paper import interview_rows, split_fields, surname_in
+
+    assert surname_in("Майор юстиции, руководитель следственной группы Беляев А. Н.") == "Беляев"
+    assert surname_in("сержант полиции Ковалёв Д. О.") == "Ковалёв"
+    block = ('<p>до</p><div class="proto__fields"><div class="fld"><span class="fld__label">Дата, время</span>'
+             '<span class="fld__value">10.11.2026, 21:22–21:38</span></div><div class="fld"><span class="fld__label">'
+             'Опросил</span><span class="fld__value">сержант Ковалёв Д. О.</span></div><div class="fld"><span '
+             'class="fld__label">Опрошена</span><span class="fld__value">Петрова Анна, 1990 г. р., артистка</span>'
+             '</div><div class="fld"><span class="fld__label">Присутствовал(а)</span><span class="fld__value">Панов Е. В.'
+             '</span></div></div><p>после</p>')
+    pairs, rest = split_fields(block)
+    assert rest == "<p>до</p><p>после</p>" and len(pairs) == 4
+    rows = [(r.get("label"), str(r.get("value", ""))) for r in interview_rows(pairs)]
+    assert rows == [("Опрошена", "Петрова Анна"), ("Год рождения", "1990"), ("Сведения", "артистка"), (None, ""),
+                    ("Дата, время", "10.11.2026, 21:22–21:38"), ("Опросил", "сержант Ковалёв Д. О."),
+                    ("При опросе", "Панов Е. В.")]
+
+
+def test_protocol_summary_sheet(root, salts):
+    """Протокол с разделами: перед протоколом № 1 — сводный лист «Опись протоколов» (№, ФИО, дата
+    и время, место — из полей разделов; внизу meta.note); у разделов — фамилии в репликах."""
+    from engine.paper import doc_parts, paper_html
+
+    head = ('<div class="proto__fields"><div class="fld"><span class="fld__label">Дата, время</span>'
+            '<span class="fld__value">{when}</span></div><div class="fld"><span class="fld__label">Место</span>'
+            '<span class="fld__value">{where}</span></div><div class="fld"><span class="fld__label">Опросил</span>'
+            '<span class="fld__value">сержант полиции {{{{ c.kovalev.short() }}}}</span></div><div class="fld">'
+            '<span class="fld__label">Опрошена</span><span class="fld__value">{who}, 1990 г. р., артистка</span></div></div>')
+    body = ("## 1. Первая\n<!-- person: marina -->\n\n" + head.format(when="10.11.2026, 21:00–21:10", where="фойе",
+                                                                        who="{{ c.marina.full() }}")
+            + "\n\n**Вопрос:** Где?\n\n**Ответ:** Тут.\n\n*Отметка опросившего: спокойна.*\n\n"
+            "## 2. Вторая\n\n" + head.format(when="11.11.2026, 11:00–11:20", where="кабинет", who="Иванова Ольга Петровна")
+            + "\n\nТекст.\n")
+    write_paper(root, "2-02", 'id: "2-02"\nform: protocol\ntitle: "Протоколы опроса"\n'
+                'meta:\n  note: "Опросы проведены нарядом полиции."', body=body)
+    c = load_content(root)
+    ctx = make_context(c)
+    d = doc_data(c, "2-02", ctx, media_dir=ROOT / "media")
+    parts = doc_parts(d)
+    assert [p["part_kind"] for p in parts] == ["summary", "section", "section"]
+    assert parts[0]["headline"]["lines"] == ["ОПИСЬ", "ПРОТОКОЛОВ"]
+    assert parts[1]["headline"]["lines"] == ["ПРОТОКОЛ", "ОПРОСА"]
+    rows = d["summary"]["rows"]
+    assert [(r["n"], r["who"], r["when"], r["where"]) for r in rows] == [
+        (1, ctx["c"].marina.full(), "10.11.2026, 21:00–21:10", "фойе"),
+        (2, "Иванова Ольга Петровна", "11.11.2026, 11:00–11:20", "кабинет")]
+    html = paper_html(c, ["2-02"], media_dir=ROOT / "media")["2-02"]
+    assert len(html) == 3
+    assert "ОПИСЬ" in html[0] and "Опросы проведены нарядом полиции." in html[0] and "Иванова Ольга Петровна" in html[0]
+    assert f'who--q">{ctx["c"].kovalev.last()}:' in html[1] and f'who--a">{ctx["c"].marina.last()}:' in html[1]
+    assert "Отметка опросившего:</div>" in html[1] and "proto__fields" not in html[1]
+    assert "Протокол № 2" in html[2] and "Опросы проведены" not in html[2]
+
+
+def test_protocol_cover_and_section_headline(root):
+    """meta.headline — заголовок каждого раздела, meta.cover_headline — сводного листа."""
+    from engine.paper import doc_parts
+
+    write_paper(root, "2-02", 'id: "2-02"\nform: protocol\ntitle: "Объяснения"\nmeta:\n  headline: "Объяснение"\n'
+                '  cover_headline: "Опись / объяснений"', body="## 1. А\n\nТекст.\n\n## 2. Б\n\nТекст.\n")
+    c = load_content(root)
+    parts = doc_parts(doc_data(c, "2-02", make_context(c)))
+    assert parts[0]["headline"]["lines"] == ["ОПИСЬ", "ОБЪЯСНЕНИЙ"]
+    assert [p["headline"]["lines"] for p in parts[1:]] == [["ОБЪЯСНЕНИЕ"], ["ОБЪЯСНЕНИЕ"]]

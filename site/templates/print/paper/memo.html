@@ -1,23 +1,15 @@
-{# Служебная записка: шапка театра (или meta.org) слева, адресат meta.to и автор meta.from справа,
-   заголовок, «№ … от …» (meta.number, date), тема meta.subtitle («О …»), текст с красной строки,
-   подпись; meta.incoming — синий штамп входящей регистрации (строка или список строк). #}
+{# Служебная записка — стиль «Департамент»: «СЛУЖЕБНАЯ / ЗАПИСКА», мини-блок театра (или meta.org),
+   № (meta.number) и дата; поля «Кому:» (meta.to) и «От кого:» (meta.from); тема meta.subtitle строкой
+   под шапкой; текст, подпись; meta.incoming — синий штамп входящей регистрации (строка или список). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-<header class="paper__head">
-  {{ m.masthead(doc, w, "theater", "", doc.place) }}
-  <div class="memo__addr">
-      {% if doc.meta.get('to') %}<div class="paper__to">{{ m.lines(doc.meta.get('to')) }}</div>{% endif %}
-      {% if doc.meta.get('from') %}<div class="paper__from">{{ m.lines(doc.meta.get('from')) }}</div>{% endif %}
-  </div>
-  <h1 class="paper__title">{{ doc.title }}</h1>
-  {% if doc.meta.get('number') or doc.date %}
-  <div class="memo__no">{% if doc.meta.get('number') %}№ {{ (doc.meta.get('number')|string).replace('№', '')|trim }}{% endif %}{% if doc.date %} от {{ doc.date|dt('date') }}{% endif %}</div>
-  {% endif %}
-  {% if doc.meta.get('subtitle') %}<p class="memo__subject">{{ doc.meta.get('subtitle') }}</p>{% endif %}
-</header>
-<div class="paper__body">{{ doc.body_html }}</div>
-{{ m.media(doc) }}
+{% block header %}{{ m.hd(doc, w, "theater", [m.no_row(doc), m.date_row(doc)], extra=doc.place) }}{% endblock %}
+{% block fields %}
+{% set to = doc.meta.get('to') %}{% set fr = doc.meta.get('from') %}
+{{ m.kv([{'label': 'Кому', 'value': to if to is string else (to or [])|join(' ')},
+         {'label': 'От кого', 'value': fr if fr is string else (fr or [])|join(' ')}]) }}
+{% endblock %}
+{% block signatures %}
 {{ m.signatures(doc, m.seal(doc, m.org_text(doc, w, "theater"), "") if doc.meta.get('seal') else "") }}
 {% if doc.meta.get('incoming') %}<div class="memo__incoming">{{ m.rstamp(doc.meta.get('incoming')) }}</div>{% endif %}
 {% endblock %}

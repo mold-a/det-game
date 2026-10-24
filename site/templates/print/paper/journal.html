@@ -1,27 +1,14 @@
-{# Журнал (охраны, помощника режиссёра, светового пульта): разлинованная страница журнала.
-   Шапка театра (или meta.org) мелко, название журнала, номер листа (meta.sheet), строка
-   meta.period («Начат: … Окончен: …», строка или список); записи — таблицей в тексте (Markdown);
-   под таблицей линовка продолжается до низа листа. Подписи — если есть. #}
+{# Журнал (охраны, помощника режиссёра, светового пульта) — стиль «Департамент»: «ЖУРНАЛ / …» (из
+   названия), мини-блок театра (или meta.org), «Дело № …», «Лист …» (meta.sheet), дата; под шапкой —
+   meta.subtitle и meta.period (строка или список) строками; записи — таблицей в тексте (Markdown):
+   графы печатные, записи «от руки»; под таблицей линовка продолжается до низа листа. Подписи — если есть. #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
-{% block sheet %}
-<header class="journal__head">
-  {{ m.masthead(doc, w, "theater", m.case(w)) }}
-  <div class="journal__top">
-    <h1 class="journal__title">{{ doc.title }}</h1>
-    <div class="journal__sheet">{% if doc.meta.get('sheet') %}Лист <b>{{ doc.meta.get('sheet') }}</b>{% endif %}</div>
-  </div>
-  <div class="journal__meta">
-    {% if doc.meta.get('subtitle') %}<span>{{ doc.meta.get('subtitle') }}</span>{% endif %}
-    {% if doc.date %}<span>{{ doc.date|dt('date') }}</span>{% endif %}
-    {% if doc.place %}<span>{{ doc.place }}</span>{% endif %}
-    {% if doc.meta.get('period') %}<span>{{ m.lines(doc.meta.get('period')) }}</span>{% endif %}
-  </div>
-</header>
-<div class="journal__page">
-  <div class="paper__body">{{ doc.body_html }}</div>
-  {{ m.media(doc) }}
-  <div class="journal__filler"></div>
-</div>
-{{ m.signatures(doc) }}
+{% block header %}{{ m.hd(doc, w, "theater", [m.case_row(w), ("Лист " ~ doc.meta.get('sheet')) if doc.meta.get('sheet') else "", m.date_row(doc)]) }}{% endblock %}
+{% block subject %}
+{% if doc.meta.get('subtitle') or doc.meta.get('period') or doc.place %}
+<p class="subj">{% if doc.meta.get('subtitle') %}{{ doc.meta.get('subtitle') }}{% endif %}{% if doc.place %}<br>{{ doc.place }}{% endif %}{% if doc.meta.get('period') %}<br>{{ m.lines(doc.meta.get('period')) }}{% endif %}</p>
+{% endif %}
 {% endblock %}
+{% block body %}{{ doc.body_html }}{% endblock %}
+{% block after_body %}<div class="journal__filler"></div>{% endblock %}

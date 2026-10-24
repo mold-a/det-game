@@ -1,18 +1,20 @@
-{# Записка от руки: листок из блокнота в линейку с полем, чуть повёрнут; без шапки и заголовка
-   (название из documents.yaml не печатается; meta.subtitle — мелко сверху листка, например дата).
-   Текст — PT Serif курсивом «чернилами»; подпись — только фамилия/имя справа (doc.signed[].name).
-   QR-код страницы (если есть) — в углу листа A4, вне листка. meta.caption — подпись под листком
-   на листе дела (например, «Обнаружена в …»). #}
+{# Записка от руки — вырезаемый листок (docs/05 §4): листок блокнота в пунктирной рамке реза с ножницами;
+   без шапки и заголовка (название из documents.yaml не печатается; meta.subtitle — мелко сверху листка,
+   например дата). Текст — «ручкой» (Caveat); подпись — только имя (doc.signed[].name) справа.
+   QR-код страницы (если есть) — в углу листка («код в углу»). meta.caption — пометка листа дела под
+   рамкой (например, «Записка передана …»). #}
 {% extends "print/paper/_doc.html" %}
 {% import "print/paper/_macros.html" as m with context %}
 {% block sheet %}
-<div class="note">
-  <div class="note__inner">
+<div class="cutout cutout--note">
+  <span class="cutout__scissors" aria-hidden="true">✂</span>
+  <div class="note{% if doc.qr %} note--qr{% endif %}">
+    {% if doc.qr %}<figure class="note__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>{% endif %}
     {% if doc.meta.get("subtitle") %}<p class="note__head">{{ doc.meta.get("subtitle") }}</p>{% endif %}
-    <div class="paper__body">{{ doc.body_html }}</div>
-    {% if doc.signed %}<div class="paper__signatures">{% for s in doc.signed %}<div class="paper__sign"><span class="name">{{ s.name }}</span></div>{% endfor %}</div>{% endif %}
+    <div class="note__body">{{ doc.body_html }}</div>
+    {% if doc.signed %}<div class="note__sign">{% for s in doc.signed %}<div>{{ s.name }}</div>{% endfor %}</div>{% endif %}
   </div>
 </div>
+{% if doc.meta.get("caption") %}<p class="annot">{{ doc.meta.get("caption") }}</p>{% endif %}
 {{ m.media(doc) }}
-{% if doc.meta.get("caption") %}<p class="note__caption">{{ doc.meta.get("caption") }}</p>{% endif %}
 {% endblock %}
