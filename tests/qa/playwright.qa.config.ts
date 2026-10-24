@@ -11,6 +11,9 @@ export default defineConfig({
   reporter: [["list"]],
   use: {
     baseURL: process.env.E2E_BASE_URL || "http://127.0.0.1:8771",
+    // Зависшее действие (локатора нет на странице) падает за 20 с, а не за таймаут теста (5 мин).
+    actionTimeout: 20_000,
+    navigationTimeout: 30_000,
   },
   projects: [
     {
