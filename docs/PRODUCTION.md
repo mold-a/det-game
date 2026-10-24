@@ -145,7 +145,7 @@ Handheld selfie video with slight sway. The young woman looks at the apple in he
 | «Призма», новости | `S06`, `S07` (`media/lab/`, улики), `NM-01`, `F06`, `F07`, `X01` (`media/news*/`), `X04a`, `X04b` (`media/lab/`) | 8 |
 | Сайты театра, фонда, клуба | `F01`, `F02` (`media/theater/`), `F05` (`media/fund/`), `F08`, `X02a`–`X02c` (`media/auction/`) | 7 |
 | Облако | `X03a`–`X03c`: `media/cloud/01.jpg`–`03.jpg` | 3 |
-| Аудио | `CALL` (`audio/anonymous_call.mp3`, улика, 0:42), `V1`–`V5`, `GV-1`, `GV-2`, `RV-1`, `RV-2`, `MV-1`, `KV-1`, `KV-2` | 13 |
+| Аудио | `CALL` (`audio/anonymous_call.mp3`, улика, 0:40), `V1`–`V5`, `GV-1`, `GV-2`, `RV-1`, `RV-2`, `MV-1`, `KV-1`, `KV-2` | 13 |
 | Видео | `4-07` (`video/rehearsal.mp4`, улика), `VD-1` (`krug-levin/video-01.mp4`, 0:09), `VD-3` (`krug-marina/video-01.mp4`, 0:06, водяной знак обрезан) | 3 |
 | **Итого** | | **124** |
 
