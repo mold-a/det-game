@@ -2,7 +2,7 @@
 // файла, недоступный localStorage, несовместимая сборка, две вкладки.
 import { test, expect, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
-import { loadAnswers, startGame, article, headerScore, fillQuestion, submit } from "../e2e/helpers";
+import { loadAnswers, startGame, article, headerScore, fillQuestion, submit, reachQuestion } from "../e2e/helpers";
 import { readState, writeState, sumLog, STORE_KEY, collectErrors, waitIdle } from "./qa_util";
 
 const A = loadAnswers();
@@ -20,6 +20,7 @@ async function importText(page: Page, name: string, text: string) {
 test("импорт: мусор, чужая сборка, подменённый ключ, некорректная форма — прогресс не меняется", async ({ page }) => {
   const errors = collectErrors(page);
   await startGame(page);
+  await reachQuestion(page, A, q2.path); // вопросы открываются по одному
   await fillQuestion(page, q2, q2.wrong[0]);
   await submit(page, q2.path);
   await waitIdle(page, q2.path);
@@ -75,6 +76,7 @@ test("localStorage бросает на setItem/getItem: предупрежден
   await expect(page.locator(".notice")).toContainText("Браузер не даёт сохранять данные");
   await startGame(page);
   await expect(page.locator(".notice").first()).toContainText("Браузер не даёт сохранять данные");
+  await reachQuestion(page, A, q2.path);
   await fillQuestion(page, q2, q2.wrong[0]);
   await submit(page, q2.path);
   await waitIdle(page, q2.path);
@@ -97,6 +99,7 @@ test("доступ к window.localStorage бросает (Safari с запрет
   await page.goto("/");
   await expect(page.locator(".notice")).toContainText("Браузер не даёт сохранять данные");
   await startGame(page);
+  await reachQuestion(page, A, q2.path);
   await fillQuestion(page, q2, q2.wrong[0]);
   await submit(page, q2.path);
   await waitIdle(page, q2.path);

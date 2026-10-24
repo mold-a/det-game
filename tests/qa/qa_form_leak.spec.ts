@@ -1,7 +1,7 @@
 // QA: частично верная форма / persons не выдают, какое поле верно — ни текстом,
 // ни классами/aria, ни заметной разницей во времени (docs/01 §3 form).
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, article, fillQuestion, submit } from "../e2e/helpers";
+import { loadAnswers, startGame, playToStage, article, fillQuestion, submit, reachQuestion } from "../e2e/helpers";
 import { waitIdle } from "./qa_util";
 
 const A = loadAnswers();
@@ -60,6 +60,7 @@ test("форма: 3 из 4 верных полей и 0 из 4 неразлич�
 
 test("persons: частично верный набор и полностью неверный неразличимы", async ({ page }) => {
   await playToStage(page, A, 2);
+  await reachQuestion(page, A, q22.path);
   const right = q22.input as string[];
   const all = await article(page, q22.path).locator("input[type=checkbox]").evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
   const wrongOnly = all.filter((x) => !right.includes(x)).slice(0, 1);

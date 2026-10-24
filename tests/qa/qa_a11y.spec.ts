@@ -1,7 +1,7 @@
 // QA: доступность — клавиатура (order ↑/↓, persons), подписи полей (дерево доступности
 // Chromium), aria-live для результатов, контраст текста в светлой и тёмной теме (docs/05 §1, §3).
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, article, openConclusion } from "../e2e/helpers";
+import { loadAnswers, startGame, playToStage, article, openConclusion, reachQuestion } from "../e2e/helpers";
 
 const A = loadAnswers();
 test.setTimeout(300_000);
@@ -97,6 +97,7 @@ async function lowContrast(page: Page) {
 test("order: ↑/↓ с клавиатуры, фокус остаётся, проверка Enter", async ({ page }) => {
   await startGame(page);
   const q = A.stages[0].questions.find((x) => x.type === "order")!;
+  await reachQuestion(page, A, q.path); // вопросы открываются по одному
   const a = article(page, q.path);
   const ids = () => a.locator(".order__item").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.id));
   const before = await ids();
@@ -134,6 +135,7 @@ test("order: ↑/↓ с клавиатуры, фокус остаётся, пр�
 test("persons и форма: выбор с клавиатуры, все поля подписаны", async ({ page }) => {
   await playToStage(page, A, 2);
   const q = A.stages[1].questions.find((x) => x.type === "persons")!;
+  await reachQuestion(page, A, q.path);
   const a = article(page, q.path);
   const boxes = a.locator("input[type=checkbox]");
   await boxes.first().focus();
@@ -161,6 +163,7 @@ test("persons и форма: выбор с клавиатуры, все поля
 test("aria-live: сообщение проверки объявляется", async ({ page }) => {
   await startGame(page);
   const q = A.stages[0].questions.find((x) => x.type === "order")!;
+  await reachQuestion(page, A, q.path);
   await article(page, q.path).locator('button[type="submit"]').click();
   await expect(page.locator("body > .visually-hidden[aria-live]")).toHaveText("Ответ не подтверждается материалами дела.", { timeout: 30_000 });
   const live = await article(page, q.path).locator(".q__msg").evaluate((m) => [m.getAttribute("role"), m.getAttribute("aria-live")]);
@@ -175,6 +178,7 @@ for (const scheme of ["light", "dark"] as const) {
     report.push(...(await lowContrast(page)).map((x) => `/ intro: ${x}`));
     await startGame(page);
     const q = A.stages[0].questions.find((x) => x.type === "order")!;
+    await reachQuestion(page, A, q.path);
     await article(page, q.path).locator('button[type="submit"]').click();
     await expect(article(page, q.path).locator(".q__msg")).not.toHaveText("", { timeout: 30_000 });
     await page.locator(".scorelog summary").click();

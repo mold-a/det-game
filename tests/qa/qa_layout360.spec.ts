@@ -66,12 +66,18 @@ test("главный экран, лаборатория, финал на 360 px"
     issues.push(...(await overflow(page, `lab этап ${stage.n}`)));
     await page.goto("/");
     issues.push(...(await overflow(page, `этап ${stage.n}`)));
-    for (const q of stage.questions.filter((x) => x.kind === "bonus")) await solve(page, q);
+    // вопросы открываются по одному: обязательные, затем бонусы (окно конверта ждёт их), затем конверт
     const mand = stage.questions.filter((x) => x.kind === "mandatory");
     for (const q of mand.slice(0, -1)) await solve(page, q);
     const last = mand[mand.length - 1];
     await fillQuestion(page, last);
     await submit(page, last.path);
+    const bonuses = stage.questions.filter((x) => x.kind === "bonus");
+    if (bonuses.length) {
+      await expect(article(page, bonuses[0].path)).toBeVisible({ timeout: 30_000 });
+      issues.push(...(await overflow(page, `бонусы этапа ${stage.n}`)));
+      for (const q of bonuses) await solve(page, q);
+    }
     await expect(page.locator(".modal")).toBeVisible({ timeout: 30_000 });
     issues.push(...(await overflow(page, `модалка конверта ${stage.n + 1}`)));
     await envelopeOpened(page);

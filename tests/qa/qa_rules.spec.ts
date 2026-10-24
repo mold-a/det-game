@@ -1,6 +1,6 @@
 // QA: правила баллов, попыток и подсказок в реальном UI (docs/01 §4–6).
 import { test, expect } from "@playwright/test";
-import { loadAnswers, startGame, article, headerScore, fillQuestion, submit, scoreLog } from "../e2e/helpers";
+import { loadAnswers, startGame, article, headerScore, fillQuestion, submit, scoreLog, reachQuestion } from "../e2e/helpers";
 import { readState, sumLog, qMsg, collectErrors, waitIdle } from "./qa_util";
 
 const A = loadAnswers();
@@ -96,6 +96,7 @@ test("форма: штраф, повтор без штрафа (регистр/�
 
 test("order: подсказка 1 за свою цену, автоподсказка не повторяется, повтор порядка без штрафа", async ({ page }) => {
   await startGame(page);
+  await reachQuestion(page, A, q2.path);
   const a = article(page, q2.path);
   await a.getByRole("button", { name: `Подсказка (−${COST[0]})` }).click();
   await page.locator(".modal").getByRole("button", { name: `Открыть подсказку (−${COST[0]})` }).click();
@@ -118,6 +119,7 @@ test("order: подсказка 1 за свою цену, автоподсказ
 
 test("бонус: одна попытка — неверно закрывает без баллов; верно +bonus", async ({ page, browser }) => {
   await startGame(page);
+  await reachQuestion(page, A, b1.path); // бонус открывается после обязательных вопросов этапа
   const a = article(page, b1.path);
   await expect(a.locator(".mark-bonus")).toHaveText("Бонус, одна попытка");
   await expect(a.getByRole("button", { name: /Подсказка/ })).toHaveCount(0);
@@ -133,6 +135,7 @@ test("бонус: одна попытка — неверно закрывает 
   const ctx2 = await browser.newContext();
   const p2 = await ctx2.newPage();
   await startGame(p2);
+  await reachQuestion(p2, A, b1.path);
   // регистр/пробелы в бонусе тоже нормализуются
   await fillQuestion(p2, b1, `  ${String(b1.input).toUpperCase()}  `);
   await submit(p2, b1.path);

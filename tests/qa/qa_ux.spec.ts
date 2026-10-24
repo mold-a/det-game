@@ -1,9 +1,12 @@
 // QA: мелочи UX, найденные при проверке.
 import { test, expect } from "@playwright/test";
-import { startGame, article, scoreLog } from "../e2e/helpers";
+import { startGame, article, scoreLog, reachQuestion, loadAnswers } from "../e2e/helpers";
+
+const A = loadAnswers();
 
 test("после неверного ответа расстановка order и поля формы не сбрасываются", async ({ page }) => {
   await startGame(page);
+  await reachQuestion(page, A, "s1.q2");
   const ids = () => article(page, "s1.q2").locator(".order__item").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.id).join(","));
   await page.evaluate(() => {
     const l = document.querySelector('article[data-path="s1.q2"] ol.order')!;
@@ -18,6 +21,7 @@ test("после неверного ответа расстановка order и
 // На сайте лаборатории журнала нет (docs/04 «/lab/»: счёт — в полосе заказчика).
 test("журнал баллов на /final/ подписан так же, как на главном («вопрос 1.2», а не s1.q2)", async ({ page }) => {
   await startGame(page);
+  await reachQuestion(page, A, "s1.q2");
   await article(page, "s1.q2").locator('button[type="submit"]').click();
   await expect(article(page, "s1.q2").locator(".q__msg")).toContainText("не подтверждается", { timeout: 30_000 });
   const main = (await scoreLog(page)).map((r) => r.reason);

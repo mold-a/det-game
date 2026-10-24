@@ -2,7 +2,7 @@
 // (запись localStorage доходит до другой вкладки асинхронно), поэтому каждый сценарий
 // повторяется до RUNS раз; тест падает на первом воспроизведении.
 import { test, expect, type Page, type BrowserContext } from "@playwright/test";
-import { loadAnswers, startGame, headerScore, article, objectText } from "../e2e/helpers";
+import { loadAnswers, startGame, headerScore, article, objectText, reachQuestion } from "../e2e/helpers";
 import { readState, sumLog } from "./qa_util";
 
 const A = loadAnswers();
@@ -21,13 +21,16 @@ const prep = (p: Page, moves: number) =>
 const click = (p: Page, path = P) =>
   p.evaluate((path) => (document.querySelector(`article[data-path="${path}"] button[type=submit]`) as HTMLButtonElement).click(), path);
 
-async function twoTabs(page: Page, context: BrowserContext) {
+/** Две вкладки на вопросе path (вопросы этапа открываются по одному: предыдущие решаются в первой вкладке). */
+async function twoTabs(page: Page, context: BrowserContext, path = P) {
   await page.goto("/");
   await page.evaluate(() => localStorage.clear());
   await startGame(page);
+  await reachQuestion(page, A, path);
   const p2 = await context.newPage();
   await p2.goto("/");
   await expect(p2.locator("#stage-title")).toHaveText("Этап 1");
+  await expect(article(p2, path)).toBeVisible();
   return p2;
 }
 
@@ -75,7 +78,7 @@ test("бонус в двух вкладках одновременно: сооб
       (a.querySelector("button[type=submit]") as HTMLButtonElement).click();
     }, [v]);
   for (let run = 0; run < RUNS; run++) {
-    const p2 = await twoTabs(page, context);
+    const p2 = await twoTabs(page, context, b1.path);
     await Promise.all([setAndClick(page, String(b1.wrong[0])), setAndClick(p2, String(b1.input))]);
     await page.waitForTimeout(2000);
     const s = await readState(page);
