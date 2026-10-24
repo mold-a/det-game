@@ -6,7 +6,7 @@
 // Запускать из каталога mod (там свой tests/.answers.json) против его сервера.
 import { test, expect, type Page } from "@playwright/test";
 import {
-  loadAnswers, startGame, article, headerScore, fillQuestion, submit, envelopeOpened, labRequest, labAll, solve, objectText,
+  loadAnswers, startGame, article, headerScore, fillQuestion, submit, envelopeOpened, labRequest, labAll, solve, objectText, reachQuestion,
 } from "../e2e/helpers";
 
 const A = loadAnswers();
@@ -29,13 +29,21 @@ async function lab(page: Page, object: string, type: string, basis: string) {
   return labRequest(page, e as any, basis);
 }
 
-async function finishStage(page: Page, n: number) {
+/** Обязательные (пропуская решённые) → бонусы (onBonus видит первый бонус, затем «Пропустить») → окно конверта. */
+async function finishStage(page: Page, n: number, onBonus?: () => Promise<void>) {
   const stage = A.stages.find((s) => s.n === n)!;
+  const solved = async (path: string) => /q--solved/.test((await article(page, path).getAttribute("class").catch(() => null)) ?? "");
   const mand = stage.questions.filter((x) => x.kind === "mandatory");
-  for (const q of mand.slice(0, -1)) await solve(page, q);
+  for (const q of mand.slice(0, -1)) if (!(await solved(q.path))) await solve(page, q);
   const last = mand[mand.length - 1];
   await fillQuestion(page, last);
   await submit(page, last.path);
+  const bonuses = stage.questions.filter((x) => x.kind === "bonus");
+  if (bonuses.length) {
+    await expect(article(page, bonuses[0].path)).toBeVisible({ timeout: 30_000 });
+    if (onBonus) await onBonus();
+    await page.getByRole("button", { name: /^Пропустить бонусы и перейти к конверту №\d+$/ }).click();
+  }
   await envelopeOpened(page);
   await expect(page.locator("#stage-title")).toHaveText(`Этап ${n + 1}`);
 }
@@ -52,6 +60,7 @@ test("XSS в контенте и имени команды + лаборатор�
   await page.locator(".modal").getByRole("button", { name: /Открыть подсказку/ }).click();
   await expect(article(page, "s1.q1").locator(".hints__item")).toContainText('alert("HINT1")');
   await expect(article(page, "s1.q1").locator(".q__prompt")).toContainText('alert("PROMPT")');
+  await reachQuestion(page, A, "s1.q2"); // вопросы открываются по одному
   await expect(article(page, "s1.q2").locator(".order__item").filter({ hasText: 'alert("ORDER")' })).toHaveCount(1);
   const scoreAfterHint = await headerScore(page);
 
@@ -71,8 +80,6 @@ test("XSS в контенте и имени команды + лаборатор�
 
   await page.goto("/");
   await finishStage(page, 1);
-  // этап 2: вариант с полезной нагрузкой виден как текст
-  await expect(article(page, "s2.b1")).toContainText('alert("OPTION")');
 
   await page.goto("/lab/");
   const before2 = await headerScore(page);
@@ -89,7 +96,10 @@ test("XSS в контенте и имени команды + лаборатор�
   await expect(page.locator(".orders__item.is-nothing")).toHaveCount(1);
 
   await page.goto("/");
-  await finishStage(page, 2);
+  // вариант с полезной нагрузкой виден как текст (бонус этапа 2 открывается после обязательных)
+  await finishStage(page, 2, async () => {
+    await expect(article(page, "s2.b1")).toContainText('alert("OPTION")');
+  });
   await page.goto("/lab/");
   const before3 = await headerScore(page);
   expect(await lab(page, "water", "chem", "1-09")).toMatch(/^Такая заявка уже выполнялась/);

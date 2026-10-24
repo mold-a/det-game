@@ -126,6 +126,12 @@ for (const [w, h, skipStage] of [[360, 780, 2], [1280, 900, 0]] as const) {
     await expect(page.locator(".final-warn")).toContainText("нельзя изменить");
     await shot(page, `${tag}-final-00-warn`, false);
     await page.getByRole("button", { name: "Начать финал" }).click();
+    // при непройденных бонусах просит подтверждения
+    const confirm = page.locator(".modal").getByRole("button", { name: "Начать финал" });
+    if (await confirm.count()) {
+      await shot(page, `${tag}-final-00b-confirm`, false);
+      await confirm.click();
+    }
     const byPath = Object.fromEntries(lastStage.questions.map((q) => [q.path, q]));
     let i = 0;
     for (const path of A.finalOrder) {
