@@ -69,7 +69,9 @@ test.describe("телефон 360 px", () => {
     } else {
       await expect(player.locator('[data-act="play"]')).toBeEnabled();
     }
-    await expect(page.getByText("Расшифровка — в материалах дела")).toBeVisible();
+    // Решение автора 24.10: расшифровки нет нигде, в карточке — отсылка к сопроводительному листу 1-05.
+    await expect(page.getByText("Сведения о вызове — в материалах дела (1-05).")).toBeVisible();
+    await expect(page.getByText(/Расшифровка/)).toHaveCount(0);
     await expectNoHorizontalScroll(page);
   });
 
