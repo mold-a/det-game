@@ -443,7 +443,8 @@ def load_content(root: Path | str = CONTENT_DIR, *, paper_templates: Path | None
     _check_doc_ids(ld, docs)
     if pages is not None:
         _check_pages(ld, pages, characters, documents, texts)
-        _check_page_links(ld, pages, documents, texts, characters, world, services)
+        _check_page_links(ld, pages, documents, texts, characters, world, services,
+                          _link_sources(stages, expertise, docs))
     _check_chats(ld, chats, characters, documents)
     paper, paper_missing = _load_paper(ld, documents, chats, Path(paper_templates or PAPER_TEMPLATES))
 
@@ -1186,16 +1187,45 @@ def _load_services(ld: _Loading) -> dict[str, Any]:
     return dict(file.services) if file is not None else {}
 
 
+def _link_sources(stages: list[Stage] | None, expertise: ExpertiseFile | None,
+                  docs: dict[str, DocFile]) -> list[Any]:
+    """Тексты вне страниц, где бывают ссылки ``link('slug')``: тексты этапов (вступление, вопросы, подсказки,
+    письмо «дальше») и результаты экспертиз (текст документа или ``text``). Этап источника — этап текста."""
+    from engine.pages import LinkSource
+
+    out: list[LinkSource] = []
+    for si, st in enumerate(stages or []):
+        base = f"stages[{si}]"
+        out.append(LinkSource("stages.yaml", f"{base}.intro", st.n, st.intro))
+        if st.on_complete:
+            out.append(LinkSource("stages.yaml", f"{base}.on_complete", st.n, st.on_complete))
+        for qi, q in enumerate(st.questions):
+            qb = f"{base}.questions[{qi}]"
+            out.append(LinkSource("stages.yaml", f"{qb}.prompt", st.n, q.prompt))
+            for hi, h in enumerate(q.hints):
+                out.append(LinkSource("stages.yaml", f"{qb}.hints[{hi}]", st.n, h))
+            for fi, f in enumerate(q.fields or []):
+                out.append(LinkSource("stages.yaml", f"{qb}.fields[{fi}].label", st.n, f.label))
+    for ri, res in enumerate(expertise.results if expertise else []):
+        if res.body and res.body in docs:
+            out.append(LinkSource(res.body, "", res.stage, docs[res.body].body))
+        if res.text:
+            out.append(LinkSource("expertise.yaml", f"results[{ri}].text", res.stage, res.text))
+    return out
+
+
 def _check_page_links(ld: _Loading, pages: dict[str, PageBase], documents: list[Document] | None,
                       texts: dict[str, str], characters: list[Character] | None, world: dict | None,
-                      services: dict[str, Any]) -> None:
+                      services: dict[str, Any], sources: list[Any] | None = None) -> None:
     """Ссылки между страницами (docs/REDESIGN-2026-10 §4.1): цель есть, этап цели не позже этапа
     источника, из открытой страницы — только на этап 1. Достижимость страниц без QR — предупреждение."""
     if documents is None or characters is None or world is None:
         return
     from engine.pages import check_links
 
-    rep = check_links(pages, documents, texts, characters, world, services)
+    rep = check_links(pages, documents, texts, characters, world, services, sources)
+    for file, where, msg in rep.source_errors:
+        ld.errors.append(ContentIssue(ld.name(file), where, msg))
     for slug, where, msg in rep.errors:
         ld.errors.append(ContentIssue(ld.name(f"pages/{slug}/page.yaml"), where, msg))
     for slug, where, msg in rep.warnings:

@@ -702,3 +702,50 @@ def test_pharma_appearance_row_after_active_substance(built_voice):
     card = cards[0]
     assert card.index("Действующее вещество") < card.index("Внешний вид") < card.index("Фармакологическая группа")
     assert "Белые круглые таблетки, ТЕСТ-ВИД" in html
+
+
+# ---------------------------------------------------------------- достижимость через тексты результатов и этапов
+
+
+def orphan_page(root: Path, slug: str, stage: int) -> None:
+    new_page(root, slug, {"slug": slug, "type": "site", "stage": stage, "locked": stage > 1, "brand": "Тестовый", "skin": "fund",
+                          "sections": [{"id": "a", "title": "A", "blocks": [{"kind": "text", "md": "Текст."}]}]})
+
+
+def unreachable_warnings(c) -> list[str]:
+    return [str(w) for w in c.warnings if "без входящих ссылок" in str(w)]
+
+
+def test_page_without_doc_is_unreachable_without_links(root):
+    orphan_page(root, "orphan", 1)
+    assert any("orphan" in w for w in unreachable_warnings(load_content(root)))
+
+
+def test_link_from_expertise_result_text_makes_page_reachable(root):
+    # результат 3-05 (этап 3): открытая страница этапа 1 достижима по ссылке из его текста
+    orphan_page(root, "orphan", 1)
+    p = root / "documents" / "3-05.md"
+    p.write_text(p.read_text(encoding="utf-8") + "\n\nСм. [тут]({{ link('orphan') }}).\n", encoding="utf-8")
+    assert not any("orphan" in w for w in unreachable_warnings(load_content(root)))
+
+
+def test_link_from_stage_text_makes_page_reachable(root):
+    orphan_page(root, "orphan", 1)
+    edit_yaml(root, "stages.yaml", lambda d: d["stages"][1].update(
+        on_complete=d["stages"][1]["on_complete"] + " [тут]({{ link('orphan') }})"))
+    assert not any("orphan" in w for w in unreachable_warnings(load_content(root)))
+
+
+def test_link_from_result_text_to_later_stage_is_error(root):
+    # страница этапа 4 из результата этапа 3: игроки ещё не дошли
+    orphan_page(root, "orphan", 4)
+    p = root / "documents" / "3-05.md"
+    p.write_text(p.read_text(encoding="utf-8") + "\n\nСм. [тут]({{ link('orphan') }}).\n", encoding="utf-8")
+    errs = errors_of(root)
+    assert has_error(errs, "3-05.md", "orphan", "этап 4", "этапа 3")
+
+
+def test_link_from_result_text_to_unknown_page_is_error(root):
+    p = root / "documents" / "3-05.md"
+    p.write_text(p.read_text(encoding="utf-8") + "\n\nСм. [тут]({{ link('net-takoy') }}).\n", encoding="utf-8")
+    assert has_error(errors_of(root), "3-05.md", "net-takoy")

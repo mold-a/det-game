@@ -9,15 +9,18 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
+from typing import Any
 
 from markupsafe import Markup
 
 from engine import ROOT
+from engine import salts as salts_mod
 from engine.answers import display_answer, expand_all, iso_to_dmy
 from engine.content import Content, load_content, units
 from engine.lab import expand_params, lower_first
-from engine.templating import make_context, render, render_markdown
+from engine.templating import make_context, make_link, render, render_markdown
 
 PRINT_ANSWERS = ROOT / "print" / "answers.pdf"
 KIND_LABEL = {"mandatory": "обязательный", "bonus": "бонус", "final": "финальный"}
@@ -38,8 +41,25 @@ def _accepted(exp, u_type: str) -> str:
     return ""
 
 
-def emergency_data(content: Content) -> dict:
+_ABS_LINK_RE = re.compile(r'(<a href="(https?://[^"]+)"[^>]*>.*?</a>)', re.S)
+
+
+def _show_addresses(html: str) -> str:
+    """В бумажном конверте ссылку не нажать: после текста ссылки печатаем её полный адрес."""
+    return _ABS_LINK_RE.sub(lambda m: f"{m.group(1)} ({m.group(2)})", html)
+
+
+def emergency_data(content: Content, salts: Any = None) -> dict:
+    """``salts`` — соли и ключи страниц (по умолчанию ``engine/salts.lock.json``, только чтение): нужны,
+    чтобы ``link('slug')`` в текстах результатов раскрывались в полный адрес с ключом, как в сборке."""
+    if salts is None:
+        salts = salts_mod.read()
+        if salts is None:
+            raise FileNotFoundError(f"нет файла солей {salts_mod.SALTS_LOCK} — сначала python -m engine build")
     ctx = make_context(content)
+    domain = content.settings.domain.rstrip("/")
+    site_link = make_link(content.pages or {}, salts)
+    ctx["link"] = lambda slug: domain + site_link(slug)  # полный адрес: ведущему его можно набрать руками
     expanded = expand_all(content, ctx)
     params = expand_params(content, ctx)
     by_path = {u.path: u for u in units(content)}
@@ -81,10 +101,10 @@ def emergency_data(content: Content) -> dict:
             prm.append({"label": r(p.label), "value": shown, "note": _tolerance_note(exp)})
         if res.doc:
             df = content.docs.get(res.body)
-            body = Markup(render_markdown(render(df.body, ctx))) if df else Markup("<p>Текста документа пока нет.</p>")
+            body = Markup(_show_addresses(render_markdown(render(df.body, ctx)))) if df else Markup("<p>Текста документа пока нет.</p>")
             title = f"{res.doc} — {r(docs[res.doc].title)}"
         else:
-            body = Markup(render_markdown(r(res.text)))
+            body = Markup(_show_addresses(render_markdown(r(res.text))))
             title = f"{r(obj.title)}: {lower_first(r(types[res.types[0]].title))} (без документа)"
         lab.append({
             "stage": res.stage, "object": r(obj.title), "object_from": obj.from_stage, "ref": r(obj.ref),
@@ -98,7 +118,7 @@ def emergency_data(content: Content) -> dict:
         df = content.docs.get(rel)
         if df is None:
             return "", Markup("<p>Текста пока нет.</p>")
-        return render(df.meta.title, ctx), Markup(render_markdown(render(df.body, ctx)))
+        return render(df.meta.title, ctx), Markup(_show_addresses(render_markdown(render(df.body, ctx))))
 
     c = ctx["c"]
     confession = doc_html(fin.confession)

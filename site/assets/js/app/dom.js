@@ -79,12 +79,14 @@ export function uid(prefix = "dg") {
   return `${prefix}-${uidCounter}`;
 }
 
+const PAGE_LINK_PREFIX = "/p/";
 const DROP_TAGS = new Set(["SCRIPT", "IFRAME", "OBJECT", "EMBED", "LINK", "META", "BASE", "FORM"]);
 
 /**
  * Вставить HTML ИЗ СОБСТВЕННОЙ СБОРКИ (документы, письма из пакетов).
  * Не для ввода пользователя. Дополнительно удаляет опасные теги,
- * on*-обработчики и javascript:-ссылки.
+ * on*-обработчики и javascript:-ссылки. Ссылки на вымышленные страницы (/p/…) открываются
+ * в новой вкладке, чтобы игра (окно документа, ввод) оставалась на месте.
  */
 export function insertTrustedHtml(el, html) {
   const tpl = document.createElement("template");
@@ -103,6 +105,10 @@ export function insertTrustedHtml(el, html) {
       else if ((name === "href" || name === "src" || name === "xlink:href") && val.startsWith("javascript:")) {
         n.removeAttribute(a.name);
       }
+    }
+    if (n.tagName === "A" && (n.getAttribute("href") || "").trim().startsWith(PAGE_LINK_PREFIX)) {
+      n.setAttribute("target", "_blank");
+      n.setAttribute("rel", "noopener");
     }
   }
   for (const n of drop) n.remove();

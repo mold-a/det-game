@@ -476,6 +476,20 @@ class LinkReport:
 
     errors: list[tuple[str, str, str]] = field(default_factory=list)
     warnings: list[tuple[str, str, str]] = field(default_factory=list)
+    # ошибки в источниках вне страниц (тексты этапов, результаты экспертиз): ``(файл, место, сообщение)``
+    source_errors: list[tuple[str, str, str]] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class LinkSource:
+    """Текст вне страниц, где игрок видит ссылки ``link('slug')``: результат экспертизы, письмо/подсказка этапа.
+
+    ``stage`` — этап, на котором текст виден игроку (этап результата или этапа)."""
+
+    file: str
+    loc: str
+    stage: int
+    text: str
 
 
 def body_rels(page: PageBase) -> list[tuple[tuple, str]]:
@@ -525,12 +539,16 @@ def implicit_links(page: PageBase, social_profiles: list[str]) -> list[tuple[str
 
 
 def check_links(pages: dict[str, PageBase], documents: list[Document], texts: dict[str, str],
-                characters: list, world: dict, services: dict | None = None) -> LinkReport:
+                characters: list, world: dict, services: dict | None = None,
+                sources: list[LinkSource] | None = None) -> LinkReport:
     """Проверки §4.1: цель существует; ``stage(B) ≤ stage(A)``; из открытой страницы — только на этап 1.
 
     Ссылки берутся из полей ``page:``, из вызовов ``link('slug')`` в строках страницы и её Markdown-файлов,
     а также из ссылок, которые ставит шаблон сам (``implicit_links``). Страница без ``doc`` (QR нет),
     на которую никто не ссылается, — предупреждение: игроки до неё не доберутся.
+
+    ``sources`` — тексты вне страниц (результаты экспертиз, тексты этапов): ссылки из них тоже входящие,
+    правило ``stage(B) ≤ stage(A)`` действует с этапом источника; заглушек для профилей там нет.
     """
     rep = LinkReport()
     docs_by_id = {d.id: d for d in documents}
@@ -601,6 +619,29 @@ def check_links(pages: dict[str, PageBase], documents: list[Document], texts: di
                 rep.errors.append((slug, where, f"открытая страница ссылается на «{target}» (этап {sb}): адрес с ключом "
                                                 "попадёт в открытый файл; из открытых страниц можно ссылаться "
                                                 "только на страницы этапа 1"))
+
+    for src in sources or []:
+        found: list[str] = []
+
+        def rec_src(target: str, _found=found) -> str:
+            _found.append(target)
+            return page_href(target)
+
+        if "link(" not in src.text:
+            continue
+        try:
+            render(src.text, {**base, "link": rec_src})
+        except RenderError:
+            pass
+        for target in dict.fromkeys(found):
+            if target not in pages:
+                rep.source_errors.append((src.file, src.loc, f"ссылка на страницу «{target}», которой нет в content/pages/"))
+                continue
+            inbound.setdefault(target, set()).add(f"{src.file}:{src.loc}")
+            sb = stage_of.get(target)
+            if sb is not None and sb > src.stage:
+                rep.source_errors.append((src.file, src.loc, f"ссылка на «{target}» (этап {sb}) из текста этапа "
+                                                              f"{src.stage}: игроки могут ещё не дойти до этой страницы"))
 
     for slug, page in pages.items():
         stub = getattr(page, "stub", None)
