@@ -109,7 +109,8 @@ def test_stage_must_match_doc(root):
 
 
 def test_page_without_doc_but_document_points_to_it(root):
-    edit_yaml(root, "documents.yaml", lambda d: d["documents"][0].update(page="krug-private"))
+    edit_yaml(root, "documents.yaml",
+              lambda d: next(x for x in d["documents"] if x["id"] == "1-02").update(page="krug-private"))
     assert has_error(errors_of(root), "krug-private", "doc")
 
 

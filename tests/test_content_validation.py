@@ -338,7 +338,8 @@ def test_document_unknown_page(root):
         d["documents"][find(d["documents"], "1-05")]["page"] = "nopage"
 
     edit_yaml(root, "documents.yaml", fn)
-    errs = assert_error(root, "content/documents.yaml: documents[4].page", "страницы «nopage» нет")
+    idx = find(yaml.safe_load((root / "documents.yaml").read_text(encoding="utf-8"))["documents"], "1-05")
+    errs = assert_error(root, f"content/documents.yaml: documents[{idx}].page", "страницы «nopage» нет")
     assert any("pages/call/page.yaml: doc" in e and "ссылается на страницу «nopage»" in e for e in errs)
 
 

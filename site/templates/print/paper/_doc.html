@@ -5,11 +5,11 @@
 {% import "print/paper/_macros.html" as m with context %}
 {% set footer = {"protocol": "sheeted", "inspection": "sheeted", "forensic": "sheeted", "registry": "numbered"}.get(doc.form) %}
 {{ m.page_rule(doc, w, footer, "A4 landscape" if doc.form == "chat" else None) }}
-<article class="paper paper--{{ doc.form }} brand--{{ doc.brand }}{% if doc.qr %} paper--qr{% endif %}{% if doc.part_kind != 'whole' %} paper--{{ doc.part_kind }}{% endif %}" style="page: doc-{{ doc.id }}" id="doc-{{ doc.id }}" data-doc="{{ doc.id }}" data-form="{{ doc.form }}">
+<article class="paper paper--{{ doc.form }} brand--{{ doc.brand }}{% if doc.qr and doc.qrs|length < 2 %} paper--qr{% endif %}{% if doc.part_kind != 'whole' %} paper--{{ doc.part_kind }}{% endif %}" style="page: doc-{{ doc.id }}" id="doc-{{ doc.id }}" data-doc="{{ doc.id }}" data-form="{{ doc.form }}">
   {% block docmark %}{{ m.docmark(doc, w) }}{% endblock %}
   {% block sheet %}
   {% block header %}{{ m.hd(doc, w, "police", [m.case_row(w), m.no_row(doc), m.date_row(doc)]) }}{% endblock %}
-  {% block qr %}{% if doc.qr %}<figure class="paper__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>{% endif %}{% endblock %}
+  {% block qr %}{% if doc.qr and doc.qrs|length < 2 %}<figure class="paper__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>{% endif %}{% endblock %}
   {% block subject %}{% if doc.meta.get('subtitle') %}<p class="subj">{{ doc.meta.get('subtitle') }}</p>{% endif %}{% endblock %}
   {% block fields %}{% endblock %}
   {% block before_body %}{% endblock %}
@@ -17,5 +17,6 @@
   {% block media %}{{ m.media(doc) }}{% endblock %}
   {% block after_body %}{% endblock %}
   {% block signatures %}{{ m.signatures(doc) }}{% endblock %}
+  {% block attachments %}{{ m.attachments(doc) }}{% endblock %}
   {% endblock %}
 </article>

@@ -194,6 +194,22 @@ class Document(Strict):
     kind: Literal["paper", "online", "lab"]
     title: str
     page: Id | None = None
+    pages: list[Id] = []  # несколько страниц (несколько QR на одном документе); вместо page
+
+    @model_validator(mode="after")
+    def _page_or_pages(self) -> "Document":
+        if self.page is not None and self.pages:
+            raise ValueError("укажите одно из полей: page (одна страница) или pages (список страниц)")
+        if "pages" in self.model_fields_set and len(self.pages) < 2:
+            raise ValueError("pages — список из двух и более страниц; для одной страницы используйте page")
+        if len(set(self.pages)) != len(self.pages):
+            raise ValueError("в pages страница указана дважды")
+        return self
+
+    @property
+    def page_slugs(self) -> tuple[str, ...]:
+        """Все страницы документа по порядку: ``page`` или ``pages``."""
+        return (self.page,) if self.page is not None else tuple(self.pages)
 
 
 class DocumentsFile(Strict):

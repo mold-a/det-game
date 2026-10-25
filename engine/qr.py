@@ -63,7 +63,7 @@ def plan_cards(content: Content, salts) -> list[QrCard]:
         access = access_of(page)
         key = b64u_encode(salts.page_key(slug)) if access == "key" else None
         # куда кладётся карточка: бумажные документы со ссылкой на страницу, иначе сам документ страницы
-        docs = [d for d in content.documents if d.page == slug and d.kind == "paper"]
+        docs = [d for d in content.documents if slug in d.page_slugs and d.kind == "paper"]
         if not docs:
             docs = [content.documents_by_id[page.doc]]
         cards.append(QrCard(

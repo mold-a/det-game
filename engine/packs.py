@@ -122,7 +122,7 @@ class PackBuilder:
     def documents(self, n: int) -> list[dict]:
         return [
             {"id": d.id, "stage": d.stage, "kind": d.kind, "title": render(d.title, self.ctx),
-             "link": f"/p/{d.page}/" if d.kind == "online" else None}
+             "link": f"/p/{d.page_slugs[0]}/" if d.kind == "online" else None}
             for d in self.content.documents
             if d.stage == n and d.kind in ("paper", "online")
         ]

@@ -470,6 +470,138 @@ def test_qr_can_be_disabled(root, salts):
     assert doc_data(c, "1-05", make_context(c), cards=qr_cards(c, salts))["qr"] is None
 
 
+# --- несколько QR на одном документе (documents.yaml: pages, front matter: meta.attachments)
+
+ATTACH_FRONT = """id: "1-02"
+form: letter
+meta:
+  attachments:
+    - { page: gromov, label: "Приложение 1. {{ w.brands.social }}" }
+    - { page: news, label: "Приложение 2. Новость" }"""
+
+
+def _set_pages(root: Path, value: str, doc_id: str = "1-02") -> None:
+    """Заменить у документа ``doc_id`` в documents.yaml ``kind: paper,`` на ``kind: paper, <value>,``."""
+    p = root / "documents.yaml"
+    text = p.read_text(encoding="utf-8")
+    old = f'{{ id: "{doc_id}", stage: 1, kind: paper,'
+    assert old in text
+    p.write_text(text.replace(old, f"{old} {value},", 1), encoding="utf-8")
+
+
+@pytest.fixture
+def two_pages(root, tmp_path):
+    _set_pages(root, "pages: [gromov, news]")
+    write_paper(root, "1-02", ATTACH_FRONT, body="Текст письма.\n")
+    write_paper(root, "1-12", 'id: "1-12"\nform: letter')
+    c = load_content(root)
+    return c, salts_mod.ensure_for_content(c, tmp_path / "salts.lock.json")
+
+
+def test_document_pages_model(two_pages):
+    c, _ = two_pages
+    d = c.documents_by_id["1-02"]
+    assert d.page is None and d.page_slugs == ("gromov", "news")
+    assert c.documents_by_id["1-12"].page_slugs == ("gromov",) and c.documents_by_id["1-03"].page_slugs == ()
+
+
+def test_doc_with_two_pages_has_two_qrs(two_pages):
+    c, salts = two_pages
+    cards = qr_cards(c, salts)
+    d = doc_data(c, "1-02", make_context(c), cards=cards)
+    assert [q["slug"] for q in d["qrs"]] == ["gromov", "news"]
+    assert [q["url"] for q in d["qrs"]] == [cards["gromov"].url, cards["news"].url]
+    assert all("<svg" in q["svg"] for q in d["qrs"])
+    # подпись — из meta.attachments (шаблон отрендерен)
+    assert d["qrs"][0]["label"] == f"Приложение 1. {c.world['brands']['social']}"
+    assert d["qrs"][1]["label"] == "Приложение 2. Новость"
+    assert d["qr"] == d["qrs"][0]  # обратная совместимость
+    single = doc_data(c, "1-12", make_context(c), cards=cards)
+    assert len(single["qrs"]) == 1 and single["qr"] == single["qrs"][0]
+    assert doc_data(c, "1-03", make_context(c), cards=cards)["qrs"] == []
+
+
+def test_attachment_label_falls_back_to_qr_label(two_pages):
+    c, salts = two_pages
+    write_paper(c.root, "1-02", 'id: "1-02"\nform: letter')
+    c2 = load_content(c.root)
+    d = doc_data(c2, "1-02", make_context(c2), cards=qr_cards(c2, salts))
+    assert [q["label"] for q in d["qrs"]] == [qr_cards(c2, salts)[s].label for s in ("gromov", "news")]
+
+
+def test_attachments_block_in_html(two_pages, tmp_path):
+    from engine.paper import paper_html
+
+    c, salts = two_pages
+    html = paper_html(c, ["1-02", "1-12"], salts=salts, media_dir=tmp_path)
+    letter = "".join(html["1-02"])
+    assert "Приложения" in letter and letter.count('class="attach__item') == 2
+    assert '<figure class="paper__qr"' not in letter and " paper--qr" not in letter  # угловой QR только для одного
+    assert "Приложение 1." in letter and "Приложение 2. Новость" in letter
+    assert "·" not in letter
+    one = "".join(html["1-12"])
+    assert 'class="attach__item' not in one and '<figure class="paper__qr"' in one
+
+
+def test_two_pages_in_qr_cards_and_plan(two_pages):
+    from engine.qr import plan_cards
+
+    c, salts = two_pages
+    cards = {x.slug: x for x in plan_cards(c, salts)}
+    assert "1-02" in cards["gromov"].docs and "1-12" in cards["gromov"].docs
+    assert cards["news"].docs[0] in ("1-02", "1-13") and "1-02" in cards["news"].docs
+
+
+def test_page_and_pages_together(root):
+    _set_pages(root, "page: gromov, pages: [gromov, news]")
+    assert_error(root, "documents.yaml", "одно из полей")
+
+
+def test_pages_needs_two_and_unique(root):
+    _set_pages(root, "pages: [gromov]")
+    assert_error(root, "documents.yaml", "двух и более")
+
+
+def test_pages_duplicate(root):
+    _set_pages(root, "pages: [gromov, gromov]")
+    assert_error(root, "documents.yaml", "указана дважды")
+
+
+def test_pages_unknown_slug(root):
+    _set_pages(root, "pages: [gromov, nope]")
+    assert_error(root, "documents.yaml", "pages", "«nope»", "нет в content/pages/")
+
+
+def test_pages_stage_not_before_page(root):
+    _set_pages(root, "pages: [gromov, inna]")  # inna — страница конверта 2, а документ в конверте 1
+    assert_error(root, "documents.yaml", "QR страницы «inna» (этап 2) лежит в конверте 1")
+
+
+def test_pages_only_for_paper(root):
+    p = root / "documents.yaml"
+    text = p.read_text(encoding="utf-8")
+    old = '{ id: "4-01", stage: 4, kind: online, page: cloud,'
+    assert old in text
+    p.write_text(text.replace(old, '{ id: "4-01", stage: 4, kind: online, pages: [cloud, video],'), encoding="utf-8")
+    assert_error(root, "documents.yaml", "pages", "только у бумажного документа")
+
+
+def test_attachments_unknown_page(root):
+    _set_pages(root, "pages: [gromov, news]")
+    write_paper(root, "1-02", 'id: "1-02"\nform: letter\nmeta:\n  attachments:\n'
+                              '    - { page: cloud, label: "Приложение" }')
+    assert_error(root, "content/paper/1-02.md: front matter.meta.attachments[0].page", "«cloud»", "gromov, news")
+
+
+def test_attachments_bad_shape(root):
+    _set_pages(root, "pages: [gromov, news]")
+    write_paper(root, "1-02", 'id: "1-02"\nform: letter\nmeta:\n  attachments:\n'
+                              '    - { page: gromov }\n    - { page: news, label: " " }')
+    errs = errors_of(root)
+    assert any("meta.attachments[0]" in e and "page и label" in e for e in errs), errs
+    assert any("meta.attachments[1].label" in e and "непустой" in e for e in errs), errs
+
+
 def test_paper_texts_rendered(content):
     texts = paper_texts(content)
     srcs = {s for s, _, _ in texts}

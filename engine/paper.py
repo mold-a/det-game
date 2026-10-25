@@ -787,7 +787,7 @@ def wants_qr(content: Content, doc_id: str) -> bool:
     d = content.documents_by_id[doc_id]
     pf = content.paper.get(doc_id)
     flag = pf.meta.qr if pf is not None else None
-    return d.page is not None and (flag if flag is not None else True)
+    return bool(d.page_slugs) and (flag if flag is not None else True)
 
 
 def paper_texts(content: Content, ctx: dict | None = None) -> list[tuple[str, str, int]]:
@@ -822,17 +822,25 @@ def doc_data(content: Content, doc_id: str, ctx: dict, *, cards: dict[str, Any] 
     data: dict[str, Any] = {
         "id": doc_id, "stage": d.stage, "doc_title": doc_title, "title": doc_title, "form": "stub",
         "stub": pf is None, "date": None, "place": None, "signed": [], "media": [], "meta": {},
-        "body_html": Markup(""), "source": "", "qr": None, "chats": [], "pages_hint": None,
+        "body_html": Markup(""), "source": "", "qr": None, "qrs": [], "chats": [], "pages_hint": None,
         "person": None, "intro_html": Markup(""), "sections": [], "persons_unknown": [],
         "part": 0, "parts": 1, "part_sections": [], "sheet_start": None,
         "brand": org_brand(None, "stub", content.world), "body_chart": None, "problems": [],
         "headline": headline("stub", doc_title), "proto": None, "part_kind": "whole", "summary": None,
     }
+    labels: dict[str, str] = {}
+    if pf is not None:
+        for i, a in enumerate(pf.meta.meta.get("attachments") or []):
+            labels[a["page"]] = render(a["label"], ctx, f"content/{pf.path}: front matter.meta.attachments[{i}].label")
     if wants_qr(content, doc_id) and cards is not None:
-        card = cards[d.page]
-        qr = segno.make(card.url, error=ERROR_LEVEL, micro=False, boost_error=False)
-        data["qr"] = {"svg": Markup(qr.svg_inline(scale=QR_SVG_SCALE, border=0, omitsize=True)),
-                      "label": card.label, "url": card.url, "slug": d.page}
+        qrs = []
+        for slug in d.page_slugs:
+            card = cards[slug]
+            qr = segno.make(card.url, error=ERROR_LEVEL, micro=False, boost_error=False)
+            qrs.append({"svg": Markup(qr.svg_inline(scale=QR_SVG_SCALE, border=0, omitsize=True)),
+                        "label": labels.get(slug) or card.label, "url": card.url, "slug": slug})
+        data["qrs"] = qrs
+        data["qr"] = qrs[0]  # обратная совместимость: один QR — как раньше, несколько — первый
     if pf is None:
         return data
     where = f"content/{pf.path}"

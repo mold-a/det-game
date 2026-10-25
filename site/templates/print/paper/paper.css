@@ -104,6 +104,14 @@ u.pencil, .pencil-u { text-decoration: underline 0.4mm #b23a2c; text-underline-o
   font-size: 7pt; line-height: 1.2; color: #333; border: 0.3mm solid var(--brand); border-radius: 1.2mm; break-inside: avoid; }
 .paper__qr svg { display: inline-block; vertical-align: top; width: 30mm; height: 30mm; margin: 0 auto 1mm; }
 
+/* Приложения: несколько QR-кодов в ряд внизу письма; каждый не меньше 25 мм. */
+.attach { margin: 6mm 0 0; padding-top: 2.5mm; border-top: 0.3mm solid var(--brand); break-inside: avoid; clear: both; }
+.attach__h { margin: 0 0 2.5mm; font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.attach__row { display: flex; flex-wrap: wrap; gap: 6mm; align-items: flex-start; }
+.attach__item { flex: 1 1 0; min-width: 45mm; max-width: 80mm; margin: 0; padding: 1.5mm 1.5mm 1.2mm; text-align: center;
+  font-size: 8pt; line-height: 1.25; color: #333; border: 0.3mm solid var(--brand); border-radius: 1.2mm; break-inside: avoid; }
+.attach__item svg { display: block; width: 32mm; height: 32mm; min-width: 25mm; margin: 0 auto 1.2mm; }
+
 /* Поля «МЕТКА: значение»: жирные прописные метки без рамок. */
 .kv { margin: 0 0 3mm; font-size: 10pt; line-height: 1.36; break-inside: avoid; }
 .kv__row { margin: 0 0 .5mm; orphans: 1; widows: 1; }

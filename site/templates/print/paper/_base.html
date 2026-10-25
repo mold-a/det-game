@@ -22,7 +22,8 @@
       doc.meta        словарь front matter meta (строки уже отрендерены); читать через
                       doc.meta.get('ключ') — StrictUndefined не прощает отсутствующих ключей
       doc.body_html   тело (Markdown → HTML, таблицы и HTML разрешены)
-      doc.qr          None или {svg, label, url, slug} — QR-код страницы и подпись qr_label
+      doc.qr          None или {svg, label, url, slug} — QR-код страницы и подпись qr_label (первый из doc.qrs)
+      doc.qrs         [{svg, label, url, slug}] — все QR документа; больше одного — блок «Приложения» внизу (m.attachments)
       doc.chats       [file:// PNG] — «скриншоты» телефона для form: chat
       doc.pages_hint  ожидаемое число страниц или None
 

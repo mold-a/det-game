@@ -559,6 +559,31 @@ def _check_fathers(ld: _Loading, characters: list[Character]) -> None:
                        f"исправьте {part} или, если правило ошибается, задайте forms.{part}.nom")
 
 
+def _check_attachments(ld: _Loading, rel: str, loc: tuple, value: Any, d: Document) -> None:
+    """``meta.attachments`` бумажного документа: ``[{page, label}]`` — подписи QR-кодов приложений
+    (docs/03): страница должна быть среди страниц документа (``page``/``pages`` в documents.yaml)."""
+    if value is None:
+        return
+    if not isinstance(value, list):
+        ld.err(rel, loc, "ожидается список [{page, label}]")
+        return
+    seen: set[str] = set()
+    for i, a in enumerate(value):
+        here = (*loc, i)
+        if not isinstance(a, dict) or set(a) != {"page", "label"}:
+            ld.err(rel, here, "ожидается словарь с полями page и label (и только ими)")
+            continue
+        page, label = a["page"], a["label"]
+        if not isinstance(label, str) or not label.strip():
+            ld.err(rel, (*here, "label"), "подпись должна быть непустой строкой")
+        if page not in d.page_slugs:
+            ld.err(rel, (*here, "page"), f"страница «{page}» не указана у документа «{d.id}» в documents.yaml "
+                                         f"(page/pages: {', '.join(d.page_slugs) or 'нет'})")
+        elif page in seen:
+            ld.err(rel, (*here, "page"), f"подпись для страницы «{page}» задана дважды")
+        seen.add(str(page))
+
+
 def _check_documents(ld: _Loading, documents: list[Document], stages: list[Stage] | None,
                      pages: dict[str, PageBase] | None) -> None:
     rel = "documents.yaml"
@@ -570,10 +595,16 @@ def _check_documents(ld: _Loading, documents: list[Document], stages: list[Stage
             ld.err(rel, (*loc, "stage"), f"этапа {d.stage} нет в stages.yaml")
         if d.kind == "online" and d.page is None:
             ld.err(rel, (*loc, "page"), "у документа kind: online должно быть поле page")
-        if d.kind == "lab" and d.page is not None:
-            ld.err(rel, (*loc, "page"), "у документа kind: lab не бывает page")
-        if d.page is not None and pages is not None and d.page not in ld.page_slugs:
-            ld.err(rel, (*loc, "page"), f"страницы «{d.page}» нет в content/pages/")
+        if d.kind == "lab" and d.page_slugs:
+            ld.err(rel, (*loc, "page" if d.page is not None else "pages"), "у документа kind: lab не бывает page")
+        if d.kind != "paper" and d.pages:
+            ld.err(rel, (*loc, "pages"), "несколько страниц (pages) бывают только у бумажного документа "
+                                         "(kind: paper), у online — одна page")
+        if pages is not None:
+            for k, slug in enumerate(d.page_slugs):
+                if slug not in ld.page_slugs:
+                    ld.err(rel, (*loc, "page" if d.page is not None else ("pages", k)),
+                           f"страницы «{slug}» нет в content/pages/")
 
 
 def _check_stages(ld: _Loading, stages: list[Stage], settings: Settings | None,
@@ -1018,9 +1049,10 @@ def _load_paper(ld: _Loading, documents: list[Document] | None, chats: dict[str,
             if meta.stage is not None and meta.stage != d.stage:
                 ld.err(rel, (*fm, "stage"), f"stage: {meta.stage}, а в documents.yaml документ «{meta.id}» "
                                             f"лежит в конверте {d.stage}")
-            if meta.qr is True and d.page is None:
+            if meta.qr is True and not d.page_slugs:
                 ld.err(rel, (*fm, "qr"), f"qr: true, но у документа «{meta.id}» в documents.yaml нет page "
                                          "(не на что ссылаться)")
+            _check_attachments(ld, rel, (*fm, "meta", "attachments"), meta.meta.get("attachments"), d)
         if meta.form == "chat" and meta.id not in chats:
             ld.err(rel, (*fm, "form"), f"form: chat — нужен content/chats/{meta.id}.yaml (снимки экрана "
                                        "генерируются из него)")
@@ -1090,16 +1122,23 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
             d = docs_by_id.get(page.doc)
             if d is None:
                 ld.err(rel, "doc", f"документа «{page.doc}» нет в documents.yaml")
-            elif d.page != slug:
+            elif slug not in d.page_slugs:
                 ld.err(rel, "doc", f"документ «{page.doc}» в documents.yaml ссылается на страницу "
-                                   f"«{d.page}», а не на «{slug}»")
+                                   f"«{', '.join(d.page_slugs) or 'нет'}», а не на «{slug}»")
             elif page.stage is not None and page.stage != d.stage:
                 ld.err(rel, "stage", f"stage: {page.stage}, а документ «{page.doc}» лежит в конверте {d.stage}")
         if docs_by_id is not None and page.doc is None:
             for d in docs_by_id.values():
-                if d.page == slug:
+                if slug in d.page_slugs:
                     ld.err(rel, "doc", f"на страницу ссылается документ «{d.id}» (documents.yaml), значит QR "
                                        f"печатается, а у страницы нет doc: укажите doc: \"{d.id}\" и qr_label")
+        if docs_by_id is not None and page.doc in docs_by_id:
+            # QR страницы лежит в конверте не раньше этапа самой страницы (иначе ключ откроет рано)
+            page_stage = docs_by_id[page.doc].stage
+            for d in docs_by_id.values():
+                if slug in d.page_slugs and d.stage < page_stage:
+                    ld.err("documents.yaml", ("documents", d.id, "page" if d.page else "pages"),
+                           f"QR страницы «{slug}» (этап {page_stage}) лежит в конверте {d.stage}, раньше её этапа")
         if page.locked == "password" and not isinstance(page, CloudPage):
             ld.err(rel, "locked", "locked: password поддерживается только страницей с паролем (cloud)")
         if isinstance(page, CloudPage):

@@ -69,6 +69,19 @@ def test_qr_urls(content, salts):
     assert cards["gromov"].docs == ["1-12"] and cards["inna"].envelope == 2
 
 
+def test_qr_cards_cover_every_page_of_every_document(content, salts):
+    """Документ с несколькими страницами (``pages``) попадает в ``docs`` карточки каждой из них."""
+    cards = {c.slug: c for c in plan_cards(content, salts)}
+    multi = [d for d in content.documents if len(d.page_slugs) > 1]
+    for d in multi:
+        for slug in d.page_slugs:
+            assert slug in cards and d.id in cards[slug].docs, (d.id, slug)
+    for d in content.documents:
+        if d.kind == "paper":
+            for slug in d.page_slugs:
+                assert d.id in cards[slug].docs
+
+
 def test_qr_files_and_selfcheck(content, salts, tmp_path):
     rep = make_qr_set(content, salts, tmp_path, sheet=False)
     for c in rep.cards:

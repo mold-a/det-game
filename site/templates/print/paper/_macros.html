@@ -187,6 +187,22 @@
 {% endif %}
 {%- endmacro %}
 
+{# Приложения: если у документа несколько QR-кодов (documents.yaml: pages), они печатаются внизу листа
+   в ряд под заголовком «Приложения»; подпись — meta.attachments[].label или qr_label страницы. Один QR
+   печатается справа под шапкой (блок qr в _doc.html), здесь ничего. Только на последней части документа. #}
+{% macro attachments(doc) -%}
+{% if doc.qrs|length > 1 and doc.part + 1 >= doc.parts %}
+<section class="attach" data-attachments="{{ doc.qrs|length }}">
+  <h3 class="attach__h">Приложения</h3>
+  <div class="attach__row">
+    {% for q in doc.qrs %}
+    <figure class="attach__item" data-url="{{ q.url }}" data-slug="{{ q.slug }}">{{ q.svg }}<figcaption>{{ q.label }}</figcaption></figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{%- endmacro %}
+
 {# Подписи в строку: должность мелкими прописными, линия с росчерком (engine/paper.py: add_autographs),
    фамилия под линией; печать — поверх подписей справа. Та же разметка — у макроса sign() в тексте 1-08. #}
 {% macro signatures(doc, seal_html="") -%}
