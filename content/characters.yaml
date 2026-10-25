@@ -230,5 +230,5 @@ characters:
   - { id: pharmacist, working: "Заведующая аптекой", cast: false, role: "Заведующая аптекой «{{ w.brands.pharmacy }}»", importance: background, last: "Зотова", first: "Людмила", middle: "Борисовна", gender: f, in_pool: false }
   - { id: cardiologist, working: "Кардиолог Завьялова", cast: false, role: "Врач-кардиолог (рецепт 4-04)", importance: background, last: "Ветров", first: "Сергей", middle: "Маратович", gender: m, in_pool: false }
   # 25.10 (почта фонда mail-fund, 4-15): фоновые лица писем, в бумаге не появляются.
-  - { id: fund_accountant, working: "Бухгалтер фонда «Сцена»", cast: false, role: "Главный бухгалтер фонда «{{ w.money.fund }}»", importance: background, last: "Савина", first: "Галина", middle: "Петровна", gender: f, in_pool: false }
+  - { id: fund_accountant, working: "Бухгалтер фонда «Сцена»", cast: false, role: "Главный бухгалтер фонда «{{ w.money.fund }}»", importance: background, last: "Савина", first: "Тамара", middle: "Семёновна", gender: f, in_pool: false }
   - { id: admin_culture, working: "Специалист управления культуры", cast: false, role: "Главный специалист управления культуры администрации города", importance: background, last: "Лосева", first: "Ирина", middle: "Андреевна", gender: f, in_pool: false }
