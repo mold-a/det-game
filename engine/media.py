@@ -7,6 +7,9 @@
 - иначе открытый, если на файл ссылается хоть одна открытая страница;
 - иначе зашифрованный: ``/m/<hash>.bin`` = ``nonce ‖ ct ‖ tag``, ``aad = "media/<hash>"``,
   случайный ключ на сборку (решение 6), ключ — внутри ссылающегося зашифрованного объекта.
+  Адрес в ``MediaRef.src`` — с версией ``?v=<sha256(байты .bin)[:16]>``: имя файла от сборки к сборке то же,
+  а байты (ключ, nonce) новые, и без версии браузер, закешировавший ``/m/*`` как immutable, держал бы
+  старую копию, которая новым ключом не расшифровывается (баг 25.10, docs/DEPLOY.md §4).
 
 Отсутствующий файл — ``{"src": null, "missing": true, …}`` и предупреждение (F11);
 файлов-плейсхолдеров в ``dist/`` нет. В ``--release`` это ошибка (решает build).
@@ -28,6 +31,7 @@ from engine.models import MEDIA_MIME
 
 MEDIA_DIR = ROOT / "media"
 HASH_HEX = 32  # первые 32 hex-символа sha256 исходного файла (FORMATS §5)
+VERSION_HEX = 16  # версия зашифрованного файла в src: первые 16 hex-символов sha256 его байтов в dist/
 
 # Видео: технический предел для телефона, не сюжетный параметр. Зашифрованное видео браузер скачивает целиком
 # и расшифровывает в памяти (файл + расшифрованная копия + Blob), поэтому на закрытых страницах оно ограничено;
@@ -42,6 +46,11 @@ def media_hash(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()[:HASH_HEX]
 
 
+def src_file(src: str) -> str:
+    """Путь файла по ``MediaRef.src`` без версии: ``/m/<hash>.bin?v=…`` → ``/m/<hash>.bin``."""
+    return src.partition("?")[0]
+
+
 @dataclass
 class MediaFile:
     rel: str
@@ -52,6 +61,7 @@ class MediaFile:
     encrypted: bool = False
     key: bytes | None = None
     size: int | None = None  # размер в dist/
+    sealed: bytes | None = None  # байты .bin (зашифрованный файл), запечатанные один раз на сборку
 
     @property
     def open_context(self) -> bool:
@@ -86,6 +96,7 @@ class MediaPlan:
         # Одинаковое содержимое под разными путями — один файл в dist/m/: открытый, если открыт хоть один из
         # путей, иначе зашифрованный с одним общим ключом (иначе второй файл затёр бы первый вместе с его ключом).
         keys: dict[str, bytes] = {}
+        sealed: dict[str, bytes] = {}
         open_hashes = {mf.hash for mf in self.files.values() if mf.exists and mf.open_context}
         for mf in self.files.values():
             if not mf.exists:
@@ -93,7 +104,10 @@ class MediaPlan:
             mf.encrypted = mf.hash not in open_hashes
             if mf.encrypted:
                 mf.key = keys.setdefault(mf.hash, secrets.token_bytes(crypto.KEY_LEN))
-                mf.size = crypto.NONCE_LEN + len(data_by_hash[mf.hash]) + crypto.TAG_LEN
+                if mf.hash not in sealed:
+                    sealed[mf.hash] = crypto.seal_media(mf.key, data_by_hash[mf.hash], f"media/{mf.hash}")
+                mf.sealed = sealed[mf.hash]
+                mf.size = len(mf.sealed)
             else:
                 mf.size = len(data_by_hash[mf.hash])
 
@@ -131,6 +145,7 @@ class MediaPlan:
             return {"src": None, "missing": True, "mime": mf.mime, "alt": alt or _PLACEHOLDER_ALT.get(kind, "")}
         ref: dict[str, Any] = {"src": f"/m/{mf.out_name}", "mime": mf.mime, "size": mf.size}
         if mf.encrypted:
+            ref["src"] += f"?v={hashlib.sha256(mf.sealed).hexdigest()[:VERSION_HEX]}"
             ref["key"] = crypto.b64u_encode(mf.key)
             ref["aad"] = f"media/{mf.hash}"
         ref["alt"] = alt
@@ -146,9 +161,7 @@ class MediaPlan:
                 continue
             done.add(mf.out_name)
             mdir.mkdir(parents=True, exist_ok=True)
-            data = (self.media_dir / mf.rel).read_bytes()
-            if mf.encrypted:
-                data = crypto.seal_media(mf.key, data, f"media/{mf.hash}")
+            data = mf.sealed if mf.encrypted else (self.media_dir / mf.rel).read_bytes()
             p = mdir / mf.out_name
             p.write_bytes(data)
             out.append(p)

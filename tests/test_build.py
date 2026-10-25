@@ -17,7 +17,7 @@ from engine.content import ContentError, load_content
 from engine.dump import answers_data, dump_answers
 from engine.build import strip_css_comments
 from engine.leakscan import is_stop_shingle, scan, scan_text, text_shingles
-from engine.media import media_hash
+from engine.media import media_hash, src_file
 from engine import util
 
 CONTENT = ROOT / "content"
@@ -242,7 +242,7 @@ def test_media_open_and_encrypted(tmp_path):
                                     "page/video"))
     ref = inner["media"][0]
     assert 'data-media="0"' in inner["html"] and ref["mime"] == "video/mp4"
-    blob = (dist / ref["src"].lstrip("/")).read_bytes()
+    blob = (dist / src_file(ref["src"]).lstrip("/")).read_bytes()
     assert crypto.open_media(crypto.b64u_decode(ref["key"]), blob, ref["aad"]) == b"VIDEO"
     assert check(media_dir=media, dist=dist, salts_path=salts).ok
     # подложить открытую копию зашифрованного файла → check падает

@@ -202,7 +202,7 @@ test("закрытая страница: постер расшифровывае
   await expect(video).not.toHaveAttribute("src", /.*/); // файл не расшифрован и не скачан
   await expect(video).not.toHaveAttribute("controls", /.*/);
   await expect.poll(() => video.getAttribute("poster")).toMatch(/^blob:/); // постер расшифрован
-  const before = mediaRequests.filter((u) => u.endsWith(".bin")).length;
+  const before = mediaRequests.filter((u) => /\.bin(\?|$)/.test(u)).length;
   const btn = post.locator('[data-act="load"]');
   await expect(btn).toBeVisible();
   await expect(btn).toContainText("Смотреть видео");
@@ -212,7 +212,7 @@ test("закрытая страница: постер расшифровывае
   await expect.poll(() => video.getAttribute("src")).toMatch(/^blob:/);
   await expect(video).toHaveAttribute("controls", "");
   await expect.poll(() => video.evaluate((v: HTMLVideoElement) => (!v.paused || v.ended) && v.currentTime > 0)).toBe(true);
-  expect(mediaRequests.filter((u) => u.endsWith(".bin")).length).toBeGreaterThan(before); // видео скачано после нажатия
+  expect(mediaRequests.filter((u) => /\.bin(\?|$)/.test(u)).length).toBeGreaterThan(before); // видео скачано после нажатия
   expect(await video.evaluate((v: HTMLVideoElement) => v.error)).toBeNull();
   // Голосовое у комментария на закрытой странице.
   const cv = post.locator(".kr-comments .kr-voice--compact");

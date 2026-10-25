@@ -23,6 +23,7 @@ from pages_fixture import add_fixture_pages, copy_content  # noqa: E402
 from engine import ROOT, crypto  # noqa: E402
 from engine import salts as salts_mod  # noqa: E402
 from engine.build import build  # noqa: E402
+from engine.media import src_file  # noqa: E402
 from engine.content import ContentError, load_content  # noqa: E402
 from engine.models import CallPage, NewsPage, SitePage, SocialPage, SocialStubPage  # noqa: E402
 from engine.pages import check_links, cloud_password_norm, page_css, rendered_link_problems  # noqa: E402
@@ -499,8 +500,8 @@ def test_voice_on_locked_page_is_encrypted(built_voice):
     refs = [r for r in inner["media"] if r["mime"] == "audio/mpeg"]
     assert len(refs) == 2  # голосовое поста и голосовое комментария
     for ref in refs:
-        assert ref["key"] and ref["src"].endswith(".bin") and ref["aad"].startswith("media/")
-        name = ref["src"].rsplit("/", 1)[1]
+        assert ref["key"] and src_file(ref["src"]).endswith(".bin") and ref["aad"].startswith("media/")
+        name = src_file(ref["src"]).rsplit("/", 1)[1]
         assert (dist / "m" / name).is_file()
         raw = (dist / "m" / name).read_bytes()
         assert FAKE_MP3 not in raw and not raw.startswith(b"ID3")
@@ -628,8 +629,8 @@ def test_closed_page_video_and_poster_are_encrypted(built_voice):
     vref, pref = inner["media"][vi], inner["media"][pi]
     assert vref["mime"] == "video/mp4" and pref["mime"] == "image/jpeg"
     for ref, plain in ((vref, FAKE_MP4 + b"krug-closed"), (pref, FAKE_JPG + b"krug-closed")):
-        assert ref["key"] and ref["src"].endswith(".bin")
-        raw = (dist / "m" / ref["src"].rsplit("/", 1)[1]).read_bytes()
+        assert ref["key"] and src_file(ref["src"]).endswith(".bin")
+        raw = (dist / "m" / src_file(ref["src"]).rsplit("/", 1)[1]).read_bytes()
         assert plain not in raw and not raw.startswith(b"\x00\x00\x00\x18ftyp")
         assert crypto.open_media(crypto.b64u_decode(ref["key"]), raw, ref["aad"]) == plain
         assert ref["size"] == len(raw)  # по size играет индикатор загрузки

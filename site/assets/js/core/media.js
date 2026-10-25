@@ -1,7 +1,8 @@
 // Медиа — docs/02 §4а, docs/FORMATS.md §5.
 // mediaUrl(ref): открытый файл — прямой src; зашифрованный — fetch → openMedia →
-// Blob URL с исходным MIME. hydrateMedia(root, refs): подставить src во все
-// [data-media="<i>"] фрагмента.
+// Blob URL с исходным MIME. У зашифрованного файла src с версией (`/m/<hash>.bin?v=…`, меняется с каждой
+// сборкой); если файл всё же не расшифровался — один повтор мимо кеша (cache: "reload").
+// hydrateMedia(root, refs): подставить src во все [data-media="<i>"] фрагмента.
 
 import { b64uDecode, openMedia } from "./crypto.js";
 
@@ -25,16 +26,28 @@ export function mediaUrl(ref, { fetchFn = globalThis.fetch, onProgress } = {}) {
   if (!ref.key) return Promise.resolve(ref.src);
   if (!blobUrls.has(ref.src)) {
     const p = (async () => {
-      const res = await fetchFn(ref.src);
-      if (!res.ok) throw new Error(`${ref.src}: HTTP ${res.status}`);
-      const bytes = await readAll(res, ref.size, onProgress);
-      const pt = await openMedia(b64uDecode(ref.key), bytes, ref.aad);
+      const key = b64uDecode(ref.key);
+      let pt;
+      try {
+        pt = await openMedia(key, await download(fetchFn, ref, onProgress), ref.aad);
+      } catch (e) {
+        if (e?.http) throw e;
+        // Не расшифровалось — почти всегда это старая копия файла из кеша браузера или прокси: /m/* отдаются
+        // как immutable, а ключ закрытого файла новый в каждой сборке. Один раз качаем заново мимо кеша.
+        pt = await openMedia(key, await download(fetchFn, ref, onProgress, { cache: "reload" }), ref.aad);
+      }
       return URL.createObjectURL(new Blob([pt], { type: ref.mime }));
     })();
     p.catch(() => blobUrls.delete(ref.src));
     blobUrls.set(ref.src, p);
   }
   return blobUrls.get(ref.src);
+}
+
+async function download(fetchFn, ref, onProgress, init) {
+  const res = init ? await fetchFn(ref.src, init) : await fetchFn(ref.src);
+  if (!res.ok) throw Object.assign(new Error(`${ref.src}: HTTP ${res.status}`), { http: res.status });
+  return readAll(res, ref.size, onProgress);
 }
 
 async function readAll(res, size, onProgress) {

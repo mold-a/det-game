@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import html
 import itertools
 import json
@@ -362,12 +363,15 @@ def test_media_refs_decrypt(env):
         if ref["src"] is None:
             assert ref.get("missing") is True
             continue
-        blob = (dist / ref["src"].lstrip("/")).read_bytes()
+        path, _, query = ref["src"].partition("?")
+        blob = (dist / path.lstrip("/")).read_bytes()
         if "key" in ref:
-            assert ref["src"].endswith(".bin") and ref["aad"] == "media/" + Path(ref["src"]).stem
+            assert path.endswith(".bin") and ref["aad"] == "media/" + Path(path).stem
+            # версия в адресе — хеш байтов файла: новая сборка (новый ключ) → новый адрес, кеш immutable не мешает
+            assert query == "v=" + hashlib.sha256(blob).hexdigest()[:16], ref["src"]
             AESGCM(b64d(ref["key"])).decrypt(blob[:12], blob[12:], ref["aad"].encode())
         else:
-            assert not ref["src"].endswith(".bin")
+            assert not query and not path.endswith(".bin")
 
 
 @pytest.mark.skipif(NODE is None, reason="Node.js не найден")

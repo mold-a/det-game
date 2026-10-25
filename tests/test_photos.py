@@ -27,6 +27,7 @@ from pages_fixture import (  # noqa: E402
 from engine import ROOT, crypto  # noqa: E402
 from engine import salts as salts_mod  # noqa: E402
 from engine.build import build  # noqa: E402
+from engine.media import src_file  # noqa: E402
 from engine.content import ContentError, load_content, media_refs  # noqa: E402
 from engine.normalize import normalize  # noqa: E402
 from engine.models import CloudFolder, CloudPhoto, LabSite, NewsArticle, SitePhoto  # noqa: E402
@@ -252,8 +253,8 @@ def test_cloud_photos_folder_is_sealed_with_encrypted_media(built):
     assert len(refs) == 3
     plain = {(media / r).read_bytes() for r in PHOTO_FILES["cloud"]}
     for ref in refs:
-        assert ref["src"].endswith(".bin") and ref["key"] and ref["aad"].startswith("media/")
-        blob = (dist / "m" / ref["src"].rsplit("/", 1)[1]).read_bytes()
+        assert src_file(ref["src"]).endswith(".bin") and ref["key"] and ref["aad"].startswith("media/")
+        blob = (dist / "m" / src_file(ref["src"]).rsplit("/", 1)[1]).read_bytes()
         assert crypto.open_media(crypto.b64u_decode(ref["key"]), blob, ref["aad"]) in plain
         assert blob not in plain
     assert not any(p.read_bytes() in plain for p in (dist / "m").iterdir())  # открытых копий нет

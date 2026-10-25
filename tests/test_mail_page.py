@@ -23,6 +23,7 @@ from pages_fixture import FIXTURES, MAIL_FILES, MAIL_SLUG, add_mail_fixture, cop
 from engine import ROOT, crypto  # noqa: E402
 from engine import salts as salts_mod  # noqa: E402
 from engine.build import build  # noqa: E402
+from engine.media import src_file  # noqa: E402
 from engine.check import check  # noqa: E402
 from engine.content import ContentError, load_content  # noqa: E402
 from engine.models import PAGE_MODELS, MailPage  # noqa: E402
@@ -204,8 +205,8 @@ def test_attachments_and_sealed_media(built):
     # картинка: кнопка «крупно» с миниатюрой, файл зашифрован (ключ — внутри payload)
     m = re.search(r'<button class="ml-file ml-file--img"[^>]*data-zoom[^>]*>(.*?)</button>', html, re.S)
     assert m and 'data-media="0"' in m.group(1) and "график-тест.jpg" in m.group(1) and "120 КБ" in m.group(1)
-    assert len(refs) == 1 and refs[0]["key"] and refs[0]["src"].endswith(".bin") and refs[0]["mime"] == "image/jpeg"
-    blob = (dist / refs[0]["src"].lstrip("/")).read_bytes()
+    assert len(refs) == 1 and refs[0]["key"] and src_file(refs[0]["src"]).endswith(".bin") and refs[0]["mime"] == "image/jpeg"
+    blob = (dist / src_file(refs[0]["src"]).lstrip("/")).read_bytes()
     assert FAKE_JPG not in blob
     assert crypto.open_media(crypto.b64u_decode(refs[0]["key"]), blob, refs[0]["aad"]) == FAKE_JPG
     # картинка без файла — заглушка, без кнопки

@@ -47,6 +47,29 @@ test("mediaUrl: открытый файл — прямой src, зашифров
   await revokeAll();
 });
 
+test("mediaUrl: устаревшая копия из кеша (старый ключ) — один повтор мимо кеша, HTTP-ошибка — без повтора", async () => {
+  // Баг 25.10: /m/* отдаются как immutable, а ключ закрытого файла новый в каждой сборке. Браузер со старой
+  // копией получал OperationError на расшифровке — «фото не загружаются», «Видео не загрузилось».
+  const plain = new Uint8Array([7, 7, 7, 7]);
+  const { ref, blob } = await sealedRef("/m/s.bin?v=new", plain);
+  const stale = (await sealedRef("/m/s.bin?v=new", plain)).blob; // тот же файл, ключ прошлой сборки
+  const inits = [];
+  const fetchFn = async (url, init) => {
+    inits.push(init ?? null);
+    const body = init?.cache === "reload" ? blob : stale;
+    return { ok: true, headers: { get: () => null }, arrayBuffer: async () => body.slice().buffer };
+  };
+  assert.match(await mediaUrl(ref, { fetchFn }), /^blob:/);
+  assert.deepEqual(inits, [null, { cache: "reload" }]);
+
+  const { ref: gone } = await sealedRef("/m/gone.bin", plain);
+  let calls = 0;
+  const notFound = async () => (calls++, { ok: false, status: 404, headers: { get: () => null } });
+  await assert.rejects(mediaUrl(gone, { fetchFn: notFound }), /HTTP 404/);
+  assert.equal(calls, 1);
+  await revokeAll();
+});
+
 test("whenNear: без IntersectionObserver — сразу; с ним — когда узел подошёл к экрану, один раз", () => {
   let n = 0;
   whenNear({}, () => n++);
