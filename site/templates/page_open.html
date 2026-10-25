@@ -3,6 +3,15 @@
 {% block boot_attrs %} data-require="none"{% endblock %}
 {% block body_attrs %} data-slug="{{ slug }}" data-type="{{ ptype }}"{% endblock %}
 {% block body %}
+{% if ptype == "video" %}
+{# Открытая video (напр. archive): та же шапка системы и стили, что у оболочки закрытой video. #}
+<link rel="stylesheet" href="/assets/css/pages/video.css">
+<header class="ev-bar">
+  <span class="ev-bar__system">{{ chrome.system }}</span>
+  <span class="ev-bar__dept">{{ chrome.department }}</span>
+  <span class="ev-bar__case">Дело № {{ chrome.caseNo }}</span>
+</header>
+{% endif %}
 <main class="pg pg--{{ ptype }} pg--{{ slug }}" data-brand="{{ brand }}">
 {{ fragment }}
 </main>

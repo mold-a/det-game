@@ -2,7 +2,10 @@
 // Зашифрованное видео (до 25 МБ) не скачивается само при открытии страницы: shell.js
 // вызывает init() до hydrateMedia, и init снимает с <video> атрибут data-media. Загрузка —
 // по кнопке «Загрузить видео», с прогрессом по ref.size (FORMATS §5); потом — обычный
-// <video controls playsinline> из Blob URL. Открытый файл (без key) подключается сразу.
+// <video controls playsinline> из Blob URL. Открытый файл (без key) подключается сразу: на открытой странице
+// (archive) <video src poster controls> работает сам, модуль только раскрывает «Свойства файла».
+// Постер (необязательный): открытый — атрибут poster; закрытый — data-poster-media, расшифровывается сразу
+// (он маленький), видео по-прежнему грузится по кнопке.
 
 import { mediaUrl, formatSize } from "../core/media.js";
 
@@ -27,6 +30,19 @@ function setupProps(root) {
   });
 }
 
+function setupPoster(video, refs) {
+  const idx = video.getAttribute("data-poster-media");
+  const ref = idx != null ? refs?.[Number(idx)] : null;
+  if (!ref || !ref.src || ref.missing) return;
+  mediaUrl(ref)
+    .then((url) => {
+      if (url) video.poster = url;
+    })
+    .catch(() => {
+      /* без постера видео остаётся работоспособным */
+    });
+}
+
 function setupPlayer(root, refs) {
   const player = root.querySelector('[data-player="video"]');
   if (!player || player.dataset.missing) return;
@@ -36,6 +52,7 @@ function setupPlayer(root, refs) {
   if (!video || !ref || !ref.key) return; // открытый файл — подставит hydrateMedia
 
   video.removeAttribute("data-media"); // hydrateMedia пропустит — загрузка по кнопке
+  setupPoster(video, refs);
   video.removeAttribute("controls");
   const box = player.querySelector('[data-role="load"]');
   const btn = player.querySelector('[data-act="load"]');

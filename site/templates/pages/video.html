@@ -1,10 +1,14 @@
-{# video — «Электронное дело», раздел изъятых файлов (docs/04: «video»). Закрытая страница.
+{# video — «Электронное дело», раздел изъятых файлов (docs/04: «video»). Тип с любым slug: закрытая video (4-07),
+   открытая archive (1-15). Открытая страница получает src напрямую, закрытая — data-media (расшифровка по кнопке).
+   Метки улик (clue) — только те, что перечислены в page.clues; постер (page.poster) необязателен.
    Стиль — как у системы расследования (base.css). Интерактив — pages/video.js: видео
    загружается и расшифровывается по кнопке (с прогрессом по размеру), «Свойства файла» —
    раскрывающаяся панель. Страница ничего не подсвечивает в самом видео. #}
 {% import "pages/_ui.html" as ui %}
 {% set f = page.file %}
 {% set a = media(page.video, f.name) %}
+{% set pa = media(page.poster, "Постер видео") if page.poster else "" %}
+{% set pmiss = (not page.poster) or ui.missing(pa) %}
 <div class="ev">
   <h1 class="ev-title">{{ page.title }}</h1>
   <p class="ev-source">{{ page.source }}</p>
@@ -13,8 +17,8 @@
     <div class="ev-file__head">
       <span class="ev-file__icon" aria-hidden="true"></span>
       <div class="ev-file__info">
-        <p class="ev-file__name clue" data-clue="filename" id="ev-file-name">{{ f.name }}</p>
-        <p class="ev-file__size">Видеофайл · {{ ui.text(f.size, "размер файла") }}</p>
+        <p class="ev-file__name{% if "filename" in page.clues %} clue{% endif %}"{% if "filename" in page.clues %} data-clue="filename"{% endif %} id="ev-file-name">{{ f.name }}</p>
+        <p class="ev-file__size">Видеофайл, {{ ui.text(f.size, "размер файла") }}</p>
       </div>
     </div>
 
@@ -22,7 +26,7 @@
       {% if ui.missing(a) %}
       <div class="ph ph--video"><span class="ph__label">Здесь будет видео</span></div>
       {% else %}
-      <video class="ev-player__video" {{ a }} controls playsinline preload="metadata"></video>
+      <video class="ev-player__video" {{ a }}{% if not pmiss %} {{ pa|replace("data-media=", "data-poster-media=")|replace("data-mime=", "data-poster-mime=")|replace("src=", "poster=") }}{% endif %} controls playsinline preload="metadata"></video>
       <div class="ev-player__load" data-role="load" hidden>
         <button class="ev-btn ev-btn--primary" type="button" data-act="load">Загрузить видео</button>
         <div class="ev-progress" data-role="progress" hidden>
@@ -39,7 +43,7 @@
         <h2 class="ev-props__h">Свойства файла</h2>
         <dl class="ev-props__list">
           <div><dt>Имя файла</dt><dd>{{ f.name }}</dd></div>
-          <div><dt>Дата создания</dt><dd class="clue" data-clue="created"><time datetime="{{ f.created }}">{{ f.created|dt("date") }} {{ f.created|dt("time") }}</time></dd></div>
+          <div><dt>Дата создания</dt><dd{% if "created" in page.clues %} class="clue" data-clue="created"{% endif %}><time datetime="{{ f.created }}">{{ f.created|dt("date") }} {{ f.created|dt("time") }}</time></dd></div>
           <div><dt>Устройство</dt><dd>{{ ui.text(f.device, "модель устройства") }}</dd></div>
           <div><dt>Длительность</dt><dd>{{ ui.text(f.duration, "длительность") }}</dd></div>
           <div><dt>Разрешение</dt><dd>{{ ui.text(f.resolution, "разрешение") }}</dd></div>

@@ -1199,7 +1199,7 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
         f = name(f"pages/{slug}/page.yaml")
         ctx = "open" if page.locked is False else "locked"
         refs: list[tuple[tuple, str | None]] = []
-        for attr in ("audio", "video"):
+        for attr in ("audio", "video", "poster"):
             refs.append(((attr,), getattr(page, attr, None)))
         profile = getattr(page, "profile", None)
         if profile is not None:

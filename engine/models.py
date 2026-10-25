@@ -824,12 +824,30 @@ class VideoFile(Strict):
 
 
 class VideoPage(PageBase):
-    slug: Literal["video"]
+    """Страница-видеофайл «Электронного дела»: любой slug (закрытая ``video`` — 4-07, открытая ``archive`` — 1-15)."""
+    slug: Id
     type: Literal["video"] = "video"
     title: str
     source: str
     file: VideoFile
     video: str
+    poster: str | None = None  # необязательно: картинка-заставка в media/ (.jpg, .jpeg, .png, .webp)
+    # Метки улик в карточке (для проверок и сквозных тестов): по умолчанию обе; у страницы без улик — ``clues: []``
+    clues: list[Literal["filename", "created"]] = Field(default_factory=lambda: ["filename", "created"])
+
+    @field_validator("poster")
+    @classmethod
+    def _poster_ext(cls, v: str | None) -> str | None:
+        if v is not None and not v.lower().endswith(POSTER_EXTENSIONS):
+            raise ValueError(f"постер видео: допустимы файлы {', '.join(POSTER_EXTENSIONS)}")
+        return v
+
+    @field_validator("video")
+    @classmethod
+    def _video_ext(cls, v: str) -> str:
+        if not v.lower().endswith(".mp4"):
+            raise ValueError("видео: допустим только файл .mp4 (H.264 + AAC)")
+        return v
 
 
 # --- site (сайт организации: театр, фонд, клуб)

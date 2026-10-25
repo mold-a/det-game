@@ -629,7 +629,7 @@ wrongHash(qpath, body) = hex(SHA-256(UTF8("detgame/wrong/v1|" + qpath + "|" + bo
 | `index.html` | `base.html` + `rules` (5–6 строк правил с числами из `pub`: цены подсказок, штрафы, порог автоподсказки) | `dist/index.html`, `entry = /assets/js/app/main.js` |
 | `lab.html` | `base.html` | `dist/lab/index.html`, `entry = /assets/js/app/lab.js` |
 | `final.html` | `base.html` | `dist/final/index.html`, `entry = /assets/js/app/final.js` |
-| `page_open.html` | `base.html` (без `chrome` в разметке) + `slug`, `brand`, `fragment` (`Markup` — отрендеренный `pages/<slug>.html`) | `dist/p/<slug>/index.html`, `css = ["/assets/css/pages/<slug>.css"]` (у `video` — `app.css`), `entry` — скрипт интерактива страницы или `null` |
+| `page_open.html` | `base.html` (без `chrome` в разметке, кроме `type: video`: шапка системы и `video.css`, как в оболочке) + `slug`, `brand`, `fragment` (`Markup` — отрендеренный `pages/<slug>.html`) | `dist/p/<slug>/index.html`, `css = ["/assets/css/pages/<slug>.css"]` (у `video` — `app.css`), `entry` — скрипт интерактива страницы или `null` |
 | `page_shell.html` | `base.html` + `slug`, `access` (`"key"` или `"password"`), `brand` (`<title>` оболочки, PLAN E7; для `video` — `chrome.system`), `account` (только облако: логин из `cloud.account`, он виден до входа), `css` | `dist/p/<slug>/index.html`, `entry = /assets/js/pages/shell.js`. Сюжетных текстов нет. |
 
 Страница находит данные по фиксированным путям:

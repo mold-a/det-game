@@ -309,7 +309,7 @@ def service_texts(content: Content, page: PageBase, ctx: dict) -> dict | None:
 def page_title(page: PageBase, data: dict, chrome: dict, people: dict[str, dict] | None = None) -> str:
     """``title`` payload и заголовок открытой страницы: у video — ``page.title``, иначе ``brand``
     (у профиля соцсети — «Имя — бренд»)."""
-    if page.slug == "video" or "brand" not in data:
+    if page.type == "video" or "brand" not in data:
         return data.get("title") or chrome["system"]
     if page.type == "social" and people is not None:
         return f"{profile_name(data['profile'], people)} — {data['brand']}"
@@ -352,7 +352,7 @@ def build_page(content: Content, page: PageBase, ctx: dict, salts: Any, plan: Me
         key = crypto.cloud_key(cloud_password_norm(page), salts.cloud, iters)
         payload = {"salt": crypto.b64u_encode(salts.cloud), "iter": iters,
                    "box": crypto.seal(key, dumps(inner), f"page/{slug}")}
-    shell_brand = base_ctx["chrome"]["system"] if slug == "video" else data.get("brand", base_ctx["chrome"]["system"])
+    shell_brand = base_ctx["chrome"]["system"] if ptype == "video" else data.get("brand", base_ctx["chrome"]["system"])
     html = site_env.get_template("page_shell.html").render(
         **base_ctx, title=shell_brand, entry=SHELL_ENTRY, css=page_css(page),
         body_class=body_classes(page, "shell"),
