@@ -376,6 +376,7 @@ u.pencil, .pencil-u { text-decoration: underline 0.4mm #b23a2c; text-underline-o
 .plan__frame img { display: inline-block; vertical-align: top; width: 100%; }
 .plan__svg { display: inline-block; vertical-align: top; width: 100%; height: auto; }
 .plan__north { float: right; width: 9mm; height: 12.6mm; margin: 0 0 1mm 3mm; }
+.plan__sign { display: inline-block; width: 8mm; height: 4mm; vertical-align: -0.8mm; }
 .plan__bottom { display: grid; grid-template-columns: 1fr 86mm; border: 0.45mm solid var(--ink); border-top: 0; break-inside: avoid; }
 .plan__legend { padding: 2mm 3mm; font-size: 8.8pt; border-right: 0.45mm solid var(--ink); }
 .plan__legend-title { font-family: var(--font-serif); font-size: 9pt; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); margin-bottom: 1.5mm; }

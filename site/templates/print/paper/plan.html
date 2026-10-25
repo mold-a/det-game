@@ -7,6 +7,10 @@
                  название внутри)}]; номер n попадает в легенду;
          doors — проёмы [{x, y, len, dir: h|v}]; labels — подписи [{x, y, text, size, rotate}];
          marks — точки [{x, y, text, kind: dot|cross|camera}];
+         stairs — лестницы условным знаком (ступени-штрихи и стрелка) [{x, y, w, h, go: n|s|e|w — куда
+                  направлен подъём на плане, arrow: up|down|both — куда ведёт стрелка (на верхнем этаже — down),
+                  n — номер в легенде (одинаковый номер на всех этажах = одна запись), name — текст легенды,
+                  caption: [строки подписи под знаком], size, gap — расстояние от знака до центра номера справа}];
          legend — заголовок легенды (по умолчанию «Экспликация помещений»);
          scale — масштаб («1:200»), sheet — лист («1»), floor — этаж/уровень, north: false — без «С».
    Текст документа — под легендой (примечания). #}
@@ -41,6 +45,39 @@
     <path d="M{{ d.x }},{{ d.y }} a{{ d.get('len', 3) }},{{ d.get('len', 3) }} 0 0,0 {{ d.get('len', 3) }},{{ d.get('len', 3) }}" fill="none" stroke="#555" stroke-width=".25"/>
     {% endif %}
     {% endfor %}
+    {% for s in doc.meta.get('stairs') or [] %}
+    {% set vert = s.go in ['n', 's'] %}
+    {% set dx = 1 if s.go == 'e' else (-1 if s.go == 'w' else 0) %}
+    {% set dy = 1 if s.go == 's' else (-1 if s.go == 'n' else 0) %}
+    {% set L = s.h if vert else s.w %}
+    {% set cnt = (L // 1.0)|int %}
+    {% set cx = s.x + s.w / 2 %}{% set cy = s.y + s.h / 2 %}
+    {% set hl = L / 2 - 0.6 %}
+    {% set mode = s.get('arrow', 'up') %}
+    {% set sg = -1 if mode == 'down' else 1 %}
+    <g class="stair">
+      <rect x="{{ s.x }}" y="{{ s.y }}" width="{{ s.w }}" height="{{ s.h }}" fill="#fff" stroke="#111" stroke-width=".3"/>
+      {% for i in range(1, cnt) %}
+      {% set o = i * L / cnt %}
+      {% if vert %}<line x1="{{ s.x }}" y1="{{ s.y + o }}" x2="{{ s.x + s.w }}" y2="{{ s.y + o }}" stroke="#111" stroke-width=".2"/>
+      {% else %}<line x1="{{ s.x + o }}" y1="{{ s.y }}" x2="{{ s.x + o }}" y2="{{ s.y + s.h }}" stroke="#111" stroke-width=".2"/>{% endif %}
+      {% endfor %}
+      <line x1="{{ cx - dx * hl }}" y1="{{ cy - dy * hl }}" x2="{{ cx + dx * hl }}" y2="{{ cy + dy * hl }}" stroke="#111" stroke-width=".35"/>
+      {% for t in ([1, -1] if mode == 'both' else [sg]) %}
+      {% set tx = cx + dx * hl * t %}{% set ty = cy + dy * hl * t %}
+      {% set bx = tx - dx * t * 1.2 %}{% set by = ty - dy * t * 1.2 %}
+      <path d="M{{ tx }},{{ ty }} L{{ bx - dy * 0.6 }},{{ by + dx * 0.6 }} L{{ bx + dy * 0.6 }},{{ by - dx * 0.6 }} z" fill="#111"/>
+      {% endfor %}
+      {% if mode != 'both' %}<circle cx="{{ cx - dx * hl * sg }}" cy="{{ cy - dy * hl * sg }}" r=".55" fill="#111"/>{% endif %}
+    </g>
+    {% for line in s.get('caption') or [] %}
+    <text x="{{ s.x }}" y="{{ s.y + s.h + s.get('cap_dy', 1.9) + loop.index0 * 1.5 }}" font-size="{{ s.get('size', 1.5) }}" fill="#111">{{ line }}</text>
+    {% endfor %}
+    {% if s.get('n') is not none and s.get('n') != '' %}
+    <circle cx="{{ s.x + s.w + s.get('gap', 2.5) }}" cy="{{ cy }}" r="1.9" fill="#fff" stroke="#111" stroke-width=".3"/>
+    <text x="{{ s.x + s.w + s.get('gap', 2.5) }}" y="{{ cy + 0.8 }}" text-anchor="middle" font-size="2.2" font-weight="700">{{ s.n }}</text>
+    {% endif %}
+    {% endfor %}
     {% for r in rooms %}
     {% set cx = r.x + r.w / 2 %}{% set cy = r.y + r.h / 2 %}
     {% set show = r.get('label', true) and r.get('name') and r.w >= 12 %}
@@ -64,7 +101,7 @@
     {% if mk.get('text') %}<text x="{{ mk.x + 1.8 }}" y="{{ mk.y - 1.4 }}" font-size="1.8" font-style="italic">{{ mk.text }}</text>{% endif %}
     {% endfor %}
     {% for lb in doc.meta.get('labels') or [] %}
-    <text x="{{ lb.x }}" y="{{ lb.y }}" text-anchor="middle" font-size="{{ lb.get('size', 2) }}" letter-spacing=".15" fill="#333"{% if lb.get('rotate') %} transform="rotate({{ lb.rotate }} {{ lb.x }} {{ lb.y }})"{% endif %}>{{ lb.text }}</text>
+    <text x="{{ lb.x }}" y="{{ lb.y }}" text-anchor="middle" font-size="{{ lb.get('size', 2) }}" letter-spacing="{{ lb.get('spacing', 0.15) }}" fill="#333"{% if lb.get('rotate') %} transform="rotate({{ lb.rotate }} {{ lb.x }} {{ lb.y }})"{% endif %}>{{ lb.text }}</text>
     {% endfor %}
   </svg>
   {% else %}
@@ -76,10 +113,14 @@
     {% if doc.meta.get('north', true) is not false %}
   <svg class="plan__north" viewBox="0 0 20 28" aria-hidden="true"><path d="M10 2 L16 20 L10 16 L4 20 Z" fill="#111"/><path d="M10 2 L4 20 L10 16 Z" fill="#fff" stroke="#111" stroke-width=".8"/><text x="10" y="27" text-anchor="middle" font-family="PT Sans, sans-serif" font-size="7" font-weight="700">С</text></svg>
   {% endif %}
-    {% set numbered = rooms|selectattr('n')|list if rooms else [] %}
+    {% set ns = namespace(items=[], seen=[]) %}
+    {% for r in (rooms + (doc.meta.get('stairs') or [])) if r.get('n') %}
+    {% if r.n not in ns.seen %}{% set ns.seen = ns.seen + [r.n] %}{% set ns.items = ns.items + [r] %}{% endif %}
+    {% endfor %}
+    {% set numbered = ns.items|sort(attribute='n') %}
     {% if numbered %}
     <div class="plan__legend-title">{{ doc.meta.get('legend') or "Экспликация помещений" }}</div>
-    <ol>{% for r in numbered %}<li><b>{{ r.n }}</b><span>{{ r.get('name', '') }}</span></li>{% endfor %}</ol>
+    <ol>{% for r in numbered %}<li><b>{{ r.n }}</b><span>{{ r.get('legend') or r.get('name', '') }}</span></li>{% endfor %}</ol>
     {% endif %}
     <div class="paper__body">{{ doc.body_html }}</div>
   </div>
