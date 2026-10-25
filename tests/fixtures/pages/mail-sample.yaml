@@ -1,0 +1,62 @@
+# Тестовая фикстура (не сюжет): почтовый ящик type: mail — три цепочки (рабочая, личная, «странная»),
+# вложения всех видов (картинка, картинка без файла, ссылка на страницу, просто файл), пустая папка.
+# В content/ не попадает: tests/pages_fixture.add_mail_fixture кладёт её в копию content/ и ссылается на неё из облака.
+slug: mail-sample
+type: mail
+stage: 3
+locked: true
+brand: "Почта «Тестовая»"
+notice: "Выгрузка ящика по запросу № 00-000 от 01.01.2026. Тестовая отметка."
+account:
+  name: "Тестовый Владелец"
+  address: "owner@pochta-test.test"
+folders: ["Входящие", "Отправленные", "Проекты", "Черновики"]
+threads:
+  - id: work
+    folder: "Входящие"
+    subject: "Тестовая рабочая тема: график"
+    messages:
+      - from: { name: "Коллега Проверочный", address: "colleague@firma-test.test" }
+        to: [{ name: "Тестовый Владелец", address: "owner@pochta-test.test" }]
+        date: "2026-10-05T09:47"
+        body: |
+          Добрый день!
+
+          Тестовый абзац рабочего письма про график дежурств. Подробности — [на странице]({{ link('news') }}).
+        attachments:
+          - { name: "график-тест.jpg", size: "120 КБ", media: "mail-sample/scan.jpg" }
+          - { name: "таблица-тест.xlsx", size: "18 КБ" }
+      - from: { name: "Тестовый Владелец", address: "owner@pochta-test.test" }
+        to: [{ name: "Коллега Проверочный", address: "colleague@firma-test.test" }]
+        date: "2026-10-05T11:26"
+        body: "Тестовый ответ на рабочее письмо: принято."
+  - id: personal
+    folder: "Входящие"
+    subject: "Тестовая личная тема: выходные"
+    messages:
+      - from: { name: "Знакомая Тестовая", address: "friend@pochta-test.test" }
+        to: [{ name: "Тестовый Владелец", address: "owner@pochta-test.test" }]
+        date: "2026-10-07T22:08"
+        body: "Тестовое личное письмо про пирог и прогулку в парке."
+        attachments:
+          - { name: "фото-без-файла.jpg", size: "2,1 МБ", media: "mail-sample/absent.jpg" }
+  - id: odd
+    folder: "Проекты"
+    subject: "Тестовая странная тема: уточнение по счёту"
+    messages:
+      - from: { name: "Тестовый Владелец", address: "owner@pochta-test.test" }
+        to:
+          - { name: "Подрядчик Условный", address: "contractor@masterskaya-test.test" }
+          - { address: "buh@masterskaya-test.test" }
+        date: "2026-10-09T13:31"
+        body: "Тестовое письмо: строку четыре в документе поправьте, остальное без изменений."
+        attachments:
+          - { name: "документ-тест", size: "1 стр.", page: news }
+      - from: { name: "Подрядчик Условный", address: "contractor@masterskaya-test.test" }
+        to: [{ name: "Тестовый Владелец", address: "owner@pochta-test.test" }]
+        date: "2026-10-10T08:14"
+        read: false
+        body: |
+          Тестовый ответ подрядчика: исправили.
+
+          > Тестовое письмо: строку четыре в документе поправьте.

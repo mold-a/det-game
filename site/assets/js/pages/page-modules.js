@@ -9,4 +9,5 @@ export const PAGE_MODULES = {
   pharma: "./pharma.js",
   cloud: "./cloud.js",
   video: "./video.js",
+  mail: "./mail.js", // почтовый ящик: папки, список цепочек, открытая цепочка
 };

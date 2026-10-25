@@ -1,0 +1,910 @@
+/*
+ * pages/mail.css — почтовый ящик вымышленного почтового сервиса (type: mail; бренд — поле brand страницы,
+ * обычно brands.mail из world.yaml). Страница — «выгрузка ящика по запросу следствия».
+ *
+ * Характер: спокойная рабочая веб-почта, тёплая бумага и сургучно-терракотовый акцент «почтовой марки».
+ *   Не похоже на настоящие почтовые сервисы: ни конверта-буквы, ни «собаки» в круге, ни красно-синих полос;
+ *   знак — марка с зубчатым краем и штемпелем-волной (inline SVG в data-URI).
+ * Палитра:
+ *   светлая: фон #F6F4EF, карточки #FFFFFF, панель #EFEBE3, бренд #B5462F (значки, полоса непрочитанного),
+ *            бренд-текст #9E3A25 (6,4:1 на белом — ссылки, счётчики), текст #1F2328 (15:1),
+ *            второстепенный #5A6068 (6,2:1), линии #E2DDD3, выделенная строка #FBEFE9;
+ *            служебная плашка — холодная, «не почтовая»: фон #E9EEF3, край #4A5D70, текст #1E2A36 (12:1);
+ *   тёмная:  фон #14161A, карточки #1C1F24, панель #23272D, бренд #F0896C, бренд-текст #F4A189,
+ *            текст #E8E6E1, второстепенный #A6ABB2, линии #30353C, выделенная строка #2E2420,
+ *            плашка #1F2731 / край #8FA6BD / текст #DCE5EE.
+ * Шрифт: PT Sans (локальный).
+ * Раскладка:
+ *   телефон (< 900 px): шапка, плашка выгрузки, папки «чипами» с переносом, список цепочек;
+ *     по нажатию на строку — только цепочка с кнопкой «К списку писем» сверху (список скрыт);
+ *   ≥ 900 px: три колонки — папки 200 px, список 300–380 px, открытая цепочка; кнопки «назад» нет.
+ *   Без JS (класса .has-js нет) — всё подряд: папки, все списки, все цепочки.
+ */
+
+body.page--mail {
+  --ml-bg: #f6f4ef;
+  --ml-card: #ffffff;
+  --ml-panel: #efebe3;
+  --ml-brand: #b5462f;
+  --ml-brand-text: #9e3a25;
+  --ml-brand-ink: #ffffff;
+  --ml-text: #1f2328;
+  --ml-muted: #5a6068;
+  --ml-line: #e2ddd3;
+  --ml-current: #fbefe9;
+  --ml-note-bg: #e9eef3;
+  --ml-note-edge: #4a5d70;
+  --ml-note-text: #1e2a36;
+  --ml-ph: #ebe7df;
+  --ml-ph-text: #5a6068;
+  --ml-font: var(--font-sans), "PT Sans", system-ui, sans-serif;
+  --ml-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 4h24v24H4z' fill='%23FBEFE9' stroke='%23B5462F' stroke-width='2' stroke-dasharray='2 2'/%3E%3Crect x='8' y='8' width='16' height='16' rx='1.5' fill='none' stroke='%23B5462F' stroke-width='1.8'/%3E%3Cpath d='M10 15c2-2 4 2 6 0s4 2 6 0M10 19c2-2 4 2 6 0s4 2 6 0' fill='none' stroke='%23B5462F' stroke-width='1.6' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='11' r='1.6' fill='%23B5462F'/%3E%3C/svg%3E");
+  --svc-bg: var(--ml-card);
+  --svc-ink: var(--ml-text);
+  --svc-line: var(--ml-line);
+  --svc-accent: var(--ml-brand);
+  --svc-accent-ink: var(--ml-brand-ink);
+  --svc-font: var(--ml-font);
+  --svc-radius: 10px;
+  color-scheme: light;
+  background: var(--ml-bg);
+  color: var(--ml-text);
+  font-family: var(--ml-font);
+}
+
+@media (prefers-color-scheme: dark) {
+  body.page--mail {
+    --ml-bg: #14161a;
+    --ml-card: #1c1f24;
+    --ml-panel: #23272d;
+    --ml-brand: #f0896c;
+    --ml-brand-text: #f4a189;
+    --ml-brand-ink: #14161a;
+    --ml-text: #e8e6e1;
+    --ml-muted: #a6abb2;
+    --ml-line: #30353c;
+    --ml-current: #2e2420;
+    --ml-note-bg: #1f2731;
+    --ml-note-edge: #8fa6bd;
+    --ml-note-text: #dce5ee;
+    --ml-ph: #262a30;
+    --ml-ph-text: #b3b8bf;
+    --ml-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M4 4h24v24H4z' fill='%232E2420' stroke='%23F0896C' stroke-width='2' stroke-dasharray='2 2'/%3E%3Crect x='8' y='8' width='16' height='16' rx='1.5' fill='none' stroke='%23F0896C' stroke-width='1.8'/%3E%3Cpath d='M10 15c2-2 4 2 6 0s4 2 6 0M10 19c2-2 4 2 6 0s4 2 6 0' fill='none' stroke='%23F0896C' stroke-width='1.6' stroke-linecap='round'/%3E%3Ccircle cx='21' cy='11' r='1.6' fill='%23F0896C'/%3E%3C/svg%3E");
+    color-scheme: dark;
+  }
+}
+
+.page--mail :focus-visible {
+  outline: 3px solid var(--ml-brand);
+  outline-offset: 2px;
+}
+
+/* --- знак сервиса */
+
+.brandmark--mail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.brandmark--mail .brandmark__sign {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  background: var(--ml-logo) center / contain no-repeat;
+}
+
+.brandmark--mail .brandmark__name {
+  color: var(--ml-brand-text);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* --- оболочка закрытой страницы (до расшифровки) */
+
+body.page--mail.shell {
+  min-height: 100vh;
+}
+
+.page--mail.shell .shell__head {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--ml-line);
+  background: var(--ml-card);
+}
+
+.page--mail.shell .shell__body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.page--mail .shell__status {
+  color: var(--ml-muted);
+}
+
+.page--mail.shell .shell__broken,
+.page--mail.shell .shell__failed {
+  padding: 14px 16px;
+  border: 1px solid var(--ml-line);
+  border-left: 4px solid var(--ml-brand);
+  border-radius: 10px;
+  background: var(--ml-card);
+}
+
+/* --- шапка */
+
+.ml {
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.ml-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--ml-line);
+  background: var(--ml-card);
+}
+
+.ml-logo {
+  min-width: 0;
+}
+
+.ml-bar__account {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ml-bar__ava,
+.ml-ava {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ml-panel);
+  color: var(--ml-brand-text);
+  font-weight: 700;
+}
+
+.ml-bar__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.ml-bar__name,
+.ml-bar__addr {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-bar__name {
+  font-size: 15px;
+}
+
+.ml-bar__addr {
+  color: var(--ml-muted);
+  font-size: 13px;
+}
+
+/* узкий телефон: владелец ящика — второй строкой шапки, имя и адрес в строку */
+@media (max-width: 479px) {
+  .ml-bar {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .ml-bar__account {
+    flex-basis: 100%;
+  }
+
+  .ml-bar__ava {
+    display: none;
+  }
+
+  .ml-bar__who {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+  }
+
+  .ml-bar__name,
+  .ml-bar__addr {
+    max-width: 100%;
+  }
+}
+
+/* --- служебная плашка выгрузки: не часть сервиса — холодный «штамп» поверх почты */
+
+.ml-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 16px 0;
+  padding: 10px 14px;
+  border: 1px dashed var(--ml-note-edge);
+  border-left: 4px solid var(--ml-note-edge);
+  border-radius: 6px;
+  background: var(--ml-note-bg);
+  color: var(--ml-note-text);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.ml-notice__icon {
+  flex: none;
+  position: relative;
+  width: 16px;
+  height: 20px;
+  margin-top: 1px;
+  border: 2px solid var(--ml-note-edge);
+  border-radius: 2px;
+}
+
+.ml-notice__icon::before,
+.ml-notice__icon::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  height: 2px;
+  background: var(--ml-note-edge);
+}
+
+.ml-notice__icon::before {
+  top: 4px;
+}
+
+.ml-notice__icon::after {
+  top: 9px;
+}
+
+.ml-notice__text {
+  min-width: 0;
+  font-weight: 700;
+}
+
+/* --- раскладка */
+
+.ml-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 16px 0;
+}
+
+/* --- папки */
+
+.ml-folders__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ml-folder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--ml-line);
+  border-radius: 22px;
+  background: var(--ml-card);
+  color: var(--ml-text);
+  text-decoration: none;
+}
+
+.ml-folder:hover {
+  border-color: var(--ml-brand);
+}
+
+.ml-folder[aria-current="true"] {
+  border-color: var(--ml-brand);
+  background: var(--ml-current);
+  font-weight: 700;
+}
+
+.ml-folder__icon {
+  flex: none;
+  position: relative;
+  width: 18px;
+  height: 14px;
+  border: 2px solid var(--ml-brand);
+  border-radius: 2px;
+}
+
+.ml-folder__icon--in::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 4px;
+  height: 2px;
+  background: var(--ml-brand);
+}
+
+.ml-folder__icon--out {
+  border-radius: 2px 8px 8px 2px;
+}
+
+.ml-folder__icon--box::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: -5px;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+  background: var(--ml-brand);
+}
+
+.ml-folder__title {
+  min-width: 0;
+}
+
+.ml-folder__count {
+  margin-left: auto;
+  color: var(--ml-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* есть непрочитанные: название жирным и точка цвета марки */
+.ml-folder.has-unread .ml-folder__title {
+  font-weight: 700;
+}
+
+.ml-folder__new {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--ml-brand);
+}
+
+.ml-folder__new + .ml-folder__count {
+  margin-left: 0;
+}
+
+/* --- список цепочек */
+
+.ml-box {
+  border: 1px solid var(--ml-line);
+  border-radius: 10px;
+  background: var(--ml-card);
+  overflow: hidden;
+}
+
+.ml-box + .ml-box {
+  margin-top: 12px;
+}
+
+.ml-box__h {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--ml-line);
+  font-size: 17px;
+}
+
+.ml-box__empty {
+  padding: 16px 14px;
+  color: var(--ml-muted);
+}
+
+.ml-rows > li + li {
+  border-top: 1px solid var(--ml-line);
+}
+
+.ml-row {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 10px 14px 10px 17px;
+  border-left: 3px solid transparent;
+  color: var(--ml-text);
+  text-decoration: none;
+}
+
+.ml-row:hover {
+  background: var(--ml-panel);
+}
+
+.ml-row[aria-current="true"] {
+  background: var(--ml-current);
+}
+
+.ml-row.is-unread {
+  border-left-color: var(--ml-brand);
+}
+
+.ml-row__top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ml-row__who {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-row__to {
+  color: var(--ml-muted);
+}
+
+.ml-row__n {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--ml-panel);
+  color: var(--ml-muted);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.ml-row__date {
+  flex: none;
+  color: var(--ml-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-row__subject {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.ml-row__preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  color: var(--ml-muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.ml-row.is-unread .ml-row__who,
+.ml-row.is-unread .ml-row__subject {
+  font-weight: 700;
+}
+
+.ml-row.is-unread .ml-row__date {
+  color: var(--ml-brand-text);
+  font-weight: 700;
+}
+
+/* скрепка «есть вложения» */
+.ml-clip {
+  flex: none;
+  display: inline-block;
+  width: 9px;
+  height: 15px;
+  border: 2px solid var(--ml-muted);
+  border-bottom-color: transparent;
+  border-radius: 5px 5px 0 0;
+  transform: rotate(35deg);
+}
+
+/* --- открытая цепочка */
+
+.ml-read__empty {
+  padding: 32px 16px;
+  border: 1px dashed var(--ml-line);
+  border-radius: 10px;
+  color: var(--ml-muted);
+  text-align: center;
+}
+
+.ml-thread {
+  padding: 14px 14px 16px;
+  border: 1px solid var(--ml-line);
+  border-radius: 10px;
+  background: var(--ml-card);
+}
+
+.ml-thread + .ml-thread {
+  margin-top: 12px;
+}
+
+.ml-back {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: -6px 0 6px -6px;
+  padding: 0 10px 0 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ml-brand-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ml-back:hover {
+  background: var(--ml-panel);
+}
+
+.ml-back__arrow {
+  width: 10px;
+  height: 10px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.ml-thread__subject {
+  font-size: 21px;
+  overflow-wrap: anywhere;
+}
+
+.ml-thread__meta {
+  margin-top: 4px;
+  color: var(--ml-muted);
+  font-size: 14px;
+}
+
+.ml-msgs {
+  margin-top: 12px;
+}
+
+.ml-msg {
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--ml-line);
+}
+
+.ml-msg__head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  align-items: start;
+}
+
+.ml-msg__who {
+  min-width: 0;
+}
+
+.ml-msg__from,
+.ml-msg__to {
+  overflow-wrap: anywhere;
+}
+
+.ml-msg__to {
+  color: var(--ml-muted);
+  font-size: 14px;
+}
+
+.ml-msg__label {
+  color: var(--ml-muted);
+}
+
+/* адрес переносится целиком на следующую строку; внутри режется, только если сам шире строки */
+.ml-addr {
+  display: inline-block;
+  max-width: 100%;
+  color: var(--ml-muted);
+  font-size: 14px;
+  vertical-align: baseline;
+}
+
+.ml-msg__when {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  color: var(--ml-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ml-msg__unread {
+  padding: 0 8px;
+  border-radius: 9px;
+  background: var(--ml-current);
+  color: var(--ml-brand-text);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 20px;
+}
+
+.ml-msg__body {
+  margin-top: 10px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.ml-msg__body > * + * {
+  margin-top: 0.7em;
+}
+
+.ml-msg__body ul,
+.ml-msg__body ol {
+  padding-left: 1.4em;
+}
+
+.ml-msg__body blockquote {
+  padding-left: 12px;
+  border-left: 3px solid var(--ml-line);
+  color: var(--ml-muted);
+}
+
+.ml-msg__body a,
+.ml-msg__body a:visited {
+  color: var(--ml-brand-text);
+  text-underline-offset: 0.15em;
+}
+
+.ml-msg__body table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* --- вложения */
+
+.ml-att {
+  margin-top: 12px;
+}
+
+.ml-att__h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ml-muted);
+  font-size: 14px;
+}
+
+.ml-att__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.ml-att__item {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ml-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 6px 12px 6px 6px;
+  border: 1px solid var(--ml-line);
+  border-radius: 8px;
+  background: var(--ml-bg);
+  color: var(--ml-text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+
+button.ml-file,
+a.ml-file {
+  cursor: pointer;
+}
+
+button.ml-file:hover,
+a.ml-file:hover {
+  border-color: var(--ml-brand);
+}
+
+.ml-file__thumb {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--ml-ph);
+}
+
+.ml-file .ph.ml-file__thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 2px;
+  font-size: 9px;
+  line-height: 1.1;
+}
+
+.ml-file__icon {
+  flex: none;
+  position: relative;
+  width: 30px;
+  height: 36px;
+  margin-left: 4px;
+  border: 2px solid var(--ml-brand);
+  border-radius: 3px 10px 3px 3px;
+}
+
+.ml-file__icon::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  top: 12px;
+  height: 10px;
+  border-top: 2px solid var(--ml-brand);
+  border-bottom: 2px solid var(--ml-brand);
+}
+
+.ml-file__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.ml-file__name {
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+a.ml-file .ml-file__name {
+  color: var(--ml-brand-text);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.ml-file__size {
+  color: var(--ml-muted);
+  font-size: 12px;
+}
+
+/* --- заглушки «Здесь будет …» */
+
+.page--mail .ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--ml-ph);
+  color: var(--ml-ph-text);
+  font-size: 14px;
+  text-align: center;
+}
+
+.page--mail .ph-text {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--ml-ph);
+  color: var(--ml-ph-text);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.page--mail img.media-missing {
+  background: var(--ml-ph);
+}
+
+/* --- подвал */
+
+.ml-foot {
+  padding: 16px 16px 24px;
+  color: var(--ml-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.ml-foot__copy {
+  margin-top: 4px;
+}
+
+/* --- с JS: телефон — список или цепочка по очереди */
+
+.ml.has-js .ml-thread[hidden],
+.ml.has-js .ml-box[hidden] {
+  display: none;
+}
+
+/* с JS видна одна папка и одна цепочка: отступ между соседями не нужен (скрытые соседи остаются в DOM) */
+.ml.has-js .ml-thread + .ml-thread,
+.ml.has-js .ml-box + .ml-box {
+  margin-top: 0;
+}
+
+@media (max-width: 899px) {
+  .ml.has-js .ml-back {
+    display: inline-flex;
+  }
+
+  .ml.has-js.is-reading .ml-folders,
+  .ml.has-js.is-reading .ml-list,
+  .ml.has-js.is-reading .ml-notice {
+    display: none;
+  }
+
+  .ml.has-js:not(.is-reading) .ml-read {
+    display: none;
+  }
+}
+
+/* --- ноутбук: три колонки */
+
+@media (min-width: 900px) {
+  .ml-bar {
+    padding: 10px 24px;
+  }
+
+  .ml-notice {
+    margin: 16px 24px 0;
+  }
+
+  .ml-layout {
+    grid-template-columns: 200px minmax(280px, 380px) minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    padding: 16px 24px 0;
+  }
+
+  .ml-folders__list {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ml-folder {
+    border-color: transparent;
+    border-radius: 8px;
+    background: transparent;
+  }
+
+  .ml-folder[aria-current="true"] {
+    border-color: transparent;
+  }
+
+  .ml-thread {
+    padding: 20px 24px 24px;
+  }
+
+  .ml-thread__subject {
+    font-size: 24px;
+  }
+
+  .ml-msg__head {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .ml-msg__when {
+    grid-column: 3;
+    grid-row: 1;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .ml.has-js .ml-read {
+    position: sticky;
+    top: 12px;
+  }
+
+  .ml.has-js .ml-thread {
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+  }
+}

@@ -46,6 +46,7 @@ from engine.models import (
     Finale,
     FormField,
     LabSite,
+    MailPage,
     NewsPage,
     PageBase,
     PaperFrontMatter,
@@ -1142,6 +1143,36 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
                     ld.err(rel, ("profile", field_name, fi, "person"), f"персонажа «{fr.person}» нет в characters.yaml")
         if isinstance(page, NewsPage):
             body(rel, ("article", "body"), page.article.body)
+        if isinstance(page, MailPage):
+            _check_mail(ld, rel, page, char_ids)
+
+
+def _check_mail(ld: _Loading, rel: str, page: MailPage, char_ids: set[str] | None) -> None:
+    """Почтовый ящик: папки без повторов, ID цепочек без повторов, папка цепочки — из ``folders``,
+    персонажи в адресах есть в characters.yaml."""
+    seen: dict[str, int] = {}
+    for fi, title in enumerate(page.folders):
+        if not title.strip():
+            ld.err(rel, ("folders", fi), "пустое название папки")
+        elif title in seen:
+            ld.err(rel, ("folders", fi), f"папка «{title}» уже есть (folders[{seen[title]}])")
+        else:
+            seen[title] = fi
+    _check_unique(ld, rel, page.threads, ("threads",), "ID цепочки")
+    addrs: list[tuple[tuple, Any]] = [(("account",), page.account)]
+    for ti, t in enumerate(page.threads):
+        if t.folder not in seen:
+            ld.err(rel, ("threads", ti, "folder"), f"папки «{t.folder}» нет в folders ({', '.join(page.folders)})")
+        for pi, a in enumerate(t.participants or []):
+            addrs.append((("threads", ti, "participants", pi), a))
+        for mi, m in enumerate(t.messages):
+            addrs.append((("threads", ti, "messages", mi, "from"), m.from_))
+            for ri, a in enumerate(m.to):
+                addrs.append((("threads", ti, "messages", mi, "to", ri), a))
+    if char_ids is not None:
+        for loc, a in addrs:
+            if a.person is not None and a.person not in char_ids:
+                ld.err(rel, (*loc, "person"), f"персонажа «{a.person}» нет в characters.yaml")
 
 
 SERVICES_FILE = "pages/_brands.yaml"
@@ -1226,9 +1257,15 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
                     refs.append((("sections", si, "blocks", bi, "items", ii, "photo"), item.photo))
                 if block.kind == "photo":
                     refs.append((("sections", si, "blocks", bi, "file"), block.file))
-        for fi, folder in enumerate(getattr(page, "folders", None) or []):
-            for ii, item in enumerate(folder.items or []):
-                refs.append((("folders", fi, "items", ii, "file"), item.file))
+        if isinstance(page, CloudPage):
+            for fi, folder in enumerate(page.folders):
+                for ii, item in enumerate(folder.items or []):
+                    refs.append((("folders", fi, "items", ii, "file"), item.file))
+        if isinstance(page, MailPage):
+            for ti, thread in enumerate(page.threads):
+                for mi, msg in enumerate(thread.messages):
+                    for ai, att in enumerate(msg.attachments):
+                        refs.append((("threads", ti, "messages", mi, "attachments", ai, "media"), att.media))
         for loc, value in refs:
             if value:
                 out.append(MediaUse(f, format_loc(loc), value, ctx))

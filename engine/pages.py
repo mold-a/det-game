@@ -23,7 +23,7 @@ from markupsafe import Markup
 from engine import crypto
 from engine.content import Content
 from engine.media import MediaCollector, MediaPlan
-from engine.models import CloudPage, Document, PageBase
+from engine.models import CloudPage, Document, MailPage, PageBase
 from engine.normalize import normalize
 from engine.templating import (
     RenderError,
@@ -56,6 +56,7 @@ PHOTO_TYPES = ("photo", "photo_stub")
 SERVICE_OF_TYPE = {
     "social": "social", "social_home": "social", "social_stub": "social",
     "photo": "photo", "photo_stub": "photo", "news": "news", "pharma": "pharma", "cloud": "cloud",
+    "mail": "mail",
 }
 # Стили сверх base.html: общие окна — всегда (кроме video: его стиль — система расследования).
 UI_CSS = "/assets/css/pages/_ui.css"
@@ -139,7 +140,7 @@ def page_data(content: Content, page: PageBase, ctx: dict) -> dict:
 
     if "article" in data:
         data["article"]["body_html"] = body_html(data["article"].pop("body", None))
-    for folder in data.get("folders", []):
+    for folder in data.get("folders", []) if isinstance(page, CloudPage) else []:
         if folder.get("kind") == "letter":
             folder["body_html"] = body_html(folder.pop("body", None))
         if folder.get("kind") == "table":
@@ -158,7 +159,85 @@ def page_data(content: Content, page: PageBase, ctx: dict) -> dict:
         for block in sec["blocks"]:
             if block["kind"] == "text":
                 block["html"] = Markup(render_markdown(block["md"]))
+    if isinstance(page, MailPage):
+        mail_view(data, ctx)
     return data
+
+
+# ---------------------------------------------------------------- почтовый ящик (type: mail)
+
+MAIL_PREVIEW_CHARS = 140  # длина превью письма в списке (символов); дальше — «…»
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def mail_display(addr: dict, ctx: dict) -> str:
+    """Имя в адресе письма: персонаж — «Имя Фамилия», иначе ``name``; без имени — сам адрес."""
+    if addr.get("person"):
+        ch = getattr(ctx["c"], addr["person"])
+        return f"{ch.first()} {ch.last()}"
+    return addr.get("name") or addr["address"]
+
+
+def mail_preview(html: str, limit: int = MAIL_PREVIEW_CHARS) -> str:
+    """Превью письма: текст без разметки в одну строку, не длиннее ``limit`` символов."""
+    from html import unescape
+
+    text = " ".join(unescape(_TAG_RE.sub(" ", html)).split())
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def mail_view(data: dict, ctx: dict) -> None:
+    """Дополнить отрендеренные данные ``type: mail`` тем, что показывает шаблон: имена в адресах, HTML писем,
+    у цепочки — непрочитанность, дату последнего письма, превью, «с кем» для списка; ``folder_view`` — папки
+    с числом цепочек и непрочитанных. Цепочки — по дате последнего письма, новые сверху; письма в цепочке —
+    по дате, старые сверху."""
+    acc = data["account"]
+    acc["display"] = mail_display(acc, ctx)
+    me = acc["address"].lower()
+    folder_index = {title: i for i, title in enumerate(data["folders"])}
+    for t in data["threads"]:
+        for a in t.get("participants") or []:
+            a["display"] = mail_display(a, ctx)
+        for m in t["messages"]:
+            m["from"]["display"] = mail_display(m["from"], ctx)
+            for a in m["to"]:
+                a["display"] = mail_display(a, ctx)
+            m["body_html"] = Markup(render_markdown(m["body"]))
+            m["initial"] = m["from"]["display"][:1].upper()
+        t["messages"] = sorted(t["messages"], key=lambda m: m["date"])
+        last = t["messages"][-1]
+        t["folder_index"] = folder_index.get(t["folder"], 0)
+        t["last_date"] = last["date"]
+        t["unread"] = any(not m["read"] for m in t["messages"])
+        t["preview"] = mail_preview(last["body_html"])
+        t["attachments"] = sum(len(m["attachments"]) for m in t["messages"])
+        t["who"], t["who_to"] = mail_who(t, me, acc["display"])
+    data["threads"] = sorted(data["threads"], key=lambda t: t["last_date"], reverse=True)
+    data["folder_view"] = [
+        {"title": title, "count": sum(1 for t in data["threads"] if t["folder"] == title),
+         "unread": sum(1 for t in data["threads"] if t["folder"] == title and t["unread"])}
+        for title in data["folders"]
+    ]
+
+
+def mail_who(thread: dict, me: str, me_display: str) -> tuple[str, bool]:
+    """«С кем» цепочка для строки списка: ``(имена через запятую, это получатели?)``. ``participants`` — как
+    задано (кроме владельца); иначе отправители, кроме владельца; если писал только владелец — получатели
+    («Кому: …»); переписка с самим собой — имя владельца."""
+    def names(addrs: list[dict]) -> list[str]:
+        seen: dict[str, str] = {}
+        for a in addrs:
+            if a["address"].lower() != me:
+                seen.setdefault(a["address"].lower(), a["display"])
+        return list(seen.values())
+
+    if thread.get("participants"):
+        return ", ".join(names(thread["participants"]) or [me_display]), False
+    senders = names([m["from"] for m in thread["messages"]])
+    if senders:
+        return ", ".join(senders), False
+    rcpt = names([a for m in thread["messages"] for a in m["to"]])
+    return (", ".join(rcpt), True) if rcpt else (me_display, False)
 
 
 _MD_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
@@ -177,8 +256,9 @@ def page_people(content: Content, page: PageBase, ctx: dict) -> dict[str, dict]:
             ids.append(profile.person)
         ids.extend(f.person for f in getattr(profile, "friends", None) or [] if f.person)
         ids.extend(f.person for f in getattr(profile, "following", None) or [] if f.person)
-    for f in getattr(page, "folders", None) or []:
-        ids.extend(f.participants or [])
+    if isinstance(page, CloudPage):
+        for f in page.folders:
+            ids.extend(f.participants or [])
     c = ctx["c"]
     return {pid: {"full": getattr(c, pid).full(), "short": getattr(c, pid).short()} for pid in dict.fromkeys(ids)}
 
@@ -381,7 +461,7 @@ def locked_page_texts(content: Content, ctx: dict) -> list[tuple[str, str]]:
 
         for loc, s in iter_strings(rendered):
             out.append((f"content/pages/{slug}/page.yaml: {format_loc(loc)}", s))
-        for f in getattr(page, "folders", None) or []:
+        for f in page.folders if isinstance(page, CloudPage) else []:
             if f.body and f.body in content.texts:
                 out.append((f"content/{f.body}", render(content.texts[f.body], ctx)))
     return out
@@ -404,7 +484,7 @@ def body_rels(page: PageBase) -> list[tuple[tuple, str]]:
     article = getattr(page, "article", None)
     if article is not None:
         out.append((("article", "body"), article.body))
-    for fi, f in enumerate(getattr(page, "folders", None) or []):
+    for fi, f in enumerate(page.folders if isinstance(page, CloudPage) else []):
         if f.body:
             out.append((("folders", fi, "body"), f.body))
     return out

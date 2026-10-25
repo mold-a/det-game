@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 
@@ -36,8 +37,10 @@ def add_fixture_pages(content: Path) -> None:
     art.write_text(art.read_text(encoding="utf-8").rstrip() + "\n\n[Театр]({{ link('theater') }}).\n", encoding="utf-8")
     news = pages / "news" / "page.yaml"
     text = news.read_text(encoding="utf-8")
-    news.write_text(text.replace('  - { datetime: "2026-11-11T07:30", title:',
-                                 '  - { page: news-extra, datetime: "2026-11-11T07:30", title:', 1), encoding="utf-8")
+    # первая запись боковой колонки (дата любая: берётся из контента, сдвиг дат сюжета не ломает фикстуру)
+    text, n = re.subn(r'^  - \{ (datetime: "[^"]+", title:)', r'  - { page: news-extra, \1', text, count=1, flags=re.M)
+    assert n == 1, "в news/page.yaml нет боковой колонки"
+    news.write_text(text, encoding="utf-8")
 
 
 # ---------------------------------------------------------------- профили закрытых этапов и «Кадр» (docs/02 §3.10)
@@ -121,3 +124,22 @@ def add_photo_fixtures(content: Path) -> None:
         {"file": "lab/t2.jpg", "caption": "Тестовый хроматограф"},
         {"file": "lab/t3.jpg"},
     ]))
+
+
+# ---------------------------------------------------------------- почтовый ящик (type: mail)
+
+MAIL_SLUG = "mail-sample"
+MAIL_FILES = ["mail-sample/scan.jpg"]  # картинка-вложение (файл кладёт тест)
+MAIL_ABSENT = ["mail-sample/absent.jpg"]  # вложение без файла: заглушка, без кнопки
+
+
+def add_mail_fixture(content: Path) -> None:
+    """Поверх копии content/: ``mail-sample`` (type: mail, этап 3, закрыт; три цепочки, вложения всех видов)
+    и ссылка на неё из письма облака (иначе — предупреждение «страница без doc и без входящих ссылок»)."""
+    pages = Path(content) / "pages"
+    d = pages / MAIL_SLUG
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "page.yaml").write_text((FIXTURES / f"{MAIL_SLUG}.yaml").read_text(encoding="utf-8"), encoding="utf-8")
+    letter = pages / "cloud" / "if_you_read_this.md"
+    letter.write_text(letter.read_text(encoding="utf-8").rstrip()
+                      + f"\n\nПочта: [ящик]({{{{ link('{MAIL_SLUG}') }}}}).\n", encoding="utf-8")

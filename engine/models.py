@@ -811,6 +811,123 @@ class CloudPage(PageBase):
     folders: Annotated[list[CloudFolder], Field(min_length=1)]
 
 
+# --- mail (выгрузка почтового ящика вымышленного почтового сервиса, решение автора 25.10.2026)
+
+# Домены настоящих почтовых сервисов и ведомств: адрес на таком домене — ошибка (только вымышленные бренды, CLAUDE.md).
+REAL_MAIL_DOMAINS = frozenset({
+    "gmail.com", "googlemail.com", "mail.ru", "inbox.ru", "list.ru", "bk.ru", "internet.ru", "yandex.ru", "ya.ru",
+    "yandex.com", "rambler.ru", "outlook.com", "hotmail.com", "live.com", "icloud.com", "me.com", "yahoo.com",
+    "proton.me", "protonmail.com", "vk.com", "gosuslugi.ru", "sledcom.ru", "mvd.ru",
+})
+_MAIL_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$")
+
+
+def _is_todo(v: str) -> bool:
+    return "TODO(content)" in v
+
+
+class MailAddress(Strict):
+    """Адрес письма: ``address`` и необязательное имя — ``person`` (персонаж) или ``name`` (не больше одного).
+    Без имени показывается только адрес."""
+
+    person: Id | None = None
+    name: str | None = None
+    address: str
+
+    @model_validator(mode="after")
+    def _at_most_one(self) -> "MailAddress":
+        if self.person is not None and self.name is not None:
+            raise ValueError("нужно не больше одного из полей: person (ID персонажа) или name (имя)")
+        return self
+
+    @field_validator("address")
+    @classmethod
+    def _address(cls, v: str) -> str:
+        if _is_todo(v):
+            return v
+        local, at, domain = v.strip().rpartition("@")
+        if not at or not local or "." not in domain or " " in v.strip():
+            raise ValueError(f"«{v}» — не адрес почты (нужно имя@домен.зона)")
+        if domain.lower() in REAL_MAIL_DOMAINS:
+            raise ValueError(f"домен «{domain}» принадлежит настоящему сервису: нужен вымышленный домен")
+        return v
+
+
+class MailAccount(MailAddress):
+    """Владелец ящика: ровно одно из ``person`` / ``name`` и адрес."""
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "MailAccount":
+        if (self.person is None) == (self.name is None):
+            raise ValueError("нужно ровно одно из полей: person (ID персонажа) или name (имя владельца ящика)")
+        return self
+
+
+class MailAttachment(Strict):
+    """Вложение: ``name`` и ``size`` — подпись; ``media`` (картинка в media/, открывается крупно) или ``page``
+    (ссылка на страницу) — не больше одного; без них вложение — просто строка с именем файла."""
+
+    name: str
+    size: str
+    media: str | None = None
+    page: Id | None = None
+
+    @field_validator("media")
+    @classmethod
+    def _media_ext(cls, v: str | None) -> str | None:
+        return None if v is None else _photo_file(v)
+
+    @model_validator(mode="after")
+    def _one_target(self) -> "MailAttachment":
+        if self.media is not None and self.page is not None:
+            raise ValueError("у вложения не больше одного из полей: media (картинка) или page (страница)")
+        return self
+
+
+class MailMessage(Strict):
+    # В YAML ключ — «from» (зарезервированное слово Python); читается только по алиасу.
+    model_config = ConfigDict(extra="forbid", strict=True, validate_by_alias=True, validate_by_name=False)
+
+    from_: MailAddress = Field(alias="from")
+    to: Annotated[list[MailAddress], Field(min_length=1)]
+    date: str  # ISO: 2026-10-14T09:12 (секунды необязательны)
+    body: str  # Markdown, можно {{ link('slug') }}
+    attachments: list[MailAttachment] = []
+    read: bool = True  # false — письмо не прочитано владельцем ящика (жирным в списке)
+
+    @field_validator("date")
+    @classmethod
+    def _date(cls, v: str) -> str:
+        if not (_is_todo(v) or _MAIL_DATE_RE.fullmatch(v.strip())):
+            raise ValueError("дата письма — ISO «ГГГГ-ММ-ДДTЧЧ:ММ», например «2026-10-14T09:12»")
+        return v
+
+
+class MailThread(Strict):
+    """Цепочка писем (тред) в папке ``folder`` — одна из ``folders`` страницы."""
+
+    id: Id
+    folder: str
+    subject: str
+    participants: list[MailAddress] | None = None  # необязательно: иначе — из отправителей и получателей
+    messages: Annotated[list[MailMessage], Field(min_length=1)]
+
+
+MAIL_FOLDERS_DEFAULT = ("Входящие", "Отправленные")
+
+
+class MailPage(PageBase):
+    """Почтовый ящик (выгрузка по запросу следствия): папки, цепочки писем, вложения. Любой slug."""
+
+    slug: Id
+    type: Literal["mail"] = "mail"
+    brand: str = "Почта"  # обычно "{{ w.brands.mail }}"
+    account: MailAccount
+    notice: str | None = None  # служебная плашка: «Выгрузка ящика по запросу № … от …»
+    folders: Annotated[list[str], Field(min_length=1)] = Field(default_factory=lambda: list(MAIL_FOLDERS_DEFAULT))
+    threads: Annotated[list[MailThread], Field(min_length=1)]
+
+
 # --- video
 
 
@@ -947,6 +1064,7 @@ PAGE_MODELS: dict[str, type[PageBase]] = {
     "social_home": SocialHomePage,
     "social_stub": SocialStubPage,
     "site": SitePage,
+    "mail": MailPage,
 }
 
 

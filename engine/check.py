@@ -257,7 +257,9 @@ def shell_texts(content: Content, ctx: dict) -> list[str]:
     r = lambda t: render(t, ctx) if t else ""  # noqa: E731
     for page in content.pages.values():
         for attr in ("brand", "account"):
-            out.append(r(getattr(page, attr, None)))
+            v = getattr(page, attr, None)
+            # у облака account — логин (строка в оболочке); у почты — владелец ящика (модель), в оболочке его нет
+            out.append(r(v) if isinstance(v, str) or v is None else "")
     out += [r(x) for _, x in iter_strings({k: v.model_dump() for k, v in content.services.items()})]
     return out
 

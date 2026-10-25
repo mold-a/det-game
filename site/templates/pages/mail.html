@@ -1,0 +1,124 @@
+{# mail — почтовый ящик вымышленного почтового сервиса: выгрузка ящика по запросу следствия (docs/04: «mail»).
+   Слева папки с числом цепочек, в середине список цепочек (с кем, тема, превью, дата; непрочитанные — жирным),
+   справа открытая цепочка: письма по порядку, вложения (картинка — крупно по нажатию, страница — ссылка).
+   На телефоне список и цепочка по очереди: «К списку писем» возвращает назад (и системная кнопка «Назад»).
+   Интерактив — pages/mail.js. Без JS видно всё подряд: папки — ссылки на списки, строки списка — на цепочки.
+   Статус «не прочитано» — часть выгрузки: при открытии цепочки он не меняется.
+   Кликабельно только то, что ведёт к содержимому: папки, строки списка, «К списку писем», вложения с файлом или
+   страницей, ссылки в письмах. Кнопок «Написать», «Ответить», «Переслать», «Удалить» нет. Без средних точек. #}
+{% import "pages/_ui.html" as ui %}
+{% set brand = page.brand %}
+{% set acc = page.account %}
+<div class="ml" data-mail>
+  <header class="ml-bar">
+    <span class="ml-logo"><span class="brandmark brandmark--mail"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></span>
+    <span class="ml-bar__account">
+      <span class="ml-bar__ava" aria-hidden="true">{{ acc.display[:1]|upper }}</span>
+      <span class="ml-bar__who"><b class="ml-bar__name">{{ acc.display }}</b><span class="ml-bar__addr">{{ ui.text(acc.address, "адрес") }}</span></span>
+    </span>
+  </header>
+
+  {% if page.notice %}
+  <div class="ml-notice" role="note">
+    <span class="ml-notice__icon" aria-hidden="true"></span>
+    <p class="ml-notice__text">{{ ui.text(page.notice, "отметка о выгрузке") }}</p>
+  </div>
+  {% endif %}
+
+  <div class="ml-layout">
+    <nav class="ml-folders" aria-label="Папки">
+      <ul class="ml-folders__list" role="list">
+        {% for f in page.folder_view %}
+        <li>
+          <a class="ml-folder{% if f.unread %} has-unread{% endif %}" href="#mf-{{ loop.index0 }}" data-folder-link="{{ loop.index0 }}">
+            <span class="ml-folder__icon ml-folder__icon--{{ 'in' if loop.index0 == 0 else ('out' if f.title == 'Отправленные' else 'box') }}" aria-hidden="true"></span>
+            <span class="ml-folder__title">{{ f.title }}</span>
+            {% if f.unread %}<span class="ml-folder__new" role="img" aria-label="непрочитанных: {{ f.unread }}"></span>{% endif %}
+            <span class="ml-folder__count" aria-label="писем: {{ f.count }}">{{ f.count }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <div class="ml-list" aria-label="Список писем">
+      {% for f in page.folder_view %}
+      {% set fi = loop.index0 %}
+      <section class="ml-box" id="mf-{{ fi }}" data-folder="{{ fi }}" aria-labelledby="mf-{{ fi }}-h">
+        <h2 class="ml-box__h" id="mf-{{ fi }}-h">{{ f.title }}</h2>
+        {% set rows = page.threads|selectattr("folder_index", "equalto", fi)|list %}
+        {% if rows %}
+        <ul class="ml-rows" role="list">
+          {% for t in rows %}
+          <li>
+            <a class="ml-row{% if t.unread %} is-unread{% endif %}" href="#mt-{{ t.id }}" data-thread-link="{{ t.id }}">
+              <span class="ml-row__top">
+                <span class="ml-row__who">{% if t.who_to %}<span class="ml-row__to">Кому:</span> {% endif %}{{ t.who }}</span>
+                {% if t.messages|length > 1 %}<span class="ml-row__n" aria-label="писем в цепочке: {{ t.messages|length }}">{{ t.messages|length }}</span>{% endif %}
+                <time class="ml-row__date" datetime="{{ t.last_date }}">{{ t.last_date|dt("date") }}</time>
+              </span>
+              <span class="ml-row__subject">{% if t.unread %}<span class="visually-hidden">Не прочитано. </span>{% endif %}{{ ui.text(t.subject, "тема") }}{% if t.attachments %}<span class="ml-clip" role="img" aria-label="есть вложения"></span>{% endif %}</span>
+              <span class="ml-row__preview">{{ t.preview }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="ml-box__empty">В папке нет писем</p>
+        {% endif %}
+      </section>
+      {% endfor %}
+    </div>
+
+    <div class="ml-read" aria-label="Письмо">
+      <p class="ml-read__empty" data-role="empty" hidden>Выберите письмо в списке</p>
+      {% for t in page.threads %}
+      <article class="ml-thread" id="mt-{{ t.id }}" data-thread="{{ t.id }}" data-folder="{{ t.folder_index }}" aria-labelledby="mt-{{ t.id }}-h" tabindex="-1">
+        <button class="ml-back" type="button" data-act="back"><span class="ml-back__arrow" aria-hidden="true"></span>К списку писем</button>
+        <h2 class="ml-thread__subject" id="mt-{{ t.id }}-h">{{ ui.text(t.subject, "тема") }}</h2>
+        <p class="ml-thread__meta">{{ t.folder }}, писем: {{ t.messages|length }}</p>
+        <ol class="ml-msgs" role="list">
+          {% for m in t.messages %}
+          <li class="ml-msg{% if not m.read %} is-unread{% endif %}">
+            <header class="ml-msg__head">
+              <span class="ml-ava" aria-hidden="true">{{ m.initial }}</span>
+              <div class="ml-msg__who">
+                <p class="ml-msg__from"><b class="ml-msg__name">{{ m['from'].display }}</b>{% if m['from'].display != m['from'].address %} <span class="ml-addr">{{ m['from'].address }}</span>{% endif %}</p>
+                <p class="ml-msg__to"><span class="ml-msg__label">Кому:</span> {% for a in m.to %}{{ a.display }}{% if a.display != a.address %} <span class="ml-addr">{{ a.address }}</span>{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+              </div>
+              <p class="ml-msg__when"><time datetime="{{ m.date }}">{{ m.date|dt }}</time>{% if not m.read %}<span class="ml-msg__unread">Не прочитано</span>{% endif %}</p>
+            </header>
+            <div class="ml-msg__body">{{ m.body_html }}</div>
+            {% if m.attachments %}
+            <div class="ml-att">
+              <p class="ml-att__h"><span class="ml-clip" aria-hidden="true"></span>Вложения: {{ m.attachments|length }}</p>
+              <ul class="ml-att__list" role="list">
+                {% for a in m.attachments %}
+                <li class="ml-att__item">
+                  {% if a.media and not ui.missing(media(a.media, a.name)) %}
+                  {% call ui.zoom("ml-file ml-file--img", a.name) %}{{ ui.img(media, a.media, a.name, "вложение", "ml-file__thumb") }}<span class="ml-file__text"><span class="ml-file__name">{{ a.name }}</span><span class="ml-file__size">{{ a.size }}</span></span>{% endcall %}
+                  {% elif a.media %}
+                  <span class="ml-file ml-file--missing">{{ ui.img(media, a.media, a.name, "вложение", "ml-file__thumb") }}<span class="ml-file__text"><span class="ml-file__name">{{ a.name }}</span><span class="ml-file__size">{{ a.size }}</span></span></span>
+                  {% elif a.page %}
+                  <a class="ml-file ml-file--page" href="{{ link(a.page) }}"><span class="ml-file__icon" aria-hidden="true"></span><span class="ml-file__text"><span class="ml-file__name">{{ a.name }}</span><span class="ml-file__size">{{ a.size }}</span></span></a>
+                  {% else %}
+                  <span class="ml-file ml-file--plain"><span class="ml-file__icon" aria-hidden="true"></span><span class="ml-file__text"><span class="ml-file__name">{{ a.name }}</span><span class="ml-file__size">{{ a.size }}</span></span></span>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+
+  <footer class="ml-foot">
+    {{ ui.service_footer(service, brand, "ml-foot") }}
+    <p class="ml-foot__copy">© {{ brand }}, 2026</p>
+  </footer>
+</div>
