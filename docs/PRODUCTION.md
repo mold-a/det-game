@@ -1,6 +1,6 @@
 # Производство медиа: что осталось
 
-**Актуально на 24.10.2026.** Готово 124 из 133 позиций, отменено 9, **всё сделано**. Как пользоваться: пишете в чат **«готово КОД»** (например, «готово GV-1») или **«переделать КОД: причина»**; режиссёр кладёт файл в `media/`, сверяет и ставит ✅. Проверка: `python -m engine build 2>&1 | grep "нет медиафайла"` должно стать пустым. Сюжет кадров — `docs/SCENARIO.md` и `content/`; если что-то расходится, прав сценарий. Образцы лиц и голосов в репозиторий не кладутся (`media/_refs/` в `.gitignore`).
+**Актуально на 25.10.2026.** Готово 124 из 134 позиций, отменено 9, **осталась 1: `VD-4`** (добавлена 25.10 по решению автора об архивной камере). Как пользоваться: пишете в чат **«готово КОД»** (например, «готово GV-1») или **«переделать КОД: причина»**; режиссёр кладёт файл в `media/`, сверяет и ставит ✅. Проверка: `python -m engine build 2>&1 | grep "нет медиафайла"` должно стать пустым. Сюжет кадров — `docs/SCENARIO.md` и `content/`; если что-то расходится, прав сценарий. Образцы лиц и голосов в репозиторий не кладутся (`media/_refs/` в `.gitignore`).
 
 > **Правила автора.** Никаких живых съёмок и записей: лица — по готовым портретам `media/portraits/<id>.jpg`, голоса — клоны по существующим голосовым. Реальные товары и интерфейсы, случайно попавшие в бытовые кадры (телефон, ноутбук, наушники, конфеты), не замазываем (решение 23.10, семейная версия). Сервисы игры остаются вымышленными, логотипов и вывесок нет.
 
@@ -35,8 +35,9 @@
 
 | Код | Файл | Что | Где на сайте | Инструмент | Статус |
 |---|---|---|---|---|---|
+| `VD-4` | `video/archive-cam.mp4` + постер `video/archive-cam.jpg` | Архивная запись спектакля, момент падения: общий план сцены, 6–10 с, без голосов | начало игры (`TODO(content)`: путь пока нигде не прописан) | Gemini (кадр-основа) → Kling image-to-video → режиссёр (ffmpeg) | ⏳ промпты готовы (§4.2) |
 
-Улик среди семи позиций нет: сюжет от них не зависит.
+`VD-4` не улика, но кадр обязан сходиться с документами по времени, месту, костюму и свету (§4.2).
 
 **Что нужно от автора:** клоны дяди Саши и Алины уже есть (для `VD-3` Саша говорит обычным голосом, без маскировки звонка); для `VD-1` — клон мамы (Резникова) уже использован в голосовых; для видео — проба Kling Avatar («говорящее фото») на бесплатных кредитах до оплаты, поддержка 9:16.
 
@@ -123,11 +124,145 @@ Handheld selfie video with slight sway. The young woman looks at the apple in he
 
 Итого на два ролика: 2 кадра Gemini (1–2 попытки), 6 коротких реплик ElevenLabs (четыре в кадре: Резникова ×2, Алина ×2 с учётом смеха; две за кадром: Антон, Саша), 2–3 генерации Kling по 5 с на ролик.
 
+### 4.2. Архивная запись спектакля: `VD-4`
+
+**Решение автора 25.10:** в театре есть архивная камера видеозаписи спектаклей. Она стоит в зале, на балконе, и снимает только сцену: зал и ложи в кадр не попадают. Игра начинается с фрагмента этой записи (6–10 с): общий план сцены во втором действии, артист в костюме Арбенина у левой кулисы покачнулся и упал. Голосов в ролике нет: либо «запись без звука», либо только глухой шум зала. Лицо — по портрету погибшего (Артём, роль Воронцова). Видео автор делает сам в Kling (image-to-video), доводку делает режиссёр.
+
+#### VD-4. «Архивная запись спектакля, момент падения» — `video/archive-cam.mp4` + постер `video/archive-cam.jpg`
+
+**С чем кадр обязан сходиться** (сверено с `content/`):
+
+| Что | Как в документах | Что это значит для кадра |
+|---|---|---|
+| Время | 2-05: «21:02 СТОП… упал (авансцена, у лев. кулисы). Полный свет. Занавес»; 2-07: 21:02:24 сигнал «СТОП», 21:02:31 аварийный полный свет; 3-01 и 1-08 (Резникова): «в 21:02 упал». В 21:04 только вызвали скорую (1-03, 2-05) | Таймкод **21:02:xx**, а не 21:04. Ролик кончается до 21:02:24, поэтому свет в нём весь ролик ровный, сценический. Полного света, занавеса и людей у тела в ролике нет |
+| Место | 2-05, 1-08: авансцена, у левой кулисы; 1-03: «сцена, у левой кулисы, на полу», ингалятор «на полу кулисы» | Падает у самого края левой кулисы, на передней части сцены, не в центре |
+| Сцена | 2-05, 2-07: 2-е действие, К. 6 «Бал», с 20:57:47 свет Q24 «бал, центр»; Резникова: «полтруппы на сцене» | За ним в глубине пары в бальных костюмах; центр сцены светлее, у левой кулисы свет мягче |
+| Костюм | 1-09, поз. 4: костюм 1-го действия (фрак, жилет, сорочка) остался в гримёрке; на теле — костюм 2-го действия (`expertise.yaml`); комплект Арбенина — сюртук (4-09) | Чёрный сюртук XIX века, тёмный жилет, белая сорочка с высоким воротником, тёмный шейный платок (как на `news/voroncov_arbenin.jpg`). Очков на сцене нет: они лежали в сумке (1-09, поз. 17.1) |
+| Состояние | 2-05, 20:56: «темп ушёл, паузы длинные, дыхание (?)»; 1-08 (Лёвин): «сбивался, дышал тяжело… сначала решил, что это он так играет» | Сначала тяжёлое дыхание и пауза, потом падение. Без крови и без судорог |
+| Руки | ингалятор нашли на полу кулисы (1-03); о таблетнице в ролике речи нет | В руках ничего нет: ни ингалятора, ни таблеток, ни телефона |
+
+**Исходный кадр.** Брать не `video/rehearsal.mp4`: в нём Слава (Волков, дублёр) в дневном репетиционном зале, а не Артём, так что лицо будет не то. Постера у `rehearsal.mp4` в `media/` нет. Берём два готовых файла:
+- image 1 — `media/portraits/voroncov.jpg` (лицо, седина, борода);
+- image 2 — `media/news/voroncov_arbenin.jpg` (тот же человек в костюме Арбенина, сценический свет, без очков).
+
+По ним в **Gemini** собираем кадр-основу 16:9 (запрос ниже), и он идёт в Kling как стартовое изображение. Лицо на общем плане мелкое, поэтому главное, чтобы совпадали седина, борода, сложение и костюм. Кадр-основу в репозиторий не кладём, присылаем в чат как `VD-4_base.jpg`.
+
+Кадр-основа (Gemini; image 1 — `portraits/voroncov.jpg`, image 2 — `news/voroncov_arbenin.jpg`):
+
+```text
+Image 1 is the strict identity reference for the man (face, grey hair, grey beard, build); image 2 shows the same man on stage in his costume: copy the costume and the stage make-up from image 2, and he wears NO glasses. Horizontal 16:9 still frame from a fixed archival video camera that records performances in a provincial drama theatre. Static wide shot of the whole stage, taken from the front of the balcony at the back of the auditorium, slightly above stage level, looking straight at the stage. Only the stage is visible: the bottom edge of the picture is the front edge of the stage floor; no auditorium, no seats, no audience, no heads, no balcony railing, no orchestra pit. A modest 19th-century ball scene: dark velvet side curtains (wings) on both sides, a dark backdrop, a few warm chandelier-like lamps, four to six performers in 19th-century ball costumes (long gowns, dark tailcoats) standing in pairs in the middle and back of the stage, small, faces indistinct. Downstage at the far LEFT of the frame, right next to the edge of the left side curtain, stands the man (identity from image 1), about 56, grey hair, grey beard, in a black 19th-century frock coat, dark waistcoat, white shirt with a high collar and a dark cravat; upright, half-turned towards the auditorium as if delivering a line, one hand slightly raised in a small gesture, the other hanging down, both hands empty. His whole figure is visible, about one third of the frame height. Muted warm stage lighting: the centre of the stage is brighter, the downstage-left area where he stands is in softer light. No objects on the floor. The look of a slightly soft, low-contrast archival video frame rather than a cinematic photograph. The top-left corner shows only dark curtain or backdrop. Photorealistic photograph with a natural, slightly imperfect look (visible texture, no airbrushing, no plastic look); not an illustration, not a painting, not 3D. No text, no captions, no timestamps, no watermarks, no logos, no brand names, no coats of arms, no flags, no readable signs. The picture fills the whole frame edge to edge as one seamless image (no black boxes or blank areas); in the bottom-right part show only plain background, no important objects. Highest available resolution.
+```
+
+Неудачи правим в том же чате: если зал в кадре — `Same image, but crop so that only the stage is visible: no seats, no heads, no railing; keep everything else unchanged.`; если очки — `Same image, but without glasses; keep everything else unchanged.`; если стоит не у левой кулисы — `Same image, but move the grey-haired man in the frock coat to the far left of the stage, right next to the left side curtain; keep everything else unchanged.`
+
+Чек-лист кадра-основы: только сцена, людей в зале нет; он у левой кулисы, впереди, во весь рост, руки пустые; сюртук, а не фрак; без очков; седина и борода как на портрете; надписей, логотипов, вывесок нет; левый верхний и правый нижний углы без важного (туда встанут подписи).
+
+**Kling (image-to-video).** Стартовое изображение — `VD-4_base.jpg`. Длительность — **10 с**: режиссёр вырежет из них 6–10 с. Качество и разрешение — максимальные из доступных. Звук не генерировать: если в интерфейсе есть опция звука, выключить (дорожку всё равно убираем). Конечный кадр не задавать. Поле negative prompt, если оно есть, заполнить строкой ниже. Обычно хватает 3–5 генераций. Перед скачиванием проверить, что на файле нет водяного знака. Расход кредитов и тарифы — `docs/MEDIA-AI-OPTIONS.md` §3, перед оплатой сверить на сайте. Названия кнопок Kling не проверялись. Дописывать в запрос имена, текст роли или слова «умирает» и «смерть» не нужно.
+
+Вариант A — **сдержанный, рекомендованный**:
+
+```text
+Static archival recording camera locked off on a tripod at the back of a theatre balcony; one continuous wide shot of the whole stage; no camera movement, no zoom, no pan, no cuts, no close-ups. The warm, muted stage lighting stays exactly the same for the whole clip. The grey-haired actor in the black 19th-century frock coat at the far left of the stage, next to the left side curtain, is delivering a line with a small hand gesture. He stops mid-gesture; his breathing becomes heavy, his shoulders rise and fall; he slowly presses one hand to his chest and takes an unsteady half-step towards the left curtain. His knees give way and he collapses sideways onto the stage floor at the edge of the left wing and lies still. The couples in the background keep moving for a moment, then stop and turn towards him. In the last second one performer in a dark costume hurries towards him from the left wing. Realistic and unhurried, not theatrical; everyone stays small in the frame, seen from far away.
+```
+
+Вариант B — **заметнее**:
+
+```text
+Static archival recording camera locked off on a tripod at the back of a theatre balcony; one continuous wide shot of the whole stage; no camera movement, no zoom, no pan, no cuts, no close-ups. The warm, muted stage lighting stays exactly the same for the whole clip. The grey-haired actor in the black 19th-century frock coat at the far left of the stage, next to the left side curtain, declaims a line with a wide gesture, then suddenly breaks off, gasps for air and clutches his chest with both hands. He staggers, reaches for the edge of the left curtain, his hand slips off the fabric, he drops to his knees and falls onto his side on the stage floor at the edge of the left wing, and lies motionless. The dancing couples in the background freeze. In the last two seconds two performers rush towards him: one from the left wing, one from the centre of the stage. Realistic, no slow motion; everyone stays small in the frame, seen from far away.
+```
+
+Вариант C — **тихий**, как в показаниях Лёвина 1-08 («сначала решил, что это он так играет»):
+
+```text
+Static archival recording camera locked off on a tripod at the back of a theatre balcony; one continuous wide shot of the whole stage; no camera movement, no zoom, no pan, no cuts, no close-ups. The warm, muted stage lighting stays exactly the same for the whole clip. The grey-haired actor in the black 19th-century frock coat at the far left of the stage, next to the left side curtain, holds a long dramatic pause, breathing heavily. He sways slightly, lowers his head, one hand drifts to his chest, then he quietly sinks down and lies on the stage floor by the left curtain without moving. For a few seconds nobody on stage reacts, as if this were part of the play; then one performer in a dark costume steps out of the left wing and hurries towards him. Realistic and unhurried; everyone stays small in the frame, seen from far away.
+```
+
+Negative prompt (для всех вариантов):
+
+```text
+close-up, zoom, camera movement, handheld shake, pan, cut, face close-up, blood, injury, convulsions, audience, spectators, heads, seats, balcony railing, text, letters, subtitles, timestamp, watermark, logo, slow motion, lens flare, flashing lights, light change, spotlight following the actor, curtain closing, objects in hands, morphing, extra limbs, distorted hands, duplicate people, people appearing from nowhere, cartoon, 3D render
+```
+
+**Если не выходит.** Если Kling «съедает» падение (артист просто садится или исчезает), повторить вариант A с припиской `He falls clearly and ends lying on the floor.` Если фигуры на заднем плане искажаются, перегенерировать кадр-основу с меньшим числом пар (`two couples`) или вовсе без них (`the rest of the stage is empty and dim`): сюжет от этого не меняется.
+
+**Приёмка ролика** (смотреть на телефоне): камера неподвижна, без зума; в кадре только сцена, зрителей нет; падает у левой кулисы, на авансцене, и в конце лежит на полу; костюм, седина и борода не меняются, очков нет; в руках ничего нет; нет крови, «плывущего» тела и лишних конечностей; свет ровный до конца, без вспышек; нет надписей, логотипов и водяного знака; есть хотя бы 6 с без брака; в левом верхнем и правом нижнем углах нет важного.
+
+**Что прислать:** 1–2 лучших MP4 как есть (`VD-4_take1.mp4`, `VD-4_take2.mp4`), утверждённый `VD-4_base.jpg` и номер варианта промпта (A, B или C).
+
+**Требования к итоговому файлу** (их выполняет режиссёр при доводке): `media/video/archive-cam.mp4` — MP4 H.264, 1280 × 720 (16:9; 1920 × 1080, если исходник 1080p и размер позволяет), 25 к/с, **≤ 15 МБ** (общий предел игры — 25 МБ), 6–10 с; звука нет либо есть AAC-дорожка с глухим шумом зала без голосов и музыки. Постер `media/video/archive-cam.jpg` — JPEG, кадр до падения, с теми же подписями.
+
+**Что делаем сами при сборке ролика** (заготовка, ещё не запускалась на настоящем ролике; проверена на тестовом сигнале): обрезка до нужного момента; деградация «архивной камеры» — 25 к/с, потеря резкости, приглушённые цвета, зерно, виньетка; подпись `КАМ. 3 СЦЕНА` слева вверху; бегущий таймкод `10.11.2026 21:02:xx` справа внизу; удаление звука или замена его на шум зала; постер; проверка размера. Время на первом кадре подбирается так, чтобы падение пришлось на 21:02:15–21:02:20, а последний кадр был раньше 21:02:24 (сигнал «СТОП», 2-07). Нужен шрифт с кириллицей и цифрами: шрифты игры в `site/assets/fonts/` разбиты на поднаборы woff2 (в кириллическом нет цифр), поэтому по умолчанию взят системный DejaVu Sans Mono, на Windows — `C\:/Windows/Fonts/consola.ttf`. Требуются bash и GNU `date`: на Windows — Git Bash или WSL.
+
+```bash
+#!/usr/bin/env bash
+# VD-4. Доводка архивной записи спектакля из ролика Kling. Запуск из корня репозитория:
+#   bash archive-cam.sh <VD-4_takeN.mp4> [начало_в_исходнике_с] [длительность_с] ["2026-11-10 21:02:12"]
+# Переменные окружения (необязательно): OUT_DIR, FONT, LABEL, FLIP=1, AUDIO=none|roomtone, CRF.
+set -euo pipefail
+
+IN="${1:?укажите исходный mp4 из Kling}"
+SS="${2:-0}"                               # с какой секунды исходника начинать
+DUR="${3:-8}"                              # длительность фрагмента, 6-10 с
+TC_START="${4:-2026-11-10 21:02:12}"       # время на первом кадре; конец фрагмента - до 21:02:24 (2-07)
+OUT_DIR="${OUT_DIR:-media/video}"
+FONT="${FONT:-/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf}"   # Windows: C\:/Windows/Fonts/consola.ttf
+LABEL="${LABEL:-КАМ. 3 СЦЕНА}"
+FLIP="${FLIP:-0}"                          # 1 - отразить по горизонтали, если кулиса оказалась не с той стороны
+AUDIO="${AUDIO:-none}"                     # none - без звука; roomtone - глухой шум зала без голосов
+CRF="${CRF:-24}"
+
+# Время -> секунды эпохи; drawtext выводит его через gmtime, поэтому считаем как UTC.
+EPOCH=$(date -u -d "$TC_START" +%s 2>/dev/null || date -u -j -f '%Y-%m-%d %H:%M:%S' "$TC_START" +%s)
+FLIPF=""; [ "$FLIP" = "1" ] && FLIPF="hflip,"
+
+# Деградация: 25 к/с, потеря резкости (960x540 -> 1280x720), приглушённые цвета, зерно, виньетка;
+# затем подпись и бегущий таймкод. Фильтр пишем в файл, чтобы не экранировать двоеточия для оболочки.
+FILTER="$(mktemp)"; trap 'rm -f "$FILTER"' EXIT
+cat > "$FILTER" <<VF
+setpts=PTS-STARTPTS,fps=25,${FLIPF}scale=960:540:flags=bilinear,scale=1280:720:flags=bilinear,
+eq=contrast=0.92:saturation=0.70:brightness=-0.02:gamma=0.96,
+noise=alls=9:allf=t,vignette=angle=PI/5,
+drawtext=fontfile='${FONT}':text='${LABEL}':fontsize=26:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=28:y=24,
+drawtext=fontfile='${FONT}':text='%{pts\\:gmtime\\:${EPOCH}\\:%d.%m.%Y %H\\\\\\:%M\\\\\\:%S}':fontsize=26:fontcolor=white@0.85:borderw=2:bordercolor=black@0.6:x=w-tw-28:y=h-th-24,
+format=yuv420p
+VF
+
+mkdir -p "$OUT_DIR"
+OUT="$OUT_DIR/archive-cam.mp4"
+
+if [ "$AUDIO" = "roomtone" ]; then
+  # глухой «шум зала»: коричневый шум со срезанными верхами, очень тихо; голосов и музыки нет
+  ffmpeg -hide_banner -y -ss "$SS" -t "$DUR" -i "$IN" \
+    -f lavfi -t "$DUR" -i "anoisesrc=color=brown:amplitude=0.03:sample_rate=44100" \
+    -map 0:v:0 -map 1:a:0 -filter_script:v "$FILTER" -af "lowpass=f=900,highpass=f=60,volume=0.6" \
+    -c:v libx264 -preset slow -crf "$CRF" -profile:v high -maxrate 4M -bufsize 8M \
+    -c:a aac -b:a 96k -ac 1 -shortest -map_metadata -1 -movflags +faststart "$OUT"
+else
+  ffmpeg -hide_banner -y -ss "$SS" -t "$DUR" -i "$IN" \
+    -map 0:v:0 -filter_script:v "$FILTER" -an \
+    -c:v libx264 -preset slow -crf "$CRF" -profile:v high -maxrate 4M -bufsize 8M \
+    -map_metadata -1 -movflags +faststart "$OUT"
+fi
+
+# Постер: кадр на 1-й секунде (артист ещё стоит), с подписью и таймкодом.
+ffmpeg -hide_banner -y -ss 1 -i "$OUT" -frames:v 1 -q:v 3 "$OUT_DIR/archive-cam.jpg"
+
+# Проверки: размер <= 15 МБ, кодек, разрешение, длительность.
+SIZE=$(wc -c < "$OUT")
+echo "archive-cam.mp4: $SIZE байт"
+[ "$SIZE" -le $((15*1024*1024)) ] || { echo "ОШИБКА: больше 15 МБ - поднимите CRF" >&2; exit 1; }
+ffprobe -v error -show_entries format=duration:stream=codec_name,width,height,r_frame_rate -of compact "$OUT"
+```
+
+Пример: падение в исходнике Kling на 5-й секунде, берём 8 с с 1-й секунды и ставим начало на 21:02:12, тогда падение придётся на ≈ 21:02:16, а конец — на 21:02:20: `bash archive-cam.sh VD-4_take1.mp4 1 8 "2026-11-10 21:02:12"`.
+
+**Открыто (до доводки):** (1) таймкод — 21:02 по 2-05, 2-07, 3-01, 1-08; в задании стояло 21:04, но это время вызова скорой; (2) что считать «левой кулисой»: от зрителя (левый край кадра, как в запросах) или от актёра — при необходимости `FLIP=1`; (3) архивной камеры пока нет ни в одном документе `content/`: на плане 1-06 отмечены только две камеры наблюдения, а в 1-07 и на странице театра «фото- и видеосъёмка во время спектакля запрещена» (это правило для зрителей) — нужна строка у сценариста и решение о подписи (`КАМ. 3 СЦЕНА` или, например, `АРХИВ. СЦЕНА`); (4) путь `video/archive-cam.mp4` пока не прописан в `content/` (`TODO(content)`).
+
 ---
 
 ## 5. Сделано
 
-Все позиции ниже приняты (✅), файлы лежат в `media/`. Промпты убраны, оригиналы есть в истории git (`git log -p -- docs/PRODUCTION.md`). **Готово 124 из 133, отменено 9 (❌), осталось 0.**
+Все позиции ниже приняты (✅), файлы лежат в `media/`. Промпты убраны, оригиналы есть в истории git (`git log -p -- docs/PRODUCTION.md`). **Готово 124 из 134, отменено 9 (❌), осталась 1 (`VD-4`, §4.2).**
 
 | Раздел | Коды и пути | ✅ |
 |---|---|---|
