@@ -104,9 +104,12 @@ def answers_data(prep: Prepared) -> dict:
     q_bonus = sum(q.kind == "bonus" for st in content.stages for q in st.questions)
     q_final = sum(q.kind == "final" for st in content.stages for q in st.questions)
     max_score = q_bonus * s.points.bonus + q_final * s.points.final
+    thanks = content.finale.thanks
     return {
         "v": 1,
         "gameId": s.game_id,
+        # блок «Спасибо за игру» (отрендеренный) или null, если finale.yaml без thanks — для e2e
+        "thanks": {k: render(getattr(thanks, k), prep.ctx) for k in ("title", "text", "signature")} if thanks else None,
         "settings": {
             "points": {"bonus": s.points.bonus, "final": s.points.final},
             "penalties": {"wrongAttempt": s.penalties.wrong_attempt, "labNoBasis": s.penalties.lab_no_basis},

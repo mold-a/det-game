@@ -384,10 +384,19 @@ class Fate(Strict):
     text: str
 
 
+class Thanks(Strict):
+    """Заключительный блок «Спасибо за игру» после развязки (docs/03 §7)."""
+
+    title: str
+    text: str  # абзацы через пустую строку
+    signature: str
+
+
 class Finale(Strict):
     confession: str
     letter: str
     fates: list[Fate]
+    thanks: Thanks | None = None
 
 
 # ---------------------------------------------------------------- pages/<slug>/page.yaml

@@ -262,3 +262,35 @@ def test_template_familiar():
     assert render("{{ c.dad.familiar }}, привет", ctx) == "Ваня, привет"
     with pytest.raises(RenderError, match="у персонажа «kid» нет familiar"):
         render("{{ c.kid.familiar }}", ctx, "x.yaml: a")
+
+
+@pytest.mark.parametrize("middle", [None, ""])
+def test_no_patronymic_all_forms(middle):
+    """Персонаж без отчества (middle отсутствует или пустой): ФИО без лишних пробелов."""
+    kw = dict(last="Авдеенко", first="Михаил", gender="m", middle=middle)
+    p = Person(ch(**kw))
+    assert p.short() == f"Авдеенко{NBSP}М."
+    assert p.full() == "Авдеенко Михаил"
+    assert p.io() == "Михаил"
+    assert p.full("gen") == "Авдеенко Михаила"
+    assert p.io("dat") == "Михаилу"
+    assert p.short("ins") == f"Авдеенко{NBSP}М."
+    for case in CASES:
+        assert p.middle(case) == ""
+        assert p.full(case) == p.full(case).strip() and "  " not in p.full(case)
+        assert p.io(case) and p.short(case)
+
+
+def test_no_patronymic_model_and_gender():
+    from engine.names import patronymic_gender
+    assert ch(middle=None).middle == "" and ch(middle="").middle == ""
+    assert patronymic_gender(None) is None and patronymic_gender("") is None
+    assert patronymic_gender("  ") is None
+
+
+def test_names_table_without_patronymic():
+    persons = [ch(id="a", last="Авдеенко", first="Михаил", middle=None), ch(id="b", middle="")]
+    rows = {(r["id"], r["part"]): r for r in names_table(persons)}
+    assert set(rows[("a", "middle")]["forms"].values()) == {""}
+    text = format_names_table(persons)
+    assert "Авдеенко М." in text.split("short():")[1]

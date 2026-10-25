@@ -248,13 +248,15 @@ def _parse_name(row: TableRow, ch: Character, xlsx: str, rep: ImportReport) -> P
         return Parsed(parts[0])
     if row.sheet.kind == "background" and n == 2:
         return Parsed(parts[0], parts[1])  # «Имя Фамилия»; пол — из content
+    if row.sheet.kind == "cast" and n == 2 and not child:
+        return Parsed(parts[1], parts[0], "")  # «Фамилия Имя» без отчества; пол — из content
     if child:
         expect = ("только имя, «Имя Фамилия» или «Фамилия Имя Отчество»" if row.sheet.kind == "background"
                   else "только имя или «Фамилия Имя Отчество»")
     elif row.sheet.kind == "background":
         expect = "«Имя Фамилия» или «Фамилия Имя Отчество»"
     else:
-        expect = "«Фамилия Имя Отчество» (3 части)"
+        expect = "«Фамилия Имя Отчество» (3 части) или «Фамилия Имя» (без отчества)"
     rep.problems.append(Issue(where, f"«{text}» не разбирается: {n} {_parts_word(n)}, ожидается {expect}"))
     return None
 

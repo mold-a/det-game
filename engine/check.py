@@ -201,6 +201,7 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
                 d = dec.finale.get(k) or {}
                 out.append((f"развязка {k}", d.get("title", "") + "\n" + page_text(d.get("html", "")), last))
             out += [(f"развязка fates[{i}]", f.get("text", ""), last) for i, f in enumerate(dec.finale.get("fates", []))]
+            out += [(f"развязка thanks.{k}", v, last) for k, v in (dec.finale.get("thanks") or {}).items()]
         docs = content.documents_by_id
         for slug, frag in dec.pages.items():
             st = page_stage(content.pages[slug], docs)
@@ -230,6 +231,9 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
             out.append((f"content/{rel}", render(content.docs[rel].body, ctx), last))
     for i, f in enumerate(content.finale.fates):
         out.append((f"finale.fates[{i}]", render(f.text, ctx), last))
+    if content.finale.thanks is not None:
+        for k in ("title", "text", "signature"):
+            out.append((f"finale.thanks.{k}", render(getattr(content.finale.thanks, k), ctx), last))
     docs = content.documents_by_id
     for source, text in locked_page_texts(content, ctx):
         slug = source.split("/")[2] if source.startswith("content/pages/") else ""
@@ -640,6 +644,8 @@ def check(
             problems.append(f"в answers нет единиц: {', '.join(missing)}")
         if len(fin.get("fates", [])) != len(content.finale.fates):
             problems.append("число судеб не совпадает с finale.yaml")
+        if (content.finale.thanks is None) != ("thanks" not in fin):
+            problems.append("блок thanks в finale.json не совпадает с finale.yaml")
     except (OSError, crypto.CryptoError, KeyError) as e:
         problems.append(f"finale.json не открылся ({e})")
     rep.add("6. Развязка", problems, f"открыта ключом этапа {content.last_stage}")

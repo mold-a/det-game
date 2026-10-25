@@ -265,11 +265,21 @@ def test_row_not_found(tmp_path, content):
     assert "(volkov): в таблице нет строки «Артём Волков»" in problems(rep)
 
 
-def test_two_part_fio_is_problem(tmp_path, content):
-    path = table(tmp_path, content, cast_patch={"zavyalov": ("Петров Пётр",)})
+def test_four_part_fio_is_problem(tmp_path, content):
+    path = table(tmp_path, content, cast_patch={"zavyalov": ("Петров Пётр Петрович Мл.",)})
     rep = import_cast(path, content_root=content)
     assert not rep.ok
-    assert "«Петров Пётр» не разбирается: 2 части" in problems(rep)
+    assert "«Петров Пётр Петрович Мл.» не разбирается: 4 части" in problems(rep)
+
+
+def test_two_part_fio_means_no_patronymic(tmp_path, content):
+    """«Фамилия Имя» без отчества: middle становится пустым, пол остаётся из content."""
+    path = table(tmp_path, content, cast_patch={"zavyalov": ("Петров Пётр",)})
+    rep = import_cast(path, content_root=content, write=True)
+    assert rep.ok, problems(rep)
+    z = chars(content)["zavyalov"]
+    assert (z.last, z.first, z.middle, z.gender) == ("Петров", "Пётр", "", "m")
+    assert any("отчество" in str(w) and "удаляется" in str(w) for w in rep.warnings)
 
 
 def test_example_row_is_skipped(tmp_path, content):
@@ -340,7 +350,7 @@ def test_dry_run_cli_does_not_write(tmp_path, content, capsys):
 
 
 def test_cli_problems_exit_1(tmp_path, content, capsys):
-    path = table(tmp_path, content, cast_patch={"zavyalov": ("Петров Пётр",)})
+    path = table(tmp_path, content, cast_patch={"zavyalov": ("Петров",)})
     before = (content / "characters.yaml").read_bytes()
     assert main(["import-cast", str(path), "--content", str(content), "--write"]) == 1
     err = capsys.readouterr().err
@@ -428,9 +438,9 @@ def test_apply_edits_block_and_inline():
 
 def test_report_format_lists_problems_and_diff(tmp_path, content):
     path = table(tmp_path, content, cast_patch={"zavyalov": ("Петров Пётр Петрович",),
-                                                "volkov": ("Волков Артём",)})
+                                                "volkov": ("Волков",)})
     rep = import_cast(path, content_root=content)
     out, err = format_report(rep, write=False)
     assert "Предварительный diff" in out and '+    last: "Петров"' in out
-    assert "Проблемы (1)" in err and "Волков Артём" in err
+    assert "Проблемы (1)" in err and "«Волков» не разбирается" in err
 

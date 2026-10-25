@@ -2622,6 +2622,31 @@ img.media-missing {
   border-top: 3px double var(--ink);
 }
 
+.thanks__text,
+.thanks__signature {
+  font-family: var(--font-doc);
+  font-size: 1.0625rem;
+  line-height: var(--lh-doc);
+  max-width: var(--measure-doc);
+  overflow-wrap: anywhere;
+}
+
+.thanks__text p {
+  margin: 0 0 var(--sp-4);
+}
+
+.thanks__signature {
+  margin: var(--sp-5) 0;
+  font-style: italic;
+  text-align: right;
+}
+
+.thanks__score {
+  margin: var(--sp-5) 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+
 .fates__name {
   display: block;
   font-family: var(--font-ui);

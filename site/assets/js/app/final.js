@@ -14,6 +14,7 @@ import { renderQuestion, formatMessage, displayValue } from "./questions.js";
 import { renderDocument } from "./docview.js";
 import { renderHeader } from "./header.js";
 import { confirmDialog } from "./modal.js";
+import { restartFlow } from "./menu.js";
 import { initPage, loadProgress, renderLoadError, renderShell, renderFatal, rulesCfg } from "./context.js";
 import * as S from "../core/state.js";
 import {
@@ -262,8 +263,12 @@ function reviewTable(finale) {
 
 // ------------------------------------------------------------------ развязка
 
+// Шаги развязки: признание, письмо, судьбы и (если поле есть в finale.yaml) «Спасибо за игру».
 function renderEnding(finale, part) {
   const parts = T.final.endingParts;
+  const hasThanks = Boolean(finale.thanks);
+  const last = (hasThanks ? 3 : 2) === part;
+  if (part === 3) return renderThanks(finale);
   const next = h("button", { type: "button", class: "btn btn--primary" }, T.next);
   let content;
   if (part === 0) content = renderDocument(finale.confession);
@@ -275,7 +280,7 @@ function renderEnding(finale, part) {
       (finale.fates ?? []).map((f) => h("li", { class: "fates__item" }, f.name ? h("strong", { class: "fates__name" }, f.name) : null, f.name ? " " : null, f.text)),
     );
   const actions = h("div", { class: "q__actions no-print" });
-  if (part < 2) {
+  if (!last) {
     next.addEventListener("click", () => renderEnding(finale, part + 1));
     actions.appendChild(next);
   } else {
@@ -288,6 +293,42 @@ function renderEnding(finale, part) {
     `${T.final.ending}. ${parts[part]}`,
     // Название документа — в самом бланке; у судеб — заголовок раздела.
     h("div", { class: "q ending" }, content, actions),
+  );
+  main.querySelector("#final-title")?.focus();
+}
+
+/** Заключительный блок: тексты из finale.thanks (content), счёт и ранг из прогресса. */
+function renderThanks(finale) {
+  const { title, text, signature } = finale.thanks;
+  const total = S.score(game.state);
+  const rank = rankFor(total, ctx.pub.ranks);
+  const restart = h("button", { type: "button", class: "btn btn--secondary" }, T.final.restart);
+  restart.addEventListener("click", async () => {
+    if (await restartFlow(ctx.store)) location.assign("/");
+  });
+  const back = h("button", { type: "button", class: "btn btn--secondary" }, T.final.resultTitle);
+  back.addEventListener("click", () => renderResults());
+  const paragraphs = String(text)
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  sheet(
+    title,
+    h(
+      "div",
+      { class: "q ending thanks" },
+      h("div", { class: "thanks__text" }, paragraphs.map((p) => h("p", null, p))),
+      signature ? h("p", { class: "thanks__signature" }, signature) : null,
+      h(
+        "dl",
+        { class: "final-score thanks__score" },
+        h("dt", null, T.final.score),
+        h("dd", { class: ["final-score__value", total < 0 && "is-negative"] }, total === 0 ? "0" : signed(total)),
+        h("dt", null, T.final.rank),
+        h("dd", null, createStamp({ text: rank, variant: "rank", seed: `rank-${rank}` })),
+      ),
+      h("div", { class: "q__actions no-print" }, h("a", { class: "btn btn--primary", href: "/" }, T.back), restart, back),
+    ),
   );
   main.querySelector("#final-title")?.focus();
 }

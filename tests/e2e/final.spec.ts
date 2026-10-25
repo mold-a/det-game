@@ -56,9 +56,41 @@ test("финал: ответ фиксируется, перезагрузка н
   await expect(page.locator("#final-title")).toHaveText(/Судьбы/);
   await expect(page.locator(".fates__item").first()).toBeVisible();
 
+  // «Спасибо за игру» (finale.thanks): есть шаг — после судеб; нет поля — судьбы последние.
+  if (A.thanks) {
+    await page.getByRole("button", { name: "Дальше" }).click();
+    await expect(page.locator("#final-title")).toHaveText(A.thanks.title);
+    for (const para of A.thanks.text.split(/\n{2,}/).filter(Boolean)) await expect(page.locator(".thanks__text")).toContainText(para.trim());
+    await expect(page.locator(".thanks__signature")).toHaveText(A.thanks.signature);
+    await expect(page.locator(".thanks__score .final-score__value")).toHaveText(new RegExp(`^[+−-]?${expected < 0 ? -expected : expected}$`));
+    await expect(page.locator(".thanks__score .stamp")).toBeVisible();
+    // 360 px: без горизонтальной прокрутки
+    await page.setViewportSize({ width: 360, height: 740 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    // «Начать заново»: отмена не стирает прогресс
+    await page.getByRole("button", { name: "Начать заново" }).click();
+    await page.locator(".modal [data-action=cancel]").click();
+    await expect(page.locator(".thanks__text")).toBeVisible();
+  } else {
+    await expect(page.getByRole("button", { name: "Дальше" })).toHaveCount(0);
+  }
+
   // Главный экран после игры: вопросов этапа 4 нет, ссылка на итоги.
   await page.getByRole("link", { name: "Вернуться к делу" }).click();
   await expect(page.locator(".notice")).toContainText("Игра завершена");
+
+  // Заново из «Спасибо за игру»: два подтверждения, прогресс стёрт, старт.
+  if (A.thanks) {
+    await page.goto("/final/");
+    await page.getByRole("button", { name: "Перейти к развязке" }).click();
+    for (let k = 0; k < 3; k++) await page.getByRole("button", { name: "Дальше" }).click();
+    await expect(page.locator("#final-title")).toHaveText(A.thanks.title);
+    await page.getByRole("button", { name: "Начать заново" }).click();
+    await page.locator(".modal [data-action=ok]").click();
+    await page.locator(".modal [data-action=ok]").click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator("#team")).toBeVisible();
+  }
 });
 
 test("финал закрыт до последнего этапа", async ({ page }) => {

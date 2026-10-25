@@ -13,6 +13,7 @@ export type Answers = {
   settings: any;
   stages: { n: number; envelope: number; questions: Question[] }[];
   finalOrder: string[];
+  thanks: { title: string; text: string; signature: string } | null;
   lab: LabEntry[];
   expected: { maxScore: number; perfectRunScore: number };
 };

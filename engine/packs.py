@@ -158,7 +158,11 @@ def build_finale(content: Content, ctx: dict, expanded: dict[str, Expanded], con
         for f in content.finale.fates
     ]
     answers = {u.path: display_answer(u, expanded[u.path], content, ctx) for u in units(content)}
-    return {"v": 1, "confession": confession.record(), "letter": letter.record(), "fates": fates, "answers": answers}
+    out = {"v": 1, "confession": confession.record(), "letter": letter.record(), "fates": fates, "answers": answers}
+    thanks = content.finale.thanks
+    if thanks is not None:  # необязательный блок: ключа нет, пока поля нет в finale.yaml
+        out["thanks"] = {k: render(getattr(thanks, k), ctx) for k in ("title", "text", "signature")}
+    return out
 
 
 def seal_finale(key_last: bytes, finale: dict) -> dict:
