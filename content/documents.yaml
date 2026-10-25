@@ -60,7 +60,7 @@ documents:
   - { id: "3-06", stage: 3, kind: lab, title: "Заключение эксперта: исследование таблетницы" }
   - { id: "3-07", stage: 3, kind: paper, title: "Железнодорожный билет" }
   - { id: "3-08", stage: 3, kind: paper, title: "Протокол осмотра автомобиля {{ c.dmitriy.short('gen') }}" }
-  - { id: "3-09", stage: 3, kind: paper, page: pharma, title: "Справочник лекарственных средств «{{ w.brands.pharma }}»" }
+  # 3-09 (записка Беляева с QR справочника pharma) убрана 25.10 (правка автора): справочник — по ссылке из заключения 3-05. Номер свободен.
   - { id: "3-10", stage: 3, kind: paper, title: "Объяснение {{ c.gromov.short('gen') }}" }
   - { id: "3-11", stage: 3, kind: paper, title: "Протокол повторного опроса: {{ c.volskaya.short() }}" }
 
