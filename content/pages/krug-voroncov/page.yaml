@@ -138,7 +138,7 @@ posts:
     comments:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Яблоки доехали.\nМама довольна...." }
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.kirill.first() }}, ещё бы, с обеда в багажнике 😉" }
-  - datetime: "2026-10-07T17:20"
+  - datetime: "2026-10-05T17:20"            # День учителя — на свою дату (S-112)
     text: "с днём учителя!!\nспасибо всем, кто меня когда-то терпел\nи {{ c.marina.first() }} — теперь {{ c.marina.g('он', 'она') }} сам{{ c.marina.g('', 'а') }} учитель и терпит других 😁"
     photo: null
     likes: 98

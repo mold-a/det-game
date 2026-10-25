@@ -82,3 +82,5 @@ documents:
   - { id: "4-13", stage: 4, kind: paper, page: cloud, title: "Записка {{ c.kirill.short('gen') }}" }
   # 4-14 — третий опрос Марины (SCENARIO: «Этап 4: признаёт, что он уезжал»); на ответы не влияет (предложение разработчика, STORY-BIBLE §5).
   - { id: "4-14", stage: 4, kind: paper, title: "Протокол повторного опроса: {{ c.marina.short() }}" }
+  # 4-15 — сопроводительный лист к выгрузке служебной почты фонда (25.10, S-122; QR → mail-fund, этап 4, закрытая).
+  - { id: "4-15", stage: 4, kind: paper, page: mail-fund, title: "Сведения о выгрузке почтового ящика фонда «{{ w.money.fund }}»" }

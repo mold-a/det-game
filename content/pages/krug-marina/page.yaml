@@ -60,7 +60,7 @@ posts:
     likes: 88
     comments:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Гордиться!!!!! И бояться 😂" }
-  - datetime: "2026-10-20T12:30"            # жизнь
+  - datetime: "2026-10-18T12:30"            # жизнь; «вчера» = сб 17.10 (S-114)
     text: "{{ c.kirill.g('папа', 'мама') }} вчера {{ c.kirill.g('был', 'была') }} на встрече одноклассников и {{ c.kirill.g('вернулся', 'вернулась') }} с новой версией истории про драмкружок 😹😹\n{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} всё отрицает"
     likes: 46
     link: { page: krug-kirill, text: "{{ c.kirill.first() }} {{ c.kirill.last() }}" }

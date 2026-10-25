@@ -89,7 +89,7 @@ posts:
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "надёжно!! 😁" }
       - { author: "Валерий Кузьмин", text: "Мне тоже настрой. Только чтобы я потом сам разобрался" }
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "Валера.... Это взаимоисключающие пункты 😂" }
-  - datetime: "2026-10-19T22:41"
+  - datetime: "2026-10-17T22:41"            # суббота (S-114)
     text: "Встреча одноклассников!!!!!\nНас стало меньше по количеству и больше в ширину 😂\n{{ c.voroncov.familiar }} опять {{ c.voroncov.g('рассказывал', 'рассказывала') }}, как {{ c.voroncov.g('его', 'её') }} в восьмом классе выгнали из драмкружка.\nВрёт конечно. Не выгнали, а попросили 🤷‍♂️"
     photo: "krug-kirill/02.jpg"
     likes: 96

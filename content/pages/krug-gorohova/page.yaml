@@ -21,7 +21,7 @@ profile:
     - { person: oleg, page: krug-zuev }
 posts:
   - datetime: "2026-11-13T23:12"
-    text: "Восемь лет {{ c.dmitriy.g('возил', 'возила') }} {{ c.voroncov.io('acc') }}.\nСветлая память."
+    text: "Семь лет {{ c.dmitriy.g('возил', 'возила') }} {{ c.voroncov.io('acc') }}.\nСветлая память."
     likes: 58
     comments:
       - { author: "{{ c.oleg.first() }} {{ c.oleg.last() }}", page: krug-zuev, text: "держись {{ c.dmitriy.g('сынок', 'дочка') }}" }
