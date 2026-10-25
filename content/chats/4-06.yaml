@@ -7,7 +7,7 @@ id: "4-06"
 screens:
   - kind: chat
     owner: reznikova
-    title: "{{ w.theater.short }} · труппа и цеха"
+    title: "{{ w.theater.short }}, труппа и цеха"
     date: "28 октября"
     messages:
       - { from: reznikova, time: "17:05", text: "Коллеги, напоминаю. 29.10 — прогон первого акта, 11:00. Костюмы — по списку у {{ c.gnedich.last('gen') }}. Без опозданий.", status: read }
@@ -18,7 +18,7 @@ screens:
       - { from: volkov, time: "18:20", text: "Это по декорациям, разберусь" }
   - kind: chat
     owner: reznikova
-    title: "{{ w.theater.short }} · труппа и цеха"
+    title: "{{ w.theater.short }}, труппа и цеха"
     date: "7 ноября"
     messages:
       - { from: zavyalov, time: "16:40", text: "{{ c.volkov.first() }}. На премьере будь на 3-м этаже в зале, на всякий случай." }

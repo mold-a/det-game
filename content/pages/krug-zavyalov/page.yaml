@@ -14,7 +14,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: zavyalov
-  position: "Художественный руководитель · {{ w.theater.short }}"
+  position: "Художественный руководитель, {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "krug-zavyalov/avatar.jpg"     # AV-9 (docs/PRODUCTION.md), после портрета P02
   cover: "krug-zavyalov/cover.jpg"       # CV-8: Завьялов за режиссёрским столиком в проходе партера, сцена пустая

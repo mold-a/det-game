@@ -11,7 +11,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: viktor
-  position: "Художник по свету · {{ w.theater.short }}"
+  position: "Художник по свету, {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "krug-kuznecov/avatar.jpg"     # AV-14 (docs/PRODUCTION.md)
   cover: "krug-kuznecov/cover.jpg"       # CV-9: пустая сцена в одном тёплом луче, вид с балкона

@@ -11,7 +11,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: reznikova
-  position: "Помощник режиссёра · {{ w.theater.short }}"
+  position: "Помощник режиссёра, {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "krug-reznikova/avatar.jpg"    # AV-13 (docs/PRODUCTION.md)
   about: "Время, выходы, реплики. Без опозданий."

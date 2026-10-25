@@ -21,7 +21,7 @@ profile:
   city: "{{ w.city }}"
   avatar: "krug-marina/avatar.jpg"       # AV-4, PHOTOS-2.md
   cover: "krug-marina/cover.jpg"         # CV-4
-  about: "english teacher · голосовые > текст 🤗"
+  about: "english teacher, голосовые > текст 🤗"
   friends:
     - { person: kirill, page: krug-kirill }
     - { person: voroncov, page: krug-voroncov }

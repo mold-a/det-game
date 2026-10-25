@@ -13,7 +13,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: volkov
-  position: "{{ c.volkov.g('Артист', 'Артистка') }} · {{ w.theater.short }} · {{ c.volkov.g('ведущий', 'ведущая') }} праздников"
+  position: "{{ c.volkov.g('Артист', 'Артистка') }}, {{ w.theater.short }}, {{ c.volkov.g('ведущий', 'ведущая') }} праздников"
   city: "{{ w.city }}"
   avatar: "krug-volkov/avatar.jpg"       # AV-7, PHOTOS-2.md
   cover: "krug-volkov/cover.jpg"         # CV-7

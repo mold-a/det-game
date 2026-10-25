@@ -11,7 +11,7 @@ stage: 1
 locked: false
 brand: "Фонд «{{ w.money.fund }}»"
 skin: fund
-tagline: "Благотворительный фонд поддержки театрального искусства · {{ w.city }}"
+tagline: "Благотворительный фонд поддержки театрального искусства, {{ w.city }}"
 sections:
   - id: about
     title: "О фонде"

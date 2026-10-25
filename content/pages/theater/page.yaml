@@ -10,7 +10,7 @@ stage: 1
 locked: false
 brand: "{{ w.theater.short }}"
 skin: theater
-tagline: "{{ w.theater.full }} · сезон 2026/2027"
+tagline: "{{ w.theater.full }}, сезон 2026/2027"
 sections:
   - id: afisha
     title: "Афиша"
@@ -42,21 +42,21 @@ sections:
       - kind: cards
         items:
           - title: "{{ c.voroncov.io() }} {{ c.voroncov.last() }}"
-            subtitle: "{{ c.voroncov.g('Народный артист', 'Народная артистка') }} · Арбенин («{{ w.play.title }}»)"
+            subtitle: "{{ c.voroncov.g('Народный артист', 'Народная артистка') }} — Арбенин («{{ w.play.title }}»)"
             text: "Больше тридцати лет на этой сцене: Городничий в «Ревизоре», Вершинин в «Трёх сёстрах», Паратов в «Бесприданнице». Светлая память."
             photo: "portraits/voroncov.jpg"
             page: krug-voroncov
           - title: "{{ c.stas.io() }} {{ c.stas.last() }}"
-            subtitle: "{{ c.stas.g('Артист', 'Артистка') }} · Звездич («{{ w.play.title }}»)"
+            subtitle: "{{ c.stas.g('Артист', 'Артистка') }} — Звездич («{{ w.play.title }}»)"
             text: "Хлестаков в «Ревизоре», Чацкий в «Горе от ума». Уверяет, что «Маскарад» тоже написал Чехов, просто под псевдонимом."
             photo: "portraits/stas.jpg"
             page: krug-levin
           - title: "{{ c.nina_actress.io() }} {{ c.nina_actress.last() }}"
-            subtitle: "Артистка · {{ w.play.role_nina }} («{{ w.play.title }}»)"
+            subtitle: "Артистка — {{ w.play.role_nina }} («{{ w.play.title }}»)"
             text: "Лариса в «Бесприданнице», Маша в «Трёх сёстрах». В труппе с 2019 года."
             photo: "portraits/nina_actress.jpg"   # X05 (docs/PRODUCTION.md §4.1): вымышленное лицо, без образца
           - title: "{{ c.volkov.io() }} {{ c.volkov.last() }}"
-            subtitle: "{{ c.volkov.g('Артист', 'Артистка') }} · дублёр роли Арбенина («{{ w.play.title }}»)"
+            subtitle: "{{ c.volkov.g('Артист', 'Артистка') }} — дублёр роли Арбенина («{{ w.play.title }}»)"
             text: "Молчалин в «Горе от ума», Бобчинский в «Ревизоре». Третий сезон в труппе."
             photo: "portraits/volkov.jpg"
             page: krug-volkov

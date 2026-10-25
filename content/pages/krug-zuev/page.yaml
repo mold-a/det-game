@@ -10,7 +10,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: oleg
-  position: "{{ c.oleg.g('Охранник', 'Охранница') }} · {{ w.theater.short }}"
+  position: "{{ c.oleg.g('Охранник', 'Охранница') }}, {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "krug-zuev/avatar.jpg"         # AV-11 (docs/PRODUCTION.md)
   about: "Двадцать лет на одном месте"

@@ -13,7 +13,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: gnedich
-  position: "Костюмерный цех · {{ w.theater.short }}"          # не «Заведующая костюмерным цехом ВОДТ»: шапка 4-09 (leak scan)
+  position: "Костюмерный цех, {{ w.theater.short }}"          # не «Заведующая костюмерным цехом ВОДТ»: шапка 4-09 (leak scan)
   city: "{{ w.city }}"
   avatar: "krug-gnedich/avatar.jpg"      # AV-10 (docs/PRODUCTION.md), после портрета P08
   about: "Без стука не входить."

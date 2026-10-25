@@ -17,7 +17,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: inna
-  position: "Буфет · {{ w.theater.short }}"
+  position: "Буфет, {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "krug-ryabova/avatar.jpg"      # AV-15 (docs/PRODUCTION.md)
   about: "Кофеёк, пирожки и хорошее настроение ☕✨ Больше фото — в «{{ w.brands.photo }}»"

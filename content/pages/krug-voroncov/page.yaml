@@ -19,7 +19,7 @@ locked: false
 brand: "{{ w.brands.social }}"
 profile:
   person: voroncov
-  position: "{{ c.voroncov.g('Народный артист', 'Народная артистка') }} · {{ w.theater.short }}"
+  position: "{{ c.voroncov.g('Народный артист', 'Народная артистка') }}, {{ w.theater.short }}"
   city: "{{ w.city }}"
   avatar: "krug-voroncov/avatar.jpg"     # AV-2, PHOTOS-2.md
   cover: "krug-voroncov/cover.jpg"       # CV-2
