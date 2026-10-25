@@ -713,12 +713,21 @@ def test_check_baseline_ok(env):
     assert not problems, "\n".join(problems)
 
 
+def _lab_answer_date() -> str:
+    """Дата-ответ параметра date из content/expertise.yaml (ДД.ММ.ГГГГ), чтобы не зашивать её литералом."""
+    import yaml
+    exp = yaml.safe_load((ROOT / "content" / "expertise.yaml").read_text(encoding="utf-8"))
+    dates = [r["params_answer"]["date"]["canon"] for r in exp["results"] if "date" in (r.get("params_answer") or {})]
+    assert len(dates) == 1, dates
+    return dates[0]
+
+
 DETECTED = {
     "raw answer": ("7", lambda env, d: _append(d, "index.html", "<p>Пропранолол</p>")),
     "html entities": ("7", lambda env, d: _append(d, "index.html", "".join(f"&#{ord(c)};" for c in "пропранолол"))),
     "\\u in js": ("7", lambda env, d: _append(d, "assets/js/core/game.js", "//" + "".join(f"\\u{ord(c):04x}" for c in "анаприлин"))),
     "tolerance variant": ("7", lambda env, d: _append(d, "index.html", "<b>19:37</b>")),
-    "date param": ("7", lambda env, d: _append(d, "lab/index.html", "<b>30.10.2026</b>")),
+    "date param": ("7", lambda env, d: _append(d, "lab/index.html", f"<b>{_lab_answer_date()}</b>")),
     "watchlist": ("7", lambda env, d: _append(d, "index.html", "СЦЕНИЧЕСКАЯ МАСТЕРСКАЯ")),
     "neutral example": ("7", lambda env, d: _append(d, "lab/index.html", '<input placeholder="21:18">')),
     "page payload swapped": ("5", lambda env, d: (d / "p/inna/payload.json").write_bytes((d / "p/pharma/payload.json").read_bytes())),

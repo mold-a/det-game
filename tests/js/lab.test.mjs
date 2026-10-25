@@ -19,6 +19,12 @@ import { randomBytes, b64uEncode } from "../../site/assets/js/core/crypto.js";
 import * as S from "../../site/assets/js/core/state.js";
 import { makePub, makePack, makeLabEntries } from "./fixtures.mjs";
 
+// Дата запроса камер вокзала в синтетических пакетах: одна константа на файл (сюжетная дата — content/expertise.yaml,
+// сейчас 01.11.2026; тесты синтетические и от контента не зависят, но держим её в одном месте).
+const CAM_ISO = "2026-11-01";
+const CAM_RU = "01.11.2026";
+const CAM_SHORT = "01.11";
+
 const pub = makePub();
 const K = { 1: randomBytes(32), 2: randomBytes(32), 3: randomBytes(32) };
 const keysB64 = Object.fromEntries(Object.entries(K).map(([n, k]) => [n, b64uEncode(k)]));
@@ -59,7 +65,7 @@ before(async () => {
   ]);
   const doc408 = { doc: "4-08", title: "Записи камер вокзала", form: "video", html: "<article>…</article>", media: [] };
   const lab3 = await makeLabEntries(K[3], [
-    ...camTimes.map((t) => ({ object: "station_cam", type: "video", basis: "3-07", params: ["2026-10-30", t, "2"], entry: doc408 })),
+    ...camTimes.map((t) => ({ object: "station_cam", type: "video", basis: "3-07", params: [CAM_ISO, t, "2"], entry: doc408 })),
     { object: "water", type: "chem", basis: "1-01", params: [], entry: { doc: "3-05", title: "Повторное исследование", form: "expert", html: "<p/>", media: [] } },
   ]);
   packs = {
@@ -81,8 +87,8 @@ describe("каталог и параметры", () => {
   });
 
   test("параметры нормализуются по типам; неформатный — подсказка, запрос не отправляется", () => {
-    const ok = normalizeParams(OBJ.cam, ["30.10", "14.35", "касса №2"], { defaultYear: pub.defaultYear });
-    assert.deepEqual(ok, { params: ["2026-10-30", "14:35", "2"], invalid: [] });
+    const ok = normalizeParams(OBJ.cam, [CAM_SHORT, "14.35", "касса №2"], { defaultYear: pub.defaultYear });
+    assert.deepEqual(ok, { params: [CAM_ISO, "14:35", "2"], invalid: [] });
     const bad = normalizeParams(OBJ.cam, ["31.02", "", "2"], { defaultYear: pub.defaultYear });
     assert.deepEqual(bad, { params: null, invalid: ["date", "time"] });
     assert.deepEqual(normalizeParams(OBJ.water, [], {}), { params: [], invalid: [] });
@@ -91,8 +97,8 @@ describe("каталог и параметры", () => {
   });
 
   test("fp = b64u(sha256(object|type|basis|p)) — F7", async () => {
-    const fp = await labFingerprint({ object: "station_cam", type: "video", basis: "3-07", params: ["2026-10-30", "14:35", "2"] });
-    const want = createHash("sha256").update("station_cam|video|3-07|2026-10-30|14:35|2").digest("base64url");
+    const fp = await labFingerprint({ object: "station_cam", type: "video", basis: "3-07", params: [CAM_ISO, "14:35", "2"] });
+    const want = createHash("sha256").update(`station_cam|video|3-07|${CAM_ISO}|14:35|2`).digest("base64url");
     assert.equal(fp, want);
     const empty = await labFingerprint({ object: "water", type: "chem", basis: "1-01", params: [] });
     assert.equal(empty, createHash("sha256").update("water|chem|1-01|").digest("base64url"));
@@ -121,11 +127,11 @@ describe("запросы", () => {
 
   test("параметры с допуском: любое время из окна → тот же документ, вне окна — null", async () => {
     for (const t of ["14.33", "14:37", "1435"]) {
-      const { params } = normalizeParams(OBJ.cam, ["30.10.2026", t, "2"], { defaultYear: pub.defaultYear });
+      const { params } = normalizeParams(OBJ.cam, [CAM_RU, t, "2"], { defaultYear: pub.defaultYear });
       const r = await labRequest({ object: "station_cam", type: "video", basis: "3-07", params }, ctx(3));
       assert.equal(r?.entry.doc, "4-08", t);
     }
-    const { params } = normalizeParams(OBJ.cam, ["30.10", "14:40", "2"], { defaultYear: pub.defaultYear });
+    const { params } = normalizeParams(OBJ.cam, [CAM_SHORT, "14:40", "2"], { defaultYear: pub.defaultYear });
     assert.equal(await labRequest({ object: "station_cam", type: "video", basis: "3-07", params }, ctx(3)), null);
   });
 
@@ -209,8 +215,8 @@ describe("заявка: текст объекта → запрос (prepareLabRe
     assert.equal(bad.paramType, "date");
     assert.equal(bad.empty, false);
     assert.equal(prepareLabRequest({ ...base, text, params: ["", "", ""] }).empty, true);
-    const ok = prepareLabRequest({ ...base, text, type: "video", basis: "3-07", params: ["30.10", "14.35", "касса 2"] });
-    assert.deepEqual(ok.req, { object: "station_cam", type: "video", basis: "3-07", params: ["2026-10-30", "14:35", "2"] });
+    const ok = prepareLabRequest({ ...base, text, type: "video", basis: "3-07", params: [CAM_SHORT, "14.35", "касса 2"] });
+    assert.deepEqual(ok.req, { object: "station_cam", type: "video", basis: "3-07", params: [CAM_ISO, "14:35", "2"] });
   });
 
   test("отпечаток заявки — по id объекта, не по тексту", async () => {

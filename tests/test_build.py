@@ -125,7 +125,9 @@ def test_time_tolerance_expansion(built):
     prep = prepare(CONTENT, salts, create_salts=False)
     assert prep.expanded["s2.q1.left"].variants == ["19:33", "19:34", "19:35", "19:36", "19:37"]
     params, combos = prep.params["station-video"]
-    assert params["date"].variants == ["2026-10-30"] and len(combos) == 15
+    res = next(r for r in prep.content.expertise.results if r.params_answer and "date" in r.params_answer)
+    d, m, y = res.params_answer["date"].canon.split(".")  # дата из контента, ISO-вариант — год-месяц-день
+    assert params["date"].variants == [f"{y}-{m}-{d}"] and len(combos) == 15
 
 
 def test_util_b64u_is_crypto():

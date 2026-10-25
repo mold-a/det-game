@@ -219,11 +219,13 @@ def test_title_with_only_short_words_is_not_recognised(root):
 def test_basis_rule_violation_is_error(root):
     def fn(d):
         d["results"][find(d["results"], "pillbox-content")]["bases"] = ["3-01", "1-09"]
+        idx["pillbox"] = find(d["results"], "pillbox-content")
 
+    idx: dict[str, int] = {}
     edit_yaml(root, "expertise.yaml", fn)
     errors, _ = problems_of(root)
     t = text_of(errors)
-    assert "results[5].bases[1]" in t and "основание «1-09» (этап 1)" in t and "этапа 3" in t
+    assert f"results[{idx['pillbox']}].bases[1]" in t and "основание «1-09» (этап 1)" in t and "этапа 3" in t
 
 
 def test_basis_rule_does_not_apply_when_object_appears_at_result_stage(root):

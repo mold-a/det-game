@@ -17,6 +17,33 @@ const answers = JSON.parse(readFileSync(join(here, "..", ".answers.json"), "utf8
 type PageInfo = { slug: string; access: "open" | "key" | "password"; url: string; key?: string; password?: string };
 const PAGES: Record<string, PageInfo> = Object.fromEntries(answers.pages.map((p: PageInfo) => [p.slug, p]));
 
+// Даты улик читаем из content/ (world.yaml, page.yaml), а не зашиваем: сюжет сдвигают целиком (сдвиг дат +2 дня).
+const CONTENT = join(here, "..", "..", "content");
+const readContent = (rel: string) => readFileSync(join(CONTENT, rel), "utf8");
+const yamlStr = (text: string, key: string) => {
+  const m = text.match(new RegExp(`^\\s*${key}:\\s*"([^"]+)"`, "m"));
+  expect(m, `в content есть ${key}`).toBeTruthy();
+  return m![1];
+};
+/** "2026-11-13T07:50:12" -> "13.11.2026, 07:50:12" (как показывают страницы). */
+const ruDateTime = (iso: string) => {
+  const [d, t] = iso.split("T");
+  const [y, m, dd] = d.split("-");
+  return `${dd}.${m}.${y}${t ? ", " + t : ""}`;
+};
+const ruDate = (iso: string) => ruDateTime(iso.split("T")[0]);
+const WORLD = readContent("world.yaml");
+const CALL_ISO = yamlStr(WORLD, "anonymous_call");
+const PUBLICATION_ISO = yamlStr(WORLD, "publication");
+const VIDEO_FILE = yamlStr(WORLD, "volkov_video_file");
+const VIDEO_CREATED_ISO = yamlStr(WORLD, "volkov_video_created");
+const CLOUD_LAST_CONFIRMATION_ISO = yamlStr(readContent("pages/cloud/page.yaml"), "last_confirmation");
+const GROMOV_MEETING_ISO = (() => {
+  const m = readContent("pages/gromov/page.yaml").match(/datetime: "([^"]+)"\s*\n\s*geo:[^\n]*\n\s*text: "Рабочее совещание/);
+  expect(m, "в gromov/page.yaml есть пост «Рабочее совещание»").toBeTruthy();
+  return m![1];
+})();
+
 const BROKEN = "Ссылка повреждена. Отсканируйте QR-код ещё раз";
 const PHONE = { width: 360, height: 780 };
 
@@ -55,7 +82,7 @@ test.describe("телефон 360 px", () => {
   test("call: карточка вызова и свой аудиоплеер", async ({ page }) => {
     await openPage(page, "call");
     await expectClue(page.locator('[data-clue="datetime"]'));
-    await expect(page.locator('[data-clue="datetime"]')).toHaveText("11.11.2026, 07:50:12");
+    await expect(page.locator('[data-clue="datetime"]')).toHaveText(ruDateTime(CALL_ISO));
     await expect(page.getByText("Номер скрыт")).toBeVisible();
     // Плеер собственный: нет стандартных controls, есть кнопки и ползунок перемотки.
     await expect(page.locator("audio[controls]")).toHaveCount(0);
@@ -75,12 +102,12 @@ test.describe("телефон 360 px", () => {
     await expectNoHorizontalScroll(page);
   });
 
-  test("gromov: пост 10.11.2026, 19:30 с геометкой Северогорск", async ({ page }) => {
+  test("gromov: пост «Рабочее совещание» с геометкой Северогорск (дата из content)", async ({ page }) => {
     await openPage(page, "gromov");
     const post = page.locator(".kr-post", { hasText: "Рабочее совещание по развитию культурной инфраструктуры" });
     await expect(post).toHaveCount(1);
     await expectClue(post.locator("time"));
-    await expect(post.locator("time")).toHaveText("10.11.2026, 19:30");
+    await expect(post.locator("time")).toHaveText(ruDateTime(GROMOV_MEETING_ISO));
     await expectClue(post.locator(".kr-post__geo"));
     await expect(post.locator(".kr-post__geo")).toHaveText("Северогорск");
     // Кнопок аккаунта нет (REDESIGN §4.1): кликабельно только то, что ведёт к содержимому.
@@ -100,14 +127,14 @@ test.describe("телефон 360 px", () => {
     await expectNoHorizontalScroll(page);
   });
 
-  test("inna: снимок от 11.11.2026 на плитке и крупно", async ({ page }) => {
+  test("inna: снимок с брошью (дата звонка) на плитке и крупно", async ({ page }) => {
     await openPage(page, "inna");
-    const tile = page.locator(".kd-tile", { hasText: "11.11.2026" }).first();
+    const tile = page.locator(".kd-tile", { hasText: ruDate(CALL_ISO) }).first();
     await expectClue(tile);
     await tile.locator("button").click();
     const view = page.locator("dialog.kd-view");
     await expect(view).toBeVisible();
-    await expect(view.locator(".kd-view__meta")).toContainText("11.11.2026");
+    await expect(view.locator(".kd-view__meta")).toContainText(ruDate(CALL_ISO));
     await expect(view.locator(".kd-view__meta")).toContainText("Отметок");
     await view.getByRole("button", { name: "Закрыть" }).click();
     await expect(view).toBeHidden();
@@ -150,8 +177,8 @@ test.describe("телефон 360 px", () => {
     await openPage(page, "cloud");
     const banner = page.locator('[data-clue="banner"]');
     await expectClue(banner);
-    await expect(banner).toContainText("Публикация по расписанию: 13.11.2026, 10:04");
-    await expect(banner).toContainText("Последнее подтверждение: 10.11.2026, 10:04");
+    await expect(banner).toContainText(`Публикация по расписанию: ${ruDateTime(PUBLICATION_ISO)}`);
+    await expect(banner).toContainText(`Последнее подтверждение: ${ruDateTime(CLOUD_LAST_CONFIRMATION_ISO)}`);
     const row = page.locator(".tc-table tbody tr", { hasText: "знал, что копия" });
     await expect(row).toHaveCount(1);
     await expectClue(row);
@@ -189,13 +216,13 @@ test.describe("телефон 360 px", () => {
   test("video: имя файла и «Свойства файла»", async ({ page }) => {
     await openPage(page, "video");
     await expectClue(page.locator('[data-clue="filename"]'));
-    await expect(page.locator('[data-clue="filename"]')).toHaveText("VID_20261108_141203.mp4");
+    await expect(page.locator('[data-clue="filename"]')).toHaveText(VIDEO_FILE);
     await expect(page.getByText(/Изъято с телефона [А-ЯЁ][а-яё]+/)).toBeVisible();
     const created = page.locator('[data-clue="created"]');
     await expect(created).toBeHidden();
     await page.getByRole("button", { name: "Свойства файла" }).click();
     await expectClue(created);
-    await expect(created).toHaveText("08.11.2026 14:12:03");
+    await expect(created).toHaveText(ruDateTime(VIDEO_CREATED_ISO).replace(", ", " "));
     await expect(page.locator(".ev-props__panel")).toContainText("Альтаир A54");
     await expectNoHorizontalScroll(page);
   });

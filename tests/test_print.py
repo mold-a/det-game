@@ -146,7 +146,10 @@ def test_emergency_data_complete(content):
     assert len(data["lab"]) == len(content.expertise.results)
     assert all(x["bases"] for x in data["lab"])
     sv = next(x for x in data["lab"] if any(p["label"] == "Время" for p in x["params"]))
-    assert {p["value"] for p in sv["params"]} >= {"30.10.2026", "14:37"}
+    # дата и время вокзальной камеры берутся из контента (сдвиг дат сюжета не должен ломать тест)
+    res = next(r for r in content.expertise.results if r.params_answer and "date" in r.params_answer)
+    want = {res.params_answer["date"].canon, res.params_answer["time"].canon}
+    assert {p["value"] for p in sv["params"]} >= want
     assert data["stages"][0]["next"] and data["stages"][-1]["next"] is None
 
 

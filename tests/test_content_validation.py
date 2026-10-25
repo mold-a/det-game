@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 from typing import Callable
@@ -287,13 +288,19 @@ def test_form_without_fields(root):
     assert_error(root, "stages[1].questions[0].fields", "у вопроса type: form должны быть поля fields")
 
 
+def station_video_index() -> int:
+    """Позиция результата station-video в expertise.yaml (не зашиваем номер: список результатов растёт)."""
+    d = yaml.safe_load((ROOT / "content" / "expertise.yaml").read_text(encoding="utf-8"))
+    return find(d["results"], "station-video")
+
+
 def test_params_answer_missing_param(root):
     def fn(d):
         ri = find(d["results"], "station-video")
         del d["results"][ri]["params_answer"]["window"]
 
     edit_yaml(root, "expertise.yaml", fn)
-    assert_error(root, "content/expertise.yaml: results[8].params_answer:", "нет параметра «window»")
+    assert_error(root, f"content/expertise.yaml: results[{station_video_index()}].params_answer:", "нет параметра «window»")
 
 
 def test_params_answer_absent(root):
@@ -302,19 +309,23 @@ def test_params_answer_absent(root):
         del d["results"][ri]["params_answer"]
 
     edit_yaml(root, "expertise.yaml", fn)
-    assert_error(root, "results[8].params_answer", "нужен params_answer со всеми параметрами", "date, time, window")
+    assert_error(root, f"results[{station_video_index()}].params_answer", "нужен params_answer со всеми параметрами", "date, time, window")
 
 
 def test_expertise_unknown_refs(root):
+    pos: dict[str, int] = {}  # индексы новых элементов — сразу после существующих (длины списков растут вместе с контентом)
+
     def fn(d):
         d["results"][0]["object"] = "ghost"
+        pos["basis"] = len(d["results"][1]["bases"])
         d["results"][1]["bases"].append("8-88")
+        pos["type"] = len(d["results"][2]["types"])
         d["results"][2]["types"].append("xray")
 
     edit_yaml(root, "expertise.yaml", fn)
     errs = assert_error(root, "results[0].object", "объекта «ghost» нет")
-    assert any("results[1].bases[2]" in e and "«8-88» нет" in e for e in errs)
-    assert any("results[2].types[2]" in e and "«xray» нет" in e for e in errs)
+    assert any(f"results[1].bases[{pos['basis']}]" in e and "«8-88» нет" in e for e in errs)
+    assert any(f"results[2].types[{pos['type']}]" in e and "«xray» нет" in e for e in errs)
 
 
 def test_page_unknown_document(root):
@@ -354,7 +365,9 @@ def test_wrong_type(root):
 
 def test_wrong_literal_and_unquoted_date(root):
     edit_text(root, "characters.yaml", "gender: m", "gender: x")
-    edit_text(root, "world.yaml", 'premiere: "2026-11-10"', "premiere: 2026-11-10")
+    world = (root / "world.yaml").read_text(encoding="utf-8")
+    premiere = re.search(r'premiere: "(\d{4}-\d{2}-\d{2})"', world).group(1)  # дата из контента, не литерал
+    edit_text(root, "world.yaml", f'premiere: "{premiere}"', f"premiere: {premiere}")
     errs = assert_error(root, "content/characters.yaml: characters[0].gender", "допустимы")
     assert any("content/world.yaml: dates.premiere" in e and "в кавычки" in e for e in errs)
 

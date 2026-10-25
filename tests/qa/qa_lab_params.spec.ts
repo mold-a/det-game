@@ -7,6 +7,15 @@ import { readState } from "./qa_util";
 const A = loadAnswers();
 const PEN = Math.abs(A.settings.penalties.labNoBasis);
 const E = A.lab.find((x) => x.object === "station_cam")!;
+// Дата-ответ берётся из контента (dump-answers), а не из литерала: ДД.ММ.ГГГГ и производные форматы ввода.
+const [DD, MM, YYYY] = E.params.date.input.split(".");
+const YY = YYYY.slice(2);
+const DATE = `${DD}.${MM}.${YYYY}`;
+const otherDay = (() => {
+  const d = new Date(Date.UTC(+YYYY, +MM - 1, +DD + 1));
+  const p2 = (n: number) => String(n).padStart(2, "0");
+  return `${p2(d.getUTCDate())}.${p2(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`;
+})();
 test.setTimeout(300_000);
 
 async function send(page: Page, date: string, time: string, win: string, basis = E.bases[0]) {
@@ -55,23 +64,23 @@ test("камеры вокзала: допуск ±7 мин, форматы вв�
     expect(await headerScore(page)).toBe(score);
   };
 
-  await ok("30.10.2026", E.params.time.input, "2");
-  await ok("30.10", lo, "2");
-  await ok(" 30/10/26 ", hi, "касса №2");
-  await ok("30 10 2026", E.params.time.input.replace(":", "."), "02");
-  await ok("30.10.2026", E.params.time.input.replace(":", ""), " 2 ");
-  await no("30.10.2026", shift(lo, -1), "2");
-  await no("30.10.2026", shift(hi, +1), "2");
-  await no("31.10.2026", E.params.time.input, "2");
-  await no("30.10.2026", E.params.time.input, "3");
+  await ok(DATE, E.params.time.input, "2");
+  await ok(`${DD}.${MM}`, lo, "2");
+  await ok(` ${DD}/${MM}/${YY} `, hi, "касса №2");
+  await ok(`${DD} ${MM} ${YYYY}`, E.params.time.input.replace(":", "."), "02");
+  await ok(DATE, E.params.time.input.replace(":", ""), " 2 ");
+  await no(DATE, shift(lo, -1), "2");
+  await no(DATE, shift(hi, +1), "2");
+  await no(otherDay, E.params.time.input, "2");
+  await no(DATE, E.params.time.input, "3");
   // повтор отклонённого (другая запись того же ввода) — без штрафа
-  expect(await send(page, "30.10.26", shift(hi, +1).replace(":", "."), "№2")).toMatch(/^Такая заявка уже выполнялась/);
+  expect(await send(page, `${DD}.${MM}.${YY}`, shift(hi, +1).replace(":", "."), "№2")).toMatch(/^Такая заявка уже выполнялась/);
   expect(await headerScore(page)).toBe(score);
   // неформат — не запрос
-  await fmt("30.10.2026", "25:70", "2", /ЧЧ:ММ/);
-  await fmt("31.02.2026", "14:37", "2", /ДД\.ММ/);
-  await fmt("30.10.2026", "14:37", "касса", /числ/);
-  await fmt("", "14:37", "2", /Заполните все поля/);
+  await fmt(DATE, "25:70", "2", /ЧЧ:ММ/);
+  await fmt("31.02.2026", E.params.time.input, "2", /ДД\.ММ/);
+  await fmt(DATE, E.params.time.input, "касса", /числ/);
+  await fmt("", E.params.time.input, "2", /Заполните все поля/);
   const s = await readState(page);
   expect(s.docs).toContain(E.doc);
   expect(s.log.filter((e: any) => e.r.startsWith("lab:")).length).toBe(4);

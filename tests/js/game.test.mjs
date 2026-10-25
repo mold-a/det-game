@@ -29,6 +29,10 @@ import { makePub, makeQuestion, makeForm, makePack, sealPack, sealFinale, fakeFe
 
 const sha256hex = (s) => createHash("sha256").update(Buffer.from(s, "utf8")).digest("hex");
 
+// Дата финального вопроса в синтетическом пакете (тест не зависит от content/; одна пара констант на файл).
+const FINAL_DATE_ISO = "2026-11-01";
+const FINAL_DATE_SHORT = "01.11";
+
 // Этап 1: форма (время с допуском ±2, лицо, текст с синонимами) + order + бонус.
 // Этап 2: один вопрос persons. Этап 3 (последний): финал и бонус.
 let pub, K1, K2, K3, pack1, pack2, pack3, boxes;
@@ -69,7 +73,7 @@ before(async () => {
   K3 = await stageKey(2, [["s2.q1", "gromov,stas"]], b64uDecode(pack2.saltStage), pub.iter.stage);
   const f1 = await makeQuestion(3, "f1", { kind: "final", type: "choice", variants: ["a"], canon: "a", extra: { options: [{ id: "a", text: "А" }, { id: "b", text: "Б" }] } });
   const fb = await makeQuestion(3, "fb", { kind: "bonus", type: "number", variants: ["2"], canon: "2" });
-  const f2 = await makeQuestion(3, "f2", { kind: "final", type: "date", variants: ["2026-10-30"], canon: "2026-10-30" });
+  const f2 = await makeQuestion(3, "f2", { kind: "final", type: "date", variants: [FINAL_DATE_ISO], canon: FINAL_DATE_ISO });
   pack3 = makePack(3, [fb, f1, f2], { last: true });
   boxes = {
     1: await sealPack(K1, 1, pack1),
@@ -236,7 +240,7 @@ describe("этапы", () => {
     const a1 = normalizeQuestion(f1, "A", pub);
     assert.deepEqual(a1, { valid: true, normalized: "a", invalid: [] });
     assert.equal(normalizeQuestion(f2, "31.02", pub).valid, false, "неформатная дата — не попытка");
-    const a2 = normalizeQuestion(f2, "30.10", pub);
+    const a2 = normalizeQuestion(f2, FINAL_DATE_SHORT, pub);
     const a3 = normalizeQuestion(fb, "касса 3", pub);
     assert.equal(await checkQuestionNormalized(f1, a1.normalized, pub), true);
     assert.equal(await checkQuestionNormalized(f2, a2.normalized, pub), true);
