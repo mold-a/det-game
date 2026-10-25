@@ -87,7 +87,7 @@ def test_units_order_and_kinds():
     c = load_content(CONTENT)
     us = units(c)
     paths = [u.path for u in us]
-    assert len(us) == 27  # +s2.b2, +s4.fb3 (бонусы 21.10)
+    assert len(us) == 26  # +s2.b2, +s4.fb3 (бонусы 21.10); s3.b1 — один choice вместо формы из двух полей (25.10, вечер)
     assert len(set(paths)) == len(paths)
     # PLAN C7: поля формы — по порядку, вопросы — по порядку
     assert paths[:5] == ["s1.q1.time", "s1.q1.conflict", "s1.q1.disease", "s1.q1.delivered", "s1.q2"]
@@ -96,7 +96,7 @@ def test_units_order_and_kinds():
     assert by["s1.q1.time"].field is not None and by["s1.q1.time"].question.id == "q1"
     assert by["s1.q2"].field is None and by["s1.q2"].type == "order"
     assert by["s1.b1"].leak_scan is False  # leak_scan: false на вопросе
-    assert by["s3.b1.time"].leak_scan is True
+    assert by["s3.b1"].leak_scan is True and by["s3.b1"].field is None
     assert sum(u.kind == "mandatory" for u in us) == 12
     assert sum(u.kind == "final" for u in us) == 5
     assert {u.stage for u in us if u.kind == "final"} == {4}
