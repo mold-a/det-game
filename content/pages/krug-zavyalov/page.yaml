@@ -51,7 +51,7 @@ posts:
     likes: 156
     comments:
       - { author: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}", page: krug-voroncov, text: "{{ c.zavyalov.first() }}, второе дерево — это уже карьера 😁\nпередай, что я в него верю" }
-      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", page: krug-zavyalov, text: "{{ c.voroncov.familiar }}. Передам. Он просил автограф." }
+      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", page: krug-zavyalov, text: "{{ c.voroncov.first() }}. Передам. Он просил автограф." }
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Неподвижно весь спектакль. Дисциплина — это семейное." }
   - datetime: "2026-09-27T10:52"            # жизнь
     text: "Воскресный рынок. Мёд, яблоки, картошка. Продавец узнал меня и попросил контрамарку на «{{ w.play.title }}». {{ c.zavyalov.g('Дал', 'Дала') }}. Мёд хороший."

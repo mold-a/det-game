@@ -2,7 +2,7 @@
 # Посты — до 10.11, соболезнования — в комментариях к последнему посту. Манера — docs/VOICES.md: со строчной,
 # без точки в конце, «)» одной скобкой, «!!» в радости, абзац на каждую фразу, 😁 😉 🔥 🎉.
 # Запреты §4.4: ни болезни, ни лекарств, ни отъезда/поезда/вокзала, ни облака, ни аукционов, ни Громовой.
-# Мелкие «правильные» подтверждения уже известного (1-07, 1-08): Марину он сам просил не приходить на премьеру
+# Мелкие «правильные» подтверждения уже известного (1-07, 1-08, 1-14): Марину он сам просил не приходить на премьеру
 # («приходи, когда разыграюсь» — STORY-BIBLE §4), Кирилл ходит «на десятый спектакль» (2-14), Вольская в ложе № 2
 # (1-08), Инна носит кофе (2-12). Семейная пасхалка — брови «как у генсека» (VOICES: «Брежнев»).
 # Шаг 2 (21.10, решения автора; docs/CLUE-MAP.md 3.1, 3.4, 4.1):
@@ -45,8 +45,8 @@ posts:
       - { author: "{{ c.kirill.first() }} {{ c.kirill.last() }}", page: krug-kirill, text: "{{ c.voroncov.familiar }}...." }
       - { author: "{{ c.marina.first() }} {{ c.marina.last() }}", page: krug-marina, text: "{{ c.voroncov.g('дядя', 'тётя') }} {{ c.voroncov.familiar|lower }} :(" }
       - { author: "{{ c.volskaya.first() }} {{ c.volskaya.last() }}", page: krug-volskaya, text: "{{ c.voroncov.io() }}, светлая память. Мы так и не успели поговорить." }
-      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", page: krug-zavyalov, text: "{{ c.voroncov.familiar }}. Светлая память." }
-      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Светлая память {{ c.voroncov.familiar }} 🙏" }
+      - { author: "{{ c.zavyalov.first() }} {{ c.zavyalov.last() }}", page: krug-zavyalov, text: "{{ c.voroncov.first() }}. Светлая память." }
+      - { author: "{{ c.volkov.first() }} {{ c.volkov.last() }}", page: krug-volkov, text: "Светлая память {{ c.voroncov.io() }} 🙏" }
       - { author: "{{ c.reznikova.first() }} {{ c.reznikova.last() }}", page: krug-reznikova, text: "Светлая память. Без вас в кулисе пусто." }
       - { author: "{{ c.inna.first() }} {{ c.inna.last() }}", page: krug-ryabova, text: "Кто теперь будет хвалить мой кофе 💔" }
       - { author: "Тамара Ведерникова", text: "У нас были билеты на тринадцатое. Не верится. Светлая память." }

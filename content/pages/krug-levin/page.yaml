@@ -27,7 +27,7 @@ profile:
     - { person: gnedich, page: krug-gnedich }
 posts:
   - datetime: "2026-11-11T10:40"
-    text: "Я обычно начинаю с «я вам как {{ c.stas.g('артист', 'артистка') }} скажу».\nСегодня не скажу ничего.\n{{ c.voroncov.familiar }}, светлая память."
+    text: "Я обычно начинаю с «я вам как {{ c.stas.g('артист', 'артистка') }} скажу».\nСегодня не скажу ничего.\n{{ c.voroncov.first() }}, светлая память."
     likes: 187
     link: { page: krug-voroncov, text: "{{ c.voroncov.first() }} {{ c.voroncov.last() }}" }
     comments:
