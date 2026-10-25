@@ -5,8 +5,9 @@
 # Жизнь: хоккей 03.11, картошка с внуком 20.10 (2 из 4). Фото — ZU-01 (мешки картошки в гараже).
 slug: krug-zuev
 type: social
-stage: 1
-locked: false
+stage: 2                 # профиль конверта 2: до открытия этапа ссылки ведут на krug-private (решение автора 25.10, вариант А)
+locked: true
+gate: pacing             # закрыт ради темпа, не тайны (docs/02 §3.10)
 brand: "{{ w.brands.social }}"
 profile:
   person: oleg

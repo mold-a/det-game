@@ -8,8 +8,9 @@
 # нет шуток «отберу роль» (ложный вариант f4); нет долгов, займов, бара, декораций, ООО, фонда.
 slug: krug-volkov
 type: social
-stage: 1
-locked: false
+stage: 2                 # профиль конверта 2: до открытия этапа ссылки ведут на krug-private (решение автора 25.10, вариант А)
+locked: true
+gate: pacing             # закрыт ради темпа, не тайны (docs/02 §3.10)
 brand: "{{ w.brands.social }}"
 profile:
   person: volkov

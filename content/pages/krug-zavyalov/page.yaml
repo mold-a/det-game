@@ -9,8 +9,9 @@
 # Жизнь: рынок 27.09, внук на школьной сцене 05.10 (2 из 6). Фото — ZV-01 (Завьялов с внуком после спектакля; лицо ребёнка скрыто), CV-8 (Завьялов за режиссёрским столиком).
 slug: krug-zavyalov
 type: social
-stage: 1
-locked: false
+stage: 2                 # профиль конверта 2: до открытия этапа ссылки ведут на krug-private (решение автора 25.10, вариант А)
+locked: true
+gate: pacing             # закрыт ради темпа, не тайны (docs/02 §3.10)
 brand: "{{ w.brands.social }}"
 profile:
   person: zavyalov
