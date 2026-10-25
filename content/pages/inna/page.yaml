@@ -7,6 +7,13 @@ profile:
   person: inna
   avatar: "inna/avatar.jpg"              # AV-6, PHOTOS-2.md (без броши)
   bio: "Люблю кофе, котиков и всё красивое ✨ Кормлю лучший театр города 🎭☕"
+  # 25.10 (сценарист, «чтобы Инна не была одна»): подписчики и «Подписки» — театр и две коллеги; страницы этапа 2.
+  followers: 214
+  follows: 87
+  following:
+    - { name: "{{ w.theater.short }}", page: kadr-vodt }
+    - { person: nina_actress, page: kadr-svetlova }
+    - { person: reznikova, page: kadr-reznikova }
 posts:
   # [Улика] — брошь должна совпадать с описью костюмерного цеха (2-08). Остальные фото — атмосфера (кофе, кошка, осень, маникюр);
   # подписи — черновик разработчика 21.10, манера Инны уточнится по скрину автора. Запросы к фото — docs/PRODUCTION.md §4.4.

@@ -1,0 +1,16 @@
+# Сценарист, 25.10 («Кадр» — чтобы Инна не была одна; docs/03 §8). Закрытый аккаунт помрежа.
+# Этап 2 (gate: pacing), вход — «Подписки» на странице inna. Улик нет, снимков не видно: только аватар и счётчики.
+# Характер — STORY-BIBLE §4: строгая, «У меня всё записано»; в «Кадре» почти ничего не выкладывает.
+# СТРОГО: ни журнала, пульта, кулисы, «стопа» и времён (2-05, 3-01).
+slug: kadr-reznikova
+type: photo_stub
+stage: 2
+locked: true
+gate: pacing
+brand: "{{ w.brands.photo }}"
+profile:
+  person: reznikova
+  avatar: "krug-reznikova/avatar.jpg"
+  posts: 3
+  followers: 64
+  follows: 11

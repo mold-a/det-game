@@ -1,0 +1,15 @@
+# Сценарист, 25.10 («Кадр» — чтобы Инна не была одна; docs/03 §8). Закрытый аккаунт исполнительницы роли Нины.
+# Этап 2 (gate: pacing), вход — «Подписки» на странице inna. Улик нет, снимков не видно: только аватар и счётчики.
+slug: kadr-svetlova
+type: photo_stub
+stage: 2
+locked: true
+gate: pacing
+brand: "{{ w.brands.photo }}"
+profile:
+  person: nina_actress
+  avatar: "portraits/nina_actress.jpg"
+  bio: "{{ c.nina_actress.g('Артист', 'Артистка') }} {{ w.theater.short }} 🎭"
+  posts: 86
+  followers: 431
+  follows: 152
