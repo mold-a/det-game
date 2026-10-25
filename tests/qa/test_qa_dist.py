@@ -354,6 +354,8 @@ def test_media_refs_decrypt(env):
         objs.append(json.loads(pt))
     objs.append(open_json(hkdf(w["keys"][w["pub"]["stages"]], b"detgame/finale/v1"), _load(dist, "data/finale.json")))
     for pg in A["pages"]:
+        if pg.get("gate") == "pacing":
+            continue  # закрыта ради темпа, текст не секрет (docs/02 §3.10); утечку ключа проверяет engine check
         if pg["access"] == "key":
             objs.append(open_json(b64d(pg["key"]), _load(dist, f"p/{pg['slug']}/payload.json")))
     for ref in _media_refs(objs, []):
@@ -454,7 +456,8 @@ def _secret_texts(env) -> list[tuple[str, str]]:
         if n == 1:
             _strings([q.get("hints", []) for q in p["questions"]], items, ".hints")
         else:
-            _strings({k: v for k, v in p.items() if k not in ("lab", "characters")}, items)
+            # pages — ключи и строки поиска профилей этапа (docs/02 §3.10): тексты профиля проверяются по самой странице
+            _strings({k: v for k, v in p.items() if k not in ("lab", "characters", "pages")}, items)
             _strings({"types": p["lab"]["types"], "objects": p["lab"]["objects"]}, items, ".lab")
         out += [(f"pack-{n}{a}", _visible(s)) for a, s in items if not _STRUCT.search(a)]
     for L in A["lab"]:
@@ -468,6 +471,8 @@ def _secret_texts(env) -> list[tuple[str, str]]:
     _strings({k: v for k, v in fin.items() if k != "answers"}, items)
     out += [(f"finale{a}", _visible(s)) for a, s in items if not re.search(r"\.(who|name|form)$", a)]
     for pg in A["pages"]:
+        if pg.get("gate") == "pacing":
+            continue  # закрыта ради темпа, текст не секрет (docs/02 §3.10); утечку ключа проверяет engine check
         if pg["access"] == "key":
             inner = open_json(b64d(pg["key"]), _load(dist, f"p/{pg['slug']}/payload.json"))
         elif pg["access"] == "password":

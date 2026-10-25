@@ -13,6 +13,7 @@ from engine.documents import RenderedDoc
 from engine.lab import dumps, lab_catalog
 from engine.media import MediaPlan
 from engine.models import FormField, Question, UnitSpec
+from engine.pages import stage_page_index
 from engine.templating import render, render_markdown
 from engine.util import b64u_encode, canonical_json
 
@@ -140,6 +141,8 @@ class PackBuilder:
             "characters": self.characters(n),
             "documents": self.documents(n),
             "lab": lab_catalog(self.content, self.ctx, n, lab_entries),
+            # профили закрытых этапов этого этапа: ключи и строки поиска (docs/02 §3.10)
+            "pages": stage_page_index(self.content, self.ctx, self.salts, n),
         }
 
 

@@ -24,7 +24,7 @@ from engine.documents import RenderedDoc, render_document
 from engine.lab import dumps, expand_params, lab_entries, lab_problems, lab_site, result_payload
 from engine.media import MediaPlan
 from engine.packs import PackBuilder, build_finale, build_public, chrome_of, seal_finale, seal_pack
-from engine.pages import build_page
+from engine.pages import build_page, gated_slugs
 from engine.templating import make_context, make_link, make_site_env, render
 from engine.util import b64u_encode, write_text
 
@@ -298,8 +298,14 @@ def build(
         _write_json(data / "finale.json", seal_finale(keys[content.last_stage], finale))
 
         page_keys: dict[str, str] = {}
-        for slug, page in content.pages.items():
-            out = build_page(content, page, ctx, salts, plan, site_env, base_ctx)
+        # Главная «Круга» — последней: в её открытый поиск попадают профили закрытых этапов, на которые уже
+        # ведут ссылки-заглушки с открытых страниц (docs/02 §3.10).
+        visible_gated: set[str] = set()
+        order = sorted(content.pages.items(), key=lambda kv: kv[1].type == "social_home")
+        for slug, page in order:
+            out = build_page(content, page, ctx, salts, plan, site_env, base_ctx, visible_gated)
+            if out.access == "open":
+                visible_gated |= gated_slugs(out.fragment)
             write_text(tmp / "p" / slug / "index.html", out.index_html)
             if out.payload is not None:
                 _write_json(tmp / "p" / slug / "payload.json", out.payload)

@@ -1,0 +1,17 @@
+# Открытый профиль этапа 1 со ссылками на профиль закрытого этапа (друзья, комментарий, Markdown).
+slug: krug-opener
+type: social
+stage: 1
+locked: false
+brand: "{{ w.brands.social }}"
+profile:
+  name: "Открывающий Тестовый"
+  position: "тестовый открытый профиль"
+  friends:
+    - { name: "Поздний Тестовый", page: krug-later }
+posts:
+  - datetime: "2026-10-07T10:00"
+    text: "Загляните к [позднему]({{ link('krug-later') }})."
+    likes: 1
+    comments:
+      - { author: "Поздний Тестовый", page: krug-later, text: "Спасибо." }

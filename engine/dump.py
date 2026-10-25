@@ -96,6 +96,8 @@ def answers_data(prep: Prepared) -> dict:
             entry["key"] = key
         elif access == "password":
             entry["password"] = page.password
+        if getattr(page, "gate", None):
+            entry["gate"] = page.gate  # pacing: текст не секрет для leak scan (docs/02 §3.10)
         pages.append(entry)
 
     # по вопросам, а не по единицам: бонус-форма даёт баллы один раз

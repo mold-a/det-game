@@ -7,8 +7,9 @@
 # Жизнь: шиномонтаж 07.11, яма на Садовой 27.10 (2 из 4). Фото — DM-01 (комплект зимних шин).
 slug: krug-gorohova
 type: social
-stage: 1
-locked: false
+stage: 2                 # профиль конверта 2: до открытия этапа ссылки ведут на krug-private (25.10, разработчик)
+locked: true
+gate: pacing             # закрыт ради темпа, не тайны: текст не секрет для leak scan (docs/02 §3.10)
 brand: "{{ w.brands.social }}"
 profile:
   person: dmitriy

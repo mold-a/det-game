@@ -1,0 +1,11 @@
+# Заглушка «Кадра» (photo_stub) для kadr-late, пока этап 3 не открыт. Сама закрыта (этап 2).
+slug: kadr-late-stub
+type: photo_stub
+stage: 2
+locked: true
+brand: "{{ w.brands.photo }}"
+profile:
+  name: "Фото Поздняя"
+  posts: 48
+  followers: 112
+  follows: 87

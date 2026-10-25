@@ -5,7 +5,7 @@
 export const PAGE_MODULES = {
   call: "./audio-player.js",
   social: "./social.js", // голосовые (посты, комментарии) и видео в постах «Круга»
-  inna: "./gallery.js",
+  photo: "./gallery.js", // «Кадр»: профили photo (в т. ч. inna)
   pharma: "./pharma.js",
   cloud: "./cloud.js",
   video: "./video.js",

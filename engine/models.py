@@ -408,6 +408,9 @@ class PageBase(Strict):
     locked: Literal[False, True, "password"]
     qr_label: str | None = None
     forbidden: list[str] = []
+    # «pacing» — закрыта ради темпа, а не тайны (docs/02 §3.10, §6): страница шифруется и до своего этапа
+    # недоступна, но её текст leak scan секретом не считает (проверяется только, что ключ не утёк).
+    gate: Literal["pacing"] | None = None
 
     @model_validator(mode="after")
     def _doc_or_stage(self) -> "PageBase":
@@ -418,6 +421,8 @@ class PageBase(Strict):
             raise ValueError("qr_label бывает только у страницы с doc: QR печатается только для страниц с документом")
         if self.doc is not None and not (self.qr_label or "").strip():
             raise ValueError("у страницы с doc должно быть поле qr_label (подпись под QR-кодом)")
+        if self.gate is not None and self.locked is not True:
+            raise ValueError("gate: pacing бывает только у закрытой страницы (locked: true)")
         return self
 
 
@@ -568,10 +573,15 @@ class SocialPost(Strict):
 
 
 class SocialPage(PageBase):
+    """Профиль «Круга». ``stage: 2+`` и ``locked: true`` — профиль закрытого этапа: ссылки на него с открытых
+    страниц и страниц ранних этапов ведут на заглушку ``stub`` (по умолчанию ``krug-private``), пока этап не
+    открыт (docs/02 §3.10)."""
+
     type: Literal["social"] = "social"
     brand: str
     profile: SocialProfile
     posts: list[SocialPost] = []
+    stub: Id | None = None  # заглушка до открытия этапа; по умолчанию — krug-private
 
 
 class SocialPopular(Strict):
@@ -591,28 +601,87 @@ class SocialStubPage(PageBase):
     text: str
 
 
-# --- inna
+# --- photo (фотосеть «Кадр»; страница inna — тоже photo), photo_stub
 
 
-class InnaProfile(Strict):
-    person: Id
+class PhotoPerson(Strict):
+    """Человек в «Подписках»: ``person`` (персонаж) или ``name``; ``page`` — его фотопрофиль (или заглушка)."""
+
+    person: Id | None = None
+    name: str | None = None
+    page: Id | None = None
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "PhotoPerson":
+        if (self.person is None) == (self.name is None):
+            raise ValueError("нужно ровно одно из полей: person (ID персонажа) или name (имя нефигуранта)")
+        return self
+
+
+class PhotoProfile(Strict):
+    person: Id | None = None
+    name: str | None = None
     avatar: str | None = None
-    bio: str
+    bio: str | None = None
+    followers: NonNegInt | None = None  # число подписчиков (нет — не показывается)
+    follows: NonNegInt | None = None  # число подписок; нет — длина списка following (если он есть)
+    following: list[PhotoPerson] = []  # «Подписки»: ссылки на другие фотопрофили
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "PhotoProfile":
+        if (self.person is None) == (self.name is None):
+            raise ValueError("нужно ровно одно из полей: person (ID персонажа) или name (имя нефигуранта)")
+        return self
 
 
-class InnaPost(Strict):
+class PhotoComment(Strict):
+    author: str
+    text: str
+    page: Id | None = None  # фотопрофиль автора; нет — имя обычным текстом
+
+
+class PhotoPost(Strict):
     datetime: str
     photo: str
-    caption: str | None = None
+    caption: str | None = None  # Markdown в одну строку: можно [текст]({{ link('slug') }})
     likes: NonNegInt = 0
+    comments: list[PhotoComment] = []
 
 
-class InnaPage(PageBase):
-    slug: Literal["inna"]
-    type: Literal["inna"] = "inna"
+class PhotoPage(PageBase):
+    """Фотопрофиль «Кадра» с любым slug. Страница ``inna`` без поля ``type`` — тоже этот тип (прежний ``inna``)."""
+
+    type: Literal["photo"] = "photo"
     brand: str
-    profile: InnaProfile
-    posts: list[InnaPost]
+    profile: PhotoProfile
+    posts: list[PhotoPost] = []
+    stub: Id | None = None  # заглушка до открытия этапа (photo_stub) — для ссылок со страниц ранних этапов
+
+
+class PhotoStubProfile(Strict):
+    person: Id | None = None
+    name: str | None = None
+    avatar: str | None = None
+    bio: str | None = None
+    posts: NonNegInt = 0  # число публикаций (снимков не видно)
+    followers: NonNegInt = 0
+    follows: NonNegInt = 0
+
+    @model_validator(mode="after")
+    def _one_of(self) -> "PhotoStubProfile":
+        if (self.person is None) == (self.name is None):
+            raise ValueError("нужно ровно одно из полей: person (ID персонажа) или name (имя нефигуранта)")
+        return self
+
+
+class PhotoStubPage(PageBase):
+    """Закрытый аккаунт «Кадра»: аватар, имя, счётчики и «Закрытый аккаунт», снимков нет."""
+
+    type: Literal["photo_stub"] = "photo_stub"
+    brand: str
+    profile: PhotoStubProfile
+    text: str = "Это закрытый аккаунт"
+    hint: str = "Снимки видят только подписчики."
 
 
 # --- news
@@ -849,7 +918,9 @@ class ServicesFile(Strict):
 # Ключ — type страницы (по умолчанию = slug). Шаблон — site/templates/pages/<type>.html.
 PAGE_MODELS: dict[str, type[PageBase]] = {
     "call": CallPage,
-    "inna": InnaPage,
+    "inna": PhotoPage,  # прежний тип inna = photo (страница inna без поля type)
+    "photo": PhotoPage,
+    "photo_stub": PhotoStubPage,
     "news": NewsPage,
     "pharma": PharmaPage,
     "cloud": CloudPage,

@@ -138,13 +138,15 @@ def page_href(slug: str, key_b64: str | None = None) -> str:
     return f"{url}#k={key_b64}" if key_b64 else url
 
 
-def make_link(pages: Any, salts: Any = None, sink: list[str] | None = None):
+def make_link(pages: Any, salts: Any = None, sink: list[str] | None = None, gate: Any = None):
     """``link('slug')`` для шаблонов контента.
 
     ``pages`` — ``{slug: page}`` (у ``page.locked is True`` берётся ключ из ``salts``) либо набор slug
     (только проверка существования, без ключей: валидация контента при загрузке). Несуществующая
     страница — ``TemplateRefError``. ``sink`` собирает slug-и вызовов (проверки достижимости).
     Закрытая по ключу страница при ``salts=None`` — ошибка: ключ в адрес подставить не из чего.
+    ``gate(slug)`` — адрес заглушки для профиля закрытого этапа (``engine.pages.page_link``) или ``None``:
+    тогда ключа в адресе нет вовсе (docs/02 §3.10).
     """
     from engine.util import b64u_encode
 
@@ -153,6 +155,10 @@ def make_link(pages: Any, salts: Any = None, sink: list[str] | None = None):
             raise TemplateRefError(f"link('{slug}'): нет страницы «{slug}» в content/pages/")
         if sink is not None:
             sink.append(slug)
+        if gate is not None:
+            gated = gate(slug)
+            if gated is not None:
+                return gated
         locked = getattr(pages[slug], "locked", False) if isinstance(pages, dict) else False
         if locked is True:
             if salts is None:

@@ -1,5 +1,6 @@
 /*
- * pages/inna.css — профиль в фотосети «Кадр» (brands.photo), документ 2-09. Закрытая страница.
+ * pages/photo.css — фотосеть «Кадр» (brands.photo): профиль (type photo; страница inna, документ 2-09)
+ * и закрытый аккаунт (type photo_stub). Был inna.css; классы kd-* и вид inna не менялись.
  *
  * ИТОГОВЫЕ РЕШЕНИЯ (P06; сверено с docs/05 §2–3, без отдельного согласования — разрешение автора)
  * -----------------------------------------------------------------------------
@@ -32,7 +33,7 @@
  *   квадратный аватар; «отметки» вместо сердечек.
  */
 
-body.page--inna {
+body.page--photo {
   --kd-bg: #ffffff;
   --kd-card: #ffffff;
   --kd-text: #111827;
@@ -57,7 +58,7 @@ body.page--inna {
 }
 
 @media (prefers-color-scheme: dark) {
-  body.page--inna {
+  body.page--photo {
     --kd-bg: #0e1116;
     --kd-card: #171b22;
     --kd-text: #f3f4f6;
@@ -69,7 +70,7 @@ body.page--inna {
   }
 }
 
-.page--inna :focus-visible {
+.page--photo :focus-visible {
   outline: 3px solid var(--kd-brand);
   outline-offset: 2px;
 }
@@ -112,26 +113,26 @@ html.kd-lock {
 
 /* --- оболочка до расшифровки */
 
-.page--inna .shell {
+.page--photo .shell {
   max-width: 960px;
   margin: 0 auto;
 }
 
-.page--inna .shell__head {
+.page--photo .shell__head {
   padding: 12px 16px;
   border-bottom: 1px solid var(--kd-line);
 }
 
-.page--inna .shell__body {
+.page--photo .shell__body {
   padding: 32px 16px;
 }
 
-.page--inna .shell__status {
+.page--photo .shell__status {
   color: var(--kd-muted);
 }
 
-.page--inna .shell__broken,
-.page--inna .shell__failed {
+.page--photo .shell__broken,
+.page--photo .shell__failed {
   padding: 16px;
   border-left: 4px solid var(--kd-brand);
   background: var(--kd-ph);
@@ -386,7 +387,7 @@ html.kd-lock {
 
 /* --- заглушки «Здесь будет …» */
 
-.page--inna .ph {
+.page--photo .ph {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -402,7 +403,7 @@ html.kd-lock {
   color: #c4cad3;
 }
 
-.page--inna .ph-text {
+.page--photo .ph-text {
   padding: 0 6px;
   border-radius: 3px;
   background: var(--kd-ph);
@@ -501,4 +502,146 @@ img.media-missing {
 
 .kd-foot__copy {
   margin-top: 4px;
+}
+
+/* --- «Подписки» (раскрытие), комментарии к снимку, закрытый аккаунт (photo, photo_stub) */
+
+.kd-follow {
+  margin: 0 16px 12px;
+  border: 1px solid var(--kd-line);
+  border-radius: 8px;
+}
+
+.kd-follow__sum {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.kd-follow__list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0 6px 6px;
+  list-style: none;
+}
+
+.kd-follow__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--kd-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+a.kd-follow__item:hover {
+  background: var(--kd-ph);
+}
+
+a.kd-follow__item .kd-follow__name {
+  text-decoration: underline;
+  text-decoration-color: var(--kd-brand);
+  text-underline-offset: 3px;
+}
+
+.kd-follow__ava,
+.kd-ava--blank {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--kd-ph);
+  color: var(--kd-text);
+  font-weight: 700;
+}
+
+.kd-ava--blank {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  font-size: 32px;
+}
+
+.kd-comments {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px solid #262c35;
+  list-style: none;
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.kd-comment__author {
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+a.kd-comment__author,
+.kd-view__caption a {
+  color: #ffd79a;
+  text-underline-offset: 3px;
+}
+
+.kd-private {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  margin: 0 16px;
+  padding: 32px 16px;
+  border-top: 1px solid var(--kd-line);
+  text-align: center;
+}
+
+.kd-private__lock {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border: 3px solid var(--kd-text);
+  border-radius: 50%;
+}
+
+.kd-private__lock::before {
+  content: "";
+  position: absolute;
+  left: 19px;
+  top: 11px;
+  width: 20px;
+  height: 18px;
+  border: 4px solid var(--kd-text);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+}
+
+.kd-private__lock::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 28px;
+  width: 28px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--kd-brand);
+}
+
+.kd-private__h {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.kd-private__hint {
+  color: var(--kd-muted);
+  font-size: 15px;
 }

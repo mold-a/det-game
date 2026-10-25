@@ -1,0 +1,33 @@
+{# photo_stub — закрытый аккаунт в фотосети «Кадр» (docs/04: «photo_stub»): шапка «Кадра», аватар (крупно по
+   нажатию), имя, счётчики публикаций, подписчиков и подписок, описание, плашка «Это закрытый аккаунт».
+   Снимков нет. Кнопок «Подписаться», «Запросить доступ» нет; логотип — обычная марка, как у photo. #}
+{% import "pages/_ui.html" as ui %}
+{% macro plural(n, one, few, many) %}{{ one if n % 10 == 1 and n % 100 != 11 else (few if n % 10 in [2, 3, 4] and n % 100 not in [12, 13, 14] else many) }}{% endmacro %}
+{% set brand = page.brand %}
+{% set pr = page.profile %}
+{% set name = people[pr.person].full if pr.person else pr.name %}
+<div class="kd kd--stub">
+  <header class="kd-bar">
+    <span class="kd-logo"><span class="brandmark brandmark--inna"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></span>
+  </header>
+
+  <section class="kd-profile" aria-labelledby="kd-name">
+    <div class="kd-profile__ava">{% if pr.avatar %}{% call ui.zoom("kd-zoom", name) %}{{ ui.img(media, pr.avatar, name, "аватар", "kd-ava", "", true) }}{% endcall %}{% else %}<span class="kd-ava kd-ava--blank" aria-hidden="true">{{ name[:1] }}</span>{% endif %}</div>
+    <div class="kd-profile__info">
+      <h1 class="kd-profile__name" id="kd-name">{{ name }}</h1>
+      <p class="kd-profile__stats"><b class="kd-num">{{ pr.posts }}</b> {{ plural(pr.posts, "снимок", "снимка", "снимков") }}, <b class="kd-num">{{ pr.followers }}</b> {{ plural(pr.followers, "подписчик", "подписчика", "подписчиков") }}, <b class="kd-num">{{ pr.follows }}</b> {{ plural(pr.follows, "подписка", "подписки", "подписок") }}</p>
+      {% if pr.bio %}<p class="kd-profile__bio">{{ ui.text(pr.bio, "описание профиля") }}</p>{% endif %}
+    </div>
+  </section>
+
+  <section class="kd-private" aria-labelledby="kd-private-h">
+    <span class="kd-private__lock" aria-hidden="true"></span>
+    <h2 class="kd-private__h" id="kd-private-h">{{ page.text }}</h2>
+    <p class="kd-private__hint">{{ page.hint }}</p>
+  </section>
+
+  <footer class="kd-foot">
+    {{ ui.service_footer(service, brand, "kd-foot") }}
+    <p class="kd-foot__copy">© {{ brand }}, 2026</p>
+  </footer>
+</div>

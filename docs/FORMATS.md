@@ -178,6 +178,7 @@ HKDF везде: SHA-256, соль — 32 нулевых байта, длина 
 | `questions` | `Question[]` | да | Порядок — как в `content/`. **Этот порядок задаёт порядок пар в `stageSecret`** (§2.4). |
 | `characters` | `{id: Character}` | да | Только персонажи из пулов вопросов **этого** пакета (PLAN B3). Других полей (`role`, `age`, …) нет. |
 | `documents` | `Document[]` | да | Документы этапа `n` видов `paper` и `online`. **Решение F4:** документы `kind: lab` в пакет **не** попадают — их ID и название клиент получает из записи экспертизы (§3). Поэтому список документов не подсказывает, какие экспертизы существуют. |
+| `pages` | `GatedPage[]` | да | Профили закрытых этапов этого этапа (docs/02 §3.10): `{slug, type, key, name, position}` — `type` `social` или `photo`, `key` — base64url ключа страницы (как в QR), `name`/`position` — строки поиска «Круга» (`position` у `photo` — `null`). По имени. Пусто — `[]`. |
 | `lab` | `LabCatalog` | да | Каталог и записи экспертиз этапа `n` (§2.3). |
 
 **Question**
@@ -585,7 +586,7 @@ wrongHash(qpath, body) = hex(SHA-256(UTF8("detgame/wrong/v1|" + qpath + "|" + bo
 | `wrong` | 5 правдоподобных неверных значений, ровно те, что использует `check` (docs/06 §3.3) |
 | `finalOrder` | Порядок показа на `/final/`: финальные, затем бонус |
 | `lab[]` | По результату: виды, основания, параметры — `input` для ввода и `variants` после нормализации; `doc` (`null` у атмосферных), `title` записи; `wrongBasis` — полученный к этому этапу документ, который не является основанием |
-| `pages[]` | `access`: `open`, `key` или `password`. `key` — из `salts.lock.json`. `password` — из `cloud/page.yaml`, сырой, до нормализации. |
+| `pages[]` | `access`: `open`, `key` или `password`. `key` — из `salts.lock.json`. `password` — из `cloud/page.yaml`, сырой, до нормализации. `gate: "pacing"` — только у страниц с этим полем (docs/02 §3.10: текст не секрет для leak scan). |
 | `expected.maxScore` | 5 × `bonus` + 5 × `final` по текущему контенту |
 | `expected.perfectRunScore` | Счёт прохождения без ошибок, подсказок и запросов без оснований, со всеми бонусами |
 

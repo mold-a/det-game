@@ -1,6 +1,8 @@
 {# social_home — главная «Круга»: поиск людей по открытым профилям этапа 1 и «Популярное в городе».
    Страница сама не показывает, кто в сети: профили лежат скрытыми и появляются только как результат запроса
-   (от 3 букв, по началу имени или фамилии, не больше 5; pages/page-ui.js, [data-people-search]). #}
+   (от 3 букв, по началу имени или фамилии, не больше 5; pages/page-ui.js, [data-people-search]).
+   Профили закрытых этапов: здесь — только те, на кого уже ведут ссылки-заглушки с открытых страниц («Профиль
+   закрыт», ссылка на заглушку); после открытия этапа pages/gate.js добавляет и обновляет их из пакета этапа. #}
 {% import "pages/_ui.html" as ui %}
 {% set brand = page.brand %}
 {% set bar_search = false %}
@@ -23,10 +25,10 @@
     {% if directory %}
     <ul class="kr-people" role="list" data-role="list">
       {% for p in directory %}
-      <li class="kr-person" data-name="{{ p.name }}" hidden>
+      <li class="kr-person" data-name="{{ p.name }}" data-slug="{{ p.page }}" hidden>
         <a class="kr-person__link" href="{{ link(p.page) }}">
           <span class="kr-person__ava" aria-hidden="true">{{ p.name[:1] }}</span>
-          <span class="kr-person__text"><b class="kr-person__name">{{ p.name }}</b>{% if p.position %}<span class="kr-person__pos">{{ p.position }}</span>{% endif %}</span>
+          <span class="kr-person__text"><b class="kr-person__name">{{ p.name }}</b>{% if p.closed %}<span class="kr-person__pos kr-person__pos--closed">Профиль закрыт</span>{% elif p.position %}<span class="kr-person__pos">{{ p.position }}</span>{% endif %}</span>
         </a>
       </li>
       {% endfor %}

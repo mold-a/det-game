@@ -25,7 +25,7 @@
       <h1 class="kr-profile__name" id="kr-name">{{ name }}</h1>
       {% if pr.position %}<p class="kr-profile__position">{{ ui.text(pr.position, "должность") }}</p>{% endif %}
       {% if pr.city %}<p class="kr-profile__city"><span class="kr-pin" aria-hidden="true"></span>{{ ui.text(pr.city, "город") }}</p>{% endif %}
-      <p class="kr-profile__stats"><b>{{ posts|length }}</b> {{ "публикация" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("публикации" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "публикаций") }}{% if friends %} · <b>{{ friends|length }}</b> {{ "друг" if friends|length % 10 == 1 and friends|length % 100 != 11 else ("друга" if friends|length % 10 in [2, 3, 4] and friends|length % 100 not in [12, 13, 14] else "друзей") }}{% endif %}</p>
+      <p class="kr-profile__stats"><b class="kr-num">{{ posts|length }}</b> {{ "публикация" if posts|length % 10 == 1 and posts|length % 100 != 11 else ("публикации" if posts|length % 10 in [2, 3, 4] and posts|length % 100 not in [12, 13, 14] else "публикаций") }}{% if friends %}, <b class="kr-num">{{ friends|length }}</b> {{ "друг" if friends|length % 10 == 1 and friends|length % 100 != 11 else ("друга" if friends|length % 10 in [2, 3, 4] and friends|length % 100 not in [12, 13, 14] else "друзей") }}{% endif %}</p>
     </div>
   </section>
 

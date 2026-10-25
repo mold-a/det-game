@@ -1136,9 +1136,10 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
         if profile is not None and char_ids is not None and profile.person is not None \
                 and profile.person not in char_ids:
             ld.err(rel, "profile.person", f"персонажа «{profile.person}» нет в characters.yaml")
-        for fi, fr in enumerate(getattr(profile, "friends", None) or []):
-            if char_ids is not None and fr.person is not None and fr.person not in char_ids:
-                ld.err(rel, ("profile", "friends", fi, "person"), f"персонажа «{fr.person}» нет в characters.yaml")
+        for field_name in ("friends", "following"):
+            for fi, fr in enumerate(getattr(profile, field_name, None) or []):
+                if char_ids is not None and fr.person is not None and fr.person not in char_ids:
+                    ld.err(rel, ("profile", field_name, fi, "person"), f"персонажа «{fr.person}» нет в characters.yaml")
         if isinstance(page, NewsPage):
             body(rel, ("article", "body"), page.article.body)
 
@@ -1214,7 +1215,7 @@ def media_refs(characters: list[Character], pages: dict[str, PageBase], docs: di
                 refs.append((("posts", pi, "video", "file"), video.file))
                 refs.append((("posts", pi, "video", "poster"), video.poster))
             for ci, cm in enumerate(getattr(post, "comments", None) or []):
-                if cm.audio is not None:
+                if getattr(cm, "audio", None) is not None:
                     refs.append((("posts", pi, "comments", ci, "audio", "file"), cm.audio.file))
         article = getattr(page, "article", None)
         if article is not None:

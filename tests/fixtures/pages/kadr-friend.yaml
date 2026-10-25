@@ -1,0 +1,22 @@
+# Фотопрофиль «Кадра» этапа 2 (тот же этап, что inna): inna ссылается на него прямо, с ключом.
+slug: kadr-friend
+type: photo
+stage: 2
+locked: true
+brand: "{{ w.brands.photo }}"
+profile:
+  name: "Фото Подруга"
+  bio: "Тестовая подпись профиля"
+  followers: 21
+  follows: 2
+  following:
+    - { name: "Фото Поздняя", page: kadr-late }
+    - { name: "Без Страницы" }
+posts:
+  - datetime: "2026-10-08T12:00"
+    photo: "kadr-friend/01.jpg"
+    caption: "Тестовый снимок со ссылкой на [кадр]({{ link('kadr-late') }})"
+    likes: 5
+    comments:
+      - { author: "Фото Поздняя", page: kadr-late, text: "Тестовый комментарий" }
+      - { author: "Гость Без Страницы", text: "Ещё комментарий" }

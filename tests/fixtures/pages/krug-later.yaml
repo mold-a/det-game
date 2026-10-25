@@ -1,0 +1,16 @@
+# Профиль закрытого этапа (docs/02 §3.10): stage 2, locked — ссылки с открытых страниц ведут на krug-private.
+slug: krug-later
+type: social
+stage: 2
+locked: true
+brand: "{{ w.brands.social }}"
+profile:
+  name: "Поздний Тестовый"
+  position: "тестовая должность позднего профиля"
+  city: "{{ w.city }}"
+  friends:
+    - { name: "Открывающий Тестовый", page: krug-opener }
+posts:
+  - datetime: "2026-10-05T10:00"
+    text: "Секретная фраза позднего тестового профиля про синий зонтик."
+    likes: 4

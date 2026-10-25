@@ -33,7 +33,16 @@ from engine.leakscan import (
 )
 from engine.media import MEDIA_DIR, MediaPlan, media_hash
 from engine.normalize import base, normalize
-from engine.pages import access_of, cloud_password_norm, locked_page_texts, page_stage, rendered_link_problems
+from engine.pages import (
+    GATE_TYPES,
+    access_of,
+    cloud_password_norm,
+    is_pacing,
+    locked_page_texts,
+    page_key_leaks,
+    page_stage,
+    rendered_link_problems,
+)
 from engine.templating import render
 
 # Нейтральные примеры формата в интерфейсе (docs/02 §2): «например 08:15», placeholder и т. п.
@@ -103,9 +112,40 @@ def page_text(fragment_html: str) -> str:
     return html_mod.unescape(_TAG.sub(" ", fragment_html))
 
 
+# Строчная разметка текста (Markdown: ссылки, жирный, курсив) не разрывает текст на блоки (page_segments).
+# Тег с атрибутом class поставил шаблон (логотип, подпись «Помощь.», имя автора) — это граница блока.
+_INLINE_TAGS = {"a", "b", "strong", "i", "em", "code", "br", "wbr", "s", "u", "mark", "small", "sup", "sub"}
+_TAG_NAME = re.compile(r"<\s*(/?)\s*([a-zA-Z][a-zA-Z0-9-]*)([^>]*)>")
+
+
+def page_segments(fragment_html: str) -> list[str]:
+    """Видимый текст фрагмента по блокам: блочные теги, теги шаблона (с ``class``) и их закрытия разделяют
+    текст; строчная разметка контента (``_INLINE_TAGS`` без ``class``) — нет. Пустые блоки отбрасываются."""
+    out: list[str] = []
+    buf: list[str] = []
+    pos = 0
+    opened: list[bool] = []  # стек строчных тегов: True — тег шаблона (с class)
+    for m in _TAG_NAME.finditer(fragment_html):
+        buf.append(fragment_html[pos:m.start()])
+        pos = m.end()
+        closing, name, attrs = m.group(1) == "/", m.group(2).lower(), m.group(3)
+        inline = name in _INLINE_TAGS
+        if inline and not closing and name not in ("br", "wbr"):
+            opened.append("class=" in attrs)
+        templated = "class=" in attrs if not closing else (opened.pop() if inline and opened else False)
+        if not inline or templated:
+            out.append(html_mod.unescape("".join(buf)))
+            buf = []
+        else:
+            buf.append(" ")
+    buf.append(fragment_html[pos:])
+    out.append(html_mod.unescape("".join(buf)))
+    return [t for t in (" ".join(x.split()) for x in out) if t]
+
+
 SITE = ROOT / "site"
 # Поля пакета, которые не текст для игрока (структура, ID, служебное) — не источник шинглов.
-_PACK_SKIP = {"v", "n", "id", "path", "kind", "type", "link", "envelope", "stage", "saltStage", "unit", "pool",
+_PACK_SKIP = {"v", "n", "id", "path", "kind", "type", "link", "envelope", "stage", "saltStage", "unit", "pool", "pages",
               "ord", "characters", "entries", "lab"}
 # Поля персонажа в пакете (PLAN B3, FORMATS §2.2).
 CHARACTER_FIELDS = {"id", "full", "short", "photo"}
@@ -163,7 +203,16 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
             out += [(f"развязка fates[{i}]", f.get("text", ""), last) for i, f in enumerate(dec.finale.get("fates", []))]
         docs = content.documents_by_id
         for slug, frag in dec.pages.items():
-            out.append((f"страница {slug}", page_text(frag), page_stage(content.pages[slug], docs)))
+            st = page_stage(content.pages[slug], docs)
+            if is_pacing(content.pages[slug]):
+                continue  # gate: pacing — закрыта ради темпа, текст не секрет (docs/02 §3.10); ключ — gated_pages_problems
+            if content.pages[slug].type in GATE_TYPES:
+                # Профиль закрытого этапа свёрстан тем же шаблоном, что и открытые профили сервиса: шинглы через
+                # границы блоков («Комментарии 1» + имя автора, логотип + «Поиск людей») — обвязка, а не секрет.
+                # Текст берётся по блокам (строчная разметка — ссылки, жирный, курсив — блок не рвёт).
+                out += [(f"страница {slug}", seg, st) for seg in page_segments(frag)]
+            else:
+                out.append((f"страница {slug}", page_text(frag), st))
         return out
     for si, st in enumerate(content.stages):
         if si > 0:
@@ -209,7 +258,7 @@ def shell_texts(content: Content, ctx: dict) -> list[str]:
     for page in content.pages.values():
         for attr in ("brand", "account"):
             out.append(r(getattr(page, attr, None)))
-    out += [r(x) for _, x in iter_strings(content.services)]
+    out += [r(x) for _, x in iter_strings({k: v.model_dump() for k, v in content.services.items()})]
     return out
 
 
@@ -574,6 +623,7 @@ def check(
             if base(word) and base(word) in text:
                 problems.append(f"{slug}: на странице есть запрещённое «{word}» (forbidden)")
     problems += rendered_link_problems(content, prep.salts, fragments)
+    problems += gated_pages_problems(prep, packs, dist)
     rep.add("5. Страницы", problems,
             f"страниц: {len(content.pages)} (" + ", ".join(f"{k}: {access_of(v)}" for k, v in content.pages.items()) + ")")
 
@@ -680,6 +730,35 @@ def neutral_examples(dist: Path) -> set[str]:
             for rx in _EXAMPLE_RES:
                 out.update(m.strip() for m in rx.findall(text) if any(ch.isdigit() for ch in m))
     return out
+
+
+# Открытые текстовые файлы dist/ (ключи страниц ищутся в них как строки; медиа и .bin — двоичные).
+TEXT_SUFFIXES = {".html", ".js", ".mjs", ".json", ".css", ".txt", ".svg", ".xml", ".htaccess", ""}
+
+
+def gated_pages_problems(prep: Prepared, packs: dict[int, dict], dist: Path) -> list[str]:
+    """Профили закрытых этапов (docs/02 §3.10): в пакете этапа N (поле ``pages``) — ровно профили этапа N
+    с ключом из QR; ключи страниц этапов ≥ 2 не лежат открытыми ни в одном текстовом файле ``dist/`` и в
+    открытом тексте pack-1."""
+    content = prep.content
+    docs = content.documents_by_id
+    out: list[str] = []
+    for n, pk in sorted(packs.items()):
+        want = {sl for sl, pg in content.pages.items()
+                if pg.type in GATE_TYPES and pg.locked is True and page_stage(pg, docs) == n}
+        got = {e.get("slug"): e for e in pk.get("pages", [])}
+        if set(got) != want:
+            out.append(f"pack-{n}: профили этапа в поле pages {sorted(got)} ≠ контенту {sorted(want)}")
+        for sl, e in got.items():
+            if sl in content.pages and content.pages[sl].locked is True and \
+                    e.get("key") != crypto.b64u_encode(prep.salts.page_key(sl)):
+                out.append(f"pack-{n}: ключ страницы «{sl}» не совпадает с ключом из QR")
+    files = {p.relative_to(dist).as_posix(): p.read_text(encoding="utf-8", errors="replace")
+             for p in dist.rglob("*") if p.is_file() and p.suffix.lower() in TEXT_SUFFIXES}
+    first = content.stages[0].n
+    if first in packs:
+        files[f"data/pack-{first}.json (открытый текст)"] = json.dumps(packs[first], ensure_ascii=False)
+    return out + page_key_leaks(content, prep.salts, files)
 
 
 def lab_objects_from_packs(packs: dict[int, dict], stage: int) -> list[dict]:

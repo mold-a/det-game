@@ -27,7 +27,9 @@ from engine.models import CloudPage, Document, PageBase
 from engine.normalize import normalize
 from engine.templating import (
     RenderError,
+    TemplateRefError,
     make_context,
+    make_link,
     page_href,
     render,
     render_inline,
@@ -37,7 +39,7 @@ from engine.templating import (
 from engine.util import format_loc, iter_strings
 
 STUB_BODY_HTML = "<p>Здесь будет текст.</p>"
-HIDDEN_FIELDS = {"password", "forbidden", "qr_label", "doc", "stage", "type"}
+HIDDEN_FIELDS = {"password", "forbidden", "qr_label", "doc", "stage", "type", "stub", "gate"}
 # Поля, видимые в открытой оболочке закрытой страницы или служебные — не «тексты страницы» для leak scan.
 SHELL_FIELDS = {"slug", "locked", "brand", "account", "skin"}
 # Скрипт открытых страниц: общие окна/вкладки/просмотр фото + модуль типа (PAGE_MODULES в page-modules.js).
@@ -48,17 +50,28 @@ SHELL_ENTRY = "/assets/js/pages/shell.js"
 SOCIAL_TYPES = ("social", "social_home", "social_stub")
 SOCIAL_HOME = "krug"
 SOCIAL_STUB = "krug-private"
+# Фотосеть «Кадр»: профиль (photo; прежний тип inna) и закрытый аккаунт (photo_stub) — общая палитра.
+PHOTO_TYPES = ("photo", "photo_stub")
 # Тексты подвала берутся из pages/_brands.yaml по ключу бренда.
 SERVICE_OF_TYPE = {
     "social": "social", "social_home": "social", "social_stub": "social",
-    "inna": "photo", "news": "news", "pharma": "pharma", "cloud": "cloud",
+    "photo": "photo", "photo_stub": "photo", "news": "news", "pharma": "pharma", "cloud": "cloud",
 }
 # Стили сверх base.html: общие окна — всегда (кроме video: его стиль — система расследования).
 UI_CSS = "/assets/css/pages/_ui.css"
 CSS_OF_TYPE: dict[str, list[str]] = {
     "social_home": ["social", "social_home"],
     "social_stub": ["social", "social_stub"],
+    "photo_stub": ["photo"],
 }
+
+# Профили закрытых этапов (docs/02 §3.10, docs/04 «Профили закрытых этапов»). Профиль этих типов с
+# ``locked: true`` и этапом N ≥ 2 — «отложенный»: ссылка на него с открытой страницы или со страницы этапа < N
+# ведёт на заглушку сервиса с ``#to=<slug>`` (ключа в адресе нет), а браузер подставляет настоящий адрес с ключом,
+# когда ключ этапа N есть в прогрессе (ключи страниц — в пакете этапа N, поле ``pages``). Значение — заглушка
+# по умолчанию (у «Кадра» её нет: поле ``stub`` обязательно).
+GATE_TYPES: dict[str, str | None] = {"social": SOCIAL_STUB, "photo": None}
+GATE_PARAM = "to"
 
 
 @dataclass
@@ -89,6 +102,8 @@ def body_classes(page: PageBase, extra: str = "") -> str:
     names = ["page", f"page--{page.type}", f"page--{page.slug}"]
     if page.type in SOCIAL_TYPES:
         names.append("page--social")
+    if page.type in PHOTO_TYPES:
+        names.append("page--photo")
     if page.type == "site":
         names.append(f"skin-{page.skin}")  # скин нужен и оболочке закрытой страницы, до расшифровки
     out = " ".join(dict.fromkeys(names))
@@ -134,13 +149,24 @@ def page_data(content: Content, page: PageBase, ctx: dict) -> dict:
     for post in data.get("posts", []):
         if "text" in post:  # social: Markdown в одну строку (ссылки link('…'))
             post["text_html"] = Markup(render_inline(post["text"]))
-            for cm in post.get("comments", []):
-                cm["text_html"] = Markup(render_inline(cm["text"])) if cm["text"] else ""
+        if post.get("caption"):  # photo: подпись — тоже Markdown в одну строку
+            post["caption_html"] = Markup(render_inline(post["caption"]))
+            post["caption_plain"] = plain_inline(post["caption"])
+        for cm in post.get("comments", []):
+            cm["text_html"] = Markup(render_inline(cm["text"])) if cm["text"] else ""
     for sec in data.get("sections", []):
         for block in sec["blocks"]:
             if block["kind"] == "text":
                 block["html"] = Markup(render_markdown(block["md"]))
     return data
+
+
+_MD_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
+
+
+def plain_inline(md: str) -> str:
+    """Markdown-строка без ссылок-адресов (``[текст](адрес)`` → ``текст``) — для alt и aria-label."""
+    return _MD_LINK_RE.sub(r"\1", md)
 
 
 def page_people(content: Content, page: PageBase, ctx: dict) -> dict[str, dict]:
@@ -150,6 +176,7 @@ def page_people(content: Content, page: PageBase, ctx: dict) -> dict[str, dict]:
         if profile.person:
             ids.append(profile.person)
         ids.extend(f.person for f in getattr(profile, "friends", None) or [] if f.person)
+        ids.extend(f.person for f in getattr(profile, "following", None) or [] if f.person)
     for f in getattr(page, "folders", None) or []:
         ids.extend(f.participants or [])
     c = ctx["c"]
@@ -161,17 +188,114 @@ def profile_name(profile: dict, people: dict[str, dict]) -> str:
     return people[profile["person"]]["full"] if profile.get("person") else profile["name"]
 
 
-def social_directory(content: Content, ctx: dict) -> list[dict]:
-    """«Поиск людей» на главной сервиса: открытые профили ``social`` этапа 1 — имя, должность, страница."""
+def social_directory(content: Content, ctx: dict, visible: set[str] | frozenset[str] = frozenset()) -> list[dict]:
+    """«Поиск людей» на главной сервиса: открытые профили ``social`` этапа 1 — имя, должность, страница.
+
+    Профили закрытых этапов (``GATE_TYPES``) попадают в открытый индекс только из ``visible`` — slug-и, на которые
+    уже ведут ссылки-заглушки с открытых страниц (имя человека и так видно игрокам): только имя, без должности,
+    ``closed: True``; ссылка — на заглушку (``link`` страницы её подставит). Остальные профили этапа N браузер
+    добавляет в поиск из пакета этапа N (docs/02 §3.10)."""
     docs = content.documents_by_id
     out = []
     for slug, p in content.pages.items():
-        if p.type != "social" or p.locked is not False or page_stage(p, docs) != 1:
+        if p.type != "social":
+            continue
+        st = page_stage(p, docs)
+        open1 = p.locked is False and st == 1
+        if not open1 and not (is_gateable(p, st) and slug in visible):
+            continue
+        name = render(profile_full_name(p.profile, ctx), ctx)
+        position = render(p.profile.position or "", ctx) if open1 else ""
+        out.append({"name": name, "position": position, "page": slug, "closed": not open1})
+    return sorted(out, key=lambda e: e["name"])
+
+
+def profile_full_name(profile: Any, ctx: dict) -> str:
+    """Имя владельца профиля (модель): персонаж — ``full()``, иначе ``name`` (шаблон ещё не отрендерен)."""
+    return getattr(ctx["c"], profile.person).full() if profile.person else profile.name
+
+
+# ---------------------------------------------------------------- профили закрытых этапов (docs/02 §3.10)
+
+
+def is_pacing(page: PageBase) -> bool:
+    """Страница закрыта ради темпа (``gate: pacing``): текст не секрет для leak scan, секрет — только ключ."""
+    return getattr(page, "gate", None) == "pacing"
+
+
+def is_gateable(page: PageBase, stage: int) -> bool:
+    """Профиль закрытого этапа: тип из ``GATE_TYPES``, ``locked: true``, этап ≥ 2."""
+    return page.type in GATE_TYPES and page.locked is True and stage > 1
+
+
+def gate_stub(page: PageBase) -> str | None:
+    """Заглушка, на которую ведут ссылки до открытия этапа профиля: поле ``stub`` или заглушка сервиса."""
+    return getattr(page, "stub", None) or GATE_TYPES.get(page.type)
+
+
+def needs_gate(src: PageBase, src_stage: int, dst: PageBase, dst_stage: int) -> bool:
+    """Ссылка ``src → dst`` идёт через заглушку: ``dst`` — профиль закрытого этапа, а ``src`` открыта
+    (её файл читает кто угодно) или относится к более раннему этапу."""
+    return is_gateable(dst, dst_stage) and (src.locked is False or src_stage < dst_stage)
+
+
+def gate_href(stub_href: str, slug: str) -> str:
+    """Адрес ссылки на профиль закрытого этапа: адрес заглушки (у закрытой заглушки — с её ключом ``#k=``)
+    и slug профиля во фрагменте (``#to=<slug>`` или ``#k=…&to=<slug>``); ключа профиля в адресе нет."""
+    return f"{stub_href}{'&' if '#' in stub_href else '#'}{GATE_PARAM}={slug}"
+
+
+def page_link(content: Content, salts: Any, page: PageBase):
+    """``link('slug')`` для шаблонов страницы ``page``: как ``make_link``, но профили закрытых этапов, до которых
+    со страницы ``page`` ещё нельзя дойти, — адресом заглушки (``gate_href``)."""
+    docs = content.documents_by_id
+    sa = page_stage(page, docs)
+    plain = make_link(content.pages, salts)
+
+    def gate(target: str) -> str | None:
+        tp = content.pages[target]
+        if not needs_gate(page, sa, tp, page_stage(tp, docs)):
+            return None
+        stub = gate_stub(tp)
+        if stub is None or stub not in content.pages:
+            raise TemplateRefError(f"link('{target}'): профиль закрытого этапа, а заглушки (stub) у него нет")
+        return gate_href(plain(stub), target)
+
+    return make_link(content.pages, salts, gate=gate)
+
+
+_GATE_RE = re.compile(r'href="/p/([a-z0-9_-]+)/#(?:k=[A-Za-z0-9_-]+&amp;|k=[A-Za-z0-9_-]+&)?' + GATE_PARAM
+                      + r'=([a-z0-9_-]+)"')
+
+
+def mark_gates(html: str) -> str:
+    """У ссылок-заглушек (``href="/p/<stub>/#to=<slug>"``) — атрибут ``data-gate="<slug>"``: по нему браузер
+    (``pages/gate.js``) находит ссылки, которые можно открыть, когда этап профиля открыт."""
+    return _GATE_RE.sub(lambda m: f'{m.group(0)} data-gate="{m.group(2)}"', html)
+
+
+def gated_slugs(html: str) -> set[str]:
+    """Профили закрытых этапов, на которые в HTML есть ссылки-заглушки."""
+    return {m.group(2) for m in _GATE_RE.finditer(html)}
+
+
+def stage_page_index(content: Content, ctx: dict, salts: Any, n: int) -> list[dict]:
+    """Поле ``pages`` пакета этапа ``n``: профили закрытых этапов этого этапа — ``{slug, type, key, name,
+    position}``. ``key`` — base64url ключа страницы (тот же, что в QR); ``name``/``position`` — строки поиска
+    «Круга» (``position`` — должность у ``social``, иначе ``null``). Сортировка — по имени."""
+    from engine.util import b64u_encode
+
+    docs = content.documents_by_id
+    out = []
+    for slug, p in content.pages.items():
+        if not (p.type in GATE_TYPES and p.locked is True and page_stage(p, docs) == n):
             continue
         pr = p.profile
-        name = getattr(ctx["c"], pr.person).full() if pr.person else pr.name
-        out.append({"name": render(name, ctx), "position": render(pr.position or "", ctx), "page": slug})
-    return sorted(out, key=lambda e: e["name"])
+        position = getattr(pr, "position", None)
+        out.append({"slug": slug, "type": p.type, "key": b64u_encode(salts.page_key(slug)),
+                    "name": render(profile_full_name(pr, ctx), ctx),
+                    "position": render(position, ctx) if position else None})
+    return sorted(out, key=lambda e: (e["name"], e["slug"]))
 
 
 def service_texts(content: Content, page: PageBase, ctx: dict) -> dict | None:
@@ -193,18 +317,22 @@ def page_title(page: PageBase, data: dict, chrome: dict, people: dict[str, dict]
 
 
 def build_page(content: Content, page: PageBase, ctx: dict, salts: Any, plan: MediaPlan, site_env: Any,
-               base_ctx: dict) -> PageOut:
+               base_ctx: dict, visible_gated: set[str] | frozenset[str] = frozenset()) -> PageOut:
+    """``visible_gated`` — профили закрытых этапов, на которые уже ведут ссылки-заглушки открытых страниц
+    (для открытого индекса поиска на ``social_home``; сборка рендерит главную последней)."""
     slug = page.slug
     ptype = page.type
     access = access_of(page)
+    ctx = {**ctx, "link": page_link(content, salts, page)}
     data = page_data(content, page, ctx)
     people = page_people(content, page, ctx)
     collector = MediaCollector(plan, "open" if access == "open" else "sealed")
     fragment = site_env.get_template(f"pages/{ptype}.html").render(
         page=data, people=people, media=collector, link=ctx["link"], service=service_texts(content, page, ctx),
-        directory=social_directory(content, ctx) if ptype == "social_home" else [],
+        directory=social_directory(content, ctx, visible_gated) if ptype == "social_home" else [],
         social_home=SOCIAL_HOME, social_stub=SOCIAL_STUB,
     )
+    fragment = mark_gates(fragment)
     title = page_title(page, data, base_ctx["chrome"], people)
     if access == "open":
         html = site_env.get_template("page_open.html").render(
@@ -245,7 +373,7 @@ def locked_page_texts(content: Content, ctx: dict) -> list[tuple[str, str]]:
     """Строки закрытых страниц (для leak scan): ``[(источник, текст)]``, без полей оболочки."""
     out: list[tuple[str, str]] = []
     for slug, page in content.pages.items():
-        if page.locked is False:
+        if page.locked is False or is_pacing(page):
             continue
         data = page.model_dump(by_alias=True, exclude=HIDDEN_FIELDS | SHELL_FIELDS)
         rendered = render_tree(data, ctx)
@@ -299,7 +427,8 @@ def structural_links(obj: Any, loc: tuple = ()) -> list[tuple[str, str]]:
 
 def implicit_links(page: PageBase, social_profiles: list[str]) -> list[tuple[str, str]]:
     """Ссылки, которые шаблон ставит сам: логотип «Круга» → главная, авторы без страницы → заглушка,
-    поиск людей на главной → открытые профили этапа 1, логотип ``news-*`` → ``news``."""
+    поиск людей на главной → открытые профили этапа 1 и профили закрытых этапов (через заглушку),
+    логотип ``news-*`` → ``news``."""
     out: list[tuple[str, str]] = []
     if page.type in SOCIAL_TYPES:
         out.append((SOCIAL_HOME, "логотип"))
@@ -327,7 +456,8 @@ def check_links(pages: dict[str, PageBase], documents: list[Document], texts: di
     docs_by_id = {d.id: d for d in documents}
     stage_of = {slug: page_stage(p, docs_by_id) for slug, p in pages.items() if p.doc in docs_by_id or p.doc is None}
     base = make_context(characters=characters, world=world)
-    profiles = [s for s, p in pages.items() if p.type == "social" and p.locked is False and stage_of.get(s) == 1]
+    profiles = [s for s, p in pages.items() if p.type == "social" and s in stage_of
+                and ((p.locked is False and stage_of[s] == 1) or is_gateable(p, stage_of[s]))]
     inbound: dict[str, set[str]] = {}
 
     for slug, page in pages.items():
@@ -362,7 +492,8 @@ def check_links(pages: dict[str, PageBase], documents: list[Document], texts: di
 
         a_open = page.locked is False
         seen: set[tuple[str, str]] = set()
-        for target, where in edges:
+        while edges:
+            target, where = edges.pop(0)
             if (target, where) in seen:
                 continue
             seen.add((target, where))
@@ -374,6 +505,15 @@ def check_links(pages: dict[str, PageBase], documents: list[Document], texts: di
             sa, sb = stage_of[slug], stage_of.get(target)
             if sb is None:
                 continue
+            if needs_gate(page, sa, pages[target], sb):
+                # профиль закрытого этапа: ссылка ведёт на заглушку (ключа в адресе нет), заглушка — обычная цель
+                stub = gate_stub(pages[target])
+                if stub is None:
+                    rep.errors.append((slug, where, f"ссылка на «{target}» (этап {sb}) идёт через заглушку, а у "
+                                                    f"«{target}» нет поля stub (страница photo_stub)"))
+                else:
+                    edges.append((stub, f"{where} (заглушка для «{target}»)"))
+                continue
             if sb > sa:
                 rep.errors.append((slug, where, f"ссылка на «{target}» (этап {sb}) со страницы этапа {sa}: "
                                                 "игроки могут ещё не дойти до этой страницы"))
@@ -383,6 +523,14 @@ def check_links(pages: dict[str, PageBase], documents: list[Document], texts: di
                                                 "только на страницы этапа 1"))
 
     for slug, page in pages.items():
+        stub = getattr(page, "stub", None)
+        if stub is not None and stub not in pages:
+            rep.errors.append((slug, "stub", f"заглушки «{stub}» нет в content/pages/"))
+        elif stub is not None and pages[stub].type not in ("social_stub", "photo_stub"):
+            rep.errors.append((slug, "stub", f"«{stub}» — не заглушка (нужен type: social_stub или photo_stub)"))
+        if page.type in GATE_TYPES and page.locked is False and stage_of.get(slug, 1) > 1:
+            rep.errors.append((slug, "locked", "профиль этапа 2 и дальше должен быть закрытым (locked: true): "
+                                               "ссылки с открытых страниц ведут на заглушку, а сам профиль шифруется"))
         if page.doc is None and slug not in inbound:
             rep.warnings.append((slug, "", "страница без doc и без входящих ссылок: QR не печатается, и никто на "
                                            "неё не ссылается — игроки до неё не доберутся"))
@@ -390,6 +538,18 @@ def check_links(pages: dict[str, PageBase], documents: list[Document], texts: di
 
 
 _HREF_RE = re.compile(r'href="/p/([a-z0-9_-]+)/(#[^"]*)?"')
+
+
+def page_key_leaks(content: Content, salts: Any, files: dict[str, str]) -> list[str]:
+    """Ключи закрытых страниц этапа ≥ 2 не лежат открытым текстом нигде в ``files`` (``{имя: текст}``: открытые
+    файлы ``dist/`` и открытый текст pack-1). Ключи страниц этапа 1 — как раньше: их QR-адрес открыт по замыслу."""
+    from engine.util import b64u_encode
+
+    docs = content.documents_by_id
+    keys = {slug: b64u_encode(salts.page_key(slug)) for slug, p in content.pages.items()
+            if p.locked is True and page_stage(p, docs) > 1}
+    return [f"{name}: ключ страницы «{slug}» (этап {page_stage(content.pages[slug], docs)}) лежит открытым"
+            for name, text in files.items() for slug, key in keys.items() if key in text]
 
 
 def rendered_link_problems(content: Content, salts: Any, fragments: dict[str, str]) -> list[str]:
@@ -410,6 +570,17 @@ def rendered_link_problems(content: Content, salts: Any, fragments: dict[str, st
             if tp is None:
                 problems.append(f"{slug}: ссылка на несуществующую страницу «{target}»")
                 continue
+            gm = re.fullmatch(r"#(k=[A-Za-z0-9_-]+)?(?:&amp;|&)?" + GATE_PARAM + r"=([a-z0-9_-]+)", frag)
+            if gm:  # заглушка профиля закрытого этапа (docs/02 §3.10); у закрытой заглушки — её ключ
+                gated = gm.group(2)
+                gp = content.pages.get(gated)
+                if gp is None:
+                    problems.append(f"{slug}: заглушка ведёт на несуществующую страницу «{gated}»")
+                elif not needs_gate(page, page_stage(page, docs), gp, page_stage(gp, docs)):
+                    problems.append(f"{slug}: ссылка на «{gated}» через заглушку, хотя заглушка тут не нужна")
+                elif gate_stub(gp) != target:
+                    problems.append(f"{slug}: ссылка на «{gated}» ведёт на «{target}», а не на его заглушку")
+                frag = f"#{gm.group(1)}" if gm.group(1) else ""
             want = f"#k={b64u_encode(salts.page_key(target))}" if tp.locked is True else ""
             # якорь без ключа (``#search``) у открытой страницы допустим; ключ — только точь-в-точь как в QR
             if (want and frag != want) or (not want and frag.startswith("#k=")):

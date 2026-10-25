@@ -1,0 +1,14 @@
+# Фотопрофиль «Кадра» этапа 3: со страниц этапа 2 — через свою заглушку kadr-late-stub.
+slug: kadr-late
+type: photo
+stage: 3
+locked: true
+stub: kadr-late-stub
+brand: "{{ w.brands.photo }}"
+profile:
+  name: "Фото Поздняя"
+posts:
+  - datetime: "2026-10-09T12:00"
+    photo: "kadr-late/01.jpg"
+    caption: "Тестовый поздний снимок"
+    likes: 2

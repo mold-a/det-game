@@ -177,13 +177,14 @@ function setupSections(box) {
 
 function setupPeopleSearch(box) {
   const input = box.querySelector('[data-role="q"]');
-  const items = Array.from(box.querySelectorAll(".kr-person"));
   if (!input) return;
   const status = box.querySelector('[data-role="status"]');
   const clear = box.querySelector('[data-role="clear"]');
-  const names = items.map((el) => el.dataset.name || "");
-  // Список людей сам ничего не показывает: только результаты запроса (до PEOPLE_MAX).
+  // Список людей сам ничего не показывает: только результаты запроса (до PEOPLE_MAX). Список читается заново
+  // при каждом запросе: pages/gate.js дополняет его профилями открытых этапов.
   const apply = () => {
+    const items = Array.from(box.querySelectorAll(".kr-person"));
+    const names = items.map((el) => el.dataset.name || "");
     const r = searchPeople(names, input.value);
     const shown = new Set(r.indices);
     items.forEach((el, i) => (el.hidden = !shown.has(i)));

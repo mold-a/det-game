@@ -1,0 +1,94 @@
+{# photo — профиль в фотосети «Кадр» (docs/04: «photo»; страница inna — тоже photo). Любой slug.
+   Интерактив — pages/gallery.js: по нажатию на снимок — крупно, подпись, дата, отметки, комментарии.
+   Дата видна и на плитке, чтобы снимок от 11.11.2026 находился без лишних касаний.
+   Кликабельно только то, что ведёт к содержимому: снимок и аватар — крупно, в просмотре — соседние снимки,
+   «Подписки» (раскрытие) и ссылки на фотопрофили; авторы комментариев со страницей — ссылки, без — текст.
+   «Войти», «Подписаться», «Отметить» нет; логотип — обычная марка; подвал — раскрывающиеся сведения о сервисе.
+   Подписчиков, подписок, «Подписок» и комментариев нет в контенте — их нет и в разметке (вид inna не меняется). #}
+{% import "pages/_ui.html" as ui %}
+{% macro plural(n, one, few, many) %}{{ one if n % 10 == 1 and n % 100 != 11 else (few if n % 10 in [2, 3, 4] and n % 100 not in [12, 13, 14] else many) }}{% endmacro %}
+{% set brand = page.brand %}
+{% set pr = page.profile %}
+{% set who = {"full": people[pr.person].full if pr.person else pr.name} %}
+{% set posts = page.posts|sort(attribute="datetime", reverse=True) %}
+{% set following = pr.following %}
+{% set follows = pr.follows if pr.follows is not none else (following|length if following else none) %}
+<div class="kd">
+  <header class="kd-bar">
+    <span class="kd-logo"><span class="brandmark brandmark--inna"><span class="brandmark__sign" aria-hidden="true"></span><span class="brandmark__name">{{ brand }}</span></span></span>
+  </header>
+
+  <section class="kd-profile" aria-labelledby="kd-name">
+    <div class="kd-profile__ava">{% call ui.zoom("kd-zoom", who.full) %}{{ ui.img(media, pr.avatar, who.full, "аватар", "kd-ava") }}{% endcall %}</div>
+    <div class="kd-profile__info">
+      <h1 class="kd-profile__name" id="kd-name">{{ who.full }}</h1>
+      <p class="kd-profile__stats"><b class="kd-num">{{ posts|length }}</b> {{ plural(posts|length, "снимок", "снимка", "снимков") }}
+        {%- if pr.followers is not none %}, <b class="kd-num">{{ pr.followers }}</b> {{ plural(pr.followers, "подписчик", "подписчика", "подписчиков") }}{% endif %}
+        {%- if follows is not none %}, <b class="kd-num">{{ follows }}</b> {{ plural(follows, "подписка", "подписки", "подписок") }}{% endif %}</p>
+      {% if pr.bio is not none %}<p class="kd-profile__bio">{{ ui.text(pr.bio, "описание профиля") }}</p>{% endif %}
+    </div>
+  </section>
+
+  {% if following %}
+  <details class="kd-follow">
+    <summary class="kd-follow__sum">Подписки <b>{{ following|length }}</b></summary>
+    <ul class="kd-follow__list" role="list">
+      {% for f in following %}
+      {% set fname = people[f.person].full if f.person else f.name %}
+      <li>{% if f.page %}<a class="kd-follow__item" href="{{ link(f.page) }}">{% else %}<span class="kd-follow__item">{% endif %}<span class="kd-follow__ava" aria-hidden="true">{{ fname[:1] }}</span><span class="kd-follow__name">{{ fname }}</span>{% if f.page %}</a>{% else %}</span>{% endif %}</li>
+      {% endfor %}
+    </ul>
+  </details>
+  {% endif %}
+
+  <h2 class="visually-hidden">Снимки</h2>
+  <ul class="kd-grid" role="list">
+  {% for post in posts %}
+    {% set label = "Снимок от " ~ (post.datetime|dt) %}
+    {% set a = media(post.photo, post.caption_plain or label) %}
+    <li class="kd-tile" data-datetime="{{ post.datetime }}">
+      <button class="kd-tile__btn" type="button" data-index="{{ loop.index0 }}" aria-haspopup="dialog" aria-label="{{ label }}">
+        {% if ui.missing(a) %}
+        <span class="ph ph--img kd-tile__img"><span class="ph__label">Здесь будет фото</span></span>
+        {% else %}
+        <img class="kd-tile__img" {{ a }} alt="" decoding="async">
+        {% endif %}
+        <span class="kd-tile__date"><time datetime="{{ post.datetime }}">{{ post.datetime|dt("date") }}</time></span>
+      </button>
+      {# Данные для просмотра крупно (gallery.js). #}
+      <div class="kd-tile__meta" hidden>
+        <p class="kd-view__caption">{% if post.caption_html and not ui.is_todo(post.caption) %}{{ post.caption_html }}{% else %}{{ ui.text(post.caption, "подпись к снимку") }}{% endif %}</p>
+        <p class="kd-view__when"><time datetime="{{ post.datetime }}">{{ post.datetime|dt }}</time></p>
+        <p class="kd-view__likes"><span class="kd-spark" aria-hidden="true"></span>Отметок: <b>{{ post.likes }}</b></p>
+        {% if post.comments %}
+        <ul class="kd-comments" role="list" aria-label="Комментарии">
+          {% for cm in post.comments %}
+          <li class="kd-comment">{% if cm.page %}<a class="kd-comment__author" href="{{ link(cm.page) }}">{{ cm.author }}</a>{% else %}<b class="kd-comment__author">{{ cm.author }}</b>{% endif %} <span class="kd-comment__text">{{ cm.text_html }}</span></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+
+  <dialog class="kd-view" id="kd-view" aria-label="Снимок">
+    <div class="kd-view__frame">
+      <div class="kd-view__media"></div>
+      <div class="kd-view__side">
+        <p class="kd-view__who">{{ who.full }}</p>
+        <div class="kd-view__meta"></div>
+      </div>
+      <div class="kd-view__nav">
+        <button class="kd-iconbtn" type="button" data-act="prev" aria-label="Предыдущий снимок">‹</button>
+        <button class="kd-iconbtn" type="button" data-act="next" aria-label="Следующий снимок">›</button>
+        <button class="kd-iconbtn kd-iconbtn--close" type="button" data-act="close" aria-label="Закрыть">×</button>
+      </div>
+    </div>
+  </dialog>
+
+  <footer class="kd-foot">
+    {{ ui.service_footer(service, brand, "kd-foot") }}
+    <p class="kd-foot__copy">© {{ brand }}, 2026</p>
+  </footer>
+</div>

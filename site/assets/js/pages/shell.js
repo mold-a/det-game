@@ -52,14 +52,16 @@ function storageSet(name, value) {
   }
 }
 
-/** Ключ из фрагмента #k=…; фрагмент убирается из адреса в любом случае. */
+/** Ключ из фрагмента #k=…; ключ убирается из адреса в любом случае. Остаётся только «to=<slug>» —
+ *  профиль закрытого этапа, на месте которого стоит эта заглушка (pages/gate.js). */
 export function takeHashKey(loc = location, hist = history) {
   const hash = loc.hash || "";
   if (!hash || hash === "#") return null;
   const params = new URLSearchParams(hash.slice(1));
   const k = params.get("k");
+  const to = params.get("to");
   try {
-    hist.replaceState(hist.state, "", loc.pathname + loc.search);
+    hist.replaceState(hist.state, "", loc.pathname + loc.search + (to ? `#to=${encodeURIComponent(to)}` : ""));
   } catch {
     /* старые браузеры: фрагмент останется в адресе, это не ошибка */
   }
@@ -151,6 +153,8 @@ async function render(slug, inner) {
     console.error(e);
   }
   document.body.dataset.ready = "1";
+  // Ссылки на профили более поздних этапов — по прогрессу этого браузера (docs/04, pages/gate.js).
+  import("./gate.js").then((m) => m.init(root)).catch((e) => console.error(e));
 }
 
 async function runKey(slug, storageName) {

@@ -148,3 +148,8 @@
   color: var(--kr-brand);
   font-weight: 700;
 }
+
+/* профиль закрытого этапа, пока этап не открыт: ссылка ведёт на заглушку (docs/04, «Профили закрытых этапов») */
+.kr-person__pos--closed {
+  font-style: italic;
+}

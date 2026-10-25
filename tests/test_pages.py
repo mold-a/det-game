@@ -74,7 +74,7 @@ def has_error(errs: list[str], *parts: str) -> bool:
 def test_type_defaults_to_slug_and_gromov_is_social():
     c = load_content(ROOT / "content")
     assert [c.pages[s].type for s in ("call", "inna", "news", "pharma", "cloud", "video")] == \
-        ["call", "inna", "news", "pharma", "cloud", "video"]
+        ["call", "photo", "news", "pharma", "cloud", "video"]  # inna без type — фотосеть «Кадр» (type photo)
     assert isinstance(c.pages["gromov"], SocialPage) and c.pages["gromov"].doc == "1-12"
     assert isinstance(c.pages["krug-private"], SocialStubPage) and c.pages["krug-private"].doc is None
     assert c.pages["krug-private"].stage == 1

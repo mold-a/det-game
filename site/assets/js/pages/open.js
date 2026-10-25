@@ -19,6 +19,8 @@ async function main() {
     }
   }
   document.body.dataset.ready = "1";
+  // Ссылки на профили закрытых этапов и поиск «Круга» — по прогрессу этого браузера (docs/04).
+  import("./gate.js").then((m) => m.init(document)).catch((e) => console.error(e));
 }
 
 main();
