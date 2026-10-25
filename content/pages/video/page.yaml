@@ -7,7 +7,7 @@ source: "Изъято с телефона {{ c.volkov.full('gen') }}"
 file:
   name: "{{ w.devices.volkov_video_file }}"        # [Улика]
   size: "1,4 МБ"
-  created: "{{ w.devices.volkov_video_created }}"  # [Улика] 08.11.2026 14:12:03
+  created: "{{ w.devices.volkov_video_created }}"  # [Улика] 10.11.2026 14:12:03
   device: "{{ w.devices.volkov_phone }}"
   duration: "0:05"
   resolution: "1920×1080"

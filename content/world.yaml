@@ -26,18 +26,18 @@ play:
     act2: "20:30–21:40"
 
 dates:
-  premiere: "2026-11-10"
-  premiere_weekday: "вторник"
-  anonymous_call: "2026-11-11T07:50:12"
-  game_day: "2026-11-12"
-  publication: "2026-11-13T10:04"
+  premiere: "2026-11-12"
+  premiere_weekday: "четверг"
+  anonymous_call: "2026-11-13T07:50:12"
+  game_day: "2026-11-14"
+  publication: "2026-11-15T10:04"
 
 train:
   route: "Верхнеречинск — Москва"
   departure: "23:40"
   car: 7
   seat: 15
-  bought: "2026-10-30T14:37"
+  bought: "2026-11-01T14:37"
   cashier_window: 2
 
 money:
@@ -78,8 +78,8 @@ devices:
   victim_number_tail: "47-12"          # последние цифры абонентского номера погибшего (4-10, 3-03)
   victim_number: "+7 950 318-47-12"   # полный номер погибшего (вызовы на снимках 3-03); хвост = victim_number_tail
   volkov_phone: "Альтаир A54"          # вымышленная марка и модель телефона Волкова
-  volkov_video_file: "VID_20261108_141203.mp4"
-  volkov_video_created: "2026-11-08T14:12:03"
+  volkov_video_file: "VID_20261110_141203.mp4"
+  volkov_video_created: "2026-11-10T14:12:03"
 
 # Улики-формулировки, общие для нескольких документов
 clues:
