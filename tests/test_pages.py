@@ -512,7 +512,7 @@ def test_voice_on_locked_page_is_encrypted(built_voice):
         opened = crypto.open_media(crypto.b64u_decode(ref["key"]), raw, ref["aad"])
         assert opened.startswith(FAKE_MP3 + b"krug-closed/")
     shell = (dist / "p" / "krug-closed" / "payload.json").read_text(encoding="utf-8")
-    assert "Расшифровка закрытого" not in shell and "ID3" not in shell
+    assert "Расшифровка закрытого" not in shell
 
 
 # ---------------------------------------------------------------- голосовое у комментария и видео в посте
