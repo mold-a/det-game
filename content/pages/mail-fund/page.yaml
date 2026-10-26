@@ -171,22 +171,27 @@ threads:
 
   # --- Схема, часть 2а: оплата (ноябрь). П/п № 296 от 05.11 — как штамп «ОПЛАЧЕНО» в 4-02. В тот же день записка 4-05:
   # ремонт камеры за 2 350 ₽ «отложить ввиду отсутствия средств».
+  # 26.10 (решение автора): бухгалтер — inna (главный бухгалтер театра и фонда, мать дублёра; было — Савина, fund_accountant).
+  # Её подпись — и в штампе оплаты 4-02. Мотив исполнителя (R-01): вечером 05.11 худрук показывает дублёру эту платёжку.
+  # В деловой почте она коротко и твёрдо, без «ой» и эмодзи: работу знает.
   - id: payment
     folder: "Входящие"
     subject: "Оплата по договору 14/26"
     messages:
-      - from: { person: fund_accountant, address: "buh.fond@soroka.vr" }
+      - from: { person: inna, address: "buh.fond@soroka.vr" }
         to: [{ name: "Фонд «{{ w.money.fund }}»", address: "fond.scena@soroka.vr" }]
         date: "2026-11-05T12:31"
         body: |
-          {{ c.zavyalov.io() }}, оплата по договору 14/26 прошла: п/п № 296, 1 800 000,00.
+          {{ c.zavyalov.io() }}, оплата по договору 14/26 прошла: п/п № 296, 1 800 000,00. Провела по вашему распоряжению.
 
           Акта приёмки у меня нет. Без акта год не закрою.
+
+          Гл. бухгалтер {{ c.inna.short() }}
       - from: { person: zavyalov, address: "fond.scena@soroka.vr" }
-        to: [{ person: fund_accountant, address: "buh.fond@soroka.vr" }]
+        to: [{ person: inna, address: "buh.fond@soroka.vr" }]
         date: "2026-11-05T13:04"
         body: |
-          {{ c.fund_accountant.io() }}. Акт будет после монтажа.
+          {{ c.inna.io() }}. Акт будет после монтажа.
 
           {{ c.zavyalov.short() }}
 

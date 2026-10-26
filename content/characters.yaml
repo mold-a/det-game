@@ -127,13 +127,16 @@ characters:
     in_pool: true
   - id: inna
     working: "Инна"           # строка из таблицы персонажей — для import-cast
-    role: "Буфетчица"
+    # 26.10 (решение автора, финальный заход): главный бухгалтер театра и фонда «Сцена» (было: буфетчица) и мать Волкова.
+    # Фамилия у сына отцовская (4-09, Гнедич). Пирожки и кофе для труппы — её традиция, не работа. В role — без «мать…»:
+    # role выводится в протоколах (2-12), а родство игроки узнают сами (krug-volkov, 2-17, 4-09).
+    role: "Главный бухгалтер театра и благотворительного фонда"
     importance: secondary
     last: "Рябова"
     first: "Светлана"
     middle: "Витальевна"
     gender: f
-    age: 46                   # под портрет (21.10; было 29)
+    age: 52                   # 26.10: мать дублёра (31 год); было 46 «под портрет» — при 46 сын родился бы, когда ей было 15
     photo: "portraits/inna.jpg"
     in_pool: true
   - id: dmitriy
@@ -230,5 +233,8 @@ characters:
   - { id: pharmacist, working: "Заведующая аптекой", cast: false, role: "Заведующая аптекой «{{ w.brands.pharmacy }}»", importance: background, last: "Зотова", first: "Людмила", middle: "Борисовна", gender: f, in_pool: false }
   - { id: cardiologist, working: "Кардиолог Завьялова", cast: false, role: "Врач-кардиолог (рецепт 4-04)", importance: background, last: "Ветров", first: "Сергей", middle: "Маратович", gender: m, in_pool: false }
   # 25.10 (почта фонда mail-fund, 4-15): фоновые лица писем, в бумаге не появляются.
-  - { id: fund_accountant, working: "Бухгалтер фонда «Сцена»", cast: false, role: "Главный бухгалтер фонда «{{ w.money.fund }}»", importance: background, last: "Савина", first: "Тамара", middle: "Семёновна", gender: f, in_pool: false }
+  # 26.10: fund_accountant (Савина) удалена — письма бухгалтера фонда пишет inna (главный бухгалтер театра и фонда).
   - { id: admin_culture, working: "Специалист управления культуры", cast: false, role: "Главный специалист управления культуры администрации города", importance: background, last: "Лосева", first: "Ирина", middle: "Андреевна", gender: f, in_pool: false }
+  # 26.10 (финальный заход, развязка-протокол R-01/R-02 и конверт 5): защитники на допросах 15.11. Вымышленные, cast: false.
+  - { id: defender, working: "Адвокат Волкова", cast: false, role: "Адвокат, защитник по назначению", importance: background, last: "Шубин", first: "Олег", middle: "Аркадьевич", gender: m, in_pool: false }
+  - { id: zavyalov_lawyer, working: "Адвокат Завьялова", cast: false, role: "Адвокат, защитник по соглашению", importance: background, last: "Лаврентьева", first: "Эльвира", middle: "Робертовна", gender: f, in_pool: false }
