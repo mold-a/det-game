@@ -8,8 +8,8 @@
 {% block sheet %}
 <div class="cutout cutout--note">
   <span class="cutout__scissors" aria-hidden="true">✂</span>
-  <div class="note{% if doc.qr %} note--qr{% endif %}">
-    {% if doc.qr %}<figure class="note__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>{% endif %}
+  <div class="note{% if doc.qr and doc.qrs|length < 2 %} note--qr{% endif %}">
+    {% if doc.qr and doc.qrs|length < 2 %}<figure class="note__qr" data-url="{{ doc.qr.url }}">{{ doc.qr.svg }}<figcaption>{{ doc.qr.label }}</figcaption></figure>{% endif %}
     {% if doc.meta.get("subtitle") %}<p class="note__head">{{ doc.meta.get("subtitle") }}</p>{% endif %}
     <div class="note__body">{{ doc.body_html }}</div>
     {% if doc.signed %}<div class="note__sign">{% for s in doc.signed %}<div>{{ s.name }}</div>{% endfor %}</div>{% endif %}
