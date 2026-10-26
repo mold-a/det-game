@@ -277,6 +277,8 @@ def build(
     fin = content.finale
     confession = render_document(content.docs.get(fin.confession), ctx, plan, site_env)
     letter = render_document(content.docs.get(fin.letter), ctx, plan, site_env)
+    confession2 = (render_document(content.docs.get(fin.confession2), ctx, plan, site_env)
+                   if fin.confession2 is not None else None)
 
     payloads = {r.id: result_payload(content, r, ctx, rendered) for r in content.expertise.results}
     lab_by_stage = lab_entries(content, keys, payloads, prep.params, warnings)
@@ -294,7 +296,7 @@ def build(
         pb = PackBuilder(content, ctx, salts, expanded, plan)
         for st in content.stages:
             _write_json(data / f"pack-{st.n}.json", seal_pack(keys[st.n], st.n, pb.pack(st.n, lab_by_stage[st.n])))
-        finale = build_finale(content, ctx, expanded, confession, letter)
+        finale = build_finale(content, ctx, expanded, confession, letter, confession2)
         _write_json(data / "finale.json", seal_finale(keys[content.last_stage], finale))
 
         page_keys: dict[str, str] = {}

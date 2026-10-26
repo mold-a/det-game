@@ -14,7 +14,7 @@ import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const answers = JSON.parse(readFileSync(join(here, "..", ".answers.json"), "utf8"));
-type PageInfo = { slug: string; access: "open" | "key" | "password"; url: string; key?: string; password?: string };
+type PageInfo = { slug: string; access: "open" | "key" | "password"; url: string; key?: string; password?: string; passwordHint?: string | null };
 const PAGES: Record<string, PageInfo> = Object.fromEntries(answers.pages.map((p: PageInfo) => [p.slug, p]));
 
 // Даты улик читаем из content/ (world.yaml, page.yaml), а не зашиваем: сюжет сдвигают целиком (сдвиг дат +2 дня).
@@ -54,7 +54,8 @@ async function openPage(page: Page, slug: string) {
   const p = PAGES[slug];
   expect(p, `страница ${slug} есть в .answers.json`).toBeTruthy();
   await page.goto(p.url);
-  if (p.access === "password") {
+  if (p.password) {
+    // облако: один замок (access password) или два (ключ QR в адресе + пароль)
     await page.locator('input[name="password"]').fill(p.password!);
     await page.getByRole("button", { name: "Войти" }).click();
   }
@@ -127,14 +128,18 @@ test.describe("телефон 360 px", () => {
     await expectNoHorizontalScroll(page);
   });
 
-  test("inna: снимок с брошью (дата звонка) на плитке и крупно", async ({ page }) => {
+  // 26.10: брошь больше не улика — селфи «Сын подарил» (inna/brooch.jpg); дата поста — из content, не из кода.
+  test("inna: селфи с брошью на плитке и крупно", async ({ page }) => {
+    const m = readContent("pages/inna/page.yaml").match(/datetime: "([^"]+)"\s*\n\s*photo: "inna\/brooch\.jpg"/);
+    expect(m, "в inna/page.yaml есть пост с inna/brooch.jpg").toBeTruthy();
+    const BROOCH_ISO = m![1];
     await openPage(page, "inna");
-    const tile = page.locator(".kd-tile", { hasText: ruDate(CALL_ISO) }).first();
+    const tile = page.locator(".kd-tile", { hasText: ruDate(BROOCH_ISO) }).first();
     await expectClue(tile);
     await tile.locator("button").click();
     const view = page.locator("dialog.kd-view");
     await expect(view).toBeVisible();
-    await expect(view.locator(".kd-view__meta")).toContainText(ruDate(CALL_ISO));
+    await expect(view.locator(".kd-view__meta")).toContainText(ruDate(BROOCH_ISO));
     await expect(view.locator(".kd-view__meta")).toContainText("Отметок");
     await view.getByRole("button", { name: "Закрыть" }).click();
     await expect(view).toBeHidden();
@@ -250,6 +255,11 @@ test.describe("закрытые страницы: ключ", () => {
 
     test(`${p.slug}: ключ убирается из адреса и переживает перезагрузку`, async ({ page }) => {
       await page.goto(p.url);
+      if (p.password) {
+        // облако с двумя замками: после ключа — форма пароля
+        await page.locator('input[name="password"]').fill(p.password);
+        await page.getByRole("button", { name: "Войти" }).click();
+      }
       await expect(page.locator("body")).toHaveAttribute("data-ready", "1", { timeout: 15000 });
       expect(new URL(page.url()).hash).toBe("");
       const stored = await page.evaluate((s) => sessionStorage.getItem(`detgame:page:${s}`), p.slug);
@@ -287,6 +297,49 @@ test.describe("облако: пароль", () => {
     await page.reload();
     await expect(page.locator("body")).toHaveAttribute("data-ready", "1", { timeout: 15000 });
     await expect(page.locator('input[name="password"]')).toBeHidden();
+  });
+
+  test("без ключа QR: ни формы входа, ни логина, ни подсказки — «Ссылка повреждена»", async ({ page }) => {
+    const p = PAGES.cloud;
+    test.skip(p.access !== "key", "облако с одним замком");
+    await page.goto("/p/cloud/");
+    await expect(page.getByText(BROKEN)).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("#shell-login")).toBeHidden();
+    const html = await page.content();
+    if (p.passwordHint) expect(html).not.toContain(p.passwordHint);
+    expect(await page.locator('input[name="login"]').inputValue()).toBe("");
+  });
+
+  test("«Забыли пароль?» показывает подсказку владельца; пароль принимается с пробелом и дефисом", async ({ page }) => {
+    const p = PAGES.cloud;
+    test.skip(!p.passwordHint, "в page.yaml нет password_hint");
+    await page.goto(p.url);
+    const hint = page.locator("#shell-hint");
+    await expect(page.locator('input[name="password"]')).toBeVisible();
+    await expect(hint).toBeHidden();
+    const forgot = page.getByRole("button", { name: "Забыли пароль?" });
+    await expect(forgot).toHaveAttribute("aria-expanded", "false");
+    await forgot.click();
+    await expect(hint).toBeVisible();
+    await expect(hint).toHaveText(`Подсказка владельца: ${p.passwordHint}`);
+    await expect(forgot).toHaveAttribute("aria-expanded", "true");
+    // в подсказке нет самого пароля
+    expect(p.passwordHint!.toLowerCase()).not.toContain(p.password!.toLowerCase());
+    // 360 px: форма с подсказкой без горизонтальной прокрутки
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    // нормализация пароля: регистр, пробел и дефис перед цифрами не важны («Хлестаков 4», «хлестаков-4»)
+    const spaced = p.password!.replace(/(\d+)$/, " $1").toLowerCase();
+    const dashed = p.password!.replace(/(\d+)$/, "-$1").toLowerCase();
+    expect(spaced).not.toBe(p.password);
+    await page.locator('input[name="password"]').fill(dashed);
+    await page.getByRole("button", { name: "Войти" }).click();
+    await expect(page.locator("body")).toHaveAttribute("data-ready", "1", { timeout: 15000 });
+    await page.evaluate(() => sessionStorage.clear());
+    await page.goto("about:blank"); // заново, как по QR (ключ в адресе)
+    await page.goto(p.url);
+    await page.locator('input[name="password"]').fill(spaced);
+    await page.getByRole("button", { name: "Войти" }).click();
+    await expect(page.locator("body")).toHaveAttribute("data-ready", "1", { timeout: 15000 });
   });
 });
 

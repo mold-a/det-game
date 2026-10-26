@@ -198,6 +198,16 @@ class Content:
     def last_stage(self) -> int:
         return max(s.n for s in self.stages)
 
+    @property
+    def after_final_stage(self) -> int:
+        """Конверт «после финала» (``stage: last + 1`` в documents.yaml): только печать, в сайт не попадает."""
+        return self.last_stage + 1
+
+    @property
+    def game_documents(self) -> list[Document]:
+        """Документы этапов игры (без конверта «после финала»)."""
+        return [d for d in self.documents if d.stage <= self.last_stage]
+
     def stage(self, n: int) -> Stage:
         for s in self.stages:
             if s.n == n:
@@ -592,7 +602,13 @@ def _check_documents(ld: _Loading, documents: list[Document], stages: list[Stage
     for i, d in enumerate(documents):
         loc = ("documents", i)
         if stage_ns is not None and d.stage not in stage_ns:
-            ld.err(rel, (*loc, "stage"), f"этапа {d.stage} нет в stages.yaml")
+            after = max(stage_ns) + 1
+            if d.stage != after:
+                ld.err(rel, (*loc, "stage"), f"этапа {d.stage} нет в stages.yaml (после последнего этапа — только "
+                                             f"конверт {after} «после финала»)")
+            elif d.kind != "paper" or d.page_slugs:
+                ld.err(rel, (*loc, "stage"), f"stage: {after} — конверт «после финала»: только печать, "
+                                             "kind: paper без page/pages")
         if d.kind == "online" and d.page is None:
             ld.err(rel, (*loc, "page"), "у документа kind: online должно быть поле page")
         if d.kind == "lab" and d.page_slugs:
@@ -613,7 +629,8 @@ def _check_stages(ld: _Loading, stages: list[Stage], settings: Settings | None,
     last = max(s.n for s in stages)
     n_hints = len(settings.hints.cost) if settings else None
     char_ids = {c.id for c in characters} if characters is not None else None
-    doc_ids = {d.id for d in documents} if documents is not None else None
+    # документы конверта «после финала» (stage: last + 1) ответом быть не могут
+    doc_ids = {d.id for d in documents if d.stage <= last} if documents is not None else None
     for si, st in enumerate(stages):
         sloc = ("stages", si)
         if st.n != si + 1:
@@ -915,8 +932,11 @@ def _check_finale(ld: _Loading, fin: Finale, characters: list[Character] | None,
     whos = [f.who for f in fin.fates if f.who is not None]
     for d in sorted(_dupes(whos)):
         ld.warn(rel, "fates", f"судьба персонажа «{d}» указана несколько раз")
-    for name in ("confession", "letter"):
-        _load_doc(ld, rel, (name,), getattr(fin, name), docs)
+    for name in ("confession", "confession2", "letter"):
+        if getattr(fin, name) is not None:
+            _load_doc(ld, rel, (name,), getattr(fin, name), docs)
+    if fin.confession2 is not None and fin.confession2 in (fin.confession, fin.letter):
+        ld.err(rel, ("confession2",), "confession2 — второй документ развязки: другой файл, не confession и не letter")
 
 
 def _check_doc_ids(ld: _Loading, docs: dict[str, DocFile]) -> None:
@@ -1142,8 +1162,9 @@ def _check_pages(ld: _Loading, pages: dict[str, PageBase], characters: list[Char
         if page.locked == "password" and not isinstance(page, CloudPage):
             ld.err(rel, "locked", "locked: password поддерживается только страницей с паролем (cloud)")
         if isinstance(page, CloudPage):
-            if page.locked != "password":
-                ld.err(rel, "locked", "у страницы с password должно быть locked: password")
+            if page.locked is False:
+                ld.err(rel, "locked", "у страницы с password должно быть locked: true (ключ QR + пароль, два замка) "
+                                      "или locked: password (только пароль)")
             if not page.password.strip():
                 ld.err(rel, "password", "пустой пароль")
             _check_unique(ld, rel, page.folders, ("folders",))

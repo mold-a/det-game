@@ -275,7 +275,7 @@ ffprobe -v error -show_entries format=duration:stream=codec_name,width,height,r_
 | `krug-volkov` | `AV-7`, `CV-7`, `VK-01`–`VK-03` | 5 |
 | `krug-levin` | `AV-8`, `CV-6`, `LV-01` | 3 |
 | Новые страницы «Круга» | `AV-9`–`AV-15`, `CV-8`, `CV-9`, `ZV-01`, `GN-01`, `GN-02`, `ZU-01`, `DM-01`, `RZ-01`, `KZ-01`, `KZ-02`: `krug-zavyalov`, `krug-gnedich`, `krug-zuev`, `krug-gorohova`, `krug-reznikova`, `krug-kuznecov`, `krug-ryabova` | 17 |
-| `inna` («Кадр») | `AV-6`, `S05` (брошь, улика), `IN-10` (улика), `S20`, `S21`, `S23`, `S24`: `media/inna/` | 7 |
+| `inna` («Кадр») | `AV-6`, `S05` (брошь; с 26.10 не улика), `S20`, `S21`, `S23`, `S24`: `media/inna/` (`IN-10` снят 26.10, файл удалён) | 6 |
 | Бумага | `S08`–`S10` (1-10), `S11`–`S16`, `S11a`, `S11b` (2-03), `S17`, `S18` (2-06; крупный фрагмент `S18b` убран 24.10 — S-83): `media/paper/` | 13 |
 | «Призма», новости | `S06`, `S07` (`media/lab/`, улики), `NM-01`, `F06`, `F07`, `X01` (`media/news*/`), `X04a`, `X04b` (`media/lab/`) | 8 |
 | Сайты театра, фонда, клуба | `F01`, `F02` (`media/theater/`), `F05` (`media/fund/`), `F08`, `X02a`–`X02c` (`media/auction/`) | 7 |

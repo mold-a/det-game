@@ -26,7 +26,7 @@ from engine.build import build  # noqa: E402
 from engine.media import src_file  # noqa: E402
 from engine.content import ContentError, load_content  # noqa: E402
 from engine.models import CallPage, NewsPage, SitePage, SocialPage, SocialStubPage  # noqa: E402
-from engine.pages import check_links, cloud_password_norm, page_css, rendered_link_problems  # noqa: E402
+from engine.pages import check_links, open_password_payload, page_css, rendered_link_problems  # noqa: E402
 from engine.qr import plan_cards, qr_url  # noqa: E402
 from engine.templating import RenderError, TemplateRefError, make_context, make_link, render  # noqa: E402
 from engine.util import b64u_encode  # noqa: E402
@@ -142,14 +142,18 @@ def test_site_models_validate_blocks(fx):
 
 def test_link_open_closed_and_qr_format(tmp_path):
     c = load_content(ROOT / "content")
-    salts = salts_mod.load_or_init(tmp_path / "s.json", units=[], stages=[], pages=["inna", "pharma", "video"])
+    salts = salts_mod.load_or_init(tmp_path / "s.json", units=[], stages=[], pages=["inna", "pharma", "video", "cloud"])
     link = make_link(c.pages, salts)
     assert link("gromov") == "/p/gromov/"
     key = b64u_encode(salts.page_key("inna"))
     assert link("inna") == f"/p/inna/#k={key}"
     # тот же адрес, что в QR (с доменом)
     assert qr_url("https://x.ru", "inna", key) == "https://x.ru" + link("inna")
-    assert link("cloud") == "/p/cloud/"  # облако — пароль, без ключа в адресе
+    # облако: два замка (locked: true) — ключ в адресе, как в QR записки; один замок (password) — без ключа
+    if c.pages["cloud"].locked is True:
+        assert link("cloud") == f"/p/cloud/#k={b64u_encode(salts.page_key('cloud'))}"
+    else:
+        assert link("cloud") == "/p/cloud/"
     with pytest.raises(TemplateRefError):
         link("nope")
     with pytest.raises(TemplateRefError):
@@ -311,9 +315,8 @@ def test_links_rendered_with_keys_and_open_pages_stay_open(built_fx):
     assert 'href="/p/krug-private/"' in read(dist, "gromov") and 'href="/p/krug/"' in read(dist, "gromov")
     # из облака (закрыто паролем) — на auction с ключом во фрагменте, как в QR
     page = c.pages["cloud"]
-    key = crypto.cloud_key(cloud_password_norm(page), salts.cloud, c.settings.crypto.iter_stage)
-    box = json.loads((dist / "p/cloud/payload.json").read_text(encoding="utf-8"))["box"]
-    html = json.loads(crypto.open_(key, box, "page/cloud"))["html"]
+    box = json.loads((dist / "p/cloud/payload.json").read_text(encoding="utf-8"))
+    html = open_password_payload(page, box, salts.page_key("cloud") if page.locked is True else None)[0]["html"]
     assert f'href="/p/auction/#k={b64u_encode(salts.page_key("auction"))}"' in html
     assert rendered_link_problems(c, salts, {"cloud": html}) == []
     # подмена ключа в ссылке ловится

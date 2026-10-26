@@ -1,6 +1,9 @@
 {# Оболочка закрытой страницы (FORMATS §6.3–6.4, §9.3): без сюжетного текста.
    Содержимое — в /p/<slug>/payload.json, его расшифровывает /assets/js/pages/shell.js.
-   Видно до расшифровки только: название бренда (brand), для облака — логин (account),
+   Видно до расшифровки только: название бренда (brand), для облака с одним замком (access password) —
+   логин (account) и подсказка владельца (password_hint, по кнопке «Забыли пароль?»); у облака с двумя
+   замками (access key + пароль, login_sealed) форма пустая и скрыта: логин и подсказку shell.js берёт из
+   расшифрованного по ключу QR,
    для video — шапка системы из chrome (F19). Тексты ниже — интерфейсные. #}
 {% extends "base.html" %}
 {% block body_attrs %} data-slug="{{ slug }}" data-type="{{ ptype }}" data-access="{{ access }}"{% endblock %}
@@ -26,13 +29,15 @@
     <div class="shell__body">
       <p class="shell__status" id="shell-status" role="status">Открываем страницу…</p>
 
-      {% if access == "password" %}
+      {% if access == "password" or login_sealed %}
       {% set acc = account or "" %}
       <form class="shell__login" id="shell-login" autocomplete="off" novalidate hidden>
         <h1 class="shell__title">Вход в хранилище</h1>
         <label class="shell__field">
           <span class="shell__label">Логин</span>
-          {% if "TODO(content)" in acc or not acc %}
+          {% if login_sealed %}
+          <input name="login" value="" readonly aria-readonly="true">
+          {% elif "TODO(content)" in acc or not acc %}
           <input name="login" value="" placeholder="Здесь будет логин" readonly aria-readonly="true">
           {% else %}
           <input name="login" value="{{ acc }}" readonly aria-readonly="true">
@@ -42,6 +47,12 @@
           <span class="shell__label">Пароль</span>
           <input name="password" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required>
         </label>
+        {% if password_hint or login_sealed %}
+        <div class="shell__forgot"{% if login_sealed %} hidden{% endif %}>
+          <button class="shell__forgot-btn" id="shell-forgot" type="button" aria-expanded="false" aria-controls="shell-hint">Забыли пароль?</button>
+          <p class="shell__hint" id="shell-hint" hidden>Подсказка владельца: <span class="shell__hint-text" id="shell-hint-text">{{ password_hint or "" }}</span></p>
+        </div>
+        {% endif %}
         <p class="shell__error" id="shell-error" role="alert" hidden>Неверный пароль</p>
         <button class="shell__submit" type="submit">Войти</button>
       </form>

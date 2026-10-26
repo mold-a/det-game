@@ -219,3 +219,55 @@
 .blank__fields dd {
   overflow-wrap: anywhere;
 }
+
+/* ------------------------------------------------------------------ протокол (развязка)
+   Та же разметка, что у бумажного протокола (engine/protocol.py): поля шапки «метка — значение»,
+   реплики с фамилиями (.who--q — спрашивающий, .who--a — отвечающий цветом печати), пометки
+   о предъявленном (.rem) и примечание (.proto__note), подписи участников. */
+
+.proto-fields {
+  margin-top: 0;
+}
+
+.blank__body .qa .who {
+  font-family: var(--font-ui);
+  font-size: var(--fs-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-right: 0.35em;
+}
+
+.blank__body .qa .who--a {
+  color: var(--seal);
+}
+
+.blank__body .qa-cont {
+  margin-top: 0.4em;
+}
+
+.blank__body .rem {
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--rule);
+  font-family: var(--font-ui);
+  font-size: var(--fs-1);
+  line-height: var(--lh-ui);
+  color: var(--muted);
+}
+
+.blank__body .proto__note-label {
+  font-family: var(--font-ui);
+  font-size: var(--fs-1);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.blank__body .proto__note p + p {
+  margin-top: 0.6em;
+}
+
+/* Подписи участников протокола — колонки линий и фамилий выровнены по всем строкам. */
+.blank--protocol .blank__sign {
+  grid-template-columns: minmax(0, 1fr) minmax(4rem, 10rem) minmax(0, 9rem);
+}

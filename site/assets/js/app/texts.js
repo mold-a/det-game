@@ -351,7 +351,8 @@ export const T = Object.freeze({
     verdict: { true: "верно", false: "неверно" },
     toEnding: "Перейти к развязке",
     ending: "Развязка",
-    endingParts: ["Признание", "Письмо", "Судьбы"],
+    // Шаги развязки: признание (confession), второй протокол (confession2, если есть в finale.json), письмо, судьбы.
+    endingParts: { confession: "Признание", confession2: "Второй допрос", letter: "Письмо", fates: "Судьбы" },
     fates: "Судьбы",
     restart: "Начать заново",
     finaleError: "Не удалось открыть развязку. Обновите страницу.",

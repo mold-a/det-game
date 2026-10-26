@@ -1,5 +1,6 @@
 {# Бланк документа (docs/04 «/lab/», docs/05 §1): вид, номер, название, текст, медиа, подписи.
-   Контекст (engine/documents.py): doc_id, title, form, body_html (Markup), media [{attrs, kind}].
+   Контекст (engine/documents.py): doc_id, title, form, body_html (Markup), media [{attrs, kind}];
+   у протокола с полями шапки — proto (engine/protocol.py: interview) и signed [{role, name}].
    Бланк лежит только внутри зашифрованных записей и развязки. #}
 <article class="blank blank--{{ form }}"{% if doc_id %} data-doc="{{ doc_id }}"{% endif %}>
   <header class="blank__head">
@@ -8,8 +9,9 @@
     {% if doc_id and not doc_id.startswith("R-") %}<p class="blank__no">№&nbsp;{{ doc_id }}</p>{% endif %}
     <h1 class="blank__title">{{ title }}</h1>
   </header>
+  {% block fields %}{% endblock %}
   <div class="blank__body">
-{{ body_html }}
+{% block body_content %}{{ body_html }}{% endblock %}
   </div>
   {% for m in media %}
   <figure class="blank__media">

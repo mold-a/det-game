@@ -7,6 +7,9 @@
 - ``locked: false`` → ``p/<slug>/index.html`` = ``page_open.html`` с фрагментом, прямые ``src``;
 - ``locked: true`` → ``page_shell.html`` + ``payload.json`` (``Box`` на ключе ``K_p``, ``aad = page/<slug>``);
 - ``locked: password`` → ``page_shell.html`` + ``{"salt", "iter", "box"}`` на ключе от пароля.
+- облако с ``locked: true`` (два замка, docs/02 §3.9) → ``page_shell.html`` + Box на ключе страницы, внутри
+  ``{"v", "slug", "type", "title", "html": "", "login": {"account", "hint"}, "salt", "iter", "box"}``, где
+  ``box`` — содержимое на ключе от пароля. Без QR не видно ни формы входа, ни логина, ни подсказки.
 
 Здесь же — ссылки между страницами: ``page:`` в структурных полях и ``{{ link('slug') }}`` в текстах
 (``engine.templating.make_link``), проверки §4.1 (``check_links``).
@@ -41,7 +44,7 @@ from engine.util import format_loc, iter_strings
 STUB_BODY_HTML = "<p>Здесь будет текст.</p>"
 HIDDEN_FIELDS = {"password", "forbidden", "qr_label", "doc", "stage", "type", "stub", "gate"}
 # Поля, видимые в открытой оболочке закрытой страницы или служебные — не «тексты страницы» для leak scan.
-SHELL_FIELDS = {"slug", "locked", "brand", "account", "skin"}
+SHELL_FIELDS = {"slug", "locked", "brand", "account", "skin", "password_hint"}
 # Скрипт открытых страниц: общие окна/вкладки/просмотр фото + модуль типа (PAGE_MODULES в page-modules.js).
 OPEN_ENTRY = "/assets/js/pages/open.js"
 SHELL_ENTRY = "/assets/js/pages/shell.js"
@@ -424,8 +427,19 @@ def build_page(content: Content, page: PageBase, ctx: dict, salts: Any, plan: Me
     inner = {"v": 1, "slug": slug, "type": ptype, "title": title, "html": fragment, "media": collector.refs}
     from engine.lab import dumps
 
-    if access == "key":
-        payload: dict = crypto.seal(salts.page_key(slug), dumps(inner), f"page/{slug}")
+    two_locks = sealed_login(page)
+    if two_locks:
+        # два замка: снаружи ключ QR, внутри — форма пароля (логин и подсказка — только здесь)
+        assert isinstance(page, CloudPage)
+        iters = content.settings.crypto.iter_stage
+        key = crypto.cloud_key(cloud_password_norm(page), salts.cloud, iters)
+        outer = {"v": 1, "slug": slug, "type": ptype, "title": title, "html": "",
+                 "login": {"account": data.get("account"), "hint": data.get("password_hint")},
+                 "salt": crypto.b64u_encode(salts.cloud), "iter": iters,
+                 "box": crypto.seal(key, dumps(inner), f"page/{slug}")}
+        payload: dict = crypto.seal(salts.page_key(slug), dumps(outer), f"page/{slug}")
+    elif access == "key":
+        payload = crypto.seal(salts.page_key(slug), dumps(inner), f"page/{slug}")
     else:
         assert isinstance(page, CloudPage)
         iters = content.settings.crypto.iter_stage
@@ -438,8 +452,44 @@ def build_page(content: Content, page: PageBase, ctx: dict, salts: Any, plan: Me
         body_class=body_classes(page, "shell"),
         slug=slug, ptype=ptype, access=access, brand=shell_brand,
         account=data.get("account") if access == "password" else None,
+        password_hint=data.get("password_hint") if access == "password" else None,
+        login_sealed=two_locks,
     )
     return PageOut(slug, access, html, payload, fragment, collector.refs)
+
+
+def has_password(page: PageBase) -> bool:
+    """Страница с паролем (облако): ``locked: password`` — один замок, ``locked: true`` — ключ QR + пароль."""
+    return isinstance(page, CloudPage)
+
+
+def sealed_login(page: PageBase) -> bool:
+    """Облако с двумя замками: ключ QR снаружи, пароль внутри (``locked: true`` + ``password``)."""
+    return has_password(page) and page.locked is True
+
+
+def sealed_login_fields(page: PageBase) -> set[str]:
+    """Поля оболочки, которые у облака с двумя замками лежат внутри payload (секрет этапа страницы):
+    логин и подсказка владельца. У облака с одним замком они видны до расшифровки (не секрет)."""
+    return {"account", "password_hint"} if sealed_login(page) else set()
+
+
+def open_password_payload(page: CloudPage, payload: dict, page_key: bytes | None) -> tuple[dict, dict | None]:
+    """Открыть payload страницы с паролем, как браузер: → (содержимое, форма входа или ``None``).
+    Два замка (``locked: true``): ключ страницы → ``{login, salt, iter, box}`` → пароль → содержимое;
+    один замок (``locked: password``): payload = ``{salt, iter, box}`` → пароль → содержимое."""
+    import json
+
+    slug = page.slug
+    outer = None
+    if sealed_login(page):
+        if page_key is None:
+            raise ValueError("облако с двумя замками: нужен ключ страницы")
+        outer = json.loads(crypto.open_(page_key, payload, f"page/{slug}").decode("utf-8"))
+        payload = outer
+    key = crypto.cloud_key(cloud_password_norm(page), crypto.b64u_decode(payload["salt"]), payload["iter"])
+    inner = json.loads(crypto.open_(key, payload["box"], f"page/{slug}").decode("utf-8"))
+    return inner, outer
 
 
 def cloud_password_norm(page: CloudPage) -> str:
@@ -455,7 +505,7 @@ def locked_page_texts(content: Content, ctx: dict) -> list[tuple[str, str]]:
     for slug, page in content.pages.items():
         if page.locked is False or is_pacing(page):
             continue
-        data = page.model_dump(by_alias=True, exclude=HIDDEN_FIELDS | SHELL_FIELDS)
+        data = page.model_dump(by_alias=True, exclude=HIDDEN_FIELDS | (SHELL_FIELDS - sealed_login_fields(page)))
         rendered = render_tree(data, ctx)
         from engine.util import format_loc, iter_strings
 

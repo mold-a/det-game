@@ -63,7 +63,8 @@ def make(out: Path) -> dict:
         "inna": f"/p/inna/#k={b64u_encode(salts.page_key('inna'))}",
         "video": f"/p/video/#k={b64u_encode(salts.page_key('video'))}",
         "video_sha256": hashlib.sha256((media / video_rel).read_bytes()).hexdigest(),
-        "cloud": "/p/cloud/",
+        # облако с двумя замками (locked: true): адрес с ключом страницы, как в QR записки
+        "cloud": "/p/cloud/" + (f"#k={b64u_encode(salts.page_key('cloud'))}" if cloud.get("locked") is True else ""),
         "cloud_password": cloud["password"],
         "cloud_folder": photos["id"],
         "cloud_photos": len(photos["items"]),

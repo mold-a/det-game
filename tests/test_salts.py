@@ -114,7 +114,7 @@ def test_for_current_content(tmp_path):
     assert set(s.data["stages"]) == {"1", "2", "3", "4"}
     # ключи — у закрытых страниц (locked: true); cloud — по паролю
     locked = {slug for slug, pg in c.pages.items() if pg.locked is True}
-    assert locked >= {"inna", "pharma", "video"} and "cloud" not in locked
+    assert locked >= {"inna", "pharma", "video", "cloud"}  # облако — два замка: ключ QR + пароль
     assert set(s.data["pages"]) == locked
     assert len(b64u_decode(s.data["pages"]["video"])) == 32
     assert ensure_for_content(c, path).data == s.data

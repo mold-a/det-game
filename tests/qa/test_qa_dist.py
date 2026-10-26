@@ -477,16 +477,27 @@ def _secret_texts(env) -> list[tuple[str, str]]:
     for pg in A["pages"]:
         if pg.get("gate") == "pacing":
             continue  # закрыта ради темпа, текст не секрет (docs/02 §3.10); утечку ключа проверяет engine check
-        if pg["access"] == "key":
+        if pg.get("password"):
+            inner, login = _open_cloud(dist, pg)
+            out += [(f"page:{pg['slug']}.login.{k}", v) for k, v in (login or {}).items() if v]
+        elif pg["access"] == "key":
             inner = open_json(b64d(pg["key"]), _load(dist, f"p/{pg['slug']}/payload.json"))
-        elif pg["access"] == "password":
-            pl = _load(dist, "p/cloud/payload.json")
-            pw = normalize("password", pg["password"])
-            inner = open_json(pbkdf2(f"detgame/cloud/v1|{pw}".encode(), b64d(pl["salt"]), pl["iter"]), pl["box"])
         else:
             continue
         out.append((f"page:{pg['slug']}", _visible(inner["html"])))
     return out
+
+
+def _open_cloud(dist: Path, pg: dict) -> tuple[dict, dict | None]:
+    """Облако как браузер: один замок (access password) — пароль; два (access key + password) — ключ QR →
+    форма входа {login, salt, iter, box} → пароль. → (содержимое, логин и подсказка или None)."""
+    pl = _load(dist, f"p/{pg['slug']}/payload.json")
+    login = None
+    if pg["access"] == "key":
+        pl = open_json(b64d(pg["key"]), pl)
+        login = pl["login"]
+    pw = normalize("password", pg["password"])
+    return open_json(pbkdf2(f"detgame/cloud/v1|{pw}".encode(), b64d(pl["salt"]), pl["iter"]), pl["box"]), login
 
 
 def _open_corpus(dist: Path) -> dict[str, str]:
@@ -559,7 +570,8 @@ def _public_brand_shingles() -> set[str]:
     даже если те же слова есть в закрытых документах (протоколы, бланки)."""
     import yaml
     world = yaml.safe_load((ROOT / "content" / "world.yaml").read_text(encoding="utf-8"))
-    names = [world["police"]["department"]]
+    # бренды мира (шапки открытых страниц и сайта лаборатории, как engine.check.shell_texts)
+    names = [world["police"]["department"], *(str(v) for v in world["brands"].values())]
     out: set[str] = set()
     for n in names:
         out |= _shingles(base(n).split(), SHINGLE)
@@ -750,10 +762,8 @@ def test_check_detects(env, tmp_path, name):
 
 
 def _cloud_display_date(env) -> str:
-    pg = next(p for p in env["A"]["pages"] if p["access"] == "password")
-    pl = _load(env["dist"], "p/cloud/payload.json")
-    pw = normalize("password", pg["password"])
-    inner = open_json(pbkdf2(f"detgame/cloud/v1|{pw}".encode(), b64d(pl["salt"]), pl["iter"]), pl["box"])
+    pg = next(p for p in env["A"]["pages"] if p.get("password"))
+    inner, _ = _open_cloud(env["dist"], pg)
     m = re.search(r"\d\d\.\d\d\.\d{4},? \d\d:\d\d", _visible(inner["html"]))
     assert m, "в облаке нет даты в формате показа"
     return m.group(0)

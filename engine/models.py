@@ -216,13 +216,33 @@ class DocumentsFile(Strict):
     documents: list[Document]
 
 
+class PaperSignature(Strict):
+    role: str
+    name: str
+
+
 class DocFrontMatter(Strict):
-    """Front matter документов ``content/documents/*.md``."""
+    """Front matter документов ``content/documents/*.md``.
+
+    У протокола (``form: protocol``, развязка R-01, R-02) — поля шапки как у бумажного протокола
+    (``PaperFrontMatter``): ``date``, ``place``, ``meta`` (``person_label``, ``person``, ``start``, ``end``,
+    ``by_label``, ``by``, ``present``), ``signed``; сайт выводит их через ``engine/protocol.py``."""
 
     id: DocId
     form: Literal["expert", "operator", "video", "protocol", "letter"]
     title: str
     media: list[str] = []
+    date: str | None = None
+    place: str | None = None
+    meta: dict[str, Any] = {}
+    signed: list[PaperSignature] = []
+
+    @model_validator(mode="after")
+    def _protocol_fields(self) -> "DocFrontMatter":
+        extra = [k for k in ("date", "place", "meta", "signed") if k in self.model_fields_set]
+        if extra and self.form != "protocol":
+            raise ValueError(f"поля {', '.join(extra)} бывают только у протокола (form: protocol)")
+        return self
 
 
 # ---------------------------------------------------------------- stages.yaml
@@ -410,6 +430,7 @@ class Thanks(Strict):
 
 class Finale(Strict):
     confession: str
+    confession2: str | None = None  # второй протокол развязки: после confession, до письма
     letter: str
     fates: list[Fate]
     thanks: Thanks | None = None
@@ -830,6 +851,7 @@ class CloudPage(PageBase):
     slug: Literal["cloud"]
     type: Literal["cloud"] = "cloud"
     password: str
+    password_hint: str | None = None  # подсказка владельца: открытый текст формы входа («Забыли пароль?»)
     brand: str
     account: str
     banner: CloudBanner
@@ -1164,11 +1186,6 @@ class ChatFile(Strict):
 # Тексты документов конвертов 1–4: front matter + Markdown. Только для печати (print/paper/),
 # в dist/ не попадают. Бланк ``form`` — имя шаблона site/templates/print/paper/<form>.html
 # (список расширяемый: проверяется наличие шаблона, а не перечисление здесь).
-
-
-class PaperSignature(Strict):
-    role: str
-    name: str
 
 
 class PaperFrontMatter(Strict):

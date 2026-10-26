@@ -14,7 +14,7 @@ from engine.lab import dumps, lab_catalog
 from engine.media import MediaPlan
 from engine.models import FormField, Question, UnitSpec
 from engine.pages import stage_page_index
-from engine.templating import render, render_markdown
+from engine.templating import make_link, render, render_markdown
 from engine.util import b64u_encode, canonical_json
 
 
@@ -120,9 +120,12 @@ class PackBuilder:
         return out
 
     def documents(self, n: int) -> list[dict]:
+        # ссылка онлайн-документа — с ключом, если страница закрыта по ключу (облако с двумя замками):
+        # пакет этапа n зашифрован, ключ страницы этапа n в нём не утечка
+        link = make_link(self.content.pages, self.salts)
         return [
             {"id": d.id, "stage": d.stage, "kind": d.kind, "title": render(d.title, self.ctx),
-             "link": f"/p/{d.page_slugs[0]}/" if d.kind == "online" else None}
+             "link": link(d.page_slugs[0]) if d.kind == "online" else None}
             for d in self.content.documents
             if d.stage == n and d.kind in ("paper", "online")
         ]
@@ -151,7 +154,7 @@ def seal_pack(key_n: bytes, n: int, pack: dict) -> dict:
 
 
 def build_finale(content: Content, ctx: dict, expanded: dict[str, Expanded], confession: RenderedDoc,
-                 letter: RenderedDoc) -> dict:
+                 letter: RenderedDoc, confession2: RenderedDoc | None = None) -> dict:
     c = ctx["c"]
     fates = [
         {"who": f.who, "name": getattr(c, f.who).full() if f.who else None, "text": render(f.text, ctx)}
@@ -159,6 +162,8 @@ def build_finale(content: Content, ctx: dict, expanded: dict[str, Expanded], con
     ]
     answers = {u.path: display_answer(u, expanded[u.path], content, ctx) for u in units(content)}
     out = {"v": 1, "confession": confession.record(), "letter": letter.record(), "fates": fates, "answers": answers}
+    if confession2 is not None:  # второй протокол развязки (finale.yaml: confession2): после confession, до письма
+        out["confession2"] = confession2.record()
     thanks = content.finale.thanks
     if thanks is not None:  # необязательный блок: ключа нет, пока поля нет в finale.yaml
         out["thanks"] = {k: render(getattr(thanks, k), ctx) for k in ("title", "text", "signature")}

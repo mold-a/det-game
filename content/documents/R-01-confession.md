@@ -4,24 +4,22 @@ form: protocol
 title: "Протокол допроса подозреваемого {{ c.volkov.full('gen') }}"
 # 26.10 (решение автора, финальный заход): развязка — протокол допроса с шапкой, как бумажные протоколы (2-17, 4-09).
 # Поля ниже — как у content/paper/*.md (PaperFrontMatter); финал выводит их через тот же конвейер (paper.interview + dialog_html).
-# Текст тела = content/paper/stage5/5-02.md (конверт 5; после поддержки этапа 5 — content/paper/5-02.md) — править оба.
-# ЖДЁТ ДВИЖКА (26.10): DocFrontMatter пока принимает только id, form, title, media. Когда финал научится выводить протокол
-# через paper.interview + dialog_html — снять «# » со строк ниже (как у content/paper/5-02.md).
-# date: "2026-11-15T15:20"
-# place: "{{ w.police.department }}, кабинет № 214"
-# meta:
-#   end: "17:05"
-#   person_label: "{{ c.volkov.g('Допрошен', 'Допрошена') }} в качестве {{ c.volkov.g('подозреваемого', 'подозреваемой') }}"
-#   person:
-#     - "{{ c.volkov.full() }}, {{ 2026 - c.volkov.age }} г. р."
-#     - "{{ c.volkov.g('артист', 'артистка') }} {{ w.theater.short }}, дублёр роли {{ w.play.role_main }}а"
-#   by_label: "Допросил"
-#   by: "руководитель следственной группы майор юстиции {{ c.belyaev.short() }}"
-#   present: "защитник — адвокат {{ c.defender.short() }} (по назначению)"
-# signed:
-#   - { role: "{{ c.volkov.g('Подозреваемый', 'Подозреваемая') }}", name: "{{ c.volkov.short() }}" }
-#   - { role: "Защитник", name: "{{ c.defender.short() }}" }
-#   - { role: "Допросил", name: "{{ c.belyaev.short() }}" }
+# Текст тела = content/paper/5-02.md (конверт 5) — править оба.
+date: "2026-11-15T15:20"
+place: "{{ w.police.department }}, кабинет № 214"
+meta:
+  end: "17:05"
+  person_label: "{{ c.volkov.g('Допрошен', 'Допрошена') }} в качестве {{ c.volkov.g('подозреваемого', 'подозреваемой') }}"
+  person:
+    - "{{ c.volkov.full() }}, {{ 2026 - c.volkov.age }} г. р."
+    - "{{ c.volkov.g('артист', 'артистка') }} {{ w.theater.short }}, дублёр роли {{ w.play.role_main }}а"
+  by_label: "Допросил"
+  by: "руководитель следственной группы майор юстиции {{ c.belyaev.short() }}"
+  present: "защитник — адвокат {{ c.defender.short() }} (по назначению)"
+signed:
+  - { role: "{{ c.volkov.g('Подозреваемый', 'Подозреваемая') }}", name: "{{ c.volkov.short() }}" }
+  - { role: "Защитник", name: "{{ c.defender.short() }}" }
+  - { role: "Допросил", name: "{{ c.belyaev.short() }}" }
 ---
 {%- set g = c.volkov.g -%}
 {%- set z = c.zavyalov.g -%}

@@ -72,13 +72,18 @@ test("полная игра: этапы, лаборатория, финал, и�
   await expect(page.locator(".final-score .stamp")).toBeVisible();
   await expect(page.locator(".review tbody tr.is-wrong")).toHaveCount(0);
 
-  // Развязка: признание → письмо → судьбы → «Вернуться к делу»
+  // Развязка: признание → второй протокол (если есть) → письмо → судьбы → «Вернуться к делу»
   await page.getByRole("button", { name: "Перейти к развязке" }).click();
   await expect(page.locator("#final-title")).toHaveText(/Признание/);
+  if (A.endingSteps.includes("confession2")) {
+    await page.getByRole("button", { name: "Дальше" }).click();
+    await expect(page.locator("#final-title")).toHaveText(/Второй допрос/);
+  }
   await page.getByRole("button", { name: "Дальше" }).click();
   await expect(page.locator("#final-title")).toHaveText(/Письмо/);
   await page.getByRole("button", { name: "Дальше" }).click();
   await expect(page.locator(".fates__item").first()).toBeVisible();
+  if (A.endingSteps.includes("thanks")) await page.getByRole("button", { name: "Дальше" }).click(); // «Спасибо за игру» — последний шаг
   await page.getByRole("link", { name: "Вернуться к делу" }).click();
   await expect(page.locator(".notice")).toContainText("Игра завершена");
 

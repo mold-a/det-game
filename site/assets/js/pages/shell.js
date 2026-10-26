@@ -11,7 +11,12 @@
 //
 // Облако (access = "password"): payload = {salt, iter, box}. Ключ — cloudKey(normalize("password",
 //   ввод), salt, iter); неверный → «Неверный пароль», без блокировок и штрафов. После входа в
-//   sessionStorage кладётся b64u выведенного ключа, а не пароль (F13).
+//   sessionStorage кладётся b64u выведенного ключа, а не пароль (F13). «Забыли пароль?» показывает
+//   подсказку владельца (password_hint), как в настоящих сервисах.
+// Облако с двумя замками (access = "key", страница cloud с паролем, docs/02 §3.9): ключ QR открывает
+//   payload → {v, slug, html: "", login: {account, hint}, salt, iter, box}; дальше — форма пароля, как
+//   выше, но логин и подсказка приходят из расшифрованного (без QR их не видно). Ключ пароля — в
+//   sessionStorage под «<имя>:pw».
 
 import { open, b64uDecode, b64uEncode, utf8Decode, cloudKey, KEY_LEN } from "../core/crypto.js";
 import { normalize } from "../core/normalize.js";
@@ -175,6 +180,12 @@ async function runKey(slug, storageName) {
     throw e;
   }
   storageSet(storageName, raw);
+  if (inner.login) {
+    // второй замок: пароль облака (логин и подсказка — из расшифрованного по ключу QR)
+    if (!inner.box || !inner.salt || !(inner.iter >= 1)) throw new BrokenLink("login payload");
+    await loginFlow(slug, `${storageName}:pw`, inner, inner.login);
+    return;
+  }
   await render(slug, inner);
 }
 
@@ -182,6 +193,12 @@ async function runPassword(slug, storageName) {
   takeHashKey(); // на облаке фрагмента быть не должно; если есть — убрать
   const payload = await fetchPayload(slug);
   if (!payload || !payload.box || !payload.salt || !(payload.iter >= 1)) throw new LoadFailed("cloud payload");
+  await loginFlow(slug, storageName, payload, null);
+}
+
+/** Форма пароля облака: ``box`` под cloudKey(пароль, salt, iter). ``login`` — {account, hint} из
+ *  расшифрованного payload (облако с двумя замками) или null (логин и подсказка уже в оболочке). */
+async function loginFlow(slug, storageName, payload, login) {
   const salt = b64uDecode(payload.salt);
 
   const stored = keyFromB64(storageGet(storageName));
@@ -195,11 +212,13 @@ async function runPassword(slug, storageName) {
   }
 
   const form = $("shell-login");
+  if (login) fillLogin(form, login);
   const input = form.elements.password;
   const error = $("shell-error");
   const submit = form.querySelector('[type="submit"]');
   const submitText = submit.textContent;
   show("shell-login");
+  setupForgot();
 
   const fail = (text) => {
     error.textContent = text;
@@ -241,6 +260,29 @@ async function runPassword(slug, storageName) {
       submit.disabled = false;
       submit.textContent = submitText;
     }
+  });
+}
+
+/** Логин и подсказка владельца из расшифрованного payload (облако с двумя замками). */
+function fillLogin(form, login) {
+  if (login.account) form.elements.login.value = login.account;
+  const hintText = $("shell-hint-text");
+  const forgot = form.querySelector(".shell__forgot");
+  if (hintText && login.hint) {
+    hintText.textContent = login.hint;
+    if (forgot) forgot.hidden = false;
+  }
+}
+
+/** «Забыли пароль?» → подсказка владельца (только если задана в page.yaml). */
+function setupForgot() {
+  const btn = $("shell-forgot");
+  const hint = $("shell-hint");
+  if (!btn || !hint) return;
+  btn.addEventListener("click", () => {
+    const open = hint.hidden;
+    hint.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
   });
 }
 

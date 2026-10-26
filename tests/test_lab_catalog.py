@@ -58,10 +58,11 @@ def test_current_content_has_no_lab_errors():
     assert errors == [], text_of(errors)
 
 
-def test_pillbox_in_inventory_from_stage_1_with_stage_3_bases():
+def test_pillbox_in_inventory_from_stage_1_bases_of_result_stage():
     """Таблетница — в описи 1-09 (from_stage 1). Правило 2.1.4: результат этапа N > from_stage
-    опирается только на документы этапа N. Заключение (с документом) — на основаниях этапа 3;
-    ранние запросы (атмосферные записи этапов 1–2) отвечают нейтрально и без документа."""
+    опирается только на документы этапа N. Заключения (с документом) — на основаниях своего этапа,
+    сколько бы их ни было и на каких этапах (по контенту: 3-06 — этап 3, 4-16 — этап 4); запросы
+    раньше первого заключения (атмосферные записи) отвечают нейтрально и без документа."""
     c = load_content(CONTENT)
     pill = next(o for o in c.expertise.objects if o.id == "pillbox")
     assert pill.from_stage == 1
@@ -72,8 +73,12 @@ def test_pillbox_in_inventory_from_stage_1_with_stage_3_bases():
         if r.stage > pill.from_stage:
             assert all(docs[b].stage == r.stage for b in r.bases), r.id
     conclusions = [r for r in results if r.doc]
-    assert conclusions and all(r.stage == 3 and all(docs[b].stage == 3 for b in r.bases) for r in conclusions)
-    early = [r for r in results if r.stage < 3]
+    assert conclusions, "у таблетницы есть хотя бы одно заключение"
+    for r in conclusions:
+        assert r.stage > pill.from_stage and all(docs[b].stage == r.stage for b in r.bases), r.id
+        assert docs[r.doc].kind == "lab" and docs[r.doc].stage == r.stage, r.id
+    first = min(r.stage for r in conclusions)
+    early = [r for r in results if r.stage < first]
     assert early and all(not r.doc and r.text for r in early), "ранние записи — короткий атмосферный текст"
 
 

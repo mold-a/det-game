@@ -2,7 +2,8 @@
 // доступ с последнего этапа → предупреждение → вопросы по одному (финальные,
 // бонус последним), ответ фиксируется без оценки → после последнего ответа
 // проверка и finalFinish → finale.json (только теперь, F9) → итоги со штампом
-// ранга и разбором → развязка: признание → письмо → судьбы, «Дальше»,
+// ранга и разбором → развязка: признание → второй протокол (если есть) → письмо → судьбы,
+// «Дальше»,
 // «Вернуться к делу».
 
 import { h, clear, announce } from "./dom.js";
@@ -263,22 +264,30 @@ function reviewTable(finale) {
 
 // ------------------------------------------------------------------ развязка
 
-// Шаги развязки: признание, письмо, судьбы и (если поле есть в finale.yaml) «Спасибо за игру».
+// Шаги развязки: признание, второй протокол (если confession2 есть в finale.json), письмо, судьбы
+// и (если поле есть в finale.yaml) «Спасибо за игру».
+function endingSteps(finale) {
+  const steps = ["confession"];
+  if (finale.confession2) steps.push("confession2");
+  steps.push("letter", "fates");
+  if (finale.thanks) steps.push("thanks");
+  return steps;
+}
+
 function renderEnding(finale, part) {
-  const parts = T.final.endingParts;
-  const hasThanks = Boolean(finale.thanks);
-  const last = (hasThanks ? 3 : 2) === part;
-  if (part === 3) return renderThanks(finale);
+  const steps = endingSteps(finale);
+  const step = steps[part];
+  if (step === "thanks") return renderThanks(finale);
+  const last = part === steps.length - 1;
   const next = h("button", { type: "button", class: "btn btn--primary" }, T.next);
   let content;
-  if (part === 0) content = renderDocument(finale.confession);
-  else if (part === 1) content = renderDocument(finale.letter);
-  else
+  if (step === "fates")
     content = h(
       "ul",
       { class: "fates" },
       (finale.fates ?? []).map((f) => h("li", { class: "fates__item" }, f.name ? h("strong", { class: "fates__name" }, f.name) : null, f.name ? " " : null, f.text)),
     );
+  else content = renderDocument(finale[step]);
   const actions = h("div", { class: "q__actions no-print" });
   if (!last) {
     next.addEventListener("click", () => renderEnding(finale, part + 1));
@@ -290,7 +299,7 @@ function renderEnding(finale, part) {
   back.addEventListener("click", () => renderResults());
   actions.appendChild(back);
   sheet(
-    `${T.final.ending}. ${parts[part]}`,
+    `${T.final.ending}. ${T.final.endingParts[step]}`,
     // Название документа — в самом бланке; у судеб — заголовок раздела.
     h("div", { class: "q ending" }, content, actions),
   );

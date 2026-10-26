@@ -46,14 +46,29 @@ test("финал: ответ фиксируется, перезагрузка н
   expect(await headerScore(page)).toBe(expected);
   await expect(page.locator(".review tbody tr.is-wrong")).toHaveCount(q1.type === "form" ? q1.fields!.length : 1);
 
-  // Развязка: три части по порядку.
+  // Развязка: части по порядку (A.endingSteps): признание, второй протокол (если есть), письмо, судьбы.
+  const STEP_TITLE: Record<string, RegExp> = { confession: /Признание/, confession2: /Второй допрос/, letter: /Письмо/, fates: /Судьбы/ };
   await page.getByRole("button", { name: "Перейти к развязке" }).click();
-  await expect(page.locator("#final-title")).toHaveText(/Признание/);
-  await expect(page.locator(".ending .blank")).toBeVisible();
-  await page.getByRole("button", { name: "Дальше" }).click();
-  await expect(page.locator("#final-title")).toHaveText(/Письмо/);
-  await page.getByRole("button", { name: "Дальше" }).click();
-  await expect(page.locator("#final-title")).toHaveText(/Судьбы/);
+  const docSteps = A.endingSteps.filter((s) => s !== "thanks");
+  for (const [i, step] of docSteps.entries()) {
+    if (i > 0) await page.getByRole("button", { name: "Дальше" }).click();
+    await expect(page.locator("#final-title")).toHaveText(STEP_TITLE[step]);
+    if (step === "confession" || step === "confession2") {
+      // протокол как на бумаге: поля шапки, реплики с фамилиями, подписи участников
+      await expect(page.locator(".ending .blank--protocol")).toBeVisible();
+      await expect(page.locator(".ending .proto-fields dt").first()).toBeVisible();
+      await expect(page.locator(".ending .proto-fields")).toContainText("При допросе");
+      await expect(page.locator(".ending .qa .who--q").first()).toBeVisible();
+      await expect(page.locator(".ending .qa .who--a").first()).toBeVisible();
+      expect(await page.locator(".ending .blank__sign").count()).toBeGreaterThanOrEqual(2);
+      await expect(page.locator(".ending .blank__body")).not.toContainText("person:");
+      // 360 px: без горизонтальной прокрутки
+      const vp = page.viewportSize();
+      await page.setViewportSize({ width: 360, height: 740 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      if (vp) await page.setViewportSize(vp);
+    }
+  }
   await expect(page.locator(".fates__item").first()).toBeVisible();
 
   // «Спасибо за игру» (finale.thanks): есть шаг — после судеб; нет поля — судьбы последние.
@@ -83,7 +98,7 @@ test("финал: ответ фиксируется, перезагрузка н
   if (A.thanks) {
     await page.goto("/final/");
     await page.getByRole("button", { name: "Перейти к развязке" }).click();
-    for (let k = 0; k < 3; k++) await page.getByRole("button", { name: "Дальше" }).click();
+    for (let k = 0; k < A.endingSteps.length - 1; k++) await page.getByRole("button", { name: "Дальше" }).click();
     await expect(page.locator("#final-title")).toHaveText(A.thanks.title);
     await page.getByRole("button", { name: "Начать заново" }).click();
     await page.locator(".modal [data-action=ok]").click();

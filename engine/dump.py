@@ -14,7 +14,7 @@ from engine.answers import wrong_inputs
 from engine.build import Prepared, prepare
 from engine.content import units
 from engine.lab import lab_objects
-from engine.pages import access_of
+from engine.pages import access_of, has_password
 from engine.templating import render
 from engine.util import b64u_encode, write_text
 
@@ -94,8 +94,11 @@ def answers_data(prep: Prepared) -> dict:
             key = b64u_encode(prep.salts.page_key(slug))
             entry["url"] += f"#k={key}"
             entry["key"] = key
-        elif access == "password":
+        if has_password(page):
+            # облако: пароль (один замок — access password; два замка — access key + пароль)
             entry["password"] = page.password
+            hint = page.password_hint
+            entry["passwordHint"] = render(hint, prep.ctx) if hint else None  # «Забыли пароль?» на форме входа
         if getattr(page, "gate", None):
             entry["gate"] = page.gate  # pacing: текст не секрет для leak scan (docs/02 §3.10)
         pages.append(entry)
@@ -110,6 +113,9 @@ def answers_data(prep: Prepared) -> dict:
         "gameId": s.game_id,
         # блок «Спасибо за игру» (отрендеренный) или null, если finale.yaml без thanks — для e2e
         "thanks": {k: render(getattr(thanks, k), prep.ctx) for k in ("title", "text", "signature")} if thanks else None,
+        # шаги развязки по порядку (как endingSteps в app/final.js) — для e2e
+        "endingSteps": [k for k, on in (("confession", True), ("confession2", content.finale.confession2 is not None),
+                                         ("letter", True), ("fates", True), ("thanks", thanks is not None)) if on],
         "settings": {
             "points": {"bonus": s.points.bonus, "final": s.points.final},
             "penalties": {"wrongAttempt": s.penalties.wrong_attempt, "labNoBasis": s.penalties.lab_no_basis},

@@ -1,7 +1,7 @@
 """``python -m engine answers`` — «Аварийный конверт», ``print/answers.pdf`` (P07 п.3).
 
 Титул «Вскрывать, только если сайт недоступен»; по этапам — вопросы, верные ответы и какой
-конверт открыть дальше; экспертизы — какие запросы с какими основаниями дают результат и
+конверт открыть дальше, облако (адрес с ключом QR, пароль, подсказка владельца) — в этапе его конверта; экспертизы — какие запросы с какими основаниями дают результат и
 сами тексты результатов; финал и развязка; баллы и ранги. A4, PT Serif.
 
 Модуль назван не ``answers.py``, чтобы не путать с записями-проверками (PLAN §1).
@@ -20,12 +20,14 @@ from engine import salts as salts_mod
 from engine.answers import display_answer, expand_all, iso_to_dmy
 from engine.content import Content, load_content, units
 from engine.lab import expand_params, lower_first
+from engine.models import CloudPage
+from engine.protocol import strip_person_marks
 from engine.templating import make_context, make_link, render, render_markdown
 
 PRINT_ANSWERS = ROOT / "print" / "answers.pdf"
 KIND_LABEL = {"mandatory": "обязательный", "bonus": "бонус", "final": "финальный"}
 FOOTER = ('<div style="font-size:8px;width:100%;text-align:center;color:#777;font-family:serif">'
-          'Аварийный конверт · стр. <span class="pageNumber"></span> из <span class="totalPages"></span></div>')
+          'Аварийный конверт, стр. <span class="pageNumber"></span> из <span class="totalPages"></span></div>')
 
 
 def _tolerance_note(exp) -> str:
@@ -86,9 +88,20 @@ def emergency_data(content: Content, salts: Any = None) -> dict:
             points = {"bonus": s.points.bonus, "final": s.points.final}.get(q.kind)
             qs.append({"path": qpath, "kind": KIND_LABEL[q.kind], "points": points, "prompt": r(q.prompt),
                        "rows": rows, "order": q.type == "order"})
-        stages.append({"n": st.n, "envelope": st.envelope, "questions": qs, "next": r(st.on_complete) or None})
+        stages.append({"n": st.n, "envelope": st.envelope, "questions": qs, "next": r(st.on_complete) or None,
+                       "passwords": []})
 
+    # Пароль облака: у вопросов о нём подсказок нет, без сайта команда его иначе не узнает (ведущему).
     docs = content.documents_by_id
+    by_stage = {x["n"]: x for x in stages}
+    for page in content.pages.values():
+        if isinstance(page, CloudPage) and page.doc in docs and docs[page.doc].stage in by_stage:
+            by_stage[docs[page.doc].stage]["passwords"].append({
+                "title": r(page.qr_label) or r(docs[page.doc].title), "account": r(page.account),
+                "password": page.password, "hint": r(page.password_hint) if page.password_hint else None,
+                # два замка: сначала адрес с ключом (QR документа), потом пароль
+                "url": ctx["link"](page.slug), "doc": page.doc if page.locked is True else None})
+
     objects = {o.id: o for o in content.expertise.objects}
     types = {t.id: t for t in content.expertise.types}
     lab = []
@@ -118,10 +131,12 @@ def emergency_data(content: Content, salts: Any = None) -> dict:
         df = content.docs.get(rel)
         if df is None:
             return "", Markup("<p>Текста пока нет.</p>")
-        return render(df.meta.title, ctx), Markup(_show_addresses(render_markdown(render(df.body, ctx))))
+        body = strip_person_marks(render(df.body, ctx))
+        return render(df.meta.title, ctx), Markup(_show_addresses(render_markdown(body)))
 
     c = ctx["c"]
     confession = doc_html(fin.confession)
+    confession2 = doc_html(fin.confession2) if fin.confession2 is not None else None
     letter = doc_html(fin.letter)
     return {
         "title": s.title,
@@ -129,6 +144,7 @@ def emergency_data(content: Content, salts: Any = None) -> dict:
         "lab": lab,
         "lab_penalty": s.penalties.lab_no_basis,
         "confession": {"title": confession[0], "html": confession[1]},
+        "confession2": {"title": confession2[0], "html": confession2[1]} if confession2 else None,
         "letter": {"title": letter[0], "html": letter[1]},
         "fates": [{"name": getattr(c, f.who).full() if f.who else None, "text": r(f.text)} for f in fin.fates],
         "scoring": {

@@ -1,8 +1,27 @@
 {% extends "blanks/_blank.html" %}
+{# Протокол. Развязка (R-01, R-02) — в вёрстке бумажного протокола (engine/protocol.py, тот же разбор, что у печати):
+   поля шапки «метка — значение» (proto.rows), реплики с фамилиями (proto.body: .qa, .who--q/.who--a, .rem,
+   .proto__note), подписи участников (signed). Без полей шапки во front matter — прежний вид: текст и две строки подписи. #}
 {% block kind %}Протокол{% endblock %}
+{% block fields %}
+{% if proto %}
+<dl class="blank__fields proto-fields">
+  {% for r in proto.rows if not r.get("gap") %}
+  <dt>{{ r.label }}</dt><dd>{{ r.value }}</dd>
+  {% endfor %}
+</dl>
+{% endif %}
+{% endblock %}
+{% block body_content %}{% if proto %}{{ proto.body }}{% else %}{{ body_html }}{% endif %}{% endblock %}
 {% block signs %}
   <footer class="blank__signs">
+  {% if signed %}
+    {% for s in signed %}
+    <div class="blank__sign"><span>{{ s.role }}</span><span class="blank__sign-line" aria-hidden="true"></span><span>{{ s.name }}</span></div>
+    {% endfor %}
+  {% else %}
     <div class="blank__sign"><span>Допрашиваемый</span><span class="blank__sign-line" aria-hidden="true"></span><span>(подпись)</span></div>
     <div class="blank__sign"><span>Следователь</span><span class="blank__sign-line" aria-hidden="true"></span><span>(подпись)</span></div>
+  {% endif %}
   </footer>
 {% endblock %}

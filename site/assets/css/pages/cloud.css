@@ -187,6 +187,40 @@ body.page--cloud {
   font-weight: 600;
 }
 
+/* «Забыли пароль?» → подсказка владельца (как в настоящих сервисах). */
+.shell__forgot {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.shell__forgot-btn {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tc-brand-text);
+  font: inherit;
+  font-size: 15px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.shell__hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--tc-panel);
+  color: var(--tc-text);
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+
+.shell__hint-text {
+  font-style: italic;
+}
+
 .shell__submit {
   min-height: 48px;
   border: 0;

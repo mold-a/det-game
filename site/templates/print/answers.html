@@ -22,6 +22,10 @@ h3 { font-size: 11.5pt; margin: 5mm 0 1.5mm; }
 .q td.l { width: 62mm; color: #333; padding-right: 3mm; }
 .q .ans { font-weight: 700; }
 .q .note { color: #555; font-size: 9pt; }
+.pw { break-inside: avoid; margin: 4mm 0 2mm; padding: 2.5mm 4mm; border: 0.4mm dashed #000; }
+.pw .tag { font-family: var(--font-sans); font-size: 8.5pt; text-transform: uppercase; letter-spacing: .05em; color: #444; }
+.pw .prompt { font-weight: 700; margin: 1mm 0; }
+.pw p { margin: 1mm 0; } .pw .url { font-size: 9pt; overflow-wrap: anywhere; } .pw .ans { font-weight: 700; } .pw .note { color: #555; font-size: 9pt; }
 .next { font-family: var(--font-sans); font-weight: 700; border: 0.4mm solid #000; padding: 2.5mm 4mm; margin: 4mm 0 2mm; break-inside: avoid; }
 .lab { break-inside: avoid-page; margin-bottom: 5mm; border-top: 0.2mm solid #bbb; padding-top: 2.5mm; }
 .lab dl { display: grid; grid-template-columns: 34mm 1fr; gap: 0.6mm 3mm; margin: 1mm 0 2mm; }
@@ -63,10 +67,10 @@ h3 { font-size: 11.5pt; margin: 5mm 0 1.5mm; }
 
 {% for st in stages %}
 <section class="section">
-  <h2>Этап {{ st.n }} · конверт № {{ st.envelope }}</h2>
+  <h2>Этап {{ st.n }}, конверт № {{ st.envelope }}</h2>
   {% for q in st.questions %}
   <div class="q">
-    <div class="tag"><span class="path">{{ q.path }}</span> · {{ q.kind }}{% if q.points %} · +{{ q.points }}{% endif %}</div>
+    <div class="tag"><span class="path">{{ q.path }}</span>, {{ q.kind }}{% if q.points %}, +{{ q.points }}{% endif %}</div>
     <div class="prompt">{{ q.prompt }}</div>
     <table>
       {% for row in q.rows %}
@@ -76,6 +80,15 @@ h3 { font-size: 11.5pt; margin: 5mm 0 1.5mm; }
       </tr>
       {% endfor %}
     </table>
+  </div>
+  {% endfor %}
+  {% for pw in st.passwords %}
+  <div class="pw">
+    <div class="tag">Пароль облака (вопросом не проверяется)</div>
+    <div class="prompt">{{ pw.title }}{% if pw.account %}, логин {{ pw.account }}{% endif %}</div>
+    <p>Адрес{% if pw.doc %} (QR на документе {{ pw.doc }}){% endif %}: <span class="url">{{ pw.url }}</span></p>
+    <p>Пароль: <span class="ans">{{ pw.password }}</span>{% if pw.hint %}<br><span class="note">Подсказка владельца на форме входа («Забыли пароль?»): {{ pw.hint }}</span>{% endif %}</p>
+    <p class="note">Регистр, пробелы, дефисы и точки при вводе не важны.</p>
   </div>
   {% endfor %}
   {% if st.next %}<div class="next">Дальше: {{ st.next }}</div>{% else %}<div class="next">Это финал: после ответов прочитайте развязку в конце конверта.</div>{% endif %}
@@ -104,6 +117,10 @@ h3 { font-size: 11.5pt; margin: 5mm 0 1.5mm; }
   <h2>Развязка</h2>
   <h3>{{ confession.title }}</h3>
   <div class="doc">{{ confession.html }}</div>
+  {% if confession2 %}
+  <h3>{{ confession2.title }}</h3>
+  <div class="doc">{{ confession2.html }}</div>
+  {% endif %}
   <h3>{{ letter.title }}</h3>
   <div class="doc">{{ letter.html }}</div>
   <h3>Что стало с героями</h3>

@@ -230,12 +230,12 @@ def wrong_inputs(unit: Unit, exp: Expanded, content: Content, expanded: dict[str
         elif t == "person":
             pool = content.pool(spec) + [c.id for c in content.characters]
         else:
-            pool = [d.id for d in content.documents if d.stage <= unit.stage]
-            pool += [d.id for d in content.documents]
+            pool = [d.id for d in content.game_documents if d.stage <= unit.stage]
+            pool += [d.id for d in content.game_documents]
         if exp.canon in pool:  # соседние варианты списка — первыми
             i = pool.index(exp.canon)
             pool = sorted(pool, key=lambda x: abs(pool.index(x) - i))
-        cands = pool + [c.id for c in content.characters] + [d.id for d in content.documents]
+        cands = pool + [c.id for c in content.characters] + [d.id for d in content.game_documents]
     elif t in ("persons", "multi"):
         canon = exp.canon.split(",")
         pool = content.pool(spec) if t == "persons" else [o.id for o in spec.options or []]

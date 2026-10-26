@@ -459,7 +459,9 @@ def test_doc_qr_same_link_as_qr_command(content, salts):
     assert call["qr"]["url"] == cards["call"].url and call["qr"]["label"] == cards["call"].label
     assert "<svg" in call["qr"]["svg"]
     cloud = doc_data(content, "4-13", ctx, cards=cards)
-    assert cloud["qr"]["url"].endswith("/p/cloud/") and "#k=" not in cloud["qr"]["url"]
+    # облако с двумя замками (locked: true) — QR с ключом страницы, с одним (password) — без ключа
+    assert cloud["qr"]["url"] == cards["cloud"].url
+    assert ("#k=" in cloud["qr"]["url"]) == (content.pages["cloud"].locked is True)
     inna = doc_data(content, "2-09", ctx, cards=cards)
     assert "#k=" in inna["qr"]["url"]
 

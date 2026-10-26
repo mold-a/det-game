@@ -36,7 +36,9 @@ from engine.normalize import base, normalize
 from engine.pages import (
     GATE_TYPES,
     access_of,
-    cloud_password_norm,
+    has_password,
+    open_password_payload,
+    sealed_login_fields,
     is_pacing,
     locked_page_texts,
     page_key_leaks,
@@ -197,7 +199,7 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
         for rid, rec in dec.lab.items():
             out.append((f"экспертиза {rid}", rec.get("title", "") + "\n" + page_text(rec.get("html", "")), stage_of[rid]))
         if dec.finale:
-            for k in ("confession", "letter"):
+            for k in ("confession", "confession2", "letter"):
                 d = dec.finale.get(k) or {}
                 out.append((f"развязка {k}", d.get("title", "") + "\n" + page_text(d.get("html", "")), last))
             out += [(f"развязка fates[{i}]", f.get("text", ""), last) for i, f in enumerate(dec.finale.get("fates", []))]
@@ -226,7 +228,7 @@ def secret_texts(prep: Prepared, dec: Decrypted | None = None) -> list[tuple[str
             out.append((f"expertise {r.id}.text", render(r.text, ctx), r.stage))
         if r.body and r.body in content.docs:
             out.append((f"content/{r.body}", render(content.docs[r.body].body, ctx), r.stage))
-    for rel in (content.finale.confession, content.finale.letter):
+    for rel in (content.finale.confession, content.finale.confession2, content.finale.letter):
         if rel in content.docs:
             out.append((f"content/{rel}", render(content.docs[rel].body, ctx), last))
     for i, f in enumerate(content.finale.fates):
@@ -260,9 +262,12 @@ def shell_texts(content: Content, ctx: dict) -> list[str]:
     out += [str(v) for v in w["brands"].values()]
     r = lambda t: render(t, ctx) if t else ""  # noqa: E731
     for page in content.pages.values():
-        for attr in ("brand", "account"):
+        for attr in ("brand", "account", "password_hint"):
+            if attr in sealed_login_fields(page):
+                continue  # облако с двумя замками: логин и подсказка — за ключом QR, секрет
             v = getattr(page, attr, None)
-            # у облака account — логин (строка в оболочке); у почты — владелец ящика (модель), в оболочке его нет
+            # у облака account — логин (строка в оболочке), password_hint — подсказка владельца на форме входа;
+            # у почты account — владелец ящика (модель), в оболочке его нет
             out.append(r(v) if isinstance(v, str) or v is None else "")
     out += [r(x) for _, x in iter_strings({k: v.model_dump() for k, v in content.services.items()})]
     return out
@@ -612,15 +617,21 @@ def check(
                 fragments[slug] = (pdir / "index.html").read_text(encoding="utf-8")
                 continue
             box = _load(pdir / "payload.json")
-            if access == "key":
-                inner = _open_json(prep.salts.page_key(slug), box, f"page/{slug}")
+            login_html = ""
+            if has_password(page):
+                # облако: один замок (пароль) или два (ключ QR → форма входа с логином и подсказкой → пароль)
+                inner, outer = open_password_payload(page, box, prep.salts.page_key(slug) if access == "key" else None)
+                if outer is not None:
+                    if outer.get("slug") != slug or "login" not in outer:
+                        problems.append(f"{slug}: в payload нет формы входа (облако с двумя замками)")
+                        continue
+                    login_html = "".join(f"<p>{html_mod.escape(str(v))}</p>" for v in outer["login"].values() if v)
             else:
-                key = crypto.cloud_key(cloud_password_norm(page), crypto.b64u_decode(box["salt"]), box["iter"])
-                inner = _open_json(key, box["box"], f"page/{slug}")
+                inner = _open_json(prep.salts.page_key(slug), box, f"page/{slug}")
             if inner.get("slug") != slug or not inner.get("html"):
                 problems.append(f"{slug}: неверное содержимое payload")
             fragments[slug] = inner.get("html", "")
-            dec.pages[slug] = fragments[slug]
+            dec.pages[slug] = fragments[slug] + login_html  # логин и подсказка за ключом — тоже секрет страницы
         except (OSError, crypto.CryptoError, KeyError, ValueError) as e:
             problems.append(f"{slug}: не открылась ({e})")
     for slug, page in content.pages.items():
@@ -646,6 +657,8 @@ def check(
             problems.append("число судеб не совпадает с finale.yaml")
         if (content.finale.thanks is None) != ("thanks" not in fin):
             problems.append("блок thanks в finale.json не совпадает с finale.yaml")
+        if (content.finale.confession2 is None) != ("confession2" not in fin):
+            problems.append("второй протокол (confession2) в finale.json не совпадает с finale.yaml")
     except (OSError, crypto.CryptoError, KeyError) as e:
         problems.append(f"finale.json не открылся ({e})")
     rep.add("6. Развязка", problems, f"открыта ключом этапа {content.last_stage}")

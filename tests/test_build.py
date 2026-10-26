@@ -106,7 +106,10 @@ def test_pack_contents(built):
     pk4 = json.loads(crypto.open_(crypto.hkdf(crypto.b64u_decode(rep.stage_keys[4]), crypto.pack_info(4)),
                                   json.loads((dist / "data/pack-4.json").read_text(encoding="utf-8")), "pack/4"))
     online = [d for d in pk4["documents"] if d["kind"] == "online"]
-    assert [d["id"] for d in online] == ["4-01"] and online[0]["link"] == "/p/cloud/"
+    assert [d["id"] for d in online] == ["4-01"] and online[0]["link"].startswith("/p/cloud/")
+    # облако с двумя замками (locked: true): ссылка в зашифрованном пакете — с ключом страницы
+    if prep.content.pages["cloud"].locked is True:
+        assert online[0]["link"] == "/p/cloud/#k=" + crypto.b64u_encode(prep.salts.page_key("cloud"))
     assert pk["lab"]["types"] and "role" not in next(iter(pk["characters"].values()))
     order = pk["questions"][1]
     answer = prep.expanded["s1.q2"].canon.split(",")
@@ -194,7 +197,7 @@ def test_leak_scan_watchlist_and_hint(built, tmp_path):
     # середина подсказки этапа 3 (не начало) — шинглы по всему тексту
     (tmp_path / "c.md").write_text("Ингалятор и успокоительное у погибшего были свои", encoding="utf-8")
     (tmp_path / "пропранолол.txt").write_text("x", encoding="utf-8")  # имя файла
-    (tmp_path / "ok.html").write_text("Так же как в прошлый раз", encoding="utf-8")
+    (tmp_path / "ok.html").write_text("Проверочная строка, которой нет ни в одном тексте дела", encoding="utf-8")
     found = {f.file for f in scan(tmp_path, ns)}
     assert found == {"a.html", "b.html", "c.md", "<имена файлов>"}
 
@@ -337,7 +340,9 @@ def test_dump_answers_structure(built, tmp_path):
     assert sv["wrongBasis"] and sv["wrongBasis"] not in sv["bases"]
     pages = {p["slug"]: p for p in data["pages"]}
     assert pages["inna"]["key"] == rep.page_keys["inna"] and pages["inna"]["url"].endswith("#k=" + rep.page_keys["inna"])
-    assert pages["cloud"]["access"] == "password" and "password" in pages["cloud"]
+    # облако с двумя замками: адрес с ключом (QR записки 4-13) + пароль и подсказка владельца
+    assert pages["cloud"]["access"] == "key" and pages["cloud"]["url"].startswith("/p/cloud/#k=")
+    assert pages["cloud"]["password"] and pages["cloud"]["passwordHint"]
     assert pages["call"] == {"slug": "call", "access": "open", "url": "/p/call/"}
     assert data["expected"] == {"maxScore": 285, "perfectRunScore": 285}
 

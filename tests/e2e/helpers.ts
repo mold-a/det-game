@@ -14,6 +14,8 @@ export type Answers = {
   stages: { n: number; envelope: number; questions: Question[] }[];
   finalOrder: string[];
   thanks: { title: string; text: string; signature: string } | null;
+  // шаги развязки по порядку: confession, [confession2], letter, fates, [thanks] (engine/dump.py)
+  endingSteps: string[];
   lab: LabEntry[];
   expected: { maxScore: number; perfectRunScore: number };
 };

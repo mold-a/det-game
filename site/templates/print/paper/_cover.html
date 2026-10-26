@@ -1,0 +1,39 @@
+{# Обложка-опись конверта «после финала» (documents.yaml: stage = последний этап + 1; engine/paper.py:
+   envelope-<N>.pdf начинается с неё): номер дела, «Конверт N. Вскрыть после финала», опись вложений
+   (документ, страниц). Контекст: n, rows [{id, title, pages}], w, print_cfg, page_margin. #}
+{% extends "print/_print_base.html" %}
+{% import "print/paper/_brand.html" as br %}
+{% block title %}Конверт {{ n }}. Вскрыть после финала{% endblock %}
+{% block style %}
+{% include "print/paper/paper.css" %}
+.env-cover { height: 262mm; display: flex; flex-direction: column; border: 1.2mm solid var(--ink); padding: 16mm 14mm 12mm; }
+.env-cover__case { font-size: 10pt; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.env-cover__no { margin: 26mm 0 0; font-family: var(--font-display); font-weight: 800; font-size: 54pt; line-height: .95; text-transform: uppercase; }
+.env-cover__warn { display: inline-block; align-self: flex-start; margin: 8mm 0 0; padding: 3mm 6mm; border: 1mm solid var(--ink);
+  font-family: var(--font-display); font-weight: 800; font-size: 24pt; line-height: 1.05; text-transform: uppercase; transform: rotate(-2deg); }
+.env-cover__note { margin: 10mm 0 0; max-width: 140mm; font-size: 11pt; }
+.env-cover__opis { margin-top: auto; }
+.env-cover__opis h2 { margin: 0 0 2mm; font-size: 10pt; letter-spacing: .08em; text-transform: uppercase; }
+.env-cover__opis table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+.env-cover__opis th, .env-cover__opis td { padding: 1.4mm 2mm; border: .3mm solid var(--ink); text-align: left; vertical-align: top; }
+.env-cover__opis td.num, .env-cover__opis th.num { width: 18mm; text-align: center; white-space: nowrap; }
+{% endblock %}
+{% block body %}
+<span class="font-load" aria-hidden="true">0123456789</span>
+<section class="env-cover" data-envelope="{{ n }}">
+  <div class="env-cover__case">Дело № {{ w.police.case_no }}</div>
+  <h1 class="env-cover__no">Конверт {{ n }}</h1>
+  <div class="env-cover__warn">Вскрыть после финала</div>
+  <p class="env-cover__note">Не открывайте, пока на сайте не отправлены ответы финала и не прочитана развязка.</p>
+  <div class="env-cover__opis">
+    <h2>Опись вложений</h2>
+    <table>
+      <thead><tr><th class="num">№</th><th>Документ</th><th class="num">Страниц</th></tr></thead>
+      <tbody>
+      {% for r in rows %}<tr><td class="num">{{ r.id }}</td><td>{{ r.title }}</td><td class="num">{{ r.pages }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

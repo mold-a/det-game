@@ -65,7 +65,8 @@ def test_qr_urls(content, salts):
         else:
             assert c.url == f"{dom}/p/{slug}/" and "#k=" not in c.url
         assert c.label and "{{" not in c.label
-    assert cards["cloud"].access == "password" and cards["cloud"].docs == ["4-13"]
+    # облако с двумя замками: QR записки 4-13 — с ключом страницы (дальше форма пароля)
+    assert cards["cloud"].access == "key" and cards["cloud"].docs == ["4-13"] and "#k=" in cards["cloud"].url
     assert cards["gromov"].docs == ["1-12"] and cards["inna"].envelope == 2
 
 

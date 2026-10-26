@@ -225,12 +225,15 @@ def test_news_without_caption_has_no_figcaption(built):
 
 
 def sealed_inner(built, slug: str) -> dict:
+    from engine.models import CloudPage
+    from engine.pages import open_password_payload
+
     tmp, dist, lock, _, _ = built
-    page = yaml.safe_load((tmp / "content/pages" / slug / "page.yaml").read_text(encoding="utf-8"))
+    page = CloudPage.model_validate(yaml.safe_load((tmp / "content/pages" / slug / "page.yaml").read_text(encoding="utf-8")))
     box = json.loads((dist / "p" / slug / "payload.json").read_text(encoding="utf-8"))
-    assert page["locked"] == "password"
-    key = crypto.cloud_key(normalize("password", page["password"]), crypto.b64u_decode(box["salt"]), box["iter"])
-    return json.loads(crypto.open_(key, box["box"], f"page/{slug}"))
+    assert page.locked in (True, "password")
+    page_key = salts_mod.read(lock).page_key(slug) if page.locked is True else None
+    return open_password_payload(page, box, page_key)[0]
 
 
 def test_cloud_photos_folder_is_sealed_with_encrypted_media(built):

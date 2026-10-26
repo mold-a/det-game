@@ -49,7 +49,14 @@ def make(out: Path) -> dict:
     shutil.copy(ROOT / "engine" / "salts.lock.json", lock)
     build(content_dir=content, dist=out / "dist", media_dir=media, salts_path=lock, log=lambda *_: None)
     cloud = yaml.safe_load((content / "pages/cloud/page.yaml").read_text(encoding="utf-8"))
-    info = {"site": "/p/theater/", "lab": "/lab/", "cloud": "/p/cloud/", "cloud_password": cloud["password"],
+    # облако с двумя замками (locked: true): адрес с ключом страницы, как в QR записки
+    cloud_url = "/p/cloud/"
+    if cloud.get("locked") is True:
+        from engine import salts as salts_mod
+        from engine.util import b64u_encode
+
+        cloud_url += "#k=" + b64u_encode(salts_mod.read(lock).page_key("cloud"))
+    info = {"site": "/p/theater/", "lab": "/lab/", "cloud": cloud_url, "cloud_password": cloud["password"],
             "news": "/p/news/", "folder": "gallery"}
     (out / "info.json").write_text(json.dumps(info), encoding="utf-8")
     return info
