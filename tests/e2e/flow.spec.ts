@@ -154,10 +154,10 @@ test("старое сохранение: бонус отвечен раньше 
   await expect(article(page, bonus.path)).toHaveClass(/q--closed/);
   await expect(article(page, mand[1].path)).toHaveCount(0);
   // Все обязательные пройдены, бонус уже отвечен → сразу окно конверта.
-  await solve(page, mand[0]);
-  await fillQuestion(page, mand[1]);
-  await submit(page, mand[1].path);
+  for (const q of mand.slice(0, -1)) await solve(page, q);
+  const lastQ = mand[mand.length - 1];
+  await fillQuestion(page, lastQ);
+  await submit(page, lastQ.path);
   await envelopeOpened(page);
   await expect(page.locator("#stage-title")).toHaveText("Этап 2");
-  expect(mand.length).toBe(2);
 });

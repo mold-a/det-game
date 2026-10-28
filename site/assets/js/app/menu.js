@@ -100,6 +100,9 @@ export function createMenu({ store, pub, onChange = () => {}, verify, rulesCfg =
   const item = (label, action, extra = {}) =>
     h("li", null, h("button", { type: "button", class: ["menu__item", extra.danger && "menu__item--danger"], onclick: action }, label));
 
+  // Пункт «Лаборатория» скрыт, пока лаборатория закрыта (финал начат, docs/01 §8); setLabClosed переключает его.
+  const labItem = lab ? h("li", { class: "menu__lab" }, h("a", { class: "menu__item menu__item--link", href: lab }, T.lab.menu)) : null;
+
   const root = h(
     "details",
     { class: "menu" },
@@ -107,13 +110,17 @@ export function createMenu({ store, pub, onChange = () => {}, verify, rulesCfg =
     h(
       "ul",
       { class: "menu__list" },
-      lab ? h("li", null, h("a", { class: "menu__item menu__item--link", href: lab }, T.lab.menu)) : null,
+      labItem,
       rulesCfg ? item(T.menu.rules, showRules) : null,
       item(T.menu.save, save),
       item(T.menu.load, load),
       item(T.menu.restart, restart, { danger: true }),
     ),
   );
+
+  root.setLabClosed = (closed) => {
+    if (labItem) labItem.hidden = Boolean(closed);
+  };
 
   function closeMenu() {
     root.open = false;

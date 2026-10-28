@@ -20,6 +20,7 @@ import {
   advanceStage,
   labDone,
   labRejected,
+  labClosed,
   finalStart,
   finalSubmit,
   finalFinish,
@@ -348,6 +349,18 @@ describe("§6 счёт = сумма журнала; §7 лаборатория; 
     assert.equal(labDone(s, "fp2", "2-01", REQ), s);
     assert.equal(labRejected(s, "fp2", -5, REQ), s, "выполненный запрос не штрафуется");
     assert.equal(score(s), 0);
+  });
+
+  test("лаборатория закрывается с началом финала: новые заявки и штрафы не пишутся, готовое остаётся", () => {
+    let s = labDone(fresh(), "fp4", "2-01", { ...REQ, stage: 2 });
+    assert.equal(labClosed(s), false);
+    s = finalStart(advanceStage(s, 4, "k4"));
+    assert.equal(labClosed(s), true);
+    assert.equal(labDone(s, "fp5", "3-05", REQ), s);
+    assert.equal(labRejected(s, "fp6", -5, REQ), s);
+    assert.equal(score(s), 0);
+    assert.deepEqual(s.lab.log.map((e) => e.fp), ["fp4"], "прежние заявки читаются");
+    assert.equal(labClosed({ ...s, final: { ...s.final, started: false }, finished: true }), true);
   });
 
   test("лаборатория: отклонённый раньше запрос может сработать после перехода этапа", () => {

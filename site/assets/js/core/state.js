@@ -305,7 +305,11 @@ function pushLabLog(n, fp, req, ok, doc) {
  * этапа — его fp переносится в done. Без штрафа.
  * req (необязательно) — { object, type, basis, params, stage } для архива lab.log (F15).
  */
+/** Лаборатория закрыта для новых заявок с начала финала (docs/01 §8): готовые заключения читаются в «Мои заявки». */
+export const labClosed = (s) => Boolean(s?.final?.started || s?.finished);
+
 export function labDone(s, fp, docId, req = null) {
+  if (labClosed(s)) return s;
   const id = docId ?? null;
   if (fp in s.lab.done && s.lab.done[fp] === id) return s;
   const n = clone(s);
@@ -319,7 +323,7 @@ export function labDone(s, fp, docId, req = null) {
 /** Запрос без оснований: штраф один раз на отпечаток запроса; повтор — без штрафа. */
 export function labRejected(s, fp, penalty, req = null) {
   const d = neg(penalty);
-  if (labSeen(s, fp)) return s;
+  if (labClosed(s) || labSeen(s, fp)) return s;
   const n = clone(s);
   n.lab.rejected.push(fp);
   addLog(n, d, `lab:${fp}`);

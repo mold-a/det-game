@@ -250,6 +250,7 @@ staff:                      # фоновые имена
   - { name: "…", role: "…" }
 contacts: { address: "…", phone: "…", hours: "…", email: "…" }   # email необязателен
 services_note: "Срок — 1 рабочий день; основание обязательно."
+closed_text: "…"            # необязательно: сообщение на /lab/ после начала финала (есть значение по умолчанию)
 photos:                     # необязательно: галерея раздела «О центре», 1–3 снимка (больше — ошибка)
   - { file: "lab/building.jpg", caption: "…" }   # file — путь в media/ (.jpg, .jpeg, .png, .webp); caption необязательна
 ```

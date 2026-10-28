@@ -273,6 +273,10 @@ function renderOrderSection(catalog) {
     section.append(notStarted());
     return section;
   }
+  if (S.labClosed(game.state)) {
+    section.append(closedNotice());
+    return section;
+  }
 
   const objectInput = h("input", {
     class: "pz-input",
@@ -577,6 +581,17 @@ function openConclusion(entry) {
 
 function ordersLink() {
   return h("p", { class: "pz-result__more" }, h("a", { href: "#orders" }, T.lab.toOrders));
+}
+
+/** Финал начат (docs/01 §8): новые заявки не принимаются, готовые заключения остаются в «Мои заявки». */
+function closedNotice() {
+  return h(
+    "div",
+    { class: "pz-card pz-card--notice lab-closed", role: "status" },
+    h("h2", { class: "pz-card__title" }, T.lab.closedTitle),
+    h("p", { class: "lab-closed__text" }, str(site?.closed_text) || T.lab.closedFallback),
+    h("p", { class: "pz-actions" }, h("a", { class: "pz-btn pz-btn--primary", href: "#orders" }, T.lab.tabs.orders)),
+  );
 }
 
 function notStarted() {

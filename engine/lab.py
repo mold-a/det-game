@@ -186,6 +186,7 @@ def lab_site(content: Content, ctx: dict, plan: Any | None = None) -> dict:
         "contacts": {"address": r(lab.contacts.address), "phone": r(lab.contacts.phone),
                      "hours": r(lab.contacts.hours), "email": r(lab.contacts.email)},
         "services_note": r(lab.services_note),
+        "closed_text": r(lab.closed_text),
         "photos": lab_photos(content, ctx, plan),
     }
 

@@ -249,7 +249,7 @@ function renderGame() {
   // Пройденные этапы — свёрнуты, с ответами команды.
   for (let k = n - 1; k >= 1; k--) main.appendChild(renderPassed(packs[k]));
 
-  side.appendChild(renderLabCard(state));
+  if (!S.labClosed(state)) side.appendChild(renderLabCard(state));
   side.appendChild(renderScoreLog(state, { labelFor }));
 }
 

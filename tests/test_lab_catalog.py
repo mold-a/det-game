@@ -97,7 +97,8 @@ def test_lab_yaml_loads_and_site_ctx():
     ctx = make_context(c)
     site = lab_site(c, ctx)
     assert site["name"] == c.world["brands"]["lab"] and site["full_name"] == c.world["brands"]["lab_full"]
-    assert {"tagline", "about", "about_html", "accreditation", "staff", "contacts", "services_note"} <= set(site)
+    assert {"tagline", "about", "about_html", "accreditation", "staff", "contacts", "services_note", "closed_text"} <= set(site)
+    assert site["closed_text"].strip()  # поле необязательно в lab.yaml: есть значение по умолчанию
     assert set(site["contacts"]) == {"address", "phone", "hours", "email"}
     assert "{{" not in json.dumps(site, ensure_ascii=False)
     base = site_base_ctx(c, {"title": "x"})

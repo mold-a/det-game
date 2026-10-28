@@ -398,6 +398,7 @@ class LabPhoto(Strict):
 
 
 LAB_PHOTOS_MAX = 3  # галерея «О центре» — 1–3 снимка (docs/04)
+LAB_CLOSED_TEXT_DEFAULT = "Лаборатория закрыта: следствие подводит итоги. Готовые заключения остаются в разделе «Мои заявки»."
 
 
 class LabSite(Strict):
@@ -409,6 +410,8 @@ class LabSite(Strict):
     staff: list[LabStaff] = []
     contacts: LabContacts
     services_note: str
+    # Сообщение на /lab/ вместо формы заявки после начала финала (docs/01 §8); текст уточняет сценарист.
+    closed_text: str = LAB_CLOSED_TEXT_DEFAULT
     photos: Annotated[list[LabPhoto], Field(max_length=LAB_PHOTOS_MAX)] = []
 
 

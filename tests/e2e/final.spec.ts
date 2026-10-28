@@ -7,6 +7,37 @@ const A = loadAnswers();
 const S = A.settings;
 test.setTimeout(240_000);
 
+test("лаборатория закрывается с началом финала: карточка и пункт меню скрыты, /lab/ без формы, заявки читаются", async ({ page }) => {
+  const last = A.stages[A.stages.length - 1];
+  const done = await playToStage(page, A, last.n);
+  await labAll(page, A, last.n, done);
+
+  // До финала: карточка на главном экране, пункт в меню /final/, форма на /lab/.
+  await page.goto("/");
+  await expect(page.locator(".labcard")).toHaveCount(1);
+  await page.goto("/final/");
+  await page.locator(".menu summary").click();
+  await expect(page.locator(".menu__lab a")).toBeVisible();
+  await page.goto("/lab/");
+  await expect(page.locator("#lab-object")).toBeVisible();
+
+  await page.goto("/final/");
+  await page.getByRole("button", { name: "Начать финал" }).click();
+  await expect(page.locator(".menu__lab")).toBeHidden();
+  await page.locator(".menu summary").click();
+  await expect(page.locator(".menu__lab")).toBeHidden();
+
+  await page.goto("/");
+  await expect(page.locator(".labcard")).toHaveCount(0);
+
+  // /lab/ после старта финала: сообщение вместо формы, готовые заявки по-прежнему читаются.
+  await page.goto("/lab/");
+  await expect(page.locator("#lab-object")).toHaveCount(0);
+  await expect(page.locator(".lab-closed")).toContainText("Лаборатория закрыта");
+  await page.locator('.pz-nav a[href="#orders"]').click();
+  await expect(page.locator(".orders__item").first()).toBeVisible();
+});
+
 test("финал: ответ фиксируется, перезагрузка не возвращает вопрос, разбор и развязка", async ({ page }) => {
   const last = A.stages[A.stages.length - 1];
   const done = await playToStage(page, A, last.n);

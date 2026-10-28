@@ -6,7 +6,7 @@
 import { h, replace } from "./dom.js";
 import { T, signed } from "./texts.js";
 import { createMenu } from "./menu.js";
-import { score } from "../core/state.js";
+import { score, labClosed } from "../core/state.js";
 import { envelopeMarks } from "../core/flow.js";
 
 const NS = "http://www.w3.org/2000/svg";
@@ -91,6 +91,7 @@ export function renderHeader(ctx, state, { onChange = () => location.reload(), v
       );
     });
     replace(stages, items);
+    menu.setLabClosed(labClosed(s));
   }
   update(state);
   return { el, update };
