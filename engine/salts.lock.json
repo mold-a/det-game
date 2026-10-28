@@ -3,10 +3,6 @@
   "pages": {
     "auction": "jzZjaqi0GhK_jX2ZNFZunh1bHRoyYsVylf-Qmcpr9OM",
     "cloud": "CNts1xf8j6PAYQbwjjaYQZXVEyfIVtUEQiTIlcySwjQ",
-    "inna": "m3JSIA6ahzMVtM__42s2Ibq80FFpoIGksFeGA4JcB6Q",
-    "kadr-reznikova": "4aaVBRj1DZuX5tLZklZxs5rsfhCwspGA0sSDO4qKucM",
-    "kadr-svetlova": "1vBX0f7Llb52diG6b05WQN468imyfWz8q5TooX1eKt8",
-    "kadr-vodt": "iI5sA5oGjsslbT-SI1okIr5VAppzcHIvZQHtOE_-iXE",
     "krug-gnedich": "6SLEcWV2ou5WI_yhw8WXSUkIKVlOP_cGkoekiYaSVxs",
     "krug-gorohova": "l3skoFr-4CwekO7iPzF7CdD3O2VaF3lRJ8ox_fEWyQ0",
     "krug-kuznecov": "730j-ZIo13vt3emshEIw6nLtphN9BBg4ZIXTwJwx2Nw",
@@ -64,7 +60,13 @@
     "s4.f5": "66M51ZQAV_Hbq_cdp6UtYw",
     "s4.fb": "42Jj06ldDCJmVKRqcejtoQ",
     "s4.fb2": "X4um3HcSwUjFkGgVoGNxQA",
-    "s4.fb3": "va-1ZtkXTQ3j41br-2vYdQ"
+    "s4.fb3": "va-1ZtkXTQ3j41br-2vYdQ",
+    "s4.q1.phone": "RcwuMeJ29LaRdUXA9D7sng",
+    "s4.q1.print": "dAfiRJlkKrkJv40XKVpfOg",
+    "s4.q1.station": "rif2EaABMv9UHjZdf0T60w",
+    "s4.q2.act": "TZpw8L1N1p7EMmjOytlQxA",
+    "s4.q2.ask": "wjeet5x4inoWABYpcVQ-WQ",
+    "s4.q2.lot": "1ITbbj1j4DUx284M3qcYpg"
   },
   "version": 1
 }

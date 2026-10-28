@@ -1,7 +1,7 @@
 // Порядок вопросов этапа (core/flow.js): по одному, следующий — после ответа на текущий.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { stageFlow, pendingBonuses, viewStage, envelopeMarks } from "../../site/assets/js/core/flow.js";
+import { stageFlow, pendingBonuses, viewStage, envelopeMarks, finalReady } from "../../site/assets/js/core/flow.js";
 
 const pack = (n = 1, spec = "mmmbb") => ({
   n,
@@ -120,4 +120,28 @@ test("envelopeMarks: с viewStage — бонусная фаза и вскрыт�
   assert.deepEqual(envelopeMarks(acked, viewStage(acked, packs), 3), ["opened", "current", "sealed"]);
   assert.deepEqual(envelopeMarks({ stage: 3, finished: true }, 3, 4), ["opened", "opened", "opened", "sealed"]);
   assert.deepEqual(envelopeMarks(null, null, 2), ["sealed", "sealed"]);
+});
+
+// 28.10.2026: обязательные вопросы последнего этапа — на главном экране; бонусы этапа — на /final/.
+test("stageFlow { bonuses: false }: последний этап — только обязательные, бонус финала не текущий", () => {
+  const p4 = pack(4, "mmbb");
+  const f = stageFlow(p4, { "s4.q1": solved }, { bonuses: false });
+  assert.deepEqual(paths(f.mandatory.shown), ["s4.q1", "s4.q2"]);
+  assert.equal(f.current, "s4.q2");
+  assert.deepEqual(f.bonus.shown, []);
+  assert.equal(f.bonus.hidden, 0);
+  const done = stageFlow(p4, { "s4.q1": solved, "s4.q2": solved }, { bonuses: false });
+  assert.equal(done.complete, true);
+  assert.equal(done.current, null); // бонусы финала главный экран не показывает
+});
+
+test("finalReady: финал — после всех обязательных последнего этапа; без обязательных — сразу; начатый — всегда", () => {
+  const p4 = pack(4, "mmbb");
+  const base = { units: {}, final: { started: false }, finished: false };
+  assert.equal(finalReady(p4, base), false);
+  assert.equal(finalReady(p4, { ...base, units: { "s4.q1": solved } }), false);
+  assert.equal(finalReady(p4, { ...base, units: { "s4.q1": solved, "s4.q2": solved } }), true);
+  assert.equal(finalReady(pack(4, "bb"), base), true);
+  assert.equal(finalReady(p4, { ...base, final: { started: true } }), true); // старое сохранение: финал уже идёт
+  assert.equal(finalReady(p4, { ...base, finished: true }), true);
 });

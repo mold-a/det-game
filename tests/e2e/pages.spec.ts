@@ -128,21 +128,22 @@ test.describe("телефон 360 px", () => {
     await expectNoHorizontalScroll(page);
   });
 
-  // 26.10: брошь больше не улика — селфи «Сын подарил» (inna/brooch.jpg); дата поста — из content, не из кода.
-  test("inna: селфи с брошью на плитке и крупно", async ({ page }) => {
-    const m = readContent("pages/inna/page.yaml").match(/datetime: "([^"]+)"\s*\n\s*photo: "inna\/brooch\.jpg"/);
-    expect(m, "в inna/page.yaml есть пост с inna/brooch.jpg").toBeTruthy();
-    const BROOCH_ISO = m![1];
-    await openPage(page, "inna");
-    const tile = page.locator(".kd-tile", { hasText: ruDate(BROOCH_ISO) }).first();
-    await expectClue(tile);
-    await tile.locator("button").click();
-    const view = page.locator("dialog.kd-view");
-    await expect(view).toBeVisible();
-    await expect(view.locator(".kd-view__meta")).toContainText(ruDate(BROOCH_ISO));
-    await expect(view.locator(".kd-view__meta")).toContainText("Отметок");
-    await view.getByRole("button", { name: "Закрыть" }).click();
-    await expect(view).toBeHidden();
+  // 26.10: брошь больше не улика — селфи «Сын подарил» (inna/brooch.jpg); 28.10 — пост в «Круге» (страница по QR 2-09,
+  // «Кадр» убран). Страница и дата поста — из content, не из кода.
+  test("фото Рябовой: селфи с брошью в «Круге», снимок открывается крупно", async ({ page }) => {
+    const docs = readContent("documents.yaml");
+    const slug = docs.match(/id: "2-09"[^}\n]*page: ([a-z0-9-]+)/)![1];
+    const m = readContent(`pages/${slug}/page.yaml`).match(/datetime: "([^"]+)"\s*\n[^\n]*\n\s*photo: "inna\/brooch\.jpg"/);
+    expect(m, `в ${slug}/page.yaml есть пост с inna/brooch.jpg`).toBeTruthy();
+    await openPage(page, slug);
+    const post = page.locator(".kr-post", { has: page.locator(`time[datetime^="${m![1]}"]`) }).first();
+    await expect(post).toBeVisible();
+    await expect(post.locator(".kr-post__photo img")).toBeVisible();
+    await post.locator(".kr-zoom--photo").click();
+    const zoom = page.locator("dialog.svc-zoom[open]");
+    await expect(zoom).toBeVisible();
+    await zoom.getByRole("button", { name: "Закрыть" }).click();
+    await expect(zoom).toBeHidden();
     await expectNoHorizontalScroll(page);
   });
 
@@ -467,18 +468,6 @@ test.describe("рабочие элементы: «Круг»", () => {
     await expect(page.locator(".nw-comment__author a, button.nw-comment__author")).toHaveCount(0);
     await expect(page.locator("button")).toHaveCount(0);
     await expectServiceDetails(page, /портал/i);
-    await expectNoHorizontalScroll(page);
-  });
-
-  test("inna: нет «Войти», «Подписаться», «Отметить»; снимок открывается крупно", async ({ page }) => {
-    await openPage(page, "inna");
-    await expectNoDeadEnds(page);
-    await page.locator(".kd-tile button").first().click();
-    const view = page.locator("dialog.kd-view");
-    await expect(view).toBeVisible();
-    await expectNoDeadEnds(page);
-    await view.getByRole("button", { name: "Закрыть" }).click();
-    await expectServiceDetails(page, "Кадр");
     await expectNoHorizontalScroll(page);
   });
 

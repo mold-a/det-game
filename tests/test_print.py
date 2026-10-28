@@ -67,7 +67,8 @@ def test_qr_urls(content, salts):
         assert c.label and "{{" not in c.label
     # облако с двумя замками: QR записки 4-13 — с ключом страницы (дальше форма пароля)
     assert cards["cloud"].access == "key" and cards["cloud"].docs == ["4-13"] and "#k=" in cards["cloud"].url
-    assert cards["gromov"].docs == ["1-12"] and cards["inna"].envelope == 2
+    page_209 = content.documents_by_id["2-09"].page  # 28.10: «Круг» вместо «Кадра»
+    assert cards["gromov"].docs == ["1-12"] and cards[page_209].envelope == 2 and "#k=" in cards[page_209].url
 
 
 def test_qr_cards_cover_every_page_of_every_document(content, salts):
@@ -134,6 +135,27 @@ def test_chat_sender_not_in_private_chat(tmp_path):
     with pytest.raises(ContentError) as exc:
         load_content(root)
     assert any("screens[0].messages[4].from" in str(e) and "не участвует" in str(e) for e in exc.value.errors)
+
+
+def test_chat_members_in_header(content):
+    """members (28.10): число участников группового чата в шапке; без него — подсчёт по отправителям."""
+    from engine.chatshot import screens_data
+
+    chat = content.chats["4-06"]
+    group = [sc for sc in chat.screens if sc.kind == "chat"]
+    assert group and all(sc.members for sc in group)
+    for sc, data in zip(chat.screens, screens_data(content, "4-06")):
+        if sc.kind == "chat":
+            assert data["header"]["sub"].startswith(f"{sc.members} участник")
+
+
+def test_chat_members_only_for_group(tmp_path):
+    root = _copy(tmp_path)
+    p = root / "chats" / "4-12.yaml"
+    p.write_text(p.read_text(encoding="utf-8").replace("with: voroncov", "with: voroncov\n    members: 3", 1), encoding="utf-8")
+    with pytest.raises(ContentError) as exc:
+        load_content(root)
+    assert any("content/chats/4-12.yaml: screens[0]" in str(e) and "members" in str(e) for e in exc.value.errors)
 
 
 def test_chat_template_typo(tmp_path):

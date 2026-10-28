@@ -1,0 +1,20 @@
+# Фотопрофиль «Кадра» этапа 2 — главный в фикстурах (тип photo остаётся в движке; 28.10 сюжетная страница inna убрана,
+# фото Рябовой — в «Круге»). Подписчики, «Подписки» и комментарий со ссылкой дописывает add_gate_fixtures.
+slug: kadr-main
+type: photo
+stage: 2
+locked: true
+brand: "{{ w.brands.photo }}"
+profile:
+  name: "Фото Главная"
+  bio: "Тестовая подпись главного профиля"
+  follows: 3
+posts:
+  - datetime: "2026-10-07T12:00"
+    photo: "kadr-main/01.jpg"
+    caption: "Тестовый главный снимок"
+    likes: 7
+  - datetime: "2026-10-06T12:00"
+    photo: "kadr-main/02.jpg"
+    caption: "Ещё тестовый снимок"
+    likes: 3

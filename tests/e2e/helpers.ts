@@ -223,6 +223,23 @@ export async function finishStage(page: Page, stage: { n: number; questions: Que
   await expect(page.locator("#stage-title")).toHaveText(`Этап ${stage.n + 1}`);
 }
 
+/**
+ * Последний этап (28.10.2026): обязательные вопросы (s4.q1, s4.q2 — из tests/.answers.json) на главном экране, по одному;
+ * «Перейти к финалу» появляется только после последнего из них. Без обязательных — ссылка сразу.
+ */
+export async function finishLastMandatory(page: Page, stage: { n: number; questions: Question[] }) {
+  await page.goto("/");
+  await openQuestions(page);
+  const mand = stage.questions.filter((x) => x.kind === "mandatory");
+  const toFinal = page.getByRole("link", { name: "Перейти к финалу" });
+  for (const q of mand) {
+    if (await isSolved(page, q.path)) continue;
+    await expect(toFinal).toHaveCount(0); // финал закрыт, пока есть нерешённый обязательный
+    await solve(page, q);
+  }
+  await expect(toFinal).toBeVisible();
+}
+
 /** Пройти этапы 1..target-1 без ошибок (с экспертизами каждого этапа, бонусы — верно); остановиться на этапе target. */
 export async function playToStage(page: Page, A: Answers, target: number, done = new Set<string>(), bonus: "answer" | "skip" = "answer") {
   await startGame(page);

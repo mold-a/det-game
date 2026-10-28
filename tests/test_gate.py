@@ -14,7 +14,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from pages_fixture import add_fixture_pages, add_gate_fixtures, copy_content  # noqa: E402
+from pages_fixture import PHOTO_MAIN, add_fixture_pages, add_gate_fixtures, copy_content  # noqa: E402
 
 from engine import ROOT, crypto  # noqa: E402
 from engine import salts as salts_mod  # noqa: E402
@@ -68,9 +68,10 @@ def open_pack(dist: Path, key: bytes, n: int) -> dict:
 # ---------------------------------------------------------------- модели
 
 
-def test_inna_without_type_is_photo_and_any_slug_allowed(built):
+def test_photo_profile_any_slug_allowed(built):
     content, *_ = built
-    assert isinstance(content.pages["inna"], PhotoPage) and content.pages["inna"].type == "photo"
+    assert "inna" not in content.pages  # 28.10: «Кадр» в сюжете не используется, тип photo — в движке
+    assert isinstance(content.pages[PHOTO_MAIN], PhotoPage) and content.pages[PHOTO_MAIN].type == "photo"
     assert content.pages["kadr-friend"].type == "photo" and content.pages["kadr-late-stub"].type == "photo_stub"
     assert content.pages["kadr-late"].stub == "kadr-late-stub"
 
@@ -123,7 +124,7 @@ def test_no_gated_key_in_any_open_file_and_rendered_links_ok(built):
              for p in dist.rglob("*") if p.is_file() and p.suffix in (".html", ".js", ".json", ".css")}
     assert page_key_leaks(content, salts, files) == []
     fragments = {slug: read(dist, slug) for slug, p in content.pages.items() if p.locked is False}
-    fragments["inna"] = sealed_html(dist, salts, "inna")
+    fragments[PHOTO_MAIN] = sealed_html(dist, salts, PHOTO_MAIN)
     assert rendered_link_problems(content, salts, fragments) == []
 
 
@@ -135,16 +136,16 @@ def test_key_leak_and_direct_link_from_open_page_are_caught(built):
     assert any("этапа 2" in p for p in probs)
     # заглушка не своя / заглушка там, где она не нужна
     assert rendered_link_problems(content, salts, {"krug-opener": '<a href="/p/krug/#to=krug-later">x</a>'})
-    inna_html = '<a href="/p/krug-private/#to=kadr-friend">x</a>'
-    assert rendered_link_problems(content, salts, {"inna": inna_html})
+    main_html = '<a href="/p/krug-private/#to=kadr-friend">x</a>'
+    assert rendered_link_problems(content, salts, {PHOTO_MAIN: main_html})
 
 
 # ---------------------------------------------------------------- закрытая страница этапа 2: «Кадр»
 
 
-def test_inna_follows_comments_and_gated_photo_link(built):
+def test_photo_main_follows_comments_and_gated_photo_link(built):
     content, dist, salts, _ = built
-    html = sealed_html(dist, salts, "inna")
+    html = sealed_html(dist, salts, PHOTO_MAIN)
     # тот же этап — прямая ссылка с ключом, как в QR
     assert f'href="/p/kadr-friend/#k={key_of(salts, "kadr-friend")}"' in html
     # этап 3 — через закрытую заглушку «Кадра» (её ключ + to=), ключа kadr-late нет

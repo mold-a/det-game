@@ -1,6 +1,6 @@
 """Фикстура для tests/e2e/sealed-media.spec.ts: боевой content/ и media/ (копии), сервер с кешированием как на хостинге.
 
-Регресс 25.10: на mydetgame.ru закрытые медиа (фото «Кадра», видео 4-07, фото облака, витрина клуба) не
+Регресс 25.10: на mydetgame.ru закрытые медиа (фото закрытых профилей, видео 4-07, фото облака, витрина клуба) не
 открывались у тех, кто заходил на сайт до последней выкладки. Файл `/m/<hash>.bin` называется по хешу исходника
 и отдаётся с `Cache-Control: immutable`, а ключ и nonce у него новые в каждой сборке: браузер брал старую копию из
 кеша, и она новым ключом не расшифровывалась. `python -m engine serve` отдаёт всё с `no-store` и этого не ловит,
@@ -59,8 +59,11 @@ def make(out: Path) -> dict:
     salts = salts_mod.read(lock)
     cloud = yaml.safe_load((content / "pages/cloud/page.yaml").read_text(encoding="utf-8"))
     photos = next(f for f in cloud["folders"] if f["kind"] == "photos")
+    docs = yaml.safe_load((content / "documents.yaml").read_text(encoding="utf-8"))["documents"]
+    photos_slug = next(d["page"] for d in docs if d["id"] == "2-09")
     info = {
-        "inna": f"/p/inna/#k={b64u_encode(salts.page_key('inna'))}",
+        # закрытая по ключу страница с фото (QR 2-09; 28.10 «Кадр» убран — профиль «Круга»)
+        "photos": f"/p/{photos_slug}/#k={b64u_encode(salts.page_key(photos_slug))}",
         "video": f"/p/video/#k={b64u_encode(salts.page_key('video'))}",
         "video_sha256": hashlib.sha256((media / video_rel).read_bytes()).hexdigest(),
         # облако с двумя замками (locked: true): адрес с ключом страницы, как в QR записки

@@ -68,6 +68,13 @@ def find(items: list[dict], id_: str) -> int:
     return next(i for i, x in enumerate(items) if x["id"] == id_)
 
 
+def q_loc(root: Path, n: int, qid: str) -> str:
+    """«stages[si].questions[qi]» вопроса ``s<n>.<qid>`` по данным content (номера не зашиваем: вопросы добавляются)."""
+    d = yaml.safe_load((root / "stages.yaml").read_text(encoding="utf-8"))
+    si, qi = q_index(d, n, qid)
+    return f"stages[{si}].questions[{qi}]"
+
+
 # ---------------------------------------------------------------- текущий контент
 
 
@@ -76,7 +83,9 @@ def test_current_content_loads():
     assert c.settings.game_id
     assert {s.n for s in c.stages} == {1, 2, 3, 4}
     # базовые страницы + «Круг» (главная и заглушка); страницы сценариста (REDESIGN §4.3) добавляются сверх
-    assert {"call", "cloud", "gromov", "inna", "news", "pharma", "video", "krug", "krug-private"} <= set(c.pages)
+    # 28.10: «Кадр» (inna, kadr-*) убран, фото Рябовой — в «Круге» (krug-ryabova, документ 2-09)
+    assert {"call", "cloud", "gromov", "krug-ryabova", "news", "pharma", "video", "krug", "krug-private"} <= set(c.pages)
+    assert c.documents_by_id["2-09"].page == "krug-ryabova"
     assert c.pages["gromov"].type == "social" and c.pages["call"].type == "call"
     # middle: None/отсутствует → ""
     assert all(isinstance(ch.middle, str) for ch in c.characters)
@@ -87,7 +96,9 @@ def test_units_order_and_kinds():
     c = load_content(CONTENT)
     us = units(c)
     paths = [u.path for u in us]
-    assert len(us) == 26  # +s2.b2, +s4.fb3 (бонусы 21.10); s3.b1 — один choice вместо формы из двух полей (25.10, вечер)
+    # число единиц — из content: поля формы и вопросы без полей (28.10: контрольные вопросы, 43 единицы)
+    n_units = sum(len(q.fields) if q.fields else 1 for st in c.stages for q in st.questions)
+    assert len(us) == n_units
     assert len(set(paths)) == len(paths)
     # PLAN C7: поля формы — по порядку, вопросы — по порядку
     assert paths[:5] == ["s1.q1.time", "s1.q1.conflict", "s1.q1.disease", "s1.q1.delivered", "s1.q2"]
@@ -97,9 +108,10 @@ def test_units_order_and_kinds():
     assert by["s1.q2"].field is None and by["s1.q2"].type == "order"
     assert by["s1.b1"].leak_scan is False  # leak_scan: false на вопросе
     assert by["s3.b1"].leak_scan is True and by["s3.b1"].field is None
-    assert sum(u.kind == "mandatory" for u in us) == 12
-    assert sum(u.kind == "final" for u in us) == 5
     assert {u.stage for u in us if u.kind == "final"} == {4}
+    # у каждого этапа есть обязательные; с 28.10 — и у последнего (s4.q1, s4.q2: финал открывается после них)
+    assert {u.stage for u in us if u.kind == "mandatory"} == {st.n for st in c.stages}
+    assert [u.path for u in us if u.stage == 4][:2] == ["s4.q1.phone", "s4.q1.print"]
 
 
 def test_render_all_content_strings():
@@ -168,8 +180,9 @@ def test_bonus_with_hints(root):
         si, qi = q_index(d, 2, "b1")
         d["stages"][si]["questions"][qi]["hints"] = ["лишняя"]
 
+    loc = q_loc(root, 2, "b1")
     edit_yaml(root, "stages.yaml", fn)
-    assert_error(root, "stages[1].questions[2].hints", "kind: bonus подсказок быть не должно")
+    assert_error(root, f"{loc}.hints", "kind: bonus подсказок быть не должно")
 
 
 def test_wrong_answer_option_id(root):
@@ -177,8 +190,9 @@ def test_wrong_answer_option_id(root):
         si, qi = q_index(d, 2, "b1")
         d["stages"][si]["questions"][qi]["answer"]["canon"] = "o9"
 
+    loc = q_loc(root, 2, "b1")
     edit_yaml(root, "stages.yaml", fn)
-    assert_error(root, "content/stages.yaml: stages[1].questions[2].answer.canon:", "варианта «o9» нет среди options")
+    assert_error(root, f"content/stages.yaml: {loc}.answer.canon:", "варианта «o9» нет среди options")
 
 
 def test_answer_id_not_lowercase(root):
@@ -186,8 +200,9 @@ def test_answer_id_not_lowercase(root):
         si, qi = q_index(d, 4, "f1")
         d["stages"][si]["questions"][qi]["answer"]["canon"] = "Volkov"
 
+    loc = q_loc(root, 4, "f1")
     edit_yaml(root, "stages.yaml", fn)
-    assert_error(root, "stages[3].questions[0].answer.canon", "ID ответа «Volkov»", "строчные")
+    assert_error(root, f"{loc}.answer.canon", "ID ответа «Volkov»", "строчные")
 
 
 def test_answer_person_unknown_and_document_unknown(root):
@@ -197,9 +212,10 @@ def test_answer_person_unknown_and_document_unknown(root):
         si, qi = q_index(d, 3, "q3")
         d["stages"][si]["questions"][qi]["fields"][1]["answer"]["canon"] = "9-99"
 
+    f2, q3 = q_loc(root, 4, "f2"), q_loc(root, 3, "q3")
     edit_yaml(root, "stages.yaml", fn)
-    errs = assert_error(root, "stages[3].questions[1].answer.canon[1]", "персонажа «nobody» нет")
-    assert any("stages[2].questions[2].fields[1].answer.canon" in e and "документа «9-99» нет" in e for e in errs)
+    errs = assert_error(root, f"{f2}.answer.canon[1]", "персонажа «nobody» нет")
+    assert any(f"{q3}.fields[1].answer.canon" in e and "документа «9-99» нет" in e for e in errs)
 
 
 def test_answer_person_not_in_pool(root):
@@ -224,8 +240,9 @@ def test_duplicate_question_id(root):
         si, qi = q_index(d, 1, "b1")
         d["stages"][si]["questions"][qi]["id"] = "q2"
 
+    loc = q_loc(root, 1, "b1")
     edit_yaml(root, "stages.yaml", fn)
-    assert_error(root, "stages[0].questions[2].id", "дубликат ID «q2»")
+    assert_error(root, f"{loc}.id", "дубликат ID «q2»")
 
 
 def test_template_typo_character(root):
@@ -275,8 +292,24 @@ def test_final_outside_last_stage(root):
         si, qi = q_index(d, 2, "b1")
         d["stages"][si]["questions"][qi]["kind"] = "final"
 
+    loc = q_loc(root, 2, "b1")
     edit_yaml(root, "stages.yaml", fn)
-    assert_error(root, "stages[1].questions[2].kind", "kind: final допустим только в последнем этапе (4)")
+    assert_error(root, f"{loc}.kind", "kind: final допустим только в последнем этапе (4)")
+
+
+def test_mandatory_in_last_stage_allowed_with_hints(root):
+    """28.10: обязательные вопросы бывают и в последнем этапе (финал открывается после них), правила те же:
+    ровно 3 подсказки."""
+    c = load_content(root)
+    assert any(q.kind == "mandatory" for q in c.stage(c.last_stage).questions)
+
+    def fn(d):
+        si, qi = q_index(d, 4, "q1")
+        d["stages"][si]["questions"][qi]["hints"].pop()
+
+    loc = q_loc(root, 4, "q1")
+    edit_yaml(root, "stages.yaml", fn)
+    assert_error(root, f"{loc}.hints", "ровно 3 подсказки")
 
 
 def test_form_without_fields(root):

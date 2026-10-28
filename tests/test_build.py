@@ -23,6 +23,12 @@ from engine import util
 CONTENT = ROOT / "content"
 
 
+def stage2_key_page(content) -> str:
+    """Закрытая по ключу страница с QR конверта 2 (из content: 28.10 «Кадр» убран, 2-09 ведёт в «Круг»)."""
+    return next(d.page for d in content.documents
+                if d.stage == 2 and d.page and content.pages[d.page].locked is True)
+
+
 @pytest.fixture(scope="module")
 def built(tmp_path_factory):
     tmp = tmp_path_factory.mktemp("b")
@@ -36,7 +42,7 @@ def test_dist_layout(built):
     _, dist, _, rep = built
     for rel in ["data/public.json", "data/pack-1.json", "data/pack-4.json", "data/finale.json", "index.html",
                 "lab/index.html", "final/index.html", "robots.txt", "assets/js/boot.js", "assets/css/fonts.css",
-                "p/call/index.html", "p/inna/payload.json", "p/cloud/payload.json"]:
+                "p/call/index.html", f"p/{stage2_key_page(load_content())}/payload.json", "p/cloud/payload.json"]:
         assert (dist / rel).is_file(), rel
     assert not (dist / "p" / "news" / "payload.json").exists()
     assert (dist / "robots.txt").read_text(encoding="utf-8") == "User-agent: *\nDisallow: /\n"
@@ -58,10 +64,11 @@ def test_dist_layout(built):
     assert pub["buildId"].endswith(pub["buildId"][-8:]) and len(pub["buildId"].split("-")[1]) == 8
     pack = json.loads((dist / "data/pack-2.json").read_text(encoding="utf-8"))
     assert set(pack) == {"v", "alg", "aad", "n", "c"} and pack["aad"] == "pack/2"
-    shell = (dist / "p/inna/index.html").read_text(encoding="utf-8")
-    assert 'data-slug="inna"' in shell and 'data-access="key"' in shell
+    slug = stage2_key_page(load_content())
+    shell = (dist / f"p/{slug}/index.html").read_text(encoding="utf-8")
+    assert f'data-slug="{slug}"' in shell and 'data-access="key"' in shell
     locked = {s for s, p in load_content().pages.items() if p.locked is True}
-    assert set(rep.page_keys) == locked >= {"inna", "pharma", "video"}
+    assert set(rep.page_keys) == locked >= {slug, "pharma", "video"}
 
 
 def test_check_passes_on_current_content(built):
@@ -289,19 +296,16 @@ def test_check_without_salts_file(built, tmp_path):
 
 
 def test_stage_without_mandatory(tmp_path):
+    import yaml
+
     cdir = _content_copy(tmp_path)
     p = cdir / "stages.yaml"
-    s = p.read_text(encoding="utf-8")
-    s = s.replace("      - id: q2\n        kind: mandatory\n        type: persons",
-                  "      - id: q2\n        kind: bonus\n        type: persons")
-    s = s.replace("""      - id: q1
-        kind: mandatory
-        type: form
-        prompt: "Восстановите""", """      - id: q1
-        kind: bonus
-        type: form
-        prompt: "Восстановите""")
-    p.write_text(s, encoding="utf-8")
+    d = yaml.safe_load(p.read_text(encoding="utf-8"))
+    for q in d["stages"][1]["questions"]:  # все обязательные этапа 2 — в бонусы (число вопросов не зашиваем)
+        if q["kind"] == "mandatory":
+            q["kind"] = "bonus"
+            q.pop("hints", None)
+    p.write_text(yaml.safe_dump(d, allow_unicode=True, sort_keys=False), encoding="utf-8")
     with pytest.raises(ContentError) as exc:
         load_content(cdir)
     assert any("stages[1].questions" in str(e) and "хотя бы один обязательный" in str(e) for e in exc.value.errors)
@@ -339,7 +343,8 @@ def test_dump_answers_structure(built, tmp_path):
     assert sv["params"]["time"]["input"] == "14:37" and len(sv["params"]["time"]["variants"]) == 15
     assert sv["wrongBasis"] and sv["wrongBasis"] not in sv["bases"]
     pages = {p["slug"]: p for p in data["pages"]}
-    assert pages["inna"]["key"] == rep.page_keys["inna"] and pages["inna"]["url"].endswith("#k=" + rep.page_keys["inna"])
+    slug = stage2_key_page(load_content())
+    assert pages[slug]["key"] == rep.page_keys[slug] and pages[slug]["url"].endswith("#k=" + rep.page_keys[slug])
     # облако с двумя замками: адрес с ключом (QR записки 4-13) + пароль и подсказка владельца
     assert pages["cloud"]["access"] == "key" and pages["cloud"]["url"].startswith("/p/cloud/#k=")
     assert pages["cloud"]["password"] and pages["cloud"]["passwordHint"]

@@ -22,11 +22,13 @@ import {
   openPack,
   openFinale,
   finalQuestions,
+  mandatory,
   earlierBonusPaths,
   normalizeQuestion,
   checkQuestionNormalized,
   rankFor,
 } from "../core/game.js";
+import { finalReady } from "../core/flow.js";
 
 const ctx = await initPage();
 let game = null;
@@ -78,6 +80,7 @@ function commit(fn) {
 async function route() {
   const { state } = game;
   if (state.stage < lastStage()) return renderLocked();
+  if (!finalReady(game.packs[lastStage()], state)) return renderLocked(T.final.lockedMandatory(lastStage()));
   if (state.finished) return renderResults();
   if (!state.final.started) return renderWarning();
   const qs = finalQuestions(game.packs[lastStage()]);
@@ -99,10 +102,10 @@ function sheet(title, ...children) {
 
 // ------------------------------------------------------------------ шаги
 
-function renderLocked() {
+function renderLocked(text = T.final.locked(lastStage() - 1)) {
   sheet(
     T.final.title,
-    h("div", { class: "q" }, h("p", null, T.final.locked(lastStage() - 1)), h("div", { class: "q__actions" }, h("a", { class: "btn btn--primary", href: "/" }, T.back))),
+    h("div", { class: "q" }, h("p", null, text), h("div", { class: "q__actions" }, h("a", { class: "btn btn--primary", href: "/" }, T.back))),
   );
 }
 
@@ -223,11 +226,12 @@ function reviewTable(finale) {
   const rows = [];
   for (let n = 1; n <= lastStage(); n++) {
     const pack = packs[n];
-    const qs = n === lastStage() ? finalQuestions(pack) : pack.questions;
+    // Последний этап: обязательные (главный экран), затем финальные и бонус — в порядке финала.
+    const qs = n === lastStage() ? [...mandatory(pack), ...finalQuestions(pack)] : pack.questions;
     for (const q of qs) {
       const idx = pack.questions.indexOf(q) + 1;
       const no = `${n}.${idx}`;
-      const isFinal = n === lastStage();
+      const isFinal = n === lastStage() && q.kind !== "mandatory";
       const unit = state.units[q.path];
       const value = isFinal ? state.final.answers[q.path] : unit?.status === "solved" ? unit.canon : unit?.given;
       const ok = isFinal ? state.final.correct?.[q.path] === true : unit?.status === "solved";

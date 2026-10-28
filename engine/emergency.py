@@ -89,7 +89,7 @@ def emergency_data(content: Content, salts: Any = None) -> dict:
             qs.append({"path": qpath, "kind": KIND_LABEL[q.kind], "points": points, "prompt": r(q.prompt),
                        "rows": rows, "order": q.type == "order"})
         stages.append({"n": st.n, "envelope": st.envelope, "questions": qs, "next": r(st.on_complete) or None,
-                       "passwords": []})
+                       "mandatory": any(q.kind == "mandatory" for q in st.questions), "passwords": []})
 
     # Пароль облака: у вопросов о нём подсказок нет, без сайта команда его иначе не узнает (ведущему).
     docs = content.documents_by_id

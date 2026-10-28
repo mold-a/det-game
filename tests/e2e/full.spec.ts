@@ -3,7 +3,7 @@
 // меняется до конца), итоги с рангом и разбором, развязка.
 // Итог: expected.perfectRunScore минус один штраф за пустую экспертизу.
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, finishStage, fillQuestion, submit, article, labRequest, headerScore, objectText } from "./helpers";
+import { loadAnswers, startGame, finishStage, finishLastMandatory, fillQuestion, submit, article, labRequest, headerScore, objectText } from "./helpers";
 
 const A = loadAnswers();
 const S = A.settings;
@@ -49,6 +49,13 @@ test("полная игра: этапы, лаборатория, финал, и�
 
   const lastStage = A.stages[A.stages.length - 1];
   await labStage(page, lastStage.n, done);
+  // Обязательные вопросы этапа 4 (главный экран): /final/ до них закрыт.
+  if (lastStage.questions.some((q) => q.kind === "mandatory")) {
+    await page.goto("/final/");
+    await expect(page.locator(".final-sheet")).toContainText(`Финал откроется после обязательных вопросов этапа ${lastStage.n}`);
+    await expect(page.getByRole("button", { name: "Начать финал" })).toHaveCount(0);
+  }
+  await finishLastMandatory(page, lastStage);
   const before = await headerScore(page);
 
   // Финал

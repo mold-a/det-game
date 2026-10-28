@@ -12,6 +12,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+import yaml
 
 from engine import ROOT
 from engine import salts as salts_mod
@@ -462,8 +463,8 @@ def test_doc_qr_same_link_as_qr_command(content, salts):
     # облако с двумя замками (locked: true) — QR с ключом страницы, с одним (password) — без ключа
     assert cloud["qr"]["url"] == cards["cloud"].url
     assert ("#k=" in cloud["qr"]["url"]) == (content.pages["cloud"].locked is True)
-    inna = doc_data(content, "2-09", ctx, cards=cards)
-    assert "#k=" in inna["qr"]["url"]
+    ryabova = doc_data(content, "2-09", ctx, cards=cards)  # 28.10: «Круг», страница этапа 2 закрыта ключом
+    assert ryabova["qr"]["url"] == cards[content.documents_by_id["2-09"].page].url and "#k=" in ryabova["qr"]["url"]
 
 
 def test_qr_can_be_disabled(root, salts):
@@ -575,8 +576,11 @@ def test_pages_unknown_slug(root):
 
 
 def test_pages_stage_not_before_page(root):
-    _set_pages(root, "pages: [gromov, inna]")  # inna — страница конверта 2, а документ в конверте 1
-    assert_error(root, "documents.yaml", "QR страницы «inna» (этап 2) лежит в конверте 1")
+    # страница конверта 2 (по её документу в documents.yaml), а документ с pages — в конверте 1
+    docs = yaml.safe_load((root / "documents.yaml").read_text(encoding="utf-8"))["documents"]
+    slug = next(d["page"] for d in docs if d.get("stage") == 2 and d.get("kind") == "paper" and d.get("page"))
+    _set_pages(root, f"pages: [gromov, {slug}]")
+    assert_error(root, "documents.yaml", f"QR страницы «{slug}» (этап 2) лежит в конверте 1")
 
 
 def test_pages_only_for_paper(root):

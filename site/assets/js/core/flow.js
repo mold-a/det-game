@@ -22,11 +22,13 @@ const answered = (units, q) => Boolean(units?.[q.path]);
  * обязательного; следующий — после ответа на предыдущий, верного или нет (одна попытка).
  * Скрытые вопросы не показываются вовсе (ни заголовком, ни числом в тексте — только счётчик для строки-заглушки).
  * Старые сохранения, где вопросы решались в любом порядке: решённые и отвеченные видны всегда.
+ * opts.bonuses = false — без бонусов: на последнем этапе бонусы задаются на странице финала (docs/01 §2),
+ * а главный экран показывает только обязательные вопросы этапа (finalReady).
  */
-export function stageFlow(pack, units) {
+export function stageFlow(pack, units, { bonuses = true } = {}) {
   const qs = pack?.questions ?? [];
   const mand = qs.filter(isMandatory);
-  const bons = qs.filter(isBonus);
+  const bons = bonuses ? qs.filter(isBonus) : [];
 
   const firstOpen = mand.find((q) => !solved(units, q));
   const mShown = mand.filter((q) => solved(units, q) || q === firstOpen);
@@ -41,6 +43,16 @@ export function stageFlow(pack, units) {
     current: firstOpen?.path ?? firstBonus?.path ?? null,
     complete,
   };
+}
+
+/**
+ * Финал можно начинать: все обязательные вопросы последнего этапа решены (docs/01 §8; 28.10.2026 —
+ * обязательные вопросы бывают и в последнем этапе). Без обязательных — сразу. Начатый или завершённый
+ * финал (старые сохранения) не блокируется.
+ */
+export function finalReady(pack, state) {
+  if (state?.final?.started || state?.finished) return true;
+  return stageFlow(pack, state?.units, { bonuses: false }).complete;
 }
 
 /** Бонусы этапа, на которые ещё не отвечали (и ещё можно ответить: финал не начат). */

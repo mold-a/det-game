@@ -59,6 +59,12 @@ def new_page(root: Path, slug: str, data: dict, body: dict[str, str] | None = No
         (d / name).write_text(text, encoding="utf-8")
 
 
+def stage2_key_page(content) -> str:
+    """Закрытая по ключу страница с QR конверта 2 (из content: 28.10 «Кадр» убран, 2-09 ведёт в «Круг»)."""
+    return next(d.page for d in content.documents
+                if d.stage == 2 and d.page and content.pages[d.page].locked is True)
+
+
 def errors_of(root: Path) -> list[str]:
     with pytest.raises(ContentError) as exc:
         load_content(root)
@@ -74,8 +80,9 @@ def has_error(errs: list[str], *parts: str) -> bool:
 
 def test_type_defaults_to_slug_and_gromov_is_social():
     c = load_content(ROOT / "content")
-    assert [c.pages[s].type for s in ("call", "inna", "news", "pharma", "cloud", "video")] == \
-        ["call", "photo", "news", "pharma", "cloud", "video"]  # inna без type — фотосеть «Кадр» (type photo)
+    assert [c.pages[s].type for s in ("call", "news", "pharma", "cloud", "video")] == \
+        ["call", "news", "pharma", "cloud", "video"]  # type по умолчанию = slug
+    assert "inna" not in c.pages  # 28.10: «Кадр» убран; тип photo — в движке (фикстуры tests/fixtures/pages/kadr-*)
     assert isinstance(c.pages["gromov"], SocialPage) and c.pages["gromov"].doc == "1-12"
     assert isinstance(c.pages["krug-private"], SocialStubPage) and c.pages["krug-private"].doc is None
     assert c.pages["krug-private"].stage == 1
@@ -142,13 +149,14 @@ def test_site_models_validate_blocks(fx):
 
 def test_link_open_closed_and_qr_format(tmp_path):
     c = load_content(ROOT / "content")
-    salts = salts_mod.load_or_init(tmp_path / "s.json", units=[], stages=[], pages=["inna", "pharma", "video", "cloud"])
+    slug = stage2_key_page(c)
+    salts = salts_mod.load_or_init(tmp_path / "s.json", units=[], stages=[], pages=[slug, "pharma", "video", "cloud"])
     link = make_link(c.pages, salts)
     assert link("gromov") == "/p/gromov/"
-    key = b64u_encode(salts.page_key("inna"))
-    assert link("inna") == f"/p/inna/#k={key}"
+    key = b64u_encode(salts.page_key(slug))
+    assert link(slug) == f"/p/{slug}/#k={key}"
     # тот же адрес, что в QR (с доменом)
-    assert qr_url("https://x.ru", "inna", key) == "https://x.ru" + link("inna")
+    assert qr_url("https://x.ru", slug, key) == "https://x.ru" + link(slug)
     # облако: два замка (locked: true) — ключ в адресе, как в QR записки; один замок (password) — без ключа
     if c.pages["cloud"].locked is True:
         assert link("cloud") == f"/p/cloud/#k={b64u_encode(salts.page_key('cloud'))}"
@@ -157,7 +165,7 @@ def test_link_open_closed_and_qr_format(tmp_path):
     with pytest.raises(TemplateRefError):
         link("nope")
     with pytest.raises(TemplateRefError):
-        make_link(c.pages, None)("inna")  # ключей нет — подставить нечего
+        make_link(c.pages, None)(slug)  # ключей нет — подставить нечего
 
 
 def test_link_in_context_and_render_errors():
@@ -196,20 +204,24 @@ def test_page_field_unknown_target(root):
 
 
 def test_open_page_may_link_only_to_stage_1(root):
-    # inna — закрытая страница этапа 2: открытая gromov не может на неё ссылаться (ключ попал бы в открытый файл)
+    # закрытая страница этапа ≥ 2, не профиль (на профили ведёт заглушка, docs/02 §3.10): открытая gromov не может
+    # на неё ссылаться (ключ попал бы в открытый файл). 28.10: inna убрана — берём такую страницу из content (pharma).
+    c = load_content(root)
+    slug = next(s for s, pg in c.pages.items() if pg.locked is True and pg.type not in ("social", "photo")
+                and (pg.stage or 0) >= 2)
     edit_yaml(root, "pages/gromov/page.yaml",
-              lambda d: d["posts"][1].update(link={"page": "inna", "text": "Фотосеть"}))
+              lambda d: d["posts"][1].update(link={"page": slug, "text": "Страница"}))
     errs = errors_of(root)
-    assert has_error(errs, "gromov", "inna", "только на страницы этапа 1") or has_error(errs, "gromov", "inna", "этап 2")
+    assert has_error(errs, "gromov", slug, "только на страницы этапа 1") or has_error(errs, "gromov", slug, "этап")
 
 
 def test_link_to_later_stage_is_error_even_from_closed(fx):
-    # из закрытой страницы этапа 2 (inna) — на страницу этапа 4 (auction): игроки ещё не дошли
-    new_page(fx, "inna-extra", {"slug": "inna-extra", "type": "social", "stage": 2, "locked": True, "brand": "b",
+    # из закрытой страницы этапа 2 — на страницу этапа 4 (auction): игроки ещё не дошли
+    new_page(fx, "late-extra", {"slug": "late-extra", "type": "social", "stage": 2, "locked": True, "brand": "b",
                                 "profile": {"name": "Н"}, "posts": [
                                     {"datetime": "2026-01-01T10:00", "text": "x", "link": {"page": "auction", "text": "t"}}]})
     errs = errors_of(fx)
-    assert has_error(errs, "inna-extra", "auction", "этап 4", "этапа 2")
+    assert has_error(errs, "late-extra", "auction", "этап 4", "этапа 2")
 
 
 def test_closed_page_may_link_to_earlier_stage_and_to_open(fx):
@@ -239,7 +251,7 @@ def test_qr_only_for_pages_with_doc(fx, tmp_path):
     c = load_content(fx)
     salts = salts_mod.ensure_for_content(c, tmp_path / "s.json")
     slugs = {card.slug for card in plan_cards(c, salts)}
-    assert "gromov" in slugs and "inna" in slugs
+    assert "gromov" in slugs and stage2_key_page(c) in slugs
     assert not slugs & {"krug", "krug-private", "theater", "fund", "auction", "krug-actor", "news-extra"}
 
 

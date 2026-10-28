@@ -2,7 +2,7 @@
 // нет console.error и ошибок страницы, noindex и robots.txt, фокус и порядок
 // табуляции, alt у изображений. Вымышленные страницы — pages.spec (P06).
 import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
-import { loadAnswers, startGame, playToStage, labAll, fillQuestion, submit, article , openConclusion } from "./helpers";
+import { finishLastMandatory, loadAnswers, startGame, playToStage, labAll, fillQuestion, submit, article , openConclusion } from "./helpers";
 
 const A = loadAnswers();
 test.setTimeout(240_000);
@@ -44,6 +44,7 @@ test("сеть, консоль и alt: полное прохождение по 
   await labAll(page, A, last.n, done);
   await openConclusion(page);
   await altCheck(page);
+  await finishLastMandatory(page, last);
   await page.goto("/final/");
   await page.getByRole("button", { name: "Начать финал" }).click();
   const byPath = Object.fromEntries(last.questions.map((q) => [q.path, q]));

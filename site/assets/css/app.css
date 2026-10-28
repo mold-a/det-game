@@ -578,6 +578,14 @@ html:has(.app-header) {
   transform: rotate(0.6deg);
 }
 
+/* Телефон: поворот нижнего листа у длинного письма (этап 4) выносит его угол за поле 16 px — горизонтальная
+   прокрутка на 360 px. Здесь лист только сдвинут, без поворота. */
+@media (max-width: 599px) {
+  .paper::before {
+    transform: none;
+  }
+}
+
 .main > .letter {
   isolation: isolate;
   margin-bottom: var(--sp-6);

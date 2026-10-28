@@ -746,7 +746,8 @@ DETECTED = {
     "date param": ("7", lambda env, d: _append(d, "lab/index.html", f"<b>{_lab_answer_date()}</b>")),
     "watchlist": ("7", lambda env, d: _append(d, "index.html", "СЦЕНИЧЕСКАЯ МАСТЕРСКАЯ")),
     "neutral example": ("7", lambda env, d: _append(d, "lab/index.html", '<input placeholder="21:18">')),
-    "page payload swapped": ("5", lambda env, d: (d / "p/inna/payload.json").write_bytes((d / "p/pharma/payload.json").read_bytes())),
+    # 28.10: страница inna убрана — подменяем закрытую страницу QR 2-09 (krug-ryabova)
+    "page payload swapped": ("5", lambda env, d: (d / "p/krug-ryabova/payload.json").write_bytes((d / "p/pharma/payload.json").read_bytes())),
     "finale = pack-4": ("6", lambda env, d: (d / "data/finale.json").write_bytes((d / "data/pack-4.json").read_bytes())),
     "saltStage corrupted": ("1", lambda env, d: _repack(env, d, 1, lambda p: p.__setitem__("saltStage", b64e(os.urandom(16))))),
     "lab early stage": ("4", lambda env, d: _repack(env, d, 1, lambda p: p["lab"]["entries"].append(
@@ -776,7 +777,8 @@ def _reorder_questions(p):
 GAPS = {
     # docs/02 §3.4 / FORMATS §2.4: клиент берёт порядок и kind из пакета; check — из content
     "pack questions reordered": lambda env, d: _repack(env, d, 1, _reorder_questions),
-    "bonus marked mandatory in pack": lambda env, d: _repack(env, d, 1, lambda p: p["questions"][2].__setitem__("kind", "mandatory")),
+    "bonus marked mandatory in pack": lambda env, d: _repack(env, d, 1, lambda p: next(
+        q for q in p["questions"] if q["kind"] == "bonus").__setitem__("kind", "mandatory")),
     "unit.type changed in pack": lambda env, d: _repack(env, d, 3, lambda p: p["questions"][0]["unit"].__setitem__("type", "password")),
     # docs/06 §3.4: «не открывается чужим основанием» — проверяется одно основание и только первый вид
     "lab foreign basis 1-05": lambda env, d: _repack(env, d, 3, lambda p: p["lab"]["entries"].append(

@@ -423,6 +423,7 @@ def check(
     if pub.get("saltsId") != prep.salts.id:
         problems.append("saltsId в public.json не совпадает с salts.lock.json")
     keys[1] = crypto.start_key(crypto.b64u_decode(pub["saltStart"]), pub["iter"]["stage"])
+    answered = 0  # обязательных единиц, отвеченных верно по пакетам
     for st in content.stages:
         n = st.n
         try:
@@ -435,25 +436,31 @@ def check(
         if pack.get("n") != n:
             problems.append(f"pack-{n}: поле n = {pack.get('n')}")
         problems += pack_structure_problems(prep, pack, n)
+        # обязательные вопросы — на каждом этапе, в том числе последнем (28.10: финал открывается после них);
+        # ключ следующего этапа выводится из ответов только для n < последнего
+        pairs = []
+        for q in pack["questions"]:
+            if q.get("kind") != "mandatory":
+                continue
+            for f in q.get("fields", [q]):
+                pu = f["unit"]
+                path = pu["path"]
+                exp = prep.expanded.get(path)
+                x = normalize(pu["type"], exp.input, default_year=s.default_year) if exp else None
+                got = crypto.check_answer(akey(path, x, crypto.b64u_decode(pu["salt"])), path, pu["entries"]) if x else None
+                if got is None:
+                    problems.append(f"{path}: верный ответ не принят записями пакета")
+                pairs.append((path, got or ""))
+        answered += len(pairs)
         if n < content.last_stage:
-            pairs = []
-            for q in pack["questions"]:
-                if q.get("kind") != "mandatory":
-                    continue
-                for f in q.get("fields", [q]):
-                    pu = f["unit"]
-                    path = pu["path"]
-                    exp = prep.expanded.get(path)
-                    x = normalize(pu["type"], exp.input, default_year=s.default_year) if exp else None
-                    got = crypto.check_answer(akey(path, x, crypto.b64u_decode(pu["salt"])), path, pu["entries"]) if x else None
-                    if got is None:
-                        problems.append(f"{path}: верный ответ не принят записями пакета")
-                    pairs.append((path, got or ""))
             keys[n + 1] = crypto.stage_key(n, pairs, crypto.b64u_decode(pack["saltStage"]), pub["iter"]["stage"])
+        elif pack.get("saltStage") is not None:
+            problems.append(f"pack-{n}: у последнего этапа не бывает saltStage")
     for n, k in keys.items():
         if prep.keys.get(n) != k:
             problems.append(f"K_{n}: ключ, выведенный по пакету, не совпадает с ключом из контента")
-    rep.add("1. Прохождение", problems, f"этапов открыто: {len(packs)} из {len(content.stages)}")
+    rep.add("1. Прохождение", problems, f"этапов открыто: {len(packs)} из {len(content.stages)}, "
+                                        f"обязательных единиц отвечено: {answered}")
 
     # единицы пакетов по путям
     pack_units: dict[str, dict] = {}

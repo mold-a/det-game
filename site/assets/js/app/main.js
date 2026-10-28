@@ -14,7 +14,7 @@ import { LAB_HREF } from "./menu.js";
 import { renderHeader } from "./header.js";
 import { initPage, loadProgress, renderLoadError, renderShell, renderFatal, rulesCfg, safeLocalStorage } from "./context.js";
 import * as S from "../core/state.js";
-import { stageFlow, pendingBonuses, viewStage } from "../core/flow.js";
+import { stageFlow, pendingBonuses, viewStage, finalReady } from "../core/flow.js";
 import {
   startKey,
   openPack,
@@ -259,18 +259,9 @@ function renderGame() {
  */
 function fillQuestions(sheet, state, packs, n, last, bonusPhase) {
   const pack = packs[n];
-  if (last) {
-    sheet.appendChild(
-      h(
-        "div",
-        { class: "q q--final-link" },
-        h("p", null, T.final.finalStageText),
-        h("div", { class: "q__actions" }, h("a", { class: "btn btn--primary", href: "/final/" }, state.finished ? T.final.toResults : T.final.toFinal)),
-      ),
-    );
-    return;
-  }
-  const flow = stageFlow(pack, state.units);
+  // Последний этап: обязательные вопросы (если есть) — здесь, по обычным правилам; бонусы и финальные — на /final/.
+  // «Перейти к финалу» — после последнего обязательного (как переход к конверту), без обязательных — сразу.
+  const flow = stageFlow(pack, state.units, { bonuses: !last });
   if (flow.mandatory.shown.length) {
     sheet.appendChild(h("h3", { class: "group-title" }, T.stage.mandatory));
     for (const q of flow.mandatory.shown) sheet.appendChild(questionView(pack, q).el);
@@ -281,12 +272,26 @@ function fillQuestions(sheet, state, packs, n, last, bonusPhase) {
     for (const q of flow.bonus.shown) sheet.appendChild(questionView(pack, q).el);
     if (flow.bonus.hidden) sheet.appendChild(lockedRow());
   }
+  if (last) {
+    if (finalReady(pack, state)) sheet.appendChild(finalLink(state, flow.mandatory.shown.length > 0));
+    return;
+  }
   if (bonusPhase && pendingBonuses(pack, state).length) {
     const next = packs[pack.n + 1];
     const skip = h("button", { type: "button", class: "btn btn--secondary bonus-skip__btn" }, T.stage.skipBonuses(next?.envelope ?? pack.n + 1));
     skip.addEventListener("click", () => showPendingEnvelope({ skip: true }));
     sheet.appendChild(h("div", { class: "bonus-skip" }, h("p", { class: "bonus-skip__hint" }, T.stage.bonusPhase(pack.n)), skip));
   }
+}
+
+/** Блок «Перейти к финалу» последнего этапа; afterMandatory — над ним решённые обязательные вопросы этапа. */
+function finalLink(state, afterMandatory) {
+  return h(
+    "div",
+    { class: "q q--final-link" },
+    h("p", null, afterMandatory && !state.finished ? T.final.finalReadyText : T.final.finalStageText),
+    h("div", { class: "q__actions" }, h("a", { class: "btn btn--primary final-link__go", href: "/final/" }, state.finished ? T.final.toResults : T.final.toFinal)),
+  );
 }
 
 /** Строка вместо скрытых вопросов: ни заголовка, ни числа — только напоминание о порядке. */
@@ -557,7 +562,15 @@ async function onCheck(pack, q, inputs) {
   if (!isStageComplete(pack, game.state.units) || !pack.saltStage) {
     // Следующий вопрос появляется только после верного ответа на этот.
     effects.set(q.path, accepted);
-    rerender(pack, stageFlow(pack, game.state.units).current);
+    const last = !pack.saltStage;
+    const next = stageFlow(pack, game.state.units, { bonuses: !last }).current;
+    rerender(pack, next);
+    if (last && !next && finalReady(pack, game.state)) {
+      // Последний обязательный вопрос последнего этапа: дальше — финал (кнопка «Перейти к финалу»).
+      announce(`${T.result.accepted} ${T.final.finalReadyText}`);
+      document.querySelector(".final-link__go")?.focus();
+      return;
+    }
     announce(T.result.accepted);
     return;
   }

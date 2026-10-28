@@ -2,7 +2,7 @@
 // 1280 px (и тёмная тема) и проверка отсутствия горизонтальной прокрутки.
 // Скриншоты — в test-results/ (вложения отчёта). Вымышленные страницы — pages.spec (P06).
 import { test, expect, type Page } from "@playwright/test";
-import { loadAnswers, startGame, reachQuestion, playToStage, labAll, fillQuestion, submit, article, openConclusion } from "./helpers";
+import { finishLastMandatory, loadAnswers, startGame, reachQuestion, playToStage, labAll, fillQuestion, submit, article, openConclusion } from "./helpers";
 
 const A = loadAnswers();
 test.setTimeout(240_000);
@@ -76,6 +76,7 @@ for (const w of WIDTHS) {
     await page.goto("/");
     await page.locator("details.passed").first().locator("summary").click();
     await check(page, "11-passed-open");
+    await finishLastMandatory(page, last);
 
     await page.goto("/final/");
     await check(page, "12-final-warning");

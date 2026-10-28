@@ -1,7 +1,7 @@
 // docs/06 §5 «Финал»: после ответа вернуться нельзя; счёт до конца не меняется;
 // неверный ответ — без баллов и с пометкой в разборе; развязка показывается.
 import { test, expect } from "@playwright/test";
-import { loadAnswers, playToStage, labAll, fillQuestion, submit, article, headerScore } from "./helpers";
+import { loadAnswers, playToStage, labAll, finishLastMandatory, fillQuestion, submit, article, headerScore } from "./helpers";
 
 const A = loadAnswers();
 const S = A.settings;
@@ -11,6 +11,7 @@ test("лаборатория закрывается с началом финал
   const last = A.stages[A.stages.length - 1];
   const done = await playToStage(page, A, last.n);
   await labAll(page, A, last.n, done);
+  await finishLastMandatory(page, last);
 
   // До финала: карточка на главном экране, пункт в меню /final/, форма на /lab/.
   await page.goto("/");
@@ -42,6 +43,7 @@ test("финал: ответ фиксируется, перезагрузка н
   const last = A.stages[A.stages.length - 1];
   const done = await playToStage(page, A, last.n);
   await labAll(page, A, last.n, done);
+  await finishLastMandatory(page, last);
   const before = await headerScore(page);
 
   await page.goto("/final/");

@@ -43,29 +43,30 @@ def add_fixture_pages(content: Path) -> None:
     news.write_text(text, encoding="utf-8")
 
 
-# ---------------------------------------------------------------- профили закрытых этапов и «Кадр» (docs/02 §3.10)
+# ---------------------------------------------------------------- профили закрытых этапов и «Кадр» (docs/02 §3.10; тип photo — фикстуры)
 
-GATE_PAGES = ("krug-later", "krug-opener", "kadr-friend", "kadr-late", "kadr-late-stub")
+GATE_PAGES = ("krug-later", "krug-opener", "kadr-main", "kadr-friend", "kadr-late", "kadr-late-stub")
+PHOTO_MAIN = "kadr-main"  # главный фотопрофиль фикстур (28.10: сюжетной страницы inna больше нет)
 
 
 def add_gate_fixtures(content: Path) -> None:
     """Поверх копии content/: krug-later (social, этап 2, закрыт), krug-opener (открытый, ссылается на krug-later),
-    kadr-friend (photo, этап 2), kadr-late (photo, этап 3, stub: kadr-late-stub), kadr-late-stub (photo_stub, этап 2).
-    У inna — подписчики, «Подписки» (kadr-friend, kadr-late, человек без страницы) и комментарий со ссылкой."""
+    kadr-main и kadr-friend (photo, этап 2), kadr-late (photo, этап 3, stub: kadr-late-stub), kadr-late-stub (photo_stub, этап 2).
+    У kadr-main — подписчики, «Подписки» (kadr-friend, kadr-late, человек без страницы) и комментарий со ссылкой."""
     pages = Path(content) / "pages"
     for name in GATE_PAGES:
         d = pages / name
         d.mkdir(parents=True, exist_ok=True)
         (d / "page.yaml").write_text((FIXTURES / f"{name}.yaml").read_text(encoding="utf-8"), encoding="utf-8")
 
-    def inna(d):
+    def main(d):
         d["profile"]["followers"] = 120
         d["profile"]["following"] = [{"name": "Фото Подруга", "page": "kadr-friend"},
                                      {"name": "Фото Поздняя", "page": "kadr-late"},
                                      {"name": "Подписка Без Страницы"}]
         d["posts"][0]["comments"] = [{"author": "Фото Подруга", "page": "kadr-friend", "text": "Тестовый комментарий к снимку"}]
 
-    _edit_yaml(pages / "inna" / "page.yaml", inna)
+    _edit_yaml(pages / PHOTO_MAIN / "page.yaml", main)
 
 
 # ---------------------------------------------------------------- фото (site, lab, cloud, news)

@@ -155,13 +155,13 @@ def test_scanned_files_only(tmp_path):
         "characters.yaml": "x: Завьялов\n",
         "world.yaml": "x: Завьялов\n",
         "settings.yaml": "x: Завьялов\n",
-        "pages/inna/page.yaml": "body: Завьялов\n",
+        "pages/krug-sample/page.yaml": "body: Завьялов\n",
         "pages/news/article.md": "Завьялов\n",
         "documents.yaml": "documents:\n  - title: Справка о Завьялове\n",
     })
     assert sorted(found(hits)) == [
         ("content/documents.yaml", 2, "Завьялове"),
-        ("content/pages/inna/page.yaml", 1, "Завьялов"),
+        ("content/pages/krug-sample/page.yaml", 1, "Завьялов"),
         ("content/pages/news/article.md", 1, "Завьялов"),
     ]
 

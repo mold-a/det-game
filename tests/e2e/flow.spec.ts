@@ -161,3 +161,48 @@ test("старое сохранение: бонус отвечен раньше 
   await envelopeOpened(page);
   await expect(page.locator("#stage-title")).toHaveText("Этап 2");
 });
+
+test("этап 4: обязательные вопросы по одному на главном экране, бонусы финала там не видны, финал — после последнего", async ({ page }) => {
+  await playToStage(page, A, 4, new Set(), "skip");
+  const st = A.stages[A.stages.length - 1];
+  const mand = st.questions.filter((q) => q.kind === "mandatory");
+  const rest = st.questions.filter((q) => q.kind !== "mandatory");
+  test.skip(!mand.length, "в последнем этапе нет обязательных вопросов");
+  const toFinal = page.getByRole("link", { name: "Перейти к финалу" });
+
+  // До ответов: первый обязательный виден, остальные скрыты, финальных и бонусов этапа 4 на главном экране нет.
+  await expect(article(page, mand[0].path)).toBeVisible();
+  for (const q of mand.slice(1)) await expect(article(page, q.path)).toHaveCount(0);
+  for (const q of rest) await expect(article(page, q.path)).toHaveCount(0);
+  await expect(toFinal).toHaveCount(0);
+  if (mand.length > 1) await expect(page.locator(".sheet--form .q-locked")).toBeVisible(); // строка текущего этапа, не пройденных
+
+  // /final/ закрыт до обязательных.
+  await page.goto("/final/");
+  await expect(page.locator(".final-sheet")).toContainText(`Финал откроется после обязательных вопросов этапа ${st.n}`);
+  await expect(page.getByRole("button", { name: "Начать финал" })).toHaveCount(0);
+  await page.goto("/");
+
+  // Неверный ответ — штраф и тот же вопрос (обычные правила); подсказка покупается.
+  const q0 = mand[0];
+  const before = await headerScore(page);
+  await fillQuestion(page, q0, q0.type === "form" ? Object.fromEntries(q0.fields!.map((f) => [f.id, f.wrong[0]])) : q0.wrong[0]);
+  await submit(page, q0.path);
+  await expect(article(page, q0.path).locator(".q__msg--error")).toBeVisible();
+  expect(await headerScore(page)).toBe(before + S.penalties.wrongAttempt);
+  await expect(article(page, q0.path).getByRole("button", { name: /^Подсказка/ })).toBeVisible();
+
+  for (const q of mand) {
+    await expect(toFinal).toHaveCount(0);
+    await solve(page, q);
+  }
+  await expect(toFinal).toBeVisible();
+  await expect(toFinal).toBeFocused();
+  for (const q of rest) await expect(article(page, q.path)).toHaveCount(0);
+  // Перезагрузка: решённые остаются, ссылка на финал на месте.
+  await page.reload();
+  await expect(toFinal).toBeVisible();
+  for (const q of mand) await expect(article(page, q.path)).toHaveClass(/q--solved/);
+  await toFinal.click();
+  await expect(page.getByRole("button", { name: "Начать финал" })).toBeVisible();
+});

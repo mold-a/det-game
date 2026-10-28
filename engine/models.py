@@ -1157,9 +1157,17 @@ class ChatScreen(Strict):
     owner: Id | None = None  # чей телефон: его сообщения справа
     with_: Id | None = Field(default=None, alias="with")  # личная переписка
     title: str | None = None  # название группового чата
+    # число участников группового чата в шапке («58 участников»); без него — по отправителям и владельцу
+    members: PosInt | None = None
     time: str | None = None  # время в строке состояния (по умолчанию — время последнего сообщения)
     date: str | None = None  # разделитель дня над сообщениями
     messages: Annotated[list[ChatLine], Field(min_length=1)]
+
+    @model_validator(mode="after")
+    def _members_group_only(self) -> "ChatScreen":
+        if self.members is not None and self.with_ is not None:
+            raise ValueError("members — только у группового чата (title), а не у личной переписки (with)")
+        return self
 
 
 class CallItem(Strict):

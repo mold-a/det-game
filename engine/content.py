@@ -647,8 +647,6 @@ def _check_stages(ld: _Loading, stages: list[Stage], settings: Settings | None,
             qloc = (*sloc, "questions", qi)
             if q.kind == "final" and st.n != last:
                 ld.err(rel, (*qloc, "kind"), f"kind: final допустим только в последнем этапе ({last})")
-            if q.kind == "mandatory" and st.n == last:
-                ld.err(rel, (*qloc, "kind"), "в последнем этапе нет обязательных вопросов (только final и bonus)")
             if q.kind == "mandatory":
                 if n_hints is not None and len(q.hints) != n_hints:
                     ld.err(rel, (*qloc, "hints"),

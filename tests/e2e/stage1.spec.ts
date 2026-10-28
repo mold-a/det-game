@@ -8,6 +8,7 @@ const stage1 = A.stages[0];
 const penalty = A.settings.penalties.wrongAttempt;
 
 test("этап 1: вопросы по одному, штраф за неверный ответ, повтор без штрафа, бонус, переход к этапу 2", async ({ page }) => {
+  test.setTimeout(120_000); // 28.10: в этапе 1 четыре обязательных вопроса
   await startGame(page);
   expect(await headerScore(page)).toBe(0);
 
@@ -57,7 +58,7 @@ test("этап 1: вопросы по одному, штраф за неверн
   await expect(article(page, order.path).getByRole("button", { name: /Подсказка/ })).toHaveCount(1);
 
   // Последний обязательный: ключ получен, но окно конверта ждёт бонусов этапа.
-  for (const q of mandatory.slice(2, -1)) await solve(page, q);
+  for (const q of mandatory.slice(1, -1)) await solve(page, q); // 28.10: после формы и порядка — контрольные s1.q3, s1.q4
   const last = mandatory[mandatory.length - 1];
   await fillQuestion(page, last);
   await submit(page, last.path);

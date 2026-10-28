@@ -98,8 +98,10 @@ def screens_data(content: Content, chat_id: str, media_dir: Path = MEDIA_DIR) ->
                           "avatar": peer, "group": False}
             else:
                 title = r(sc.title, f"{loc}.title") or ""
-                senders = {(m["author"]["name"]) for m in msgs}
-                k = len(senders) + (1 if sc.owner else 0)
+                if sc.members is not None:
+                    k = sc.members
+                else:  # по отправителям (и владельцу телефона)
+                    k = len({m["author"]["name"] for m in msgs}) + (1 if sc.owner else 0)
                 header = {"name": title, "sub": f"{k} {plural(k, ('участник', 'участника', 'участников'))}",
                           "avatar": {"name": title, "photo": None, "initials": _initials(title), "color": _color(title)},
                           "group": True}

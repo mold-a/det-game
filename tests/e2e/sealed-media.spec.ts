@@ -1,4 +1,4 @@
-// Закрытые медиа после новой выкладки (регресс 25.10, mydetgame.ru): фото «Кадра» (inna), видео 4-07 (video),
+// Закрытые медиа после новой выкладки (регресс 25.10, mydetgame.ru): фото закрытого профиля (QR 2-09), видео 4-07 (video),
 // фото облака (cloud) расшифровываются и у того, кто уже открывал прошлую сборку. /m/* хостинг отдаёт как
 // immutable, а ключ закрытого файла новый в каждой сборке: старая копия из кеша браузера не расшифровывалась.
 // Фикстура — tests/e2e/sealed_fixture.py: боевой контент, сервер с заголовками из dist/_headers; нужен ffmpeg.
@@ -14,7 +14,7 @@ const PORT = 8000 + 1200 + Math.floor(Math.random() * 400);
 const BASE = `http://127.0.0.1:${PORT}`;
 
 type Info = {
-  inna: string; video: string; video_sha256: string;
+  photos: string; video: string; video_sha256: string;
   cloud: string; cloud_password: string; cloud_folder: string; cloud_photos: number;
 };
 let out: string;
@@ -63,13 +63,13 @@ async function expectImagesDecrypted(page: Page, scope: string, count?: number) 
   }
 }
 
-async function checkInna(page: Page) {
-  await page.goto(BASE + info.inna);
+async function checkPhotos(page: Page) {
+  await page.goto(BASE + info.photos);
   await expect(page.locator("body")).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
-  await expectImagesDecrypted(page, "body");
+  await expectImagesDecrypted(page, "#kr-panel-posts");
   // крупный просмотр — тот же расшифрованный снимок
-  await page.locator(".kd-tile__btn").first().click();
-  await expect.poll(() => page.locator(".kd-view__img").evaluate((el: HTMLImageElement) => el.src.startsWith("blob:") && el.naturalWidth > 0))
+  await page.locator(".kr-zoom--photo").first().click();
+  await expect.poll(() => page.locator("dialog[open] img.svc-zoom__img").evaluate((el: HTMLImageElement) => el.src.startsWith("blob:") && el.naturalWidth > 0))
     .toBe(true);
   await page.keyboard.press("Escape");
 }
@@ -118,7 +118,7 @@ async function checkAll(ctx: BrowserContext) {
     // кеширование как на хостинге (dist/_headers): без этого тест не ловит регресс
     expect(await r.headerValue("cache-control")).toContain("immutable");
   });
-  await checkInna(page);
+  await checkPhotos(page);
   await checkVideo(page);
   await checkCloud(page);
   await page.close();
