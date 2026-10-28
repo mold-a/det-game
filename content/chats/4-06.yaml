@@ -8,6 +8,9 @@ screens:
   - kind: chat
     owner: reznikova
     title: "{{ w.theater.short }}, труппа и цеха"
+    # 28.10 (замечание автора): в общем чате труппы и цехов около 60 человек (труппа — 32 артиста, theater), а не 5, как сейчас
+    # считает chatshot по отправителям. ЖДЁТ ДВИЖКА: поля members у ChatScreen пока нет — снять «# », когда появится (на обоих экранах).
+    # members: 58
     date: "30 октября"
     messages:
       - { from: reznikova, time: "17:05", text: "Коллеги, напоминаю. 31.10 — прогон первого акта, 11:00. Костюмы — по списку у {{ c.gnedich.last('gen') }}. Без опозданий.", status: read }
@@ -19,6 +22,7 @@ screens:
   - kind: chat
     owner: reznikova
     title: "{{ w.theater.short }}, труппа и цеха"
+    # members: 58   # 28.10, ждёт движка (см. выше)
     date: "9 ноября"
     messages:
       - { from: zavyalov, time: "16:40", text: "{{ c.volkov.first() }}. На премьере будь на 3-м этаже в зале, на всякий случай." }

@@ -18,7 +18,7 @@ profile:
   friends:
     - { person: dmitriy, page: krug-gorohova }
     - { person: voroncov, page: krug-voroncov }
-    - { person: inna, page: krug-ryabova }        # не последней: «ФИО + Сведения о сервисе» совпадает с шапкой «Кадра» (leak scan)
+    - { person: inna, page: krug-ryabova }        # не последней (25.10: совпадение шинглов с шапкой бывшего «Кадра», leak scan; «Кадр» убран 28.10)
     - { person: gnedich, page: krug-gnedich }
 posts:
   - datetime: "2026-11-13T20:47"

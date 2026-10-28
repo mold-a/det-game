@@ -10,10 +10,14 @@
 #   - номер погибшего в звонках оканчивается на w.devices.victim_number_tail (сверка с 4-10).
 # Экраны: kind notification | chat | calls. Все строки — шаблоны (c, w). Время — как на экране телефона.
 id: "3-03"
+# 28.10 (сверка дат, замечание автора): снимки сделаны специалистом 14.11 с 13:55 до 14:10 (лист 3-03: «Время на снимках — по часам
+# телефона»), поэтому в строке состояния — время съёмки (13:56…14:04), а не время событий; на экране блокировки — дата 14.11, у старых
+# уведомлений — «чт» (12.11). Добавлено уведомление 14.11 10:04 о публикации — то самое, с которым Кирилл пришёл (3-03, 3-04).
 screens:
   - kind: chat
     owner: kirill
     with: voroncov
+    time: "13:56"
     date: "6 ноября"
     messages:
       # Манера (скрины автора 20.10, docs/VOICES.md): Кирилл — с заглавной, мысль на несколько сообщений, «....», 😢 😂;
@@ -24,32 +28,37 @@ screens:
       - { from: voroncov, time: "23:58", text: "😁" }
       - { from: kirill, time: "23:59", text: "Есть такое)", status: read }
   - kind: notification
-    time: "19:41"
-    date: "{{ w.dates.premiere_weekday }}, 12 ноября"
+    time: "13:58"
+    date: "суббота, 14 ноября"
     items:
+      - app: "{{ w.brands.cloud }}"
+        title: "Публикация по расписанию через 24 часа"
+        text: "Владелец не отмечался с 12 ноября, 10:04. Если он не подтвердит, что на связи, архив будет опубликован 15 ноября в 10:04. Вы получили это уведомление как доверенный контакт."
+        time: "10:04"
       - app: "{{ w.brands.cloud }}"
         title: "Три неудачные попытки входа"
         text: "Вход с нового устройства: {{ w.devices.volkov_phone }}, браузер, сеть {{ w.theater.staff_wifi }}. Неверный пароль ×3: введён прежний пароль, изменён 6 ноября."
-        time: "19:40"
+        time: "чт, 19:40"
       - app: "{{ w.brands.cloud }}"
         title: "Восстановление по SMS отклонено"
         text: "Запрос восстановления по SMS на номер ***{{ w.devices.victim_number_tail }} отклонён: восстановление отключено. Вы получили это уведомление как доверенный контакт."
-        time: "19:40"
+        time: "чт, 19:40"
   - kind: calls
     owner: kirill
-    time: "19:56"
+    time: "14:01"
     items:
       - who: voroncov
         number: "{{ w.devices.victim_number }}"
-        time: "19:42"
+        time: "12.11, 19:42"
         direction: out
       - who: voroncov
         number: "{{ w.devices.victim_number }}"
-        time: "19:55"
+        time: "12.11, 19:55"
         direction: out
   - kind: chat
     owner: kirill
     with: voroncov
+    time: "14:04"
     date: "12 ноября"
     messages:
       - { from: kirill, time: "19:43", text: "{{ c.voroncov.familiar }}, кто-то из театра лезет в облако. Позвони!", status: read }
