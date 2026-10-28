@@ -247,7 +247,7 @@ def test_cloud_photos_folder_is_sealed_with_encrypted_media(built):
     assert len(items) == 4
     a, b, c, absent = items
     assert "data-media=" in a and "src=" not in a and 'loading="lazy"' in a and "data-zoom" in a
-    assert 'data-caption="Тестовая репетиция · 12.10.2026"' in a
+    assert 'data-caption="Тестовая репетиция, 12.10.2026"' in a
     assert '<time class="tc-photo__date" datetime="2026-10-12">12.10.2026</time>' in a
     assert 'data-caption="Только подпись"' in b and "tc-photo__date" not in b
     assert "tc-photo__cap" not in c  # ни подписи, ни даты

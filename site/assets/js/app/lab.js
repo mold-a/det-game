@@ -121,7 +121,7 @@ function render() {
         { class: "pz-strip__who" },
         h("span", { class: "pz-strip__label" }, `${T.lab.customer}: `),
         h("span", { class: "pz-strip__dept" }, ctx.chrome.department || ctx.chrome.system),
-        h("span", { class: "pz-strip__sep", "aria-hidden": "true" }, " · "),
+        h("span", { class: "pz-strip__sep", "aria-hidden": "true" }, ", "),
         h("span", { class: "pz-strip__case" }, T.lab.caseNo(ctx.chrome.caseNo)),
       ),
       game
@@ -528,7 +528,7 @@ function resultHead(object, ok) {
     "div",
     { class: "pz-result__head" },
     h("span", { class: ["pz-status", ok ? "pz-status--done" : "pz-status--nothing"] }, ok ? T.lab.statusDone : T.lab.statusNothing),
-    h("p", { class: "pz-result__object" }, object.title, object.ref ? h("span", { class: "pz-result__ref" }, ` · ${object.ref}`) : null),
+    h("p", { class: "pz-result__object" }, object.title, object.ref ? h("span", { class: "pz-result__ref" }, `, ${object.ref}`) : null),
   );
 }
 
@@ -644,7 +644,7 @@ function renderOrders(section) {
         h(
           "div",
           { class: "orders__what" },
-          h("p", { class: "orders__object" }, r.objectTitle, r.ref ? h("span", { class: "orders__ref" }, ` · ${r.ref}`) : null),
+          h("p", { class: "orders__object" }, r.objectTitle, r.ref ? h("span", { class: "orders__ref" }, `, ${r.ref}`) : null),
           h(
             "dl",
             { class: "orders__facts" },
@@ -667,7 +667,7 @@ function renderOrders(section) {
   section.append(list);
 }
 
-/** Параметры заявки по-человечески: «<подпись> <значение> · …», дата — ДД.ММ.ГГГГ. */
+/** Параметры заявки по-человечески: «<подпись> <значение>, …», дата — ДД.ММ.ГГГГ. */
 function paramsText(r) {
   const defs = els.catalog.objects.find((o) => o.id === r.object)?.params ?? [];
   return r.params
@@ -677,7 +677,7 @@ function paramsText(r) {
       const shown = m ? `${m[3]}.${m[2]}.${m[1]}` : String(v);
       return d?.label ? `${d.label} ${shown}` : shown;
     })
-    .join(" · ");
+    .join(", ");
 }
 
 function basisTitle(id) {

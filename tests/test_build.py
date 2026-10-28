@@ -356,3 +356,16 @@ def test_answers_data_matches_settings(built):
     _, _, salts, _ = built
     data = answers_data(prepare(CONTENT, salts, create_salts=False))
     assert data["settings"]["hints"] == {"cost": [10, 20, 40], "autoAfterWrong": 3}
+
+
+def test_no_middle_dots_in_dist(built):
+    """Решение автора 24.10.2026: в собранном сайте нет средних точек «·» (html, js, css, json и т.п.), исключений нет."""
+    _, dist, _, _ = built
+    bad = []
+    for f in sorted(dist.rglob("*")):
+        if not f.is_file() or f.suffix.lower() not in {".html", ".js", ".mjs", ".css", ".json", ".txt", ".svg", ".webmanifest"}:
+            continue
+        text = f.read_text(encoding="utf-8")
+        if "·" in text:
+            bad.append(f"{f.relative_to(dist).as_posix()}: {text.count('·')}")
+    assert not bad, "средние точки в dist/: " + "; ".join(bad)

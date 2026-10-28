@@ -82,14 +82,14 @@ test("открытая страница: свой плеер, расшифров
   await noHScroll(page);
 });
 
-test("голосовое без файла: неактивная плашка «Голосовое сообщение · 0:12»", async ({ page }) => {
+test("голосовое без файла: неактивная плашка «Голосовое сообщение, 0:12»", async ({ page }) => {
   await page.goto(BASE + info.open);
   await expect(page.locator("body")).toHaveAttribute("data-ready", "1");
   const missing = page.locator('.kr-post[data-datetime="2026-10-03T09:15"] .kr-voice');
   await expect(missing).toHaveAttribute("data-missing", "1");
   await expect(missing.locator("audio")).toHaveCount(0);
   await expect(missing.locator('[data-act="play"]')).toBeDisabled();
-  await expect(missing.locator(".kr-voice__meta")).toHaveText("Голосовое сообщение · 0:12", { useInnerText: true });
+  await expect(missing.locator(".kr-voice__meta")).toHaveText("Голосовое сообщение, 0:12", { useInnerText: true });
   await expect(missing.locator("details")).toHaveCount(0);
 });
 
@@ -183,7 +183,7 @@ test("голосовое у комментария: компактный пле�
   const missing = voices.nth(1);
   await expect(missing).toHaveAttribute("data-missing", "1");
   await expect(missing.locator('[data-act="play"]')).toBeDisabled();
-  await expect(missing.locator(".kr-voice__meta")).toHaveText("Голосовое сообщение · 0:07", { useInnerText: true });
+  await expect(missing.locator(".kr-voice__meta")).toHaveText("Голосовое сообщение, 0:07", { useInnerText: true });
   await noHScroll(page);
 });
 

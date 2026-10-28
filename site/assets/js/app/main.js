@@ -421,7 +421,7 @@ function renderPassed(pack) {
   const det = h(
     "details",
     { class: ["passed", pending.length && "passed--bonus"], open: pending.length > 0 || openPassed.has(pack.n) },
-    h("summary", null, pending.length ? `${title} · ${T.stage.passedBonus}` : title),
+    h("summary", null, pending.length ? `${title}, ${T.stage.passedBonus}` : title),
     body,
   );
   det.addEventListener("toggle", () => {

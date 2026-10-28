@@ -24,7 +24,7 @@ tr { break-inside: avoid; page-break-inside: avoid; }
     <td><div class="card">
       <div class="qr">{{ c.svg }}</div>
       <div class="label">{{ c.label }}</div>
-      <div class="meta">Конверт {{ c.envelope }} · к документу {{ c.docs|join(", ") }}{% if c.access == "password" %} · вход по паролю{% endif %}</div>
+      <div class="meta">Конверт {{ c.envelope }}, к документу {{ c.docs|join(", ") }}{% if c.access == "password" %}, вход по паролю{% endif %}</div>
     </div></td>
   {% endfor %}
   {% for _ in range(3 - row|length) %}<td></td>{% endfor %}

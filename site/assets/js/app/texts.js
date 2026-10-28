@@ -102,7 +102,7 @@ export const T = Object.freeze({
     letterFirst: "Письмо руководителя этапа",
     title: (n) => `Этап ${n}`,
     letter: "Письмо руководителя",
-    letterCopy: (n) => `Этап ${n} · экз. единственный`,
+    letterCopy: (n) => `Этап ${n}, экз. единственный`,
     formTitle: "Бланк ответов",
     letterShow: "Показать письмо",
     letterHide: "Свернуть письмо",

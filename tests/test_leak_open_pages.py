@@ -68,7 +68,7 @@ def test_secret_sentence_on_open_page_is_caught(tmp_path, secret):
 def test_brands_and_service_footer_are_not_leaks(tmp_path):
     # бренд мира, название театра и подвал сервиса стоят на странице по замыслу
     insert = ("{{ w.brands.social }} — городская сеть для общения: страницы горожан, организаций и сообществ. "
-              "{{ w.theater.full }}, {{ w.city }}, {{ w.theater.address }}. О сервисе · Правила · Помощь")
+              "{{ w.theater.full }}, {{ w.city }}, {{ w.theater.address }}. О сервисе, Правила, Помощь")
     rep, _ = _run(tmp_path, insert)
     assert rep.ok, rep.problems
 

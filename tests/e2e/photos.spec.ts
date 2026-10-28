@@ -261,7 +261,7 @@ test.describe("облако: папка-галерея", () => {
 
     const a = items.nth(0).locator("button");
     await a.click();
-    const dlg = await expectZoom(page, "Тестовая репетиция · 12.10.2026");
+    const dlg = await expectZoom(page, "Тестовая репетиция, 12.10.2026");
     expect(await dlg.locator("img.svc-zoom__img").getAttribute("src")).toMatch(/^blob:/);
     await shot(page, "cloud-zoom-360");
     await closeAndCheckFocus(page, a, "esc");

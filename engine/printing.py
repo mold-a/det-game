@@ -82,7 +82,7 @@ def html_to_pdf(b: object, html: str, out: Path, *, landscape: bool = False, foo
 
 
 def html_to_png(b: object, html: str, out: Path, *, width: int, height: int, scale: float = 1) -> Path:
-    """Снимок окна ``width × height`` CSS-пикселей; файл — ``width·scale × height·scale`` пикселей
+    """Снимок окна ``width × height`` CSS-пикселей; файл — ``width × scale`` на ``height × scale`` пикселей
     (по умолчанию ``scale`` = 1: ровно ``width × height``)."""
     out = Path(out)
     tmp = _with_tmp_html(html, out)

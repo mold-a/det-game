@@ -97,7 +97,7 @@
         <ul class="tc-photos" role="list">
           {% for it in f["items"] %}
           {% set when = it.date|dt("date") if it.date else "" %}
-          {% set cap = (it.caption or "") ~ (" · " if it.caption and when else "") ~ when %}
+          {% set cap = (it.caption or "") ~ (", " if it.caption and when else "") ~ when %}
           <li class="tc-photo">
             {{ ui.zoom_img(media, it.file, it.caption or "Фото из папки", "фото", "tc-photo__btn", "tc-photo__img", cap) }}
             {% if it.caption or when %}<p class="tc-photo__cap">{% if it.caption %}<span class="tc-photo__text">{{ it.caption }}</span>{% endif %}{% if when %} <time class="tc-photo__date" datetime="{{ it.date }}">{{ when }}</time>{% endif %}</p>{% endif %}
