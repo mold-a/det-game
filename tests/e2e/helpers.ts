@@ -224,7 +224,7 @@ export async function finishStage(page: Page, stage: { n: number; questions: Que
 }
 
 /**
- * Последний этап (28.10.2026): обязательные вопросы (s4.q1, s4.q2 — из tests/.answers.json) на главном экране, по одному;
+ * Последний этап: обязательные вопросы (из tests/.answers.json; с 30.10 в контенте их нет) на главном экране, по одному;
  * «Перейти к финалу» появляется только после последнего из них. Без обязательных — ссылка сразу.
  */
 export async function finishLastMandatory(page: Page, stage: { n: number; questions: Question[] }) {

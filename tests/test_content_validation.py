@@ -109,9 +109,8 @@ def test_units_order_and_kinds():
     assert by["s1.b1"].leak_scan is False  # leak_scan: false на вопросе
     assert by["s3.b1"].leak_scan is True and by["s3.b1"].field is None
     assert {u.stage for u in us if u.kind == "final"} == {4}
-    # у каждого этапа есть обязательные; с 28.10 — и у последнего (s4.q1, s4.q2: финал открывается после них)
-    assert {u.stage for u in us if u.kind == "mandatory"} == {st.n for st in c.stages}
-    assert [u.path for u in us if u.stage == 4][:2] == ["s4.q1.phone", "s4.q1.print"]
+    # у каждого этапа, кроме последнего, есть обязательные; у последнего (30.10: контрольные s4.q1, s4.q2 сняты) — сразу финал
+    assert {u.stage for u in us if u.kind == "mandatory"} == {st.n for st in c.stages if st.n != c.last_stage}
 
 
 def test_render_all_content_strings():
@@ -299,15 +298,25 @@ def test_final_outside_last_stage(root):
 
 def test_mandatory_in_last_stage_allowed_with_hints(root):
     """28.10: обязательные вопросы бывают и в последнем этапе (финал открывается после них), правила те же:
-    ровно 3 подсказки."""
+    ровно 3 подсказки. С 30.10 в контенте их нет, поэтому вопрос добавляется копией обязательного s3.q1."""
+    import copy
+
+    def add(d):
+        si, qi = q_index(d, 3, "q1")
+        q = copy.deepcopy(d["stages"][si]["questions"][qi])
+        q["id"] = "qx"
+        last = next(i for i, st in enumerate(d["stages"]) if st["n"] == 4)
+        d["stages"][last]["questions"].insert(0, q)
+
+    edit_yaml(root, "stages.yaml", add)
     c = load_content(root)
     assert any(q.kind == "mandatory" for q in c.stage(c.last_stage).questions)
 
     def fn(d):
-        si, qi = q_index(d, 4, "q1")
+        si, qi = q_index(d, 4, "qx")
         d["stages"][si]["questions"][qi]["hints"].pop()
 
-    loc = q_loc(root, 4, "q1")
+    loc = q_loc(root, 4, "qx")
     edit_yaml(root, "stages.yaml", fn)
     assert_error(root, f"{loc}.hints", "ровно 3 подсказки")
 

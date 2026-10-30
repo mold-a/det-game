@@ -15,7 +15,7 @@ test("финал: фиксация без оценки, счёт неизмен�
   expect(before).toBe(bonusCount * A.settings.points.bonus);
 
   await page.goto("/final/");
-  await expect(page.locator(".final-warn")).toHaveText("Ответы финала нельзя изменить. Убедитесь, что изучили все материалы.");
+  await expect(page.locator(".final-warn")).toHaveText("Ответы финала нельзя изменить. С началом финала лаборатория перестанет принимать заявки. Убедитесь, что изучили все материалы и получили все нужные заключения.");
   await page.getByRole("button", { name: "Начать финал" }).click();
 
   const last = A.stages[3];
