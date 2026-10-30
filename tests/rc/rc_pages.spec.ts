@@ -242,12 +242,12 @@ for (const [w, h] of VIEWS) {
       expect(wt.problems.filter((x) => !x.startsWith("requestfailed"))).toEqual([]);
     });
 
-    test("закрытая страница без ключа и с испорченным ключом: «Ссылка повреждена»", async ({ page }) => {
+    test("закрытая страница без ключа и с испорченным ключом: «Эта страница открывается по QR-коду»", async ({ page }) => {
       for (const slug of ["auction", "inna", "pharma", "video"]) {
         const p = BY[slug];
         for (const suffix of ["", "#k=AAAA", "#k=" + p.key!.slice(0, -2) + "xx"]) {
           await page.goto(`/p/${slug}/${suffix}`);
-          await expect(page.getByText("Ссылка повреждена")).toBeVisible({ timeout: 15000 });
+          await expect(page.getByText("Эта страница открывается по QR-коду")).toBeVisible({ timeout: 15000 });
         }
       }
       await shot(page, `closed-${w}-broken`, false);

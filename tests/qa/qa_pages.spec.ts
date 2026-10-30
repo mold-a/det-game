@@ -1,5 +1,5 @@
 // QA: закрытые страницы по QR (docs/02 §3.8–3.9): ключ из #k= — убран из адреса и
-// истории, не в localStorage, не в сети; повреждённый ключ → «Ссылка повреждена»;
+// истории, не в localStorage, не в сети; повреждённый ключ → «Эта страница открывается по QR-коду»;
 // облако — в sessionStorage ключ, а не пароль; без внешних запросов и console.error.
 import { test, expect, type Page, type Request } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -7,7 +7,7 @@ import { collectErrors } from "./qa_util";
 
 const LOCK = JSON.parse(readFileSync("engine/salts.lock.json", "utf-8"));
 const KEYS: Record<string, string> = LOCK.pages;
-const BROKEN = "Ссылка повреждена. Отсканируйте QR-код ещё раз.";
+const BROKEN = "Эта страница открывается по QR-коду из материалов дела. Отсканируйте его.";
 
 function recordRequests(page: Page) {
   const reqs: Request[] = [];
@@ -64,7 +64,7 @@ for (const [slug, key] of Object.entries(KEYS)) {
   });
 }
 
-test("повреждённые ключи → «Ссылка повреждена», плохой ключ не остаётся в sessionStorage", async ({ page, context }) => {
+test("повреждённые ключи → «Эта страница открывается по QR-коду», плохой ключ не остаётся в sessionStorage", async ({ page, context }) => {
   const errors = collectErrors(page);
   const k = KEYS.inna;
   const bad = [

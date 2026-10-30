@@ -44,7 +44,7 @@ const GROMOV_MEETING_ISO = (() => {
   return m![1];
 })();
 
-const BROKEN = "Ссылка повреждена. Отсканируйте QR-код ещё раз";
+const BROKEN = "Эта страница открывается по QR-коду из материалов дела. Отсканируйте его";
 const PHONE = { width: 360, height: 780 };
 
 if (process.env.DETGAME_BASE_URL) test.use({ baseURL: process.env.DETGAME_BASE_URL });
@@ -239,13 +239,13 @@ test.describe("закрытые страницы: ключ", () => {
   const keyed = Object.values(PAGES).filter((p) => p.access === "key");
 
   for (const p of keyed) {
-    test(`${p.slug}: без ключа — «Ссылка повреждена»`, async ({ page }) => {
+    test(`${p.slug}: без ключа — «Эта страница открывается по QR-коду»`, async ({ page }) => {
       await page.goto(`/p/${p.slug}/`);
       await expect(page.getByText(BROKEN)).toBeVisible();
       await expect(page.locator("#page-content")).toBeEmpty();
     });
 
-    test(`${p.slug}: испорченный ключ — «Ссылка повреждена»`, async ({ page }) => {
+    test(`${p.slug}: испорченный ключ — «Эта страница открывается по QR-коду»`, async ({ page }) => {
       const bad = (p.key![0] === "A" ? "B" : "A") + p.key!.slice(1);
       await page.goto(`/p/${p.slug}/#k=${bad}`);
       await expect(page.getByText(BROKEN)).toBeVisible();
@@ -300,7 +300,7 @@ test.describe("облако: пароль", () => {
     await expect(page.locator('input[name="password"]')).toBeHidden();
   });
 
-  test("без ключа QR: ни формы входа, ни логина, ни подсказки — «Ссылка повреждена»", async ({ page }) => {
+  test("без ключа QR: ни формы входа, ни логина, ни подсказки — «Эта страница открывается по QR-коду»", async ({ page }) => {
     const p = PAGES.cloud;
     test.skip(p.access !== "key", "облако с одним замком");
     await page.goto("/p/cloud/");
