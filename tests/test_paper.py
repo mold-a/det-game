@@ -690,12 +690,21 @@ def test_render_envelopes_and_stubs(chromium, root, salts, tmp_path):
     rep = render_paper(c, out, salts=salts, preview=False)
     ids = paper_ids(c)
     assert [r.id for r in rep.rows] == ids
-    assert [p.name for p in rep.envelopes] == [f"envelope-{n}.pdf" for n in (1, 2, 3, 4)]
-    for n, env in enumerate(rep.envelopes, 1):
+    # конверты 1–4 и конверт «после финала» (5, с обложкой-описью; content.after_final_stage)
+    assert [p.name for p in rep.envelopes] == [f"envelope-{n}.pdf" for n in sorted({r.stage for r in rep.rows})]
+    for env in rep.envelopes:
+        n = int(env.stem.split("-")[1])
         rows = [r for r in rep.rows if r.stage == n]
+        docs = [t for r in rows for t in _page_texts(r.pdf)]
+        if n in rep.covers:
+            # обложка-опись первой (её временный PDF удаляется после сборки), затем документы подряд
+            got = _page_texts(env)
+            assert "ВСКРЫТЬ ПОСЛЕ ФИНАЛА" in got[0].upper(), got[0]
+            assert len(got) > len(docs) and got[len(got) - len(docs):] == docs, env
+            continue
         assert pdf_pages(env) == sum(r.pages for r in rows), env
         # страницы сборника — это страницы отдельных PDF подряд, в порядке documents.yaml
-        assert _page_texts(env) == [t for r in rows for t in _page_texts(r.pdf)], env
+        assert _page_texts(env) == docs, env
     by_id = {r.id: r for r in rep.rows}
     assert by_id["2-02"].pages == 2 and by_id["2-04"].pages == 1
     env2 = _page_texts(out / "envelope-2.pdf")
@@ -734,8 +743,17 @@ def test_render_envelopes_duplex(chromium, root, salts, tmp_path):
     assert note, "settings.print.blank_back"
     out = tmp_path / "out"
     rep = render_paper(c, out, salts=salts, preview=False)
-    for n, env in enumerate(rep.envelopes, 1):
+    for env in rep.envelopes:
+        n = int(env.stem.split("-")[1])
         rows = [r for r in rep.rows if r.stage == n]
+        if n in rep.covers:
+            # конверт «после финала»: обложка-опись (и пустой оборот, если она на нечётном числе страниц), затем документы
+            got = _page_texts(env)
+            assert "ВСКРЫТЬ ПОСЛЕ ФИНАЛА" in got[0].upper(), got[0]
+            for r in rows:
+                first = _page_texts(r.pdf)[0]
+                assert first in got, (env, r.id)
+            continue
         expected: list[str] = []
         starts = []
         for k, r in enumerate(rows):
